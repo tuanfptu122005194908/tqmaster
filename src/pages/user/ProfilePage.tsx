@@ -3,7 +3,7 @@ import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, formatDate } from '@/lib/mockData';
-import { User, Package, BookOpen, Phone, Loader2, ChevronDown } from 'lucide-react';
+import { User, Package, BookOpen, Phone, Loader2, ChevronDown, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 type Order   = Tables<'orders'>;
 type Subject = Tables<'subjects'>;
@@ -18,6 +18,39 @@ export default function ProfilePage() {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [orderItemsMap, setOrderItemsMap] = useState<Record<string, OrderItem[]>>({});
   const [loadingItemsOrderId, setLoadingItemsOrderId] = useState<string | null>(null);
+
+  // Change password states
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const handleChangePassword = async () => {
+    setPwError('');
+    setPwSuccess(false);
+    if (newPassword.length < 6) {
+      setPwError('Mật khẩu mới phải có ít nhất 6 ký tự');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    setPwLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwLoading(false);
+    if (error) {
+      setPwError(error.message);
+    } else {
+      setPwSuccess(true);
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPwSuccess(false), 4000);
+    }
+  };
 
   useEffect(() => {
     if (!profile) return;
@@ -110,6 +143,114 @@ export default function ProfilePage() {
               <div style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))', whiteSpace: 'pre-line' }}>{bankInfo['contact_info']}</div>
             </div>
           )}
+
+          {/* Change Password */}
+          <div style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-4)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontWeight: 600, fontSize: '0.875rem', marginBottom: 'var(--space-4)', color: 'hsl(var(--foreground))' }}>
+              <Lock size={15} /> Đổi mật khẩu
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              {/* New password */}
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 500, color: 'hsl(var(--muted-fg))', marginBottom: 4, display: 'block' }}>Mật khẩu mới</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showNewPw ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Tối thiểu 6 ký tự"
+                    style={{
+                      width: '100%',
+                      padding: '8px 36px 8px 12px',
+                      fontSize: '0.8125rem',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 'var(--radius)',
+                      background: 'hsl(var(--background))',
+                      color: 'hsl(var(--foreground))',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPw(!showNewPw)}
+                    style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-fg))', padding: 2 }}
+                  >
+                    {showNewPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm password */}
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 500, color: 'hsl(var(--muted-fg))', marginBottom: 4, display: 'block' }}>Xác nhận mật khẩu</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPw ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu mới"
+                    style={{
+                      width: '100%',
+                      padding: '8px 36px 8px 12px',
+                      fontSize: '0.8125rem',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 'var(--radius)',
+                      background: 'hsl(var(--background))',
+                      color: 'hsl(var(--foreground))',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPw(!showConfirmPw)}
+                    style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-fg))', padding: 2 }}
+                  >
+                    {showConfirmPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error / Success messages */}
+              {pwError && (
+                <div style={{ fontSize: '0.75rem', color: 'hsl(0 72% 51%)', background: 'hsl(0 72% 51% / 0.08)', padding: '6px 10px', borderRadius: 'var(--radius)', fontWeight: 500 }}>
+                  {pwError}
+                </div>
+              )}
+              {pwSuccess && (
+                <div style={{ fontSize: '0.75rem', color: 'hsl(142 71% 45%)', background: 'hsl(142 71% 45% / 0.08)', padding: '6px 10px', borderRadius: 'var(--radius)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <CheckCircle2 size={14} /> Đổi mật khẩu thành công!
+                </div>
+              )}
+
+              {/* Submit button */}
+              <button
+                onClick={handleChangePassword}
+                disabled={pwLoading || !newPassword || !confirmPassword}
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: 'white',
+                  background: pwLoading || !newPassword || !confirmPassword ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--primary))',
+                  border: 'none',
+                  borderRadius: 'var(--radius)',
+                  cursor: pwLoading || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer',
+                  transition: 'all var(--duration-fast)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 'var(--space-2)',
+                }}
+              >
+                {pwLoading && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+                {pwLoading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right column */}
