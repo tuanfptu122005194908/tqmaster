@@ -223,6 +223,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             await refreshPurchased();
             if (event === 'SIGNED_IN') {
               enforceSingleSession(session.user.id);
+              setSearchQuery('');
               if (!localStorage.getItem('currentView')) setCurrentView('home');
             }
           }
@@ -238,6 +239,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setIsAdmin(false);
           setPurchasedIds([]);
           setCart([]);
+          setSearchQuery('');
           setCurrentView('home');
         }
       }, 0);

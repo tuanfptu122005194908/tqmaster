@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/lib/AppContext';
-import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper } from 'lucide-react';
+import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 
 export default function TopNav() {
@@ -108,13 +108,31 @@ export default function TopNav() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ 
-              width: '100%', padding: '9px 14px 9px 40px', borderRadius: 999, border: '2px solid hsl(var(--border))', 
+              width: '100%', padding: '9px 38px 9px 40px', borderRadius: 999, border: '2px solid hsl(var(--border))', 
               background: 'hsl(var(--muted) / 0.3)', fontSize: '0.875rem', fontWeight: 500, outline: 'none', transition: 'all 0.2s',
               boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
             }} 
             onFocus={(e) => { e.target.style.background = 'white'; e.target.style.borderColor = 'hsl(var(--primary))'; e.target.style.boxShadow = '0 0 0 4px hsl(var(--primary) / 0.1), var(--shadow-sm)'; }}
             onBlur={(e) => { e.target.style.background = 'hsl(var(--muted) / 0.3)'; e.target.style.borderColor = 'hsl(var(--border))'; e.target.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.02)'; }}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                width: 20, height: 20, borderRadius: '50%',
+                background: 'hsl(var(--muted-fg) / 0.15)', border: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: 'hsl(var(--muted-fg))', padding: 0,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'hsl(var(--muted-fg) / 0.25)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'hsl(var(--muted-fg) / 0.15)'}
+            >
+              <X size={12} strokeWidth={3} />
+            </button>
+          )}
         </div>
       </div>
 
