@@ -1,0 +1,13 @@
+project_id = "jokmwkkepasocfpcsmzd"
+
+[functions.notify-admin-new-order]
+verify_jwt = false
+
+[functions.create-order]
+verify_jwt = false
+
+[functions.forgot-password]
+verify_jwt = false
+
+[functions.notify-order-approved]
+verify_jwt = false
