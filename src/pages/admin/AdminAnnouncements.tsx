@@ -46,9 +46,9 @@ export default function AdminAnnouncements() {
   const openEdit   = (a: Announcement) => { setForm({ title: a.title, content: a.content ?? '', subject_id: a.subject_id, image_url: a.image_url ?? '' }); setEditing(a.id); setShowForm(true); };
 
   const save = async () => {
-    if (!form.title.trim() || !form.subject_id) return;
+    if (!form.title.trim()) return;
     setSaving(true);
-    const payload = { title: form.title, content: form.content || null, subject_id: form.subject_id, image_url: form.image_url || null };
+    const payload = { title: form.title, content: form.content || null, subject_id: form.subject_id || null, image_url: form.image_url || null };
     if (editing) {
       await supabase.from('announcements').update(payload).eq('id', editing);
     } else {
