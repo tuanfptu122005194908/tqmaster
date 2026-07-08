@@ -20,7 +20,7 @@ export type Profile  = Tables<'profiles'>;
 export type CartItem = Subject;
 
 export type ViewKey =
-  | 'home' | 'my-courses' | 'cart' | 'subject-detail' | 'exam' | 'profile' | 'news'
+  | 'home' | 'my-courses' | 'cart' | 'subject-detail' | 'exam' | 'profile' | 'news' | 'study-hub'
   | 'admin-dashboard' | 'admin-subjects' | 'admin-exams'
   | 'admin-theory' | 'admin-announcements' | 'admin-orders'
   | 'admin-coupons' | 'admin-users' | 'admin-settings' | 'admin-news';

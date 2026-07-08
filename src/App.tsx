@@ -11,6 +11,7 @@ import AuthPage from "@/pages/AuthPage";
 
 // User pages
 import HomePage from "@/pages/user/HomePage";
+import StudyHubPage from "@/pages/user/StudyHubPage";
 import CartPage from "@/pages/user/CartPage";
 import SubjectDetailPage from "@/pages/user/SubjectDetailPage";
 import ExamPage from "@/pages/user/ExamPage";
@@ -107,6 +108,7 @@ function AppShell() {
         case 'home':           return <HomePage />;
         case 'subject-detail': return <SubjectDetailPage />;
         case 'news':           return <NewsPage />;
+        case 'study-hub':      return <StudyHubPage />;
         default:               return <AdminDashboard />;
       }
     }
@@ -117,6 +119,7 @@ function AppShell() {
       case 'subject-detail': return <SubjectDetailPage />;
       case 'profile':        return <ProfilePage />;
       case 'news':           return <NewsPage />;
+      case 'study-hub':      return <StudyHubPage />;
       default:               return <HomePage />;
     }
   };
