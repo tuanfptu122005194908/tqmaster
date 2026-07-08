@@ -18,6 +18,7 @@ import ProfilePage from "@/pages/user/ProfilePage";
 import NewsPage from "@/pages/user/NewsPage";
 import VerifyEmailPage from "@/pages/VerifyEmailPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import AnnouncementPopup from "@/components/AnnouncementPopup";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -231,6 +232,7 @@ function AppShell() {
         <main style={{ flex: 1 }}>{renderPage()}</main>
       )}
       <MobileNav />
+      {!isAdmin && <AnnouncementPopup />}
     </div>
   );
 }
