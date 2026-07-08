@@ -231,6 +231,7 @@ function AppShell() {
         <main style={{ flex: 1 }}>{renderPage()}</main>
       )}
       <MobileNav />
+      {!isAdmin && <AnnouncementPopup />}
     </div>
   );
 }
