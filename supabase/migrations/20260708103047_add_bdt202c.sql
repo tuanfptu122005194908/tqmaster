@@ -9,7 +9,7 @@ INSERT INTO public.subjects (
     sort_order
 )
 VALUES (
-    'hardcoded-bdt202c',
+    '9d863b0b-22fa-4cb5-b467-15103a8904e5',
     'BDT202c',
     'Khóa học Google Cloud Study Hub (BDT202c)',
     50000, -- Default price, user can change in dashboard if needed
