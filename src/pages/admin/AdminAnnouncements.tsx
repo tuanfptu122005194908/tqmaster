@@ -42,8 +42,8 @@ export default function AdminAnnouncements() {
     ? announcements
     : announcements.filter(a => a.subject_id === filterSubj);
 
-  const openCreate = () => { setForm({ title: '', content: '', subject_id: subjects[0]?.id ?? '', image_url: '' }); setEditing(null); setShowForm(true); };
-  const openEdit   = (a: Announcement) => { setForm({ title: a.title, content: a.content ?? '', subject_id: a.subject_id, image_url: a.image_url ?? '' }); setEditing(a.id); setShowForm(true); };
+  const openCreate = () => { setForm({ title: '', content: '', subject_id: '', image_url: '' }); setEditing(null); setShowForm(true); };
+  const openEdit   = (a: Announcement) => { setForm({ title: a.title, content: a.content ?? '', subject_id: a.subject_id ?? '', image_url: a.image_url ?? '' }); setEditing(a.id); setShowForm(true); };
 
   const save = async () => {
     if (!form.title.trim()) return;
