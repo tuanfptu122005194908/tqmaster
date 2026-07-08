@@ -34,6 +34,10 @@ export default function HomePage() {
   });
 
   const openDetail = (s: Subject) => {
+    if (s.id === 'hardcoded-bdt202c' && isPurchased(s.id)) {
+      window.location.href = '/google-cloud-study-hub.html';
+      return;
+    }
     setSelectedSubjectId(s.id);
     setCurrentView('subject-detail');
   };
