@@ -42,13 +42,13 @@ export default function AdminAnnouncements() {
     ? announcements
     : announcements.filter(a => a.subject_id === filterSubj);
 
-  const openCreate = () => { setForm({ title: '', content: '', subject_id: subjects[0]?.id ?? '', image_url: '' }); setEditing(null); setShowForm(true); };
-  const openEdit   = (a: Announcement) => { setForm({ title: a.title, content: a.content ?? '', subject_id: a.subject_id, image_url: a.image_url ?? '' }); setEditing(a.id); setShowForm(true); };
+  const openCreate = () => { setForm({ title: '', content: '', subject_id: '', image_url: '' }); setEditing(null); setShowForm(true); };
+  const openEdit   = (a: Announcement) => { setForm({ title: a.title, content: a.content ?? '', subject_id: a.subject_id ?? '', image_url: a.image_url ?? '' }); setEditing(a.id); setShowForm(true); };
 
   const save = async () => {
-    if (!form.title.trim() || !form.subject_id) return;
+    if (!form.title.trim()) return;
     setSaving(true);
-    const payload = { title: form.title, content: form.content || null, subject_id: form.subject_id, image_url: form.image_url || null };
+    const payload = { title: form.title, content: form.content || null, subject_id: form.subject_id || null, image_url: form.image_url || null };
     if (editing) {
       await supabase.from('announcements').update(payload).eq('id', editing);
     } else {
@@ -65,7 +65,7 @@ export default function AdminAnnouncements() {
     fetchAnn();
   };
 
-  const subjectName = (id: string) => subjects.find(s => s.id === id)?.name ?? '—';
+  const subjectName = (id: string | null) => id ? (subjects.find(s => s.id === id)?.name ?? '—') : 'Tất cả mọi người';
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
 
@@ -122,9 +122,9 @@ export default function AdminAnnouncements() {
             </div>
             <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Môn học *</label>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Gửi tới</label>
                 <select id="ann-subject-select" style={inputStyle} value={form.subject_id} onChange={e => setForm(p => ({ ...p, subject_id: e.target.value }))}>
-                  <option value="">-- Chọn môn học --</option>
+                  <option value="">Tất cả mọi người</option>
                   {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
