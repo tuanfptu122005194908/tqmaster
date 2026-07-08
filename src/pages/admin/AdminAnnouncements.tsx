@@ -65,7 +65,7 @@ export default function AdminAnnouncements() {
     fetchAnn();
   };
 
-  const subjectName = (id: string) => subjects.find(s => s.id === id)?.name ?? '—';
+  const subjectName = (id: string | null) => id ? (subjects.find(s => s.id === id)?.name ?? '—') : 'Tất cả mọi người';
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
 
