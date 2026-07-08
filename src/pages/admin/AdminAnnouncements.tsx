@@ -122,9 +122,9 @@ export default function AdminAnnouncements() {
             </div>
             <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Môn học *</label>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Gửi tới</label>
                 <select id="ann-subject-select" style={inputStyle} value={form.subject_id} onChange={e => setForm(p => ({ ...p, subject_id: e.target.value }))}>
-                  <option value="">-- Chọn môn học --</option>
+                  <option value="">Tất cả mọi người</option>
                   {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
