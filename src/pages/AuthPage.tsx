@@ -62,7 +62,7 @@ export default function AuthPage() {
         setTimeout(() => {
           setMode('login');
           setSuccess(false);
-        }, 4000);
+        }, 10000);
       }
     }
     setLoading(false);
@@ -267,11 +267,19 @@ export default function AuthPage() {
                 <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm animate-slide-up"
                   style={{ background: 'hsl(var(--success-light))', border: '1px solid hsl(var(--success) / 0.25)', color: 'hsl(var(--success))' }}>
                   <CheckCircle size={16} className="shrink-0 mt-0.5" />
-                  <span className="font-medium leading-snug">
+                  <div className="font-medium leading-snug flex-1">
                     {mode === 'forgot'
                       ? 'Đã gửi mật khẩu mới về email của bạn! Vui lòng kiểm tra hộp thư, đăng nhập và đổi lại mật khẩu.'
-                      : 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.'}
-                  </span>
+                      : (
+                        <div className="space-y-2">
+                          <p>Đăng ký thành công! Hệ thống đã gửi một email xác thực đến địa chỉ của bạn.</p>
+                          <div className="p-3.5 bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-200 rounded-xl text-[0.9rem] font-extrabold border-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] flex items-start gap-3 mt-3 animate-pulse">
+                            <span className="text-xl leading-none">🚨</span>
+                            <span>QUAN TRỌNG: Vui lòng kiểm tra kỹ hộp thư, ĐẶC BIỆT LÀ MỤC THƯ RÁC (SPAM) để tìm email xác thực trước khi đăng nhập!</span>
+                          </div>
+                        </div>
+                      )}
+                  </div>
                 </div>
               )}
 
