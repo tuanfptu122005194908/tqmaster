@@ -140,6 +140,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Single-device enforcement ────────────────────────────
   const sessionChannelRef = useRef<any>(null);
+  const sessionPollRef = useRef<any>(null);
+  const kickSelf = useCallback(() => {
+    toast.error('Tài khoản của bạn vừa đăng nhập trên một thiết bị khác. Bạn đã bị đăng xuất.', { duration: 8000 });
+    supabase.auth.signOut();
+  }, []);
   const enforceSingleSession = useCallback(async (userId: string) => {
     const deviceId = getDeviceId();
     try {
@@ -163,18 +168,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .channel(`active-session-${userId}`)
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'active_sessions', filter: `user_id=eq.${userId}` },
+        { event: '*', schema: 'public', table: 'active_sessions', filter: `user_id=eq.${userId}` },
         (payload) => {
           const newSid = (payload.new as any)?.session_id;
           if (newSid && newSid !== getDeviceId()) {
-            toast.error('Tài khoản của bạn vừa đăng nhập trên một thiết bị khác. Bạn đã bị đăng xuất.', { duration: 8000 });
-            supabase.auth.signOut();
+            kickSelf();
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('active-session channel status:', status);
+      });
     sessionChannelRef.current = ch;
-  }, []);
+
+    // Fallback polling: in case a realtime event is missed (background tab,
+    // dropped socket), verify every 10s that we are still the active device.
+    if (sessionPollRef.current) {
+      clearInterval(sessionPollRef.current);
+      sessionPollRef.current = null;
+    }
+    sessionPollRef.current = setInterval(async () => {
+      try {
+        const { data } = await (supabase.from('active_sessions' as any) as any)
+          .select('session_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (data?.session_id && data.session_id !== getDeviceId()) {
+          clearInterval(sessionPollRef.current);
+          sessionPollRef.current = null;
+          kickSelf();
+        }
+      } catch (e) {
+        console.error('session poll error:', e);
+      }
+    }, 10000);
+  }, [kickSelf]);
 
   // ── Auth listener ────────────────────────────────────────
   useEffect(() => {
@@ -232,6 +260,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             supabase.removeChannel(sessionChannelRef.current);
             sessionChannelRef.current = null;
           }
+          if (sessionPollRef.current) {
+            clearInterval(sessionPollRef.current);
+            sessionPollRef.current = null;
+          }
           setEmailVerified(false);
           setUserEmail(null);
           setMustChangePassword(false);
@@ -262,6 +294,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearTimeout(safety);
       subscription.unsubscribe();
       if (ordersSubscription) ordersSubscription.unsubscribe();
+      if (sessionPollRef.current) {
+        clearInterval(sessionPollRef.current);
+        sessionPollRef.current = null;
+      }
     };
   }, [loadProfileAndRole, refreshPurchased, isAdmin, refreshPendingOrdersCount, enforceSingleSession]);
 
