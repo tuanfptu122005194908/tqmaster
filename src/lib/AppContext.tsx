@@ -201,7 +201,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         console.error('session poll error:', e);
       }
-    }, 10000);
+    }, 300000);
   }, [kickSelf]);
 
   // ── Auth listener ────────────────────────────────────────
