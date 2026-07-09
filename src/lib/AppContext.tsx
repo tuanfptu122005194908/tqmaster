@@ -260,6 +260,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             supabase.removeChannel(sessionChannelRef.current);
             sessionChannelRef.current = null;
           }
+          if (sessionPollRef.current) {
+            clearInterval(sessionPollRef.current);
+            sessionPollRef.current = null;
+          }
           setEmailVerified(false);
           setUserEmail(null);
           setMustChangePassword(false);
