@@ -294,6 +294,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearTimeout(safety);
       subscription.unsubscribe();
       if (ordersSubscription) ordersSubscription.unsubscribe();
+      if (sessionPollRef.current) {
+        clearInterval(sessionPollRef.current);
+        sessionPollRef.current = null;
+      }
     };
   }, [loadProfileAndRole, refreshPurchased, isAdmin, refreshPendingOrdersCount, enforceSingleSession]);
 
