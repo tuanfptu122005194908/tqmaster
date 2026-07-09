@@ -140,7 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Single-device enforcement ────────────────────────────
   const sessionChannelRef = useRef<any>(null);
-  const sessionPollRef = useRef<any>(null);
+  const sessionVisibilityHandlerRef = useRef<(() => void) | null>(null);
   const kickSelf = useCallback(() => {
     toast.error('Tài khoản của bạn vừa đăng nhập trên một thiết bị khác. Bạn đã bị đăng xuất.', { duration: 8000 });
     supabase.auth.signOut();
@@ -181,27 +181,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     sessionChannelRef.current = ch;
 
-    // Fallback polling: in case a realtime event is missed (background tab,
-    // dropped socket), verify every 10s that we are still the active device.
-    if (sessionPollRef.current) {
-      clearInterval(sessionPollRef.current);
-      sessionPollRef.current = null;
+    // Fallback: in case a realtime event is missed (e.g. background tab),
+    // verify when the user returns to the tab.
+    if (sessionVisibilityHandlerRef.current) {
+      document.removeEventListener('visibilitychange', sessionVisibilityHandlerRef.current);
+      sessionVisibilityHandlerRef.current = null;
     }
-    sessionPollRef.current = setInterval(async () => {
-      try {
-        const { data } = await (supabase.from('active_sessions' as any) as any)
-          .select('session_id')
-          .eq('user_id', userId)
-          .maybeSingle();
-        if (data?.session_id && data.session_id !== getDeviceId()) {
-          clearInterval(sessionPollRef.current);
-          sessionPollRef.current = null;
-          kickSelf();
+    
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          const { data } = await (supabase.from('active_sessions' as any) as any)
+            .select('session_id')
+            .eq('user_id', userId)
+            .maybeSingle();
+          if (data?.session_id && data.session_id !== getDeviceId()) {
+            if (sessionVisibilityHandlerRef.current) {
+              document.removeEventListener('visibilitychange', sessionVisibilityHandlerRef.current);
+              sessionVisibilityHandlerRef.current = null;
+            }
+            kickSelf();
+          }
+        } catch (e) {
+          console.error('session visibility check error:', e);
         }
-      } catch (e) {
-        console.error('session poll error:', e);
       }
-    }, 300000);
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    sessionVisibilityHandlerRef.current = handleVisibilityChange;
   }, [kickSelf]);
 
   // ── Auth listener ────────────────────────────────────────
@@ -260,9 +268,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             supabase.removeChannel(sessionChannelRef.current);
             sessionChannelRef.current = null;
           }
-          if (sessionPollRef.current) {
-            clearInterval(sessionPollRef.current);
-            sessionPollRef.current = null;
+          if (sessionVisibilityHandlerRef.current) {
+            document.removeEventListener('visibilitychange', sessionVisibilityHandlerRef.current);
+            sessionVisibilityHandlerRef.current = null;
           }
           setEmailVerified(false);
           setUserEmail(null);
@@ -294,9 +302,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       clearTimeout(safety);
       subscription.unsubscribe();
       if (ordersSubscription) ordersSubscription.unsubscribe();
-      if (sessionPollRef.current) {
-        clearInterval(sessionPollRef.current);
-        sessionPollRef.current = null;
+      if (sessionVisibilityHandlerRef.current) {
+        document.removeEventListener('visibilitychange', sessionVisibilityHandlerRef.current);
+        sessionVisibilityHandlerRef.current = null;
       }
     };
   }, [loadProfileAndRole, refreshPurchased, isAdmin, refreshPendingOrdersCount, enforceSingleSession]);
