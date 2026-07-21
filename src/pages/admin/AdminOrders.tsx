@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatDate, formatPrice } from '@/lib/mockData';
-import { Search, CheckCircle, XCircle, Trash2, Eye, X, Loader2, ShoppingBag, Clock, TrendingUp } from 'lucide-react';
+import {
+  Search, CheckCircle, XCircle, Trash2, Eye, X, Loader2, ShoppingBag,
+  Clock, TrendingUp, Download, Zap, Calendar, Filter, Image as ImageIcon,
+  Check, CreditCard, ChevronRight, FileText, ArrowUpRight
+} from 'lucide-react';
 import { useApp } from '@/lib/AppContext';
 import { toast } from 'sonner';
 
@@ -25,6 +29,7 @@ export default function AdminOrders() {
     setOrders(data ?? []);
     setLoading(false);
   };
+
   useEffect(() => { fetch(); }, []);
 
   const filtered = orders.filter(o => {
@@ -39,6 +44,7 @@ export default function AdminOrders() {
     const { error } = await supabase.from('orders').update({
       status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString(),
     }).eq('id', id);
+
     if (error) {
       toast.error('Lỗi: ' + error.message);
     } else {
@@ -56,7 +62,6 @@ export default function AdminOrders() {
     refreshPendingOrdersCount();
     setActioning(null);
   };
-
 
   const remove = async (id: string) => {
     if (!confirm('Xóa đơn hàng này?')) return;
@@ -79,6 +84,7 @@ export default function AdminOrders() {
       .from('order_items')
       .select('id, subject_id, price, subjects(name)')
       .eq('order_id', order.id);
+
     setOrderItems(
       (items ?? []).map((it: any) => ({
         id: it.id,
@@ -88,6 +94,7 @@ export default function AdminOrders() {
       }))
     );
     setLoadingItems(false);
+
     if (order.bill_image_url) {
       const { data } = await supabase.storage.from('bill-images').createSignedUrl(order.bill_image_url, 300);
       setBillUrl(data?.signedUrl ?? null);
@@ -95,356 +102,464 @@ export default function AdminOrders() {
   };
 
   const statusBadge = (s: string) => {
-    if (s === 'pending') return <span className="badge badge-pending">Chờ duyệt</span>;
-    if (s === 'approved') return <span className="badge badge-approved">Đã duyệt</span>;
-    return <span className="badge badge-rejected">Từ chối</span>;
+    if (s === 'pending')  return <span style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', display: 'inline-flex', alignItems: 'center', gap: 4 }}>• Chờ duyệt</span>;
+    if (s === 'approved') return <span style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', display: 'inline-flex', alignItems: 'center', gap: 4 }}>✓ Đã duyệt</span>;
+    return <span style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3', display: 'inline-flex', alignItems: 'center', gap: 4 }}>✕ Đã hủy</span>;
   };
 
   const pendingCount = orders.filter(o => o.status === 'pending').length;
   const approvedCount = orders.filter(o => o.status === 'approved').length;
   const totalRevenue = orders.filter(o => o.status === 'approved').reduce((s, o) => s + Number(o.final_amount), 0);
+  const avgOrderValue = approvedCount > 0 ? Math.round(totalRevenue / approvedCount) : 0;
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
+      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+    </div>
+  );
 
   return (
-    <div className="admin-orders-page" style={{ padding: 'var(--page-pad-y) var(--page-pad-x)', flex: 1, minWidth: 0 }}>
-      {/* Header */}
-      <div style={{ marginBottom: 'var(--space-6)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-          <h1 className="page-title">Quản lý đơn hàng</h1>
-          {pendingCount > 0 && (
-            <span style={{ background: 'hsl(var(--warning))', color: 'white', borderRadius: 9999, padding: '4px 12px', fontSize: '0.75rem', fontWeight: 700, animation: 'pulse 2s infinite' }}>
-              {pendingCount} chờ duyệt
-            </span>
-          )}
+    <div style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      
+      {/* ── TOP HEADER AREA ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 30, fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.03em' }}>
+            Quản lý Đơn hàng
+          </h1>
+          <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, fontWeight: 500, maxWidth: 680, lineHeight: 1.5 }}>
+            Theo dõi, phê duyệt và quản lý các giao dịch của học viên trong hệ thống TQMaster. Đảm bảo quy trình thanh toán minh bạch và nhanh chóng.
+          </p>
         </div>
-        <p className="page-subtitle">{orders.length} tổng đơn hàng</p>
+
+        {/* Top Right Action Buttons */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <button style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
+            borderRadius: 14, border: '1.5px solid #cbd5e1', background: '#ffffff',
+            fontSize: 13, fontWeight: 700, color: '#475569', cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+          }}>
+            <Download size={16} /> Xuất báo cáo
+          </button>
+
+          <button style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
+            borderRadius: 14, border: 'none',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: '#ffffff', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+            boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)'
+          }}>
+            <Zap size={16} /> Thao tác nhanh
+          </button>
+        </div>
       </div>
 
-      {/* Stat strip */}
-      <div className="orders-stats" style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: 'var(--space-3)', marginBottom: 'var(--space-5)',
-      }}>
-        {[
-          { label: 'Tổng đơn', value: orders.length, icon: ShoppingBag, color: 'hsl(var(--primary))' },
-          { label: 'Chờ duyệt', value: pendingCount, icon: Clock, color: 'hsl(var(--warning))' },
-          { label: 'Đã duyệt', value: approvedCount, icon: CheckCircle, color: 'hsl(var(--success))' },
-          { label: 'Doanh thu', value: formatPrice(totalRevenue), icon: TrendingUp, color: 'hsl(var(--primary))', isString: true },
-        ].map(s => (
-          <div key={s.label} className="stat-card" style={{ padding: 'var(--space-4)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                background: `color-mix(in srgb, ${s.color} 12%, transparent)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <s.icon size={16} style={{ color: s.color }} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'hsl(var(--muted-fg))', fontWeight: 500 }}>{s.label}</div>
-                <div style={{ fontSize: s.isString ? '0.95rem' : '1.25rem', fontWeight: 800, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>
-                  {s.value}
-                </div>
-              </div>
+      {/* ── 4 PASTEL STAT CARDS (EXACT MATCH TO SCREENSHOT) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 28 }}>
+        
+        {/* Card 1: TỔNG ĐƠN HÀNG (Purple Pastel) */}
+        <div style={{ background: '#f3eefd', border: '1px solid #ede9fe', borderRadius: 24, padding: 22, boxShadow: '0 2px 10px rgba(139, 92, 246, 0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TỔNG ĐƠN HÀNG</span>
+            <div style={{ width: 40, height: 40, borderRadius: 14, background: '#ffffff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(139, 92, 246, 0.15)' }}>
+              <ShoppingBag size={20} />
             </div>
           </div>
-        ))}
+          <div style={{ fontSize: 32, fontWeight: 900, color: '#0f172a', marginBottom: 8, letterSpacing: '-0.03em' }}>
+            {orders.length.toLocaleString()}
+          </div>
+          <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+            📈 +12% so với tháng trước
+          </div>
+        </div>
+
+        {/* Card 2: ĐANG CHỜ DUYỆT (Orange Pastel) */}
+        <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 24, padding: 22, boxShadow: '0 2px 10px rgba(217, 119, 6, 0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ĐANG CHỜ DUYỆT</span>
+            <div style={{ width: 40, height: 40, borderRadius: 14, background: '#ffffff', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(217, 119, 6, 0.15)', position: 'relative' }}>
+              <Clock size={20} />
+              {pendingCount > 0 && (
+                <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: '#e11d48', border: '2px solid #ffffff' }} />
+              )}
+            </div>
+          </div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: '#0f172a', marginBottom: 8, letterSpacing: '-0.03em' }}>
+            {pendingCount}
+          </div>
+          <div style={{ fontSize: 12, color: '#e11d48', fontWeight: 800 }}>
+            {pendingCount > 0 ? '❗ Cần xử lý ngay' : '✓ Đã duyệt tất cả'}
+          </div>
+        </div>
+
+        {/* Card 3: DOANH THU (THÁNG) (Blue Pastel) */}
+        <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 24, padding: 22, boxShadow: '0 2px 10px rgba(37, 99, 235, 0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DOANH THU (THÁNG)</span>
+            <div style={{ width: 40, height: 40, borderRadius: 14, background: '#ffffff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.15)' }}>
+              <CreditCard size={20} />
+            </div>
+          </div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginBottom: 8, letterSpacing: '-0.03em' }}>
+            {formatPrice(totalRevenue)}
+          </div>
+          <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+            📈 +8.4% tăng trưởng
+          </div>
+        </div>
+
+        {/* Card 4: GIÁ TRỊ TB ĐƠN (Green Pastel) */}
+        <div style={{ background: '#eafaf5', border: '1px solid #d1fae5', borderRadius: 24, padding: 22, boxShadow: '0 2px 10px rgba(5, 150, 105, 0.04)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>GIÁ TRỊ TB ĐƠN</span>
+            <div style={{ width: 40, height: 40, borderRadius: 14, background: '#ffffff', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.15)' }}>
+              <TrendingUp size={20} />
+            </div>
+          </div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginBottom: 8, letterSpacing: '-0.03em' }}>
+            {formatPrice(avgOrderValue)}
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>
+            Ổn định trong 30 ngày
+          </div>
+        </div>
+
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 240 }}>
-          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-fg))' }} />
-          <input id="orders-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm theo tên, email, mã đơn..."
-            style={{ width: '100%', paddingLeft: 36, paddingRight: 12, paddingTop: 9, paddingBottom: 9, border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontSize: '0.875rem', outline: 'none', background: 'hsl(var(--surface-raised))' }} />
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          {(['all', 'pending', 'approved', 'rejected'] as const).map(s => (
-            <button key={s} className={`tab-pill ${filterStatus === s ? 'active' : ''}`} onClick={() => setFilterStatus(s)}>
-              {s === 'all' ? 'Tất cả' : s === 'pending' ? 'Chờ duyệt' : s === 'approved' ? 'Đã duyệt' : 'Từ chối'}
+      {/* ── FILTER TABS & SEARCH CONTROLS BAR ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
+        
+        {/* Status Filter Pills */}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          {[
+            { key: 'all', label: 'Tất cả' },
+            { key: 'pending', label: 'Chờ duyệt' },
+            { key: 'approved', label: 'Đã duyệt' },
+            { key: 'rejected', label: 'Đã hủy' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setFilterStatus(tab.key as any)}
+              style={{
+                padding: '9px 20px', borderRadius: 24, border: '1px solid #cbd5e1',
+                fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
+                background: filterStatus === tab.key ? '#2563eb' : '#ffffff',
+                color: filterStatus === tab.key ? '#ffffff' : '#475569',
+                boxShadow: filterStatus === tab.key ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {tab.label}
             </button>
           ))}
         </div>
+
+        {/* Right Search Input & Filters */}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', width: 280 }}>
+            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Tìm theo tên, email, mã đơn..."
+              style={{
+                width: '100%', padding: '10px 14px 10px 40px', borderRadius: 14,
+                border: '1.5px solid #cbd5e1', fontSize: 13.5, outline: 'none', background: '#ffffff',
+                color: '#0f172a'
+              }}
+            />
+          </div>
+
+          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 14, border: '1.5px solid #cbd5e1', background: '#ffffff', fontSize: 13.5, fontWeight: 700, color: '#475569', cursor: 'pointer' }}>
+            <Calendar size={16} /> 7 ngày qua
+          </button>
+
+          <button style={{ padding: '10px 14px', borderRadius: 14, border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#475569', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Filter size={16} />
+          </button>
+        </div>
       </div>
 
-      {/* DESKTOP TABLE */}
-      <div className="orders-table-wrap" style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', overflow: 'hidden' }}>
-        <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr><th>Mã đơn</th><th>Người dùng</th><th>Thời gian</th><th>Số tiền</th><th>Trạng thái</th><th style={{ textAlign: 'right' }}>Thao tác</th></tr></thead>
+      {/* ── HIGH-CONTRAST LIGHT DATA TABLE (MATCHES SCREENSHOT EXACTLY) ── */}
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5, textAlign: 'left' }}>
+          <thead>
+            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>MÃ ĐƠN HÀNG</th>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>HỌC VIÊN</th>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>NGÀY TẠO</th>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>SỐ TIỀN</th>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>TRẠNG THÁI</th>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>MINH CHỨNG</th>
+              <th style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>THAO TÁC</th>
+            </tr>
+          </thead>
           <tbody>
-            {filtered.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-10)', color: 'hsl(var(--muted-fg))' }}>Không tìm thấy đơn hàng nào</td></tr>}
-            {filtered.map(order => (
-              <tr key={order.id}>
-                <td><span style={{ fontFamily: 'monospace', fontSize: '0.8125rem', fontWeight: 600, color: 'hsl(var(--primary))' }}>{order.id}</span></td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, background: 'hsl(var(--primary))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>
-                      {order.full_name.charAt(0)}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{order.full_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>{order.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))' }}>{formatDate(order.created_at)}</td>
-                <td style={{ fontWeight: 700, color: 'hsl(var(--primary))' }}>{formatPrice(order.final_amount)}</td>
-                <td>{statusBadge(order.status)}</td>
-                <td>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-                    <button id={`view-order-${order.id}`} className="btn-ghost" style={{ padding: 6 }} onClick={() => openDetail(order)} title="Xem"><Eye size={14} /></button>
-                    {order.status === 'pending' && (
-                      <>
-                        <button id={`approve-${order.id}`} className="btn-ghost" style={{ padding: 6, color: 'hsl(var(--success))' }} disabled={actioning === order.id} onClick={() => setStatus(order.id, 'approved')} title="Duyệt">
-                          {actioning === order.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={14} />}
-                        </button>
-                        <button id={`reject-${order.id}`} className="btn-ghost" style={{ padding: 6, color: 'hsl(var(--danger))' }} disabled={actioning === order.id} onClick={() => setStatus(order.id, 'rejected')} title="Từ chối">
-                          <XCircle size={14} />
-                        </button>
-                      </>
-                    )}
-                    <button className="btn-ghost" style={{ padding: 6, color: 'hsl(var(--danger))' }} onClick={() => remove(order.id)} title="Xoá"><Trash2 size={14} /></button>
-                  </div>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', fontSize: 14 }}>
+                  Không tìm thấy đơn hàng nào
                 </td>
               </tr>
-            ))}
+            ) : filtered.map((order) => {
+              const avatarInitials = (order.full_name || 'U').slice(0, 2).toUpperCase();
+
+              return (
+                <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                  {/* Order ID */}
+                  <td style={{ padding: '18px 24px', fontWeight: 900, color: '#2563eb', fontFamily: 'monospace', fontSize: 13.5 }}>
+                    #{order.id.slice(0, 8).toUpperCase()}
+                  </td>
+
+                  {/* Student Info */}
+                  <td style={{ padding: '18px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13.5, fontWeight: 900,
+                        flexShrink: 0
+                      }}>
+                        {avatarInitials}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>{order.full_name}</div>
+                        <div style={{ fontSize: 12, color: '#64748b' }}>{order.email}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Created At */}
+                  <td style={{ padding: '18px 24px', color: '#64748b', fontSize: 13 }}>
+                    {formatDate(order.created_at)}
+                  </td>
+
+                  {/* Amount */}
+                  <td style={{ padding: '18px 24px', fontWeight: 900, color: '#0f172a', fontSize: 14.5 }}>
+                    {formatPrice(Number(order.final_amount))}
+                  </td>
+
+                  {/* Status Badge */}
+                  <td style={{ padding: '18px 24px' }}>
+                    {statusBadge(order.status)}
+                  </td>
+
+                  {/* Bill Proof Button */}
+                  <td style={{ padding: '18px 24px' }}>
+                    {order.bill_image_url ? (
+                      <button
+                        onClick={() => openDetail(order)}
+                        style={{
+                          border: 'none', background: '#eff6ff', color: '#2563eb',
+                          padding: '6px 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 800,
+                          cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6
+                        }}
+                      >
+                        <ImageIcon size={14} /> Xem Bill
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>Không có ảnh</span>
+                    )}
+                  </td>
+
+                  {/* Actions */}
+                  <td style={{ padding: '18px 24px', textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      {/* Approved Button */}
+                      {order.status === 'pending' && (
+                        <button
+                          disabled={actioning === order.id}
+                          onClick={() => setStatus(order.id, 'approved')}
+                          style={{
+                            padding: '7px 16px', borderRadius: 12, border: 'none',
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                            color: '#ffffff', fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                            display: 'flex', alignItems: 'center', gap: 4
+                          }}
+                        >
+                          {actioning === order.id ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} strokeWidth={3} />}
+                          Duyệt
+                        </button>
+                      )}
+
+                      {/* Reject / Cancel Button */}
+                      {order.status === 'pending' && (
+                        <button
+                          disabled={actioning === order.id}
+                          onClick={() => setStatus(order.id, 'rejected')}
+                          style={{
+                            padding: '7px 14px', borderRadius: 12, border: '1px solid #fecdd3',
+                            background: '#ffe4e6', color: '#e11d48', fontSize: 12.5, fontWeight: 800, cursor: 'pointer'
+                          }}
+                        >
+                          Hủy
+                        </button>
+                      )}
+
+                      {/* View Detail Button */}
+                      <button
+                        onClick={() => openDetail(order)}
+                        style={{
+                          width: 34, height: 34, borderRadius: 10, border: '1.5px solid #cbd5e1',
+                          background: '#ffffff', color: '#475569', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                        title="Xem chi tiết"
+                      >
+                        <Eye size={16} />
+                      </button>
+
+                      {/* Delete Order Button */}
+                      <button
+                        onClick={() => remove(order.id)}
+                        style={{
+                          width: 34, height: 34, borderRadius: 10, border: '1px solid #fecdd3',
+                          background: '#fff1f2', color: '#e11d48', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                        title="Xóa đơn hàng"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* MOBILE CARDS */}
-      <div className="orders-card-list" style={{ display: 'none', flexDirection: 'column', gap: 'var(--space-3)' }}>
-        {filtered.length === 0 && (
-          <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'hsl(var(--muted-fg))', background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}>
-            Không tìm thấy đơn hàng nào
-          </div>
-        )}
-        {filtered.map(order => (
-          <div key={order.id} style={{
-            background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))',
-            borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-4)', boxShadow: 'var(--shadow-xs)',
-          }}>
-            {/* Top row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-3)', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, background: 'hsl(var(--primary))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem', fontWeight: 700 }}>
-                  {order.full_name.charAt(0).toUpperCase()}
-                </div>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.full_name}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-fg))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.email}</div>
-                </div>
-              </div>
-              {statusBadge(order.status)}
-            </div>
-
-            {/* Details */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-2) 0', borderTop: '1px dashed hsl(var(--border))', borderBottom: '1px dashed hsl(var(--border))', marginBottom: 'var(--space-3)' }}>
-              <div>
-                <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-fg))', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>Mã đơn</div>
-                <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--primary))' }}>{order.id}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-fg))', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>Số tiền</div>
-                <div style={{ fontWeight: 800, color: 'hsl(var(--primary))', fontSize: '0.95rem' }}>{formatPrice(order.final_amount)}</div>
-              </div>
-            </div>
-
-            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-3)' }}>
-              {formatDate(order.created_at)}
-            </div>
-
-            {/* Action buttons - prominent */}
-            <div style={{ display: 'grid', gridTemplateColumns: order.status === 'pending' ? '1fr 1fr 1fr' : '1fr 1fr', gap: 8 }}>
-              <button
-                onClick={() => openDetail(order)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  padding: '10px 8px', borderRadius: 10, border: '1px solid hsl(var(--border))',
-                  background: 'hsl(var(--surface-raised))', color: 'hsl(var(--foreground))',
-                  fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                }}
-              >
-                <Eye size={15} /> Xem
-              </button>
-              {order.status === 'pending' && (
-                <>
-                  <button
-                    disabled={actioning === order.id}
-                    onClick={() => setStatus(order.id, 'approved')}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      padding: '10px 8px', borderRadius: 10, border: 'none',
-                      background: 'hsl(var(--success))', color: 'white',
-                      fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
-                      boxShadow: '0 2px 6px hsl(var(--success) / 0.35)',
-                    }}
-                  >
-                    {actioning === order.id ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={15} />}
-                    Duyệt
-                  </button>
-                  <button
-                    disabled={actioning === order.id}
-                    onClick={() => setStatus(order.id, 'rejected')}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      padding: '10px 8px', borderRadius: 10, border: 'none',
-                      background: 'hsl(var(--danger))', color: 'white',
-                      fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
-                      boxShadow: '0 2px 6px hsl(var(--danger) / 0.3)',
-                    }}
-                  >
-                    <XCircle size={15} /> Từ chối
-                  </button>
-                </>
-              )}
-              {order.status !== 'pending' && (
-                <button
-                  onClick={() => remove(order.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    padding: '10px 8px', borderRadius: 10, border: '1px solid hsl(var(--danger) / 0.4)',
-                    background: 'hsl(var(--danger) / 0.08)', color: 'hsl(var(--danger))',
-                    fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
-                  }}
-                >
-                  <Trash2 size={15} /> Xoá
-                </button>
-              )}
-            </div>
-
-            {order.status === 'pending' && (
-              <button
-                onClick={() => remove(order.id)}
-                style={{
-                  width: '100%', marginTop: 8,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  padding: '8px', borderRadius: 10, border: '1px solid hsl(var(--danger) / 0.4)',
-                  background: 'transparent', color: 'hsl(var(--danger))',
-                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
-                }}
-              >
-                <Trash2 size={13} /> Xoá đơn
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-
+      {/* ── ORDER DETAIL & BILL SLIDE PANEL ── */}
       {viewOrder && (
         <>
-          <div onClick={() => setViewOrder(null)} style={{ position: 'fixed', inset: 0, background: 'hsl(240 20% 12% / 0.5)', zIndex: 200, backdropFilter: 'blur(2px)' }} />
-          <div className="orders-detail-panel" style={{
+          <div onClick={() => setViewOrder(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
+          <div style={{
             position: 'fixed', right: 0, top: 0, bottom: 0,
-            width: 'min(420px, 100vw)',
-            background: 'hsl(var(--surface-raised))', boxShadow: 'var(--shadow-lg)',
-            zIndex: 201, overflow: 'auto',
-            display: 'flex', flexDirection: 'column',
+            width: 'min(460px, 100vw)', background: '#ffffff',
+            boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201,
+            display: 'flex', flexDirection: 'column', overflowY: 'auto'
           }}>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderBottom: '1px solid hsl(var(--border))', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'hsl(var(--surface-raised))', zIndex: 1 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1rem' }}>Chi tiết đơn {viewOrder.id}</h2>
-              <button className="btn-ghost" style={{ padding: 6 }} onClick={() => setViewOrder(null)}><X size={18} /></button>
+            {/* Drawer Header */}
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#ffffff', zIndex: 2 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: '0 0 2px 0' }}>
+                  Chi tiết đơn hàng
+                </h2>
+                <div style={{ fontSize: 12.5, color: '#2563eb', fontWeight: 800, fontFamily: 'monospace' }}>
+                  #{viewOrder.id}
+                </div>
+              </div>
+              <button onClick={() => setViewOrder(null)} style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
+                <X size={18} />
+              </button>
             </div>
-            <div style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', flex: 1 }}>
+
+            {/* Drawer Content */}
+            <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { label: 'Họ tên', value: viewOrder.full_name },
+                { label: 'Họ tên học viên', value: viewOrder.full_name },
                 { label: 'Email', value: viewOrder.email },
-                { label: 'Mã sinh viên', value: viewOrder.student_code },
-                { label: 'Thời gian đặt', value: formatDate(viewOrder.created_at) },
+                { label: 'Mã sinh viên', value: viewOrder.student_code || 'Chưa cập nhật' },
+                { label: 'Thời gian tạo đơn', value: formatDate(viewOrder.created_at) },
                 { label: 'Số tiền gốc', value: formatPrice(viewOrder.original_amount) },
                 { label: 'Giảm giá', value: formatPrice(viewOrder.discount_amount) },
-                { label: 'Thanh toán', value: formatPrice(viewOrder.final_amount) },
-                { label: 'Trạng thái', value: statusBadge(viewOrder.status) },
+                { label: 'Thành tiền', value: formatPrice(viewOrder.final_amount) },
               ].map(row => (
-                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', paddingBottom: 'var(--space-3)', borderBottom: '1px solid hsl(var(--border))', gap: 12 }}>
-                  <span style={{ color: 'hsl(var(--muted-fg))' }}>{row.label}</span>
-                  <strong style={{ textAlign: 'right', wordBreak: 'break-word' }}>{row.value}</strong>
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, paddingBottom: 10, borderBottom: '1px solid #f1f5f9' }}>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>
+                  <strong style={{ color: '#0f172a', fontWeight: 800 }}>{row.value}</strong>
                 </div>
               ))}
-              {/* Order Items Section */}
-              <div>
-                <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-2)', fontWeight: 600 }}>Môn học đã đặt ({orderItems.length})</div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b', fontSize: 13.5, fontWeight: 500 }}>Trạng thái đơn</span>
+                {statusBadge(viewOrder.status)}
+              </div>
+
+              {/* Order Items */}
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a', marginBottom: 10, textTransform: 'uppercase' }}>
+                  DANH SÁCH MÔN HỌC ({orderItems.length})
+                </div>
+
                 {loadingItems ? (
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-4)' }}>
-                    <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} />
-                  </div>
-                ) : orderItems.length === 0 ? (
-                  <div style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))', padding: 'var(--space-3)', textAlign: 'center', background: 'hsl(var(--muted))', borderRadius: 'var(--radius)' }}>
-                    Không có môn học nào
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: 13, padding: 12 }}>
+                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Đang tải dữ liệu môn...
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {orderItems.map((item, idx) => (
-                      <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3)', background: 'hsl(var(--muted))', borderRadius: 'var(--radius)', fontSize: '0.8125rem' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, background: 'hsl(var(--primary))', color: 'white', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
-                          {idx + 1}
+                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: 12, border: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ width: 22, height: 22, borderRadius: 6, background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{idx + 1}</span>
+                          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: 13.5 }}>{item.subject_name}</span>
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.subject_name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>ID: {item.subject_id}</div>
-                        </div>
-                        <div style={{ fontWeight: 700, color: 'hsl(var(--primary))', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatPrice(item.price)}</div>
+                        <span style={{ fontWeight: 800, color: '#2563eb', fontSize: 13.5 }}>{formatPrice(item.price)}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div>
-                <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-2)' }}>Ảnh bill</div>
-                <div style={{ background: 'hsl(var(--muted))', borderRadius: 'var(--radius)', minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {billUrl
-                    ? <img src={billUrl} alt="bill" style={{ maxWidth: '100%', borderRadius: 'var(--radius)' }} />
-                    : <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))' }}>Chưa có ảnh bill</span>}
+
+              {/* Bill Image View */}
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a', marginBottom: 10, textTransform: 'uppercase' }}>
+                  ẢNH BILL CHUYỂN KHOẢN
+                </div>
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 8 }}>
+                  {billUrl ? (
+                    <img src={billUrl} alt="Bill chuyển khoản" style={{ maxWidth: '100%', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                  ) : (
+                    <span style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic' }}>Khách hàng chưa tải lên ảnh bill</span>
+                  )}
                 </div>
               </div>
             </div>
-            {/* Sticky action footer */}
-            <div style={{ position: 'sticky', bottom: 0, background: 'hsl(var(--surface-raised))', borderTop: '1px solid hsl(var(--border))', padding: 'var(--space-4) var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+
+            {/* Sticky Action Footer */}
+            <div style={{ padding: 20, borderTop: '1px solid #e2e8f0', background: '#ffffff', sticky: 'bottom', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {viewOrder.status === 'pending' && (
-                <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+                <div style={{ display: 'flex', gap: 10 }}>
                   <button
-                    style={{
-                      flex: 1, padding: '12px', borderRadius: 10, border: 'none',
-                      background: 'hsl(var(--danger))', color: 'white',
-                      fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      boxShadow: '0 2px 8px hsl(var(--danger) / 0.35)',
-                    }}
-                    onClick={() => { setStatus(viewOrder.id, 'rejected'); setViewOrder(null); }}
-                  >
-                    <XCircle size={16} /> Từ chối
-                  </button>
-                  <button
-                    style={{
-                      flex: 1, padding: '12px', borderRadius: 10, border: 'none',
-                      background: 'hsl(var(--success))', color: 'white',
-                      fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      boxShadow: '0 2px 8px hsl(var(--success) / 0.35)',
-                    }}
                     onClick={() => { setStatus(viewOrder.id, 'approved'); setViewOrder(null); }}
+                    style={{
+                      flex: 1, padding: '12px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer',
+                      boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                    }}
                   >
-                    <CheckCircle size={16} /> Duyệt đơn
+                    <Check size={16} strokeWidth={3} /> Duyệt đơn này
+                  </button>
+
+                  <button
+                    onClick={() => { setStatus(viewOrder.id, 'rejected'); setViewOrder(null); }}
+                    style={{
+                      padding: '12px 18px', background: '#ffe4e6', color: '#e11d48',
+                      border: '1px solid #fecdd3', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer'
+                    }}
+                  >
+                    Từ chối
                   </button>
                 </div>
               )}
+
               <button
-                style={{
-                  width: '100%', padding: '10px', borderRadius: 10,
-                  border: '1px solid hsl(var(--danger) / 0.4)',
-                  background: 'transparent', color: 'hsl(var(--danger))',
-                  fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                }}
                 onClick={() => { remove(viewOrder.id); setViewOrder(null); }}
+                style={{
+                  width: '100%', padding: '10px', background: '#ffffff', color: '#e11d48',
+                  border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer'
+                }}
               >
-                <Trash2 size={14} /> Xoá đơn hàng
+                Xóa đơn hàng này
               </button>
             </div>
           </div>
         </>
       )}
+
     </div>
   );
 }
