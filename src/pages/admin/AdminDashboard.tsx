@@ -389,7 +389,7 @@ export default function AdminDashboard() {
       {/* ── MIDDLE ROW: REVENUE ANALYTICS (MẶC ĐỊNH THEO NGÀY) + TOP MÔN BÁN CHẠY (MẶC ĐỊNH THEO TUẦN) ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 2.2fr) minmax(0, 1.1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: 20,
         marginBottom: 24,
       }}>
@@ -567,7 +567,7 @@ export default function AdminDashboard() {
               paddingTop: 12,
               borderTop: '1px solid #f1f5f9',
               display: 'flex',
-              justify: 'space-between',
+              justifyContent: 'space-between',
               alignItems: 'center',
               fontSize: 12,
               fontWeight: 600,
@@ -585,7 +585,7 @@ export default function AdminDashboard() {
       {/* ── LOWER DATA SECTION: REAL RECENT ORDERS TABLE (10 ĐƠN) + TOP SUBJECTS ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(0, 2.2fr) minmax(0, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: 20,
         marginBottom: 24,
       }}>
@@ -616,9 +616,9 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {/* Table (10 Đơn gần đây) */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          {/* Desktop Table View */}
+          <div className="hidden-mobile" style={{ overflowX: 'auto', width: '100%' }}>
+            <table style={{ width: '100%', minWidth: 620, borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9', textAlign: 'left' }}>
                   <th style={{ padding: '10px 12px', fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>MÃ ĐƠN</th>
@@ -658,6 +658,29 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Orders Cards List */}
+          <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
+            {recentOrders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: 13 }}>
+                Chưa có đơn hàng nào
+              </div>
+            ) : (
+              recentOrders.map((order) => (
+                <div key={order.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 900, color: '#2563eb', fontSize: 13 }}>#{order.id.slice(0, 8).toUpperCase()}</span>
+                    {statusBadge(order.status)}
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: 13.5, color: '#0f172a', marginBottom: 4 }}>{order.full_name || order.email}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b' }}>
+                    <span>MSV: {order.student_code || '---'}</span>
+                    <span style={{ fontWeight: 900, color: '#0f172a' }}>{formatPrice(order.final_amount)}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -731,6 +754,12 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      <style>{`
+        @media (max-width: 768px) {
+          .hidden-mobile { display: none !important; }
+          .visible-mobile { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }
