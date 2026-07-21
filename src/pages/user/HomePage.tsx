@@ -75,7 +75,7 @@ export default function HomePage() {
         <div style={{ 
           display: 'flex', 
           gap: 'var(--space-2)', 
-          flexWrap: 'wrap',
+          flexWrap: 'nowrap',
           overflowX: 'auto', 
           WebkitOverflowScrolling: 'touch',
           paddingBottom: 'var(--space-1)',

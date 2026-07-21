@@ -48,7 +48,19 @@ export default function ExamPage() {
       // Sort options by label
       qs.forEach(q => { q.options.sort((a, b) => a.label.localeCompare(b.label)); });
       setQuestions(qs);
-      if (e) setTimeLeft(e.duration_min * 60);
+      
+      let initialTimeLeft = e ? e.duration_min * 60 : 0;
+      const draftStr = localStorage.getItem(`exam_draft_${selectedExamId}_${examMode}`);
+      if (draftStr) {
+        try {
+          const draft = JSON.parse(draftStr);
+          if (draft.answers) setAnswers(draft.answers);
+          if (draft.flagged) setFlagged(new Set(draft.flagged));
+          if (draft.timeLeft !== undefined) initialTimeLeft = draft.timeLeft;
+        } catch (err) {}
+      }
+
+      if (e) setTimeLeft(initialTimeLeft);
       setLoading(false);
     };
     load();
@@ -81,6 +93,17 @@ export default function ExamPage() {
     }
     return () => clearInterval(timerRef.current);
   }, [examMode, submitted, loading, exam]);
+
+  // Auto-save
+  useEffect(() => {
+    if (!exam || submitted || loading) return;
+    const draft = {
+      answers,
+      flagged: Array.from(flagged),
+      timeLeft,
+    };
+    localStorage.setItem(`exam_draft_${exam.id}_${examMode}`, JSON.stringify(draft));
+  }, [answers, flagged, timeLeft, exam, submitted, loading, examMode]);
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'hsl(var(--background))' }}>
@@ -123,6 +146,9 @@ export default function ExamPage() {
   const handleSubmit = async () => {
     clearInterval(timerRef.current);
     setSubmitted(true);
+    if (exam) {
+      localStorage.removeItem(`exam_draft_${exam.id}_${examMode}`);
+    }
 
     // Save attempt to Supabase
     if (profile) {
@@ -490,6 +516,7 @@ export default function ExamPage() {
             {/* Flag Button Moved Here */}
             {examMode === 'exam' && !submitted && (
               <button
+                className="touch-target"
                 onClick={toggleFlag}
                 style={{
                   background: flagged.has(currentIndex) ? '#fbbf24' : 'white',
@@ -515,10 +542,15 @@ export default function ExamPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {examMode === 'exam' && !submitted && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: isTimeLow ? '#ef4444' : '#000', fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>
+                <div 
+                  className={isTimeLow ? 'animate-pulse-danger' : ''}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, color: isTimeLow ? '#ef4444' : '#000', fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums' }}
+                >
                   <Clock size={20} /> {formatTime(timeLeft)}
                 </div>
-                <button style={{
+                <button 
+                  className="touch-target"
+                  style={{
                   background: '#6C5CE7', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8,
                   fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 0 #4a3eb3'
                 }} onClick={handleSubmit}>
