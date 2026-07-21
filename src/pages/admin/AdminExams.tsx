@@ -493,7 +493,7 @@ export default function AdminExams() {
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
               <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Tải ảnh đề thi (1 ảnh = 1 câu)</h3>
               <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
-                Mỗi ảnh sẽ tạo 1 câu hỏi mới với các lựa chọn mặc định từ A đến H.
+                Mỗi ảnh sẽ tạo 1 câu hỏi mới với các lựa chọn mặc định từ A đến H. Bấm trực tiếp vào từng thẻ A, B, C, D bên dưới để chọn đáp án đúng!
               </p>
               <input ref={imgInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
                 onChange={e => uploadQuestionImages(e.target.files)} />
@@ -514,7 +514,7 @@ export default function AdminExams() {
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
               <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Cập nhật đáp án hàng loạt</h3>
               <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
-                Nhập đáp án cho các câu đã có: <code>1A 2B 3CD 4A 5E</code>
+                Nhập đáp án cho các câu đã có: <code>1A 2B 3CD 4A 5E</code> (Hoặc bấm chọn trực tiếp vào từng thẻ A-H bên dưới)
               </p>
               <textarea
                 style={{ ...inputStyle, height: 60, resize: 'vertical', fontFamily: 'monospace', fontSize: 12.5 }}
@@ -537,7 +537,7 @@ export default function AdminExams() {
               </div>
             </div>
 
-            {/* Question list */}
+            {/* Question list with Interactive Option Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {questions.length === 0 && (
                 <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8', background: '#ffffff', borderRadius: 22, border: '1px solid #e2e8f0', fontSize: 13.5 }}>
@@ -570,20 +570,83 @@ export default function AdminExams() {
                             }}
                           />
                         </div>
-                        <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
+                        <input
+                          type="text"
+                          defaultValue={q.content ?? ''}
+                          onBlur={async e => {
+                            const val = e.target.value.trim();
+                            if (val !== q.content) {
+                              await supabase.from('questions').update({ content: val }).eq('id', q.id);
+                            }
+                          }}
+                          placeholder={q.image_url ? "Mô tả câu hỏi (nếu có)..." : "Nội dung câu hỏi..."}
+                          style={{
+                            width: '100%', border: 'none', background: 'transparent', outline: 'none',
+                            fontSize: 14, color: '#0f172a', fontWeight: 600
+                          }}
+                        />
                       </div>
                       <button style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={15} /></button>
                     </div>
+
                     {q.image_url && (
-                      <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: opts.length > 0 ? 12 : 0 }} />
+                      <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 340, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: opts.length > 0 ? 12 : 0 }} />
                     )}
+
+                    {/* Interactive Option Cards */}
                     {opts.length > 0 && (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingLeft: 12, marginTop: 8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginTop: 10 }}>
                         {opts.map(o => (
-                          <div key={o.label} style={{ fontSize: 13, color: o.is_correct ? '#15803d' : '#475569', fontWeight: o.is_correct ? 800 : 500, display: 'flex', gap: 6, padding: '6px 10px', background: o.is_correct ? '#dcfce7' : '#f8fafc', borderRadius: 8, border: o.is_correct ? '1px solid #bbf7d0' : '1px solid #f1f5f9' }}>
-                            <strong style={{ minWidth: 16 }}>{o.label}.</strong>
-                            <span>{o.content}</span>
-                            {o.is_correct && <span style={{ marginLeft: 'auto', color: '#15803d', fontWeight: 900 }}>✓</span>}
+                          <div
+                            key={o.id || o.label}
+                            onClick={() => toggleOptionCorrect(o.id, o.is_correct)}
+                            style={{
+                              fontSize: 13, cursor: 'pointer', userSelect: 'none',
+                              color: o.is_correct ? '#15803d' : '#475569',
+                              fontWeight: o.is_correct ? 800 : 500,
+                              display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
+                              background: o.is_correct ? '#dcfce7' : '#f8fafc',
+                              borderRadius: 12,
+                              border: o.is_correct ? '1.5px solid #bbf7d0' : '1.5px solid #cbd5e1',
+                              boxShadow: o.is_correct ? '0 2px 8px rgba(21, 128, 61, 0.15)' : 'none',
+                              transition: 'all 0.15s ease'
+                            }}
+                            title="Bấm để chọn/bỏ chọn làm đáp án đúng"
+                          >
+                            <span style={{
+                              width: 24, height: 24, borderRadius: 6,
+                              background: o.is_correct ? '#15803d' : '#ffffff',
+                              color: o.is_correct ? '#ffffff' : '#64748b',
+                              border: o.is_correct ? 'none' : '1px solid #cbd5e1',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 12, fontWeight: 900, flexShrink: 0
+                            }}>
+                              {o.label}
+                            </span>
+
+                            <input
+                              type="text"
+                              defaultValue={o.content ?? ''}
+                              onClick={e => e.stopPropagation()}
+                              onBlur={async e => {
+                                const val = e.target.value.trim();
+                                if (val !== (o.content ?? '')) {
+                                  await updateOptionContent(o.id, val);
+                                }
+                              }}
+                              placeholder={`Nội dung ${o.label}...`}
+                              style={{
+                                flex: 1, minWidth: 0, border: 'none', background: 'transparent',
+                                outline: 'none', fontSize: 13, color: o.is_correct ? '#15803d' : '#0f172a',
+                                fontWeight: o.is_correct ? 800 : 500, cursor: 'text'
+                              }}
+                            />
+
+                            {o.is_correct ? (
+                              <span style={{ color: '#15803d', fontWeight: 900, fontSize: 14 }}>✓</span>
+                            ) : (
+                              <span style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>Chưa chọn</span>
+                            )}
                           </div>
                         ))}
                       </div>
