@@ -52,7 +52,8 @@ export default function AdminDashboard() {
     users: 0, subjects: 0, exams: 0, questions: 0,
     pendingOrders: 0, orders: 0, approved: 0, rejected: 0,
   });
-  const [revTab, setRevTab] = useState<'Monthly' | 'Quarterly' | 'Yearly'>('Monthly');
+
+  const [topTimeRange, setTopTimeRange] = useState<'week' | 'month' | 'year'>('month');
 
   useEffect(() => {
     const load = async () => {
@@ -110,38 +111,53 @@ export default function AdminDashboard() {
     return months.map((label, i) => ({ label, revenue: byM[i] }));
   }, [approvedOrders]);
 
-  // Real Order Status Donut Chart Data
-  const donutData = useMemo(() => {
-    const total = orders.length || 1;
-    const conf = stats.approved;
-    const pend = stats.pendingOrders;
-    const canc = stats.rejected;
-
-    return [
-      { name: 'Đã duyệt (Approved)', count: conf, pct: Math.round((conf / total) * 100), color: '#2563eb' },
-      { name: 'Chờ duyệt (Pending)', count: pend, pct: Math.round((pend / total) * 100), color: '#f59e0b' },
-      { name: 'Từ chối (Rejected)', count: canc, pct: Math.round((canc / total) * 100), color: '#ef4444' },
-    ];
-  }, [orders, stats]);
-
-  // Real Best-selling Subjects Data from Supabase order_items
-  const topSubjects = useMemo(() => {
-    const map: Record<string, { name: string; count: number; revenue: number }> = {};
-    orderItems.forEach(item => {
-      const n = item.subject_name ?? 'Môn học ôn thi';
-      if (!map[n]) map[n] = { name: n, count: 0, revenue: 0 };
-      map[n].count++;
-      map[n].revenue += Number(item.price);
+  // Filter Approved Orders by Selected Time Range (Tuần / Tháng / Năm)
+  const filteredApprovedOrders = useMemo(() => {
+    const now = new Date();
+    return approvedOrders.filter(order => {
+      const orderDate = new Date(order.created_at);
+      if (topTimeRange === 'week') {
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        return orderDate >= sevenDaysAgo;
+      }
+      if (topTimeRange === 'month') {
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(now.getDate() - 30);
+        return orderDate >= thirtyDaysAgo;
+      }
+      // year
+      return orderDate.getFullYear() === now.getFullYear();
     });
+  }, [approvedOrders, topTimeRange]);
+
+  const filteredApprovedOrderIds = useMemo(() => {
+    return new Set(filteredApprovedOrders.map(o => o.id));
+  }, [filteredApprovedOrders]);
+
+  // Real Top Best-Selling Subjects by Selected Time Range (Tuần / Tháng / Năm)
+  const topSellingSubjectsByRange = useMemo(() => {
+    const map: Record<string, { name: string; count: number; revenue: number }> = {};
+    
+    orderItems.forEach(item => {
+      if (filteredApprovedOrderIds.has(item.order_id)) {
+        const n = item.subject_name ?? 'Môn học ôn thi';
+        if (!map[n]) map[n] = { name: n, count: 0, revenue: 0 };
+        map[n].count++;
+        map[n].revenue += Number(item.price);
+      }
+    });
+
     const list = Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    const maxRev = list[0]?.revenue || 1;
-    const colors = ['#2563eb','#8b5cf6','#10b981','#f59e0b','#ec4899'];
+    const totalRev = list.reduce((s, x) => s + x.revenue, 0) || 1;
+    const colors = ['#2563eb', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
+    
     return list.map((s, idx) => ({
       ...s,
-      pct: Math.round((s.revenue / maxRev) * 100),
+      pct: Math.round((s.revenue / totalRev) * 100),
       color: colors[idx % colors.length]
     }));
-  }, [orderItems]);
+  }, [orderItems, filteredApprovedOrderIds]);
 
   const recentOrders = orders.slice(0, 6);
 
@@ -165,7 +181,7 @@ export default function AdminDashboard() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', margin: 0 }}>
-              Báo cáo Hệ thống (Real Data)
+              Báo cáo Hệ thống
             </h1>
             <span style={{ padding: '3px 10px', borderRadius: 20, background: '#dcfce7', color: '#15803d', fontSize: 11, fontWeight: 800, border: '1px solid #bbf7d0' }}>
               Dữ liệu trực tiếp Supabase
@@ -311,7 +327,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── MIDDLE ROW: REVENUE ANALYTICS + REPORT SUMMARY (REAL DATA DONUT) ── */}
+      {/* ── MIDDLE ROW: REVENUE ANALYTICS + TOP MÔN BÁN CHẠY (TUẦN / THÁNG / NĂM) ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 2.2fr) minmax(0, 1fr)',
@@ -355,64 +371,102 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Right: Real Order Status Summary Donut Chart */}
+        {/* Right: TOP MÔN BÁN CHẠY (Chia theo Tuần / Tháng / Năm) */}
         <div style={{
           background: '#ffffff',
           borderRadius: 22,
           padding: '24px 24px',
           border: '1px solid #e2e8f0',
           boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
+          display: 'flex',
+          flexDirection: 'column',
         }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 16px 0' }}>
-            Trạng Thái Đơn Hàng Real
-          </h2>
+          {/* Header & Time Range Filter Pills */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+              Top Môn Bán Chạy
+            </h2>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Donut Chart */}
-            <div style={{ width: 140, height: 140, position: 'relative', flexShrink: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={donutData}
-                    cx="50%" cy="50%"
-                    innerRadius={44} outerRadius={64}
-                    paddingAngle={4}
-                    dataKey="count"
-                  >
-                    {donutData.map((d, i) => (
-                      <Cell key={i} fill={d.color} stroke="#ffffff" strokeWidth={2} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div style={{
-                position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
-              }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
-                  {stats.orders}
-                </div>
-                <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 2 }}>
-                  Tổng đơn
-                </div>
-              </div>
-            </div>
-
-            {/* Legend list */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {donutData.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12.5 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 9, height: 9, borderRadius: '50%', background: item.color }} />
-                    <span style={{ color: '#475569', fontWeight: 600 }}>{item.name}</span>
-                  </div>
-                  <span style={{ fontWeight: 800, color: '#0f172a' }}>
-                    {item.count} <span style={{ color: '#94a3b8', fontWeight: 500 }}>({item.pct}%)</span>
-                  </span>
-                </div>
+            {/* Time Filter Pills */}
+            <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 3, borderRadius: 10 }}>
+              {(['week', 'month', 'year'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTopTimeRange(t)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 7,
+                    border: 'none',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    background: topTimeRange === t ? '#2563eb' : 'transparent',
+                    color: topTimeRange === t ? '#ffffff' : '#64748b',
+                    boxShadow: topTimeRange === t ? '0 2px 6px rgba(37, 99, 235, 0.25)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {t === 'week' ? 'Tuần' : t === 'month' ? 'Tháng' : 'Năm'}
+                </button>
               ))}
             </div>
           </div>
+
+          {topSellingSubjectsByRange.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '36px 16px', color: '#94a3b8', textAlign: 'center' }}>
+              <Package size={32} style={{ marginBottom: 8, opacity: 0.5 }} />
+              <div style={{ fontSize: 13, fontWeight: 600 }}>Chưa có đơn hàng trong khoảng thời gian này</div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {/* Donut Chart */}
+              <div style={{ width: 135, height: 135, position: 'relative', flexShrink: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={topSellingSubjectsByRange}
+                      cx="50%" cy="50%"
+                      innerRadius={42} outerRadius={62}
+                      paddingAngle={4}
+                      dataKey="revenue"
+                    >
+                      {topSellingSubjectsByRange.map((d, i) => (
+                        <Cell key={i} fill={d.color} stroke="#ffffff" strokeWidth={2} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{
+                  position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
+                }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                    {topSellingSubjectsByRange.reduce((s, x) => s + x.count, 0)}
+                  </div>
+                  <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600, marginTop: 2 }}>
+                    Đã bán
+                  </div>
+                </div>
+              </div>
+
+              {/* Legend list */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' }}>
+                {topSellingSubjectsByRange.map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+                      <span style={{ color: '#334155', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 110 }}>
+                        {item.name}
+                      </span>
+                    </div>
+                    <span style={{ fontWeight: 800, color: '#0f172a', flexShrink: 0 }}>
+                      {formatPrice(item.revenue)} <span style={{ color: '#94a3b8', fontWeight: 500 }}>({item.pct}%)</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -507,16 +561,16 @@ export default function AdminDashboard() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
           }}>
             <h2 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', margin: '0 0 16px 0' }}>
-              Top Môn Học Bán Chạy Real
+              Bảng Xếp Hạng Doanh Thu Môn Học
             </h2>
 
-            {topSubjects.length === 0 ? (
+            {topSellingSubjectsByRange.length === 0 ? (
               <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>
                 Chưa có dữ liệu đơn hàng thành công
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {topSubjects.map((item, idx) => (
+                {topSellingSubjectsByRange.map((item, idx) => (
                   <div key={idx}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{item.name}</span>
