@@ -95,7 +95,7 @@ export default function AdminOrders() {
   };
 
   const statusBadge = (s: string) => {
-    if (s === 'pending')  return <span className="badge badge-pending">Chờ duyệt</span>;
+    if (s === 'pending') return <span className="badge badge-pending">Chờ duyệt</span>;
     if (s === 'approved') return <span className="badge badge-approved">Đã duyệt</span>;
     return <span className="badge badge-rejected">Từ chối</span>;
   };
@@ -361,7 +361,7 @@ export default function AdminOrders() {
                   <span style={{ color: 'hsl(var(--muted-fg))' }}>{row.label}</span>
                   <strong style={{ textAlign: 'right', wordBreak: 'break-word' }}>{row.value}</strong>
                 </div>
-              ))}              
+              ))}
               {/* Order Items Section */}
               <div>
                 <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-2)', fontWeight: 600 }}>Môn học đã đặt ({orderItems.length})</div>
@@ -390,7 +390,7 @@ export default function AdminOrders() {
                   </div>
                 )}
               </div>
-                            <div>
+              <div>
                 <div style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-2)' }}>Ảnh bill</div>
                 <div style={{ background: 'hsl(var(--muted))', borderRadius: 'var(--radius)', minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {billUrl
