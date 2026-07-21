@@ -53,6 +53,7 @@ export default function FileUploader({
 
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
     onChange(publicUrl);
+    onFileNameChange?.(file.name);
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
   };
