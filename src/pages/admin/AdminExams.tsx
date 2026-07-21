@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
-import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText } from 'lucide-react';
 
 type Exam    = Tables<'exams'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
@@ -10,18 +10,13 @@ type ExamWithSubjects = Exam & { exam_subjects: { subject_id: string, subjects: 
 type Question = Tables<'questions'> & { options: Array<Tables<'question_options'>> };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 12px',
-  border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)',
-  fontSize: '0.875rem', outline: 'none', background: 'hsl(var(--surface-raised))',
+  width: '100%', padding: '10px 14px',
+  border: '1.5px solid #cbd5e1', borderRadius: 12,
+  fontSize: '0.875rem', outline: 'none', background: '#ffffff',
+  color: '#0f172a', transition: 'all 0.15s ease',
+  boxSizing: 'border-box'
 };
 
-// ── Parse question text format ─────────────────────────────
-// Supports:
-//   Câu 1: <question text>
-//   A. <option>
-//   B. <option>
-//   ...
-// Answer line: "Đáp án: 1A 2BC 3C ..."
 function parseQuestions(text: string): Array<{
   content: string;
   chapter_name: string;
@@ -47,7 +42,6 @@ function parseQuestions(text: string): Array<{
   for (const line of lines) {
     if (/^(đáp án|answer)[:\s]/i.test(line)) continue;
 
-    // Detect chapter header like "Chương 1: Ma trận" or "[Chương 1: Ma trận]"
     const chapMatch = line.match(/^(?:#+|\[)?\s*(chương\s+\d+[^\]\n]*)/i);
     if (chapMatch && !line.match(/^(?:câu\s+)?\d+[.:)]/i)) {
       currentChapter = chapMatch[1].replace(/\]$/, '').trim();
@@ -84,55 +78,19 @@ export default function AdminExams() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Create exam form
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', duration_min: 60, subject_ids: [] as string[], is_active: true });
 
-  // Import panel
   const [importText,  setImportText]  = useState('');
   const [importCount, setImportCount] = useState(0);
   const [importing,   setImporting]   = useState(false);
 
-  // Bulk answers
   const [answerText, setAnswerText] = useState('');
   const [applyingAns, setApplyingAns] = useState(false);
 
-  // Image upload (1 image = 1 question)
-  const imgInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
-
-  const uploadQuestionImages = async (files: FileList | null) => {
-    if (!selExam || !files || files.length === 0) return;
-    setUploadingImg(true);
-    setUploadProgress({ done: 0, total: files.length });
-    let startNum = questions.length + 1;
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      const ext = f.name.split('.').pop() || 'png';
-      const path = `${selExam.id}/${Date.now()}-${i}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('question-images').upload(path, f, { contentType: f.type });
-      if (!upErr) {
-        const { data: { publicUrl } } = supabase.storage.from('question-images').getPublicUrl(path);
-        const { data: newQ } = await supabase.from('questions').insert({
-          exam_id: selExam.id, order_num: startNum++,
-          type: 'image', image_url: publicUrl,
-        }).select().single();
-        if (newQ) {
-          const opts = ['A','B','C','D','E','F','G','H'].map(label => ({
-            question_id: newQ.id, label, content: '', is_correct: false
-          }));
-          await supabase.from('question_options').insert(opts);
-        }
-      }
-      setUploadProgress(p => ({ ...p, done: p.done + 1 }));
-    }
-    await fetchQuestions(selExam.id);
-    setUploadingImg(false);
-    setUploadProgress({ done: 0, total: 0 });
-    if (imgInputRef.current) imgInputRef.current.value = '';
-  };
-
+  const imgInputRef = useRef<HTMLInputElement>(null);
 
   const fetchExams = async () => {
     const { data } = await supabase
@@ -142,25 +100,29 @@ export default function AdminExams() {
     setExams((data as any) ?? []);
     setLoading(false);
   };
+
   const fetchSubjects = async () => {
-    const { data } = await supabase.from('subjects').select('id, name, semester');
+    const { data } = await supabase.from('subjects').select('id, name, semester').order('semester').order('name');
     setSubjects(data ?? []);
   };
+
+  useEffect(() => {
+    fetchExams();
+    fetchSubjects();
+  }, []);
+
+  const selectExam = async (exam: Exam) => {
+    setSelExam(exam);
+    fetchQuestions(exam.id);
+  };
+
   const fetchQuestions = async (examId: string) => {
-    const { data } = await supabase.from('questions')
+    const { data } = await supabase
+      .from('questions')
       .select('*, question_options(*)')
       .eq('exam_id', examId)
       .order('order_num');
-    const qs: Question[] = (data ?? []).map((q: any) => ({ ...q, options: q.question_options ?? [] }));
-    qs.forEach(q => q.options.sort((a, b) => a.label.localeCompare(b.label)));
-    setQuestions(qs);
-  };
-
-  useEffect(() => { fetchExams(); fetchSubjects(); }, []);
-
-  const selectExam = (exam: Exam) => {
-    setSelExam(exam);
-    fetchQuestions(exam.id);
+    setQuestions((data as any) ?? []);
   };
 
   const openCreate = () => {
@@ -169,14 +131,14 @@ export default function AdminExams() {
     setShowForm(true);
   };
 
-  const openEdit = async (exam: ExamWithSubjects) => {
+  const openEdit = (exam: ExamWithSubjects) => {
     setEditingId(exam.id);
     setForm({
       title: exam.title,
-      description: exam.description || '',
+      description: exam.description ?? '',
       duration_min: exam.duration_min,
-      is_active: exam.is_active,
       subject_ids: exam.exam_subjects.map(es => es.subject_id),
+      is_active: exam.is_active ?? true,
     });
     setShowForm(true);
   };
@@ -186,7 +148,6 @@ export default function AdminExams() {
     setSaving(true);
 
     if (editingId) {
-      // Update
       const { error } = await supabase.from('exams').update({
         title: form.title,
         description: form.description || null,
@@ -195,7 +156,6 @@ export default function AdminExams() {
       }).eq('id', editingId);
 
       if (!error) {
-        // Update subjects - delete old and insert new
         await supabase.from('exam_subjects').delete().eq('exam_id', editingId);
         if (form.subject_ids.length > 0) {
           await supabase.from('exam_subjects').insert(
@@ -204,7 +164,6 @@ export default function AdminExams() {
         }
       }
     } else {
-      // Create
       const { data: newExam } = await supabase.from('exams').insert({
         title: form.title, description: form.description || null,
         duration_min: form.duration_min, is_active: form.is_active,
@@ -278,76 +237,143 @@ export default function AdminExams() {
     for (const [qNumStr, correctLabels] of Object.entries(ansMap)) {
       const qNum = parseInt(qNumStr);
       const q = questions.find(q => q.order_num === qNum);
-      if (q) {
-        for (const opt of q.options) {
-          const isCorrect = correctLabels.includes(opt.label);
-          if (opt.is_correct !== isCorrect) {
-            await supabase.from('question_options').update({ is_correct: isCorrect }).eq('id', opt.id);
-          }
+      if (!q) continue;
+      for (const opt of q.options) {
+        const isCorrect = correctLabels.includes(opt.label.toUpperCase());
+        if (opt.is_correct !== isCorrect) {
+          await supabase.from('question_options').update({ is_correct: isCorrect }).eq('id', opt.id);
         }
       }
     }
-    await fetchQuestions(selExam.id);
     setAnswerText('');
+    await fetchQuestions(selExam.id);
     setApplyingAns(false);
-    alert('Đã cập nhật đáp án thành công!');
   };
 
-  const deleteAllQuestions = async () => {
-    if (!selExam) return;
-    if (!confirm('Xóa TẤT CẢ câu hỏi của đề thi này?')) return;
-    await supabase.from('questions').delete().eq('exam_id', selExam.id);
-    fetchQuestions(selExam.id);
+  const uploadQuestionImages = async (files: FileList | null) => {
+    if (!selExam || !files || files.length === 0) return;
+    setUploadingImg(true);
+    setUploadProgress({ done: 0, total: files.length });
+    let startNum = questions.length + 1;
+    const defaultLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split('.').pop() ?? 'jpg';
+      const path = `${selExam.id}/${Date.now()}_${i}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('exam-images').upload(path, file);
+      if (upErr) { console.error('Upload image failed:', upErr); continue; }
+      const { data: pubData } = supabase.storage.from('exam-images').getPublicUrl(path);
+      const publicUrl = pubData.publicUrl;
+
+      const { data: q } = await supabase.from('questions').insert({
+        exam_id: selExam.id, order_num: startNum++,
+        content: null, type: 'image', image_url: publicUrl,
+        chapter_name: 'Hình ảnh',
+      }).select().single();
+
+      if (q) {
+        await supabase.from('question_options').insert(
+          defaultLabels.map(label => ({
+            question_id: q.id, label, content: '', is_correct: false,
+          }))
+        );
+      }
+      setUploadProgress({ done: i + 1, total: files.length });
+    }
+
+    await fetchQuestions(selExam.id);
+    setUploadingImg(false);
+    if (imgInputRef.current) imgInputRef.current.value = '';
   };
 
   const clearAllAnswers = async () => {
     if (!selExam) return;
-    if (!confirm('Xóa TẤT CẢ đáp án? Các câu hỏi sẽ vẫn được giữ lại.')) return;
+    if (!confirm('Xoá tất cả đáp án đúng đã tích? Các câu hỏi và lựa chọn vẫn giữ nguyên.')) return;
     const qIds = questions.map(q => q.id);
-    if (qIds.length === 0) return;
-    await supabase.from('question_options').update({ is_correct: false }).in('question_id', qIds);
+    if (qIds.length > 0) {
+      await supabase.from('question_options').update({ is_correct: false }).in('question_id', qIds);
+      fetchQuestions(selExam.id);
+    }
+  };
+
+  const deleteAllQuestions = async () => {
+    if (!selExam) return;
+    if (!confirm('CẢNH BÁO: Xoá TOÀN BỘ câu hỏi của đề thi này? Hành động không thể hoàn tác.')) return;
+    await supabase.from('questions').delete().eq('exam_id', selExam.id);
     fetchQuestions(selExam.id);
   };
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
+  const filteredExams = exams.filter(e => {
+    const q = searchQuery.toLowerCase();
+    if (!q) return true;
+    return e.title.toLowerCase().includes(q) || e.exam_subjects.some(es => es.subjects?.name.toLowerCase().includes(q));
+  });
+
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
+      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+    </div>
+  );
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
-      {/* Left — exam list */}
-      <div style={{ width: 280, borderRight: '1px solid hsl(var(--border))', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid hsl(var(--border))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontWeight: 700, fontSize: '0.9375rem' }}>Đề thi ({exams.length})</h2>
-          <button id="create-exam-btn" className="btn-primary" style={{ fontSize: '0.75rem', padding: '5px 10px' }} onClick={openCreate}><Plus size={13} /> Tạo</button>
+    <div style={{ display: 'flex', height: '100vh', background: '#f4f7fc', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      
+      {/* Sidebar — exam list */}
+      <div style={{ width: 340, borderRight: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>Đề thi</h1>
+            <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>{exams.length} đề thi hệ thống</p>
+          </div>
+          <button
+            onClick={openCreate}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
+              border: 'none', borderRadius: 12, fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+            }}
+          >
+            <Plus size={15} /> Tạo đề
+          </button>
         </div>
-        <div style={{ padding: 'var(--space-3) var(--space-5)', borderBottom: '1px solid hsl(var(--border))', position: 'relative' }}>
-          <Search size={14} style={{ position: 'absolute', left: 'calc(var(--space-5) + 8px)', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-fg))', pointerEvents: 'none' }} />
-          <input
-            type="text"
-            placeholder="Tìm kiếm đề thi..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{ ...inputStyle, paddingLeft: 32, fontSize: '0.8125rem' }}
-          />
+
+        {/* Search */}
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Tìm theo tên đề, môn..."
+              style={{
+                width: '100%', padding: '7px 10px 7px 30px', borderRadius: 10,
+                border: '1px solid #cbd5e1', fontSize: 12.5, outline: 'none', background: '#ffffff',
+                color: '#0f172a', boxSizing: 'border-box'
+              }}
+            />
+          </div>
         </div>
-        {(() => {
-          const q = searchQuery.trim().toLowerCase();
-          const filteredExams = q ? exams.filter(e => e.title.toLowerCase() === q) : exams;
-          return (
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {filteredExams.length === 0 && <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'hsl(var(--muted-fg))', fontSize: '0.875rem' }}>{q ? 'Không tìm thấy đề thi' : 'Chưa có đề thi'}</div>}
-          
-          {/* Grouped Exam List */}
+
+        {/* List grouped by Semester */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {filteredExams.length === 0 && (
+            <div style={{ padding: 24, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+              Không tìm thấy đề thi nào
+            </div>
+          )}
+
           {[1,2,3,4,5,6,7,8].map(sem => {
             const subjectsInSem = subjects.filter(s => s.semester === sem);
             if (subjectsInSem.length === 0) return null;
             
-            // Check if there are any exams in this semester
             const examsInSem = filteredExams.filter(e => e.exam_subjects.some(es => es.subjects?.semester === sem));
             if (examsInSem.length === 0) return null;
 
             return (
               <div key={sem}>
-                <div style={{ padding: '8px 20px', background: 'hsl(var(--muted))', fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--muted-fg))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ padding: '8px 16px', background: '#f1f5f9', fontSize: 11, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Kỳ {sem}
                 </div>
                 {subjectsInSem.map(subj => {
@@ -356,7 +382,7 @@ export default function AdminExams() {
 
                   return (
                     <div key={subj.id}>
-                      <div style={{ padding: '6px 20px', fontSize: '0.8125rem', fontWeight: 600, color: 'hsl(var(--primary))', background: 'hsl(var(--primary-muted) / 0.3)' }}>
+                      <div style={{ padding: '6px 16px', fontSize: 12, fontWeight: 800, color: '#2563eb', background: '#eff6ff' }}>
                         {subj.name}
                       </div>
                       {examsInSubj.map(exam => (
@@ -364,23 +390,23 @@ export default function AdminExams() {
                           key={exam.id}
                           onClick={() => selectExam(exam)}
                           style={{
-                            padding: 'var(--space-3) var(--space-5) var(--space-3) var(--space-8)', cursor: 'pointer',
-                            borderBottom: '1px solid hsl(var(--border))',
-                            background: selExam?.id === exam.id ? 'hsl(var(--primary-muted))' : 'transparent',
+                            padding: '12px 16px 12px 24px', cursor: 'pointer',
+                            borderBottom: '1px solid #f1f5f9',
+                            background: selExam?.id === exam.id ? '#edf5ff' : 'transparent',
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            transition: 'background var(--duration-fast)',
+                            transition: 'background 0.15s ease',
                           }}
                         >
                           <div style={{ overflow: 'hidden' }}>
-                            <div style={{ fontWeight: selExam?.id === exam.id ? 700 : 500, fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: selExam?.id === exam.id ? 'hsl(var(--primary))' : undefined }}>
+                            <div style={{ fontWeight: selExam?.id === exam.id ? 800 : 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: selExam?.id === exam.id ? '#2563eb' : '#0f172a' }}>
                               {exam.title}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>{exam.duration_min} phút</div>
+                            <div style={{ fontSize: 11.5, color: '#64748b' }}>{exam.duration_min} phút</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                            <button className="btn-ghost" style={{ padding: 5 }} onClick={e => { e.stopPropagation(); openEdit(exam); }}><Pencil size={13} /></button>
-                            <button className="btn-ghost" style={{ padding: 5, color: 'hsl(var(--danger))' }} onClick={e => { e.stopPropagation(); deleteExam(exam.id); }}><Trash2 size={13} /></button>
-                            <ChevronRight size={14} style={{ color: 'hsl(var(--muted-fg))' }} />
+                            <button style={{ border: 'none', background: 'transparent', padding: 4, cursor: 'pointer', color: '#475569' }} onClick={e => { e.stopPropagation(); openEdit(exam); }}><Pencil size={13} /></button>
+                            <button style={{ border: 'none', background: 'transparent', padding: 4, cursor: 'pointer', color: '#e11d48' }} onClick={e => { e.stopPropagation(); deleteExam(exam.id); }}><Trash2 size={13} /></button>
+                            <ChevronRight size={14} style={{ color: '#94a3b8' }} />
                           </div>
                         </div>
                       ))}
@@ -390,66 +416,26 @@ export default function AdminExams() {
               </div>
             );
           })}
-
-          {/* Uncategorized Exams */}
-          {(() => {
-            const uncategorized = filteredExams.filter(e => e.exam_subjects.length === 0);
-            if (uncategorized.length === 0) return null;
-            return (
-              <>
-                <div style={{ padding: '8px 20px', background: 'hsl(var(--muted))', fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--muted-fg))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Chưa phân loại
-                </div>
-                {uncategorized.map(exam => (
-                  <div
-                    key={exam.id}
-                    onClick={() => selectExam(exam)}
-                    style={{
-                      padding: 'var(--space-4) var(--space-5)', cursor: 'pointer',
-                      borderBottom: '1px solid hsl(var(--border))',
-                      background: selExam?.id === exam.id ? 'hsl(var(--primary-muted))' : 'transparent',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      transition: 'background var(--duration-fast)',
-                    }}
-                  >
-                    <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontWeight: selExam?.id === exam.id ? 700 : 500, fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: selExam?.id === exam.id ? 'hsl(var(--primary))' : undefined }}>
-                        {exam.title}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>{exam.duration_min} phút</div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                      <button className="btn-ghost" style={{ padding: 5 }} onClick={e => { e.stopPropagation(); openEdit(exam); }}><Pencil size={13} /></button>
-                      <button className="btn-ghost" style={{ padding: 5, color: 'hsl(var(--danger))' }} onClick={e => { e.stopPropagation(); deleteExam(exam.id); }}><Trash2 size={13} /></button>
-                      <ChevronRight size={14} style={{ color: 'hsl(var(--muted-fg))' }} />
-                    </div>
-                  </div>
-                ))}
-              </>
-            );
-          })()}
         </div>
-          );
-        })()}
       </div>
 
       {/* Right — question management */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#f4f7fc' }}>
         {!selExam ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'hsl(var(--muted-fg))', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <HelpCircle size={40} style={{ opacity: 0.2 }} />
-            <p>Chọn đề thi để quản lý câu hỏi</p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', flexDirection: 'column', gap: 12 }}>
+            <HelpCircle size={48} style={{ color: '#cbd5e1' }} />
+            <p style={{ fontWeight: 600, fontSize: 14 }}>Chọn đề thi bên trái để quản lý câu hỏi</p>
           </div>
         ) : (
-          <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-6)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
               <div>
-                <h2 style={{ fontWeight: 700, fontSize: '1rem' }}>{selExam.title}</h2>
-                <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))' }}>{questions.length} câu hỏi · {selExam.duration_min} phút</p>
+                <h2 style={{ fontWeight: 900, fontSize: 22, color: '#0f172a', margin: '0 0 4px 0' }}>{selExam.title}</h2>
+                <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>{questions.length} câu hỏi · {selExam.duration_min} phút làm bài</p>
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                <button className="btn-ghost" style={{ fontSize: '0.75rem', color: 'hsl(var(--warning))' }} onClick={clearAllAnswers}>Xóa đáp án</button>
-                <button className="btn-ghost" style={{ fontSize: '0.75rem', color: 'hsl(var(--danger))' }} onClick={deleteAllQuestions}>Xóa toàn bộ câu hỏi</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #fde68a', background: '#fef3c7', color: '#b45309', fontSize: 12.5, fontWeight: 800, cursor: 'pointer' }} onClick={clearAllAnswers}>Xóa đáp án</button>
+                <button style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #fecdd3', background: '#ffe4e6', color: '#e11d48', fontSize: 12.5, fontWeight: 800, cursor: 'pointer' }} onClick={deleteAllQuestions}>Xóa toàn bộ câu hỏi</button>
               </div>
             </div>
 
@@ -458,11 +444,11 @@ export default function AdminExams() {
               const unanswered = questions.map((q, i) => (!q.options.some(o => o.is_correct) ? (i + 1) : null)).filter(Boolean) as number[];
               if (unanswered.length === 0 || questions.length === 0) return null;
               return (
-                <div style={{ background: 'hsl(var(--warning) / 0.1)', border: '1px solid hsl(var(--warning) / 0.3)', borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-4) var(--space-5)', marginBottom: 'var(--space-6)', display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start' }}>
-                  <AlertTriangle size={18} style={{ color: 'hsl(var(--warning))', marginTop: 2, flexShrink: 0 }} />
+                <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 20, padding: 18, marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <AlertTriangle size={20} style={{ color: '#d97706', marginTop: 2, flexShrink: 0 }} />
                   <div>
-                    <h4 style={{ fontWeight: 600, fontSize: '0.875rem', color: 'hsl(var(--warning))', marginBottom: 'var(--space-1)' }}>Câu chưa có đáp án ({unanswered.length})</h4>
-                    <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--foreground))', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                    <h4 style={{ fontWeight: 800, fontSize: 14, color: '#d97706', margin: '0 0 4px 0' }}>Câu chưa có đáp án ({unanswered.length})</h4>
+                    <p style={{ fontSize: 13, color: '#475569', margin: 0, lineHeight: 1.5 }}>
                       {unanswered.join(', ')}
                     </p>
                   </div>
@@ -471,21 +457,27 @@ export default function AdminExams() {
             })()}
 
             {/* Import section */}
-            <div style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-5)', marginBottom: 'var(--space-6)' }}>
-              <h3 style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 'var(--space-1)' }}>Nhập câu hỏi hàng loạt</h3>
-              <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-3)' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Nhập câu hỏi hàng loạt</h3>
+              <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
                 Định dạng: <code>Câu 1: &lt;nội dung&gt;</code> → <code>A. &lt;lựa chọn&gt;</code> → cuối dòng <code>Đáp án: 1A 2BC</code>
               </p>
               <textarea
-                style={{ ...inputStyle, height: 140, resize: 'vertical', fontFamily: 'monospace', fontSize: '0.8125rem' }}
+                style={{ ...inputStyle, height: 130, resize: 'vertical', fontFamily: 'monospace', fontSize: 12.5 }}
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
                 placeholder={'Câu 1: Câu hỏi đây\nA. Lựa chọn A\nB. Lựa chọn B\nC. Lựa chọn C\nD. Lựa chọn D\n\nĐáp án: 1A'}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-3)' }}>
-                {importCount > 0 && <span style={{ fontSize: '0.8125rem', color: 'hsl(var(--success))' }}>✓ Đã nhập {importCount} câu</span>}
-                <button id="import-questions-btn" className="btn-primary" style={{ marginLeft: 'auto', fontSize: '0.875rem' }}
-                  onClick={importQuestions} disabled={importing || !importText.trim()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                {importCount > 0 && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 800 }}>✓ Đã nhập {importCount} câu</span>}
+                <button
+                  style={{
+                    marginLeft: 'auto', padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', display: 'flex', alignItems: 'center', gap: 6
+                  }}
+                  onClick={importQuestions} disabled={importing || !importText.trim()}
+                >
                   {importing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}
                   {importing ? 'Đang nhập...' : 'Nhập câu hỏi'}
                 </button>
@@ -493,36 +485,47 @@ export default function AdminExams() {
             </div>
 
             {/* Upload images as questions */}
-            <div style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-5)', marginBottom: 'var(--space-6)' }}>
-              <h3 style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 'var(--space-1)' }}>Tải ảnh đề thi (1 ảnh = 1 câu)</h3>
-              <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-3)' }}>
-                Mỗi ảnh sẽ tạo 1 câu hỏi mới với các lựa chọn mặc định từ A đến H. Sau đó bạn có thể dùng công cụ nhập đáp án ở dưới.
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Tải ảnh đề thi (1 ảnh = 1 câu)</h3>
+              <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
+                Mỗi ảnh sẽ tạo 1 câu hỏi mới với các lựa chọn mặc định từ A đến H.
               </p>
               <input ref={imgInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
                 onChange={e => uploadQuestionImages(e.target.files)} />
-              <button className="btn-primary" style={{ fontSize: '0.875rem' }}
-                disabled={uploadingImg} onClick={() => imgInputRef.current?.click()}>
+              <button
+                style={{
+                  padding: '10px 18px', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe',
+                  borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                }}
+                disabled={uploadingImg} onClick={() => imgInputRef.current?.click()}
+              >
                 {uploadingImg
                   ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Đang tải {uploadProgress.done}/{uploadProgress.total}</>
-                  : <><ImagePlus size={14} /> Chọn nhiều ảnh</>}
+                  : <><ImagePlus size={15} /> Chọn nhiều ảnh đề thi</>}
               </button>
             </div>
 
             {/* Bulk Answers Input */}
-            <div style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-5)', marginBottom: 'var(--space-6)' }}>
-              <h3 style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 'var(--space-1)' }}>Cập nhật đáp án hàng loạt</h3>
-              <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))', marginBottom: 'var(--space-3)' }}>
-                Nhập đáp án cho các câu đã có (đặc biệt hữu ích khi vừa upload ảnh). Hỗ trợ: <code>1A 2B 3C</code>, <code>1AB 2CD</code>, <code>1:A 1:B 2:C</code>, <code>5E 6F</code>
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+              <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Cập nhật đáp án hàng loạt</h3>
+              <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
+                Nhập đáp án cho các câu đã có: <code>1A 2B 3CD 4A 5E</code>
               </p>
               <textarea
-                style={{ ...inputStyle, height: 60, resize: 'vertical', fontFamily: 'monospace', fontSize: '0.8125rem' }}
+                style={{ ...inputStyle, height: 60, resize: 'vertical', fontFamily: 'monospace', fontSize: 12.5 }}
                 value={answerText}
                 onChange={e => setAnswerText(e.target.value)}
                 placeholder="Ví dụ: 1A 2B 3CD 4A 5E..."
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-3)' }}>
-                <button className="btn-primary" style={{ fontSize: '0.875rem' }}
-                  onClick={applyAnswers} disabled={applyingAns || !answerText.trim()}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                <button
+                  style={{
+                    padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', display: 'flex', alignItems: 'center', gap: 6
+                  }}
+                  onClick={applyAnswers} disabled={applyingAns || !answerText.trim()}
+                >
                   {applyingAns ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}
                   {applyingAns ? 'Đang lưu...' : 'Lưu đáp án'}
                 </button>
@@ -530,14 +533,18 @@ export default function AdminExams() {
             </div>
 
             {/* Question list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {questions.length === 0 && <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'hsl(var(--muted-fg))', background: 'hsl(var(--muted))', borderRadius: 'var(--radius)', fontSize: '0.875rem' }}>Chưa có câu hỏi nào</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {questions.length === 0 && (
+                <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8', background: '#ffffff', borderRadius: 22, border: '1px solid #e2e8f0', fontSize: 13.5 }}>
+                  Chưa có câu hỏi nào trong đề thi này
+                </div>
+              )}
               {questions.map((q, i) => (
-                <div key={q.id} style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', padding: 'var(--space-4)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: (q.options.length > 0 || q.image_url) ? 'var(--space-3)' : 0 }}>
+                <div key={q.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: (q.options.length > 0 || q.image_url) ? 12 : 0 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'hsl(var(--primary))' }}>Câu {i + 1}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <span style={{ fontWeight: 900, fontSize: 13.5, color: '#2563eb', background: '#eff6ff', padding: '3px 10px', borderRadius: 8 }}>Câu {i + 1}</span>
                         <input
                           type="text"
                           defaultValue={q.chapter_name || 'Tổng hợp'}
@@ -550,31 +557,26 @@ export default function AdminExams() {
                           }}
                           placeholder="Tên chương..."
                           style={{
-                            fontSize: '0.75rem',
-                            padding: '2px 8px',
-                            borderRadius: 4,
-                            border: '1px solid hsl(var(--border))',
-                            background: 'hsl(var(--muted))',
-                            color: 'hsl(var(--foreground))',
-                            fontWeight: 600,
-                            maxWidth: 220,
+                            fontSize: 12, padding: '3px 10px', borderRadius: 8,
+                            border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a',
+                            fontWeight: 700, maxWidth: 220,
                           }}
                         />
                       </div>
-                      <span style={{ fontSize: '0.875rem' }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
+                      <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
                     </div>
-                    <button className="btn-ghost" style={{ padding: 5, color: 'hsl(var(--danger))', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={13} /></button>
+                    <button style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={15} /></button>
                   </div>
                   {q.image_url && (
-                    <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', marginBottom: q.options.length > 0 ? 'var(--space-3)' : 0 }} />
+                    <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: q.options.length > 0 ? 12 : 0 }} />
                   )}
                   {q.options.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, paddingLeft: 'var(--space-4)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingLeft: 12, marginTop: 8 }}>
                       {q.options.map(o => (
-                        <div key={o.label} style={{ fontSize: '0.8125rem', color: o.is_correct ? 'hsl(var(--success))' : 'hsl(var(--muted-fg))', display: 'flex', gap: 4 }}>
-                          <strong style={{ minWidth: 14 }}>{o.label}.</strong>
+                        <div key={o.label} style={{ fontSize: 13, color: o.is_correct ? '#15803d' : '#475569', fontWeight: o.is_correct ? 800 : 500, display: 'flex', gap: 6, padding: '6px 10px', background: o.is_correct ? '#dcfce7' : '#f8fafc', borderRadius: 8, border: o.is_correct ? '1px solid #bbf7d0' : '1px solid #f1f5f9' }}>
+                          <strong style={{ minWidth: 16 }}>{o.label}.</strong>
                           <span>{o.content}</span>
-                          {o.is_correct && <span style={{ marginLeft: 'auto', color: 'hsl(var(--success))' }}>✓</span>}
+                          {o.is_correct && <span style={{ marginLeft: 'auto', color: '#15803d', fontWeight: 900 }}>✓</span>}
                         </div>
                       ))}
                     </div>
@@ -589,30 +591,30 @@ export default function AdminExams() {
       {/* Create Exam modal */}
       {showForm && (
         <>
-          <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'hsl(240 20% 12% / 0.4)', zIndex: 200 }} />
-          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 420, background: 'hsl(var(--surface-raised))', boxShadow: 'var(--shadow-lg)', zIndex: 201, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderBottom: '1px solid hsl(var(--border))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1rem' }}>{editingId ? 'Chỉnh sửa đề thi' : 'Tạo đề thi mới'}</h2>
-              <button className="btn-ghost" style={{ padding: 6 }} onClick={() => setShowForm(false)}><X size={18} /></button>
+          <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
+          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 440, background: '#ffffff', boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontWeight: 900, fontSize: 18, color: '#0f172a', margin: 0 }}>{editingId ? 'Chỉnh sửa đề thi' : 'Tạo đề thi mới'}</h2>
+              <button style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }} onClick={() => setShowForm(false)}><X size={18} /></button>
             </div>
-            <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Tên đề thi *</label>
-                <input id="exam-title-input" style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="VD: Đề thi giữa kỳ - Lần 1" />
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Tên đề thi *</label>
+                <input style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="VD: Đề thi giữa kỳ - Lần 1" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Mô tả</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Mô tả</label>
                 <textarea style={{ ...inputStyle, height: 72, resize: 'vertical' }} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Thời gian (phút)</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Thời gian (phút)</label>
                 <input style={inputStyle} type="number" min={1} value={form.duration_min} onChange={e => setForm(p => ({ ...p, duration_min: +e.target.value }))} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Gắn vào môn học (có thể chọn nhiều)</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 140, overflowY: 'auto', background: 'hsl(var(--background))', padding: 'var(--space-3)', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))' }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Gắn vào môn học</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 150, overflowY: 'auto', background: '#f8fafc', padding: 12, borderRadius: 12, border: '1px solid #e2e8f0' }}>
                   {subjects.map(s => (
-                    <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8125rem', cursor: 'pointer' }}>
+                    <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', color: '#0f172a' }}>
                       <input 
                         type="checkbox" 
                         checked={form.subject_ids.includes(s.id)} 
@@ -623,22 +625,22 @@ export default function AdminExams() {
                             subject_ids: checked ? [...p.subject_ids, s.id] : p.subject_ids.filter(id => id !== s.id)
                           }));
                         }} 
-                        style={{ width: 14, height: 14, accentColor: 'hsl(var(--primary))' }} 
+                        style={{ width: 15, height: 15, accentColor: '#2563eb' }} 
                       />
                       Kỳ {(s as any).semester} · {s.name}
                     </label>
                   ))}
                 </div>
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: '0.875rem' }}>
-                <input type="checkbox" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'hsl(var(--primary))' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
+                <input type="checkbox" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} style={{ width: 16, height: 16, accentColor: '#2563eb' }} />
                 Kích hoạt ngay
               </label>
             </div>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderTop: '1px solid hsl(var(--border))', display: 'flex', gap: 'var(--space-3)' }}>
-              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setShowForm(false)}>Hủy</button>
-              <button id="save-exam-btn" className="btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={saveExam} disabled={saving}>
-                {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />}
+            <div style={{ padding: 20, borderTop: '1px solid #e2e8f0', display: 'flex', gap: 10 }}>
+              <button style={{ flex: 1, padding: 12, borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 800, cursor: 'pointer' }} onClick={() => setShowForm(false)}>Hủy</button>
+              <button style={{ flex: 2, padding: 12, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveExam} disabled={saving}>
+                {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={16} strokeWidth={3} />}
                 {editingId ? 'Lưu thay đổi' : 'Tạo đề thi'}
               </button>
             </div>
