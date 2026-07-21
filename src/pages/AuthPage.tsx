@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Eye, EyeOff, Loader2, Mail, Lock, User, GraduationCap,
-  CheckCircle, AlertCircle, ArrowRight, Sparkles, ShieldCheck, Zap, BookOpenCheck,
+  CheckCircle, AlertCircle
 } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 
@@ -14,6 +14,7 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -88,303 +89,390 @@ export default function AuthPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground relative overflow-hidden">
-      {/* Decorative background blobs */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full opacity-30 blur-3xl"
-          style={{ background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)' }} />
-        <div className="absolute -bottom-40 -right-32 w-[480px] h-[480px] rounded-full opacity-25 blur-3xl"
-          style={{ background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)' }} />
-      </div>
-
-      {/* LEFT: Branding panel */}
-      <div className="hidden lg:flex flex-1 flex-col justify-between p-12 xl:p-16 relative z-10"
-        style={{ background: 'linear-gradient(135deg, hsl(var(--primary-muted)) 0%, hsl(var(--surface-raised)) 100%)' }}>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      background: 'linear-gradient(135deg, #f0f4ff 0%, #e6effe 50%, #f5f8ff 100%)',
+      fontFamily: "'Inter', -apple-system, sans-serif",
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* ── LEFT SECTION: Landscape Vector Illustration & Branding ── */}
+      <div style={{
+        flex: 1.1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '48px 56px',
+        position: 'relative',
+        zIndex: 2,
+      }} className="hidden lg:flex">
         
-        {/* Top brand */}
-        <div className="flex items-center gap-3 animate-fade-in">
-          <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-lg ring-2 ring-white/60"
-            style={{ boxShadow: '0 8px 24px hsl(var(--primary) / 0.25)' }}>
-            <img src={logoAvatar} alt="TQMaster" className="w-full h-full object-cover" />
+        {/* Top Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 46, height: 46, borderRadius: 16, overflow: 'hidden',
+            boxShadow: '0 10px 25px rgba(59, 130, 246, 0.25)',
+            border: '2px solid #ffffff', background: '#ffffff'
+          }}>
+            <img src={logoAvatar} alt="TQMaster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-          <span className="text-xl font-extrabold tracking-tight">TQMaster</span>
-        </div>
-
-        {/* Center content */}
-        <div className="max-w-lg animate-slide-up" style={{ animationDelay: '80ms' }}>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-semibold"
-            style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--primary))' }}>
-            <Sparkles size={13} /> Nền tảng học tập #1 cho sinh viên
-          </div>
-
-          <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.1] tracking-tight mb-5">
-            Chinh phục mọi <br />
-            <span style={{
-              background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.6))',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>kỳ thi</span> cùng TQMaster
-          </h1>
-
-          <p className="text-base text-[hsl(var(--muted-fg))] leading-relaxed mb-10 max-w-md">
-            Tài liệu chuẩn xác, ngân hàng đề thi đa dạng và trải nghiệm luyện thi trực quan — tất cả trong một nền tảng.
-          </p>
-
-          <div className="space-y-3">
-            {[
-              { icon: <BookOpenCheck size={18} />, title: 'Tài liệu lý thuyết', desc: 'Biên soạn chuẩn, dễ hiểu, cập nhật liên tục' },
-              { icon: <Zap size={18} />, title: 'Luyện thi trực tuyến', desc: 'Hàng ngàn câu hỏi sát đề thi thực tế' },
-              { icon: <ShieldCheck size={18} />, title: 'An toàn & bảo mật', desc: 'Dữ liệu cá nhân được mã hoá tuyệt đối' },
-            ].map((f, i) => (
-              <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl hover:translate-x-1 transition-transform duration-300"
-                style={{ background: 'hsl(var(--surface-raised) / 0.6)', border: '1px solid hsl(var(--border) / 0.6)', backdropFilter: 'blur(8px)' }}>
-                <div className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-                  style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}>
-                  {f.icon}
-                </div>
-                <div>
-                  <div className="font-semibold text-sm mb-0.5">{f.title}</div>
-                  <div className="text-xs text-[hsl(var(--muted-fg))]">{f.desc}</div>
-                </div>
-              </div>
-            ))}
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#1e293b', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              TQMaster
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#3b82f6', letterSpacing: '0.02em' }}>
+              Hệ thống Học tập & Ôn thi
+            </div>
           </div>
         </div>
 
-        {/* Footer testimonial */}
-        <div className="text-xs text-[hsl(var(--muted-fg))] flex items-center gap-2 animate-fade-in" style={{ animationDelay: '200ms' }}>
-          <div className="flex -space-x-2">
-            {[1, 2, 3].map(n => (
-              <div key={n} className="w-7 h-7 rounded-full border-2 border-[hsl(var(--surface-raised))]"
-                style={{ background: `hsl(${n * 60} 70% 70%)` }} />
-            ))}
-          </div>
-          <span><b className="text-foreground">10,000+</b> sinh viên đã tin dùng</span>
+        {/* Center SVG Landscape Vector (Mountains & Hot Air Balloon Style) */}
+        <div style={{ position: 'relative', margin: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <svg viewBox="0 0 600 400" style={{ width: '100%', maxWidth: 520, height: 'auto', filter: 'drop-shadow(0 15px 30px rgba(59,130,246,0.12))' }}>
+            <defs>
+              <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#eff6ff" stopOpacity="0.2" />
+              </linearGradient>
+              <linearGradient id="mtn1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#93c5fd" />
+                <stop offset="100%" stopColor="#3b82f6" />
+              </linearGradient>
+              <linearGradient id="mtn2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#bfdbfe" />
+                <stop offset="100%" stopColor="#60a5fa" />
+              </linearGradient>
+              <linearGradient id="mtn3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#dbeafe" />
+                <stop offset="100%" stopColor="#93c5fd" />
+              </linearGradient>
+              <linearGradient id="balloonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#60a5fa" />
+                <stop offset="100%" stopColor="#2563eb" />
+              </linearGradient>
+            </defs>
+
+            {/* Sun / Soft Glow */}
+            <circle cx="300" cy="120" r="70" fill="#ffffff" opacity="0.6" />
+
+            {/* Clouds */}
+            <path d="M120 110 Q135 95 155 105 Q175 90 195 105 Q210 100 220 110 Z" fill="#ffffff" opacity="0.8" />
+            <path d="M380 90 Q395 75 415 85 Q435 70 455 85 Q470 80 480 90 Z" fill="#ffffff" opacity="0.7" />
+
+            {/* Background Mountains */}
+            <polygon points="40,320 200,160 360,320" fill="url(#mtn3)" opacity="0.7" />
+            <polygon points="260,320 420,140 560,320" fill="url(#mtn3)" opacity="0.6" />
+
+            {/* Midground Mountains */}
+            <polygon points="100,340 280,180 440,340" fill="url(#mtn2)" opacity="0.85" />
+
+            {/* Snow Caps */}
+            <polygon points="280,180 250,210 270,205 280,215 290,205 310,210" fill="#ffffff" />
+            <polygon points="200,160 180,185 195,180 200,190 205,180 220,185" fill="#ffffff" />
+
+            {/* Foreground Mountain Peak */}
+            <polygon points="0,380 180,200 360,380" fill="url(#mtn1)" />
+            <polygon points="180,200 160,225 175,220 180,230 185,220 200,225" fill="#ffffff" />
+
+            {/* Hot Air Balloon */}
+            <g transform="translate(390, 110)">
+              <ellipse cx="25" cy="30" rx="20" ry="26" fill="url(#balloonGrad)" />
+              <path d="M12 26 C12 45 38 45 38 26 Z" fill="#2563eb" opacity="0.3" />
+              <line x1="17" y1="52" x2="20" y2="58" stroke="#3b82f6" strokeWidth="1.5" />
+              <line x1="33" y1="52" x2="30" y2="58" stroke="#3b82f6" strokeWidth="1.5" />
+              <rect x="19" y="58" width="12" height="9" rx="2" fill="#1e3a8a" />
+            </g>
+
+            {/* Birds */}
+            <path d="M220 130 Q225 124 230 130 Q235 124 240 130" stroke="#3b82f6" strokeWidth="2" fill="none" opacity="0.7" />
+            <path d="M250 145 Q254 140 258 145 Q262 140 266 145" stroke="#3b82f6" strokeWidth="1.5" fill="none" opacity="0.6" />
+          </svg>
+        </div>
+
+        {/* Bottom Feature Badges */}
+        <div style={{ display: 'flex', gap: 16 }}>
+          {[
+            { title: '10.000+ Sinh viên', desc: 'Đăng ký & tin dùng' },
+            { title: 'Ngân hàng 100k+ Đề', desc: 'Cập nhật liên tục' },
+            { title: 'Luyện thi Chuẩn 100%', desc: 'Dễ dàng đạt điểm A' },
+          ].map((item, idx) => (
+            <div key={idx} style={{
+              flex: 1, padding: '14px 16px', background: '#ffffff',
+              borderRadius: 16, border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.06)'
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b', marginBottom: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: '#64748b' }}>{item.desc}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* RIGHT: Form panel */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10 lg:p-14 relative z-10">
-        {/* Mobile brand */}
-        <div className="lg:hidden flex items-center gap-3 mb-8 animate-slide-up">
-          <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-md ring-2 ring-white/60">
-            <img src={logoAvatar} alt="TQMaster" className="w-full h-full object-cover" />
-          </div>
-          <span className="text-xl font-extrabold tracking-tight">TQMaster</span>
-        </div>
-
-        <div className="w-full max-w-[440px] animate-slide-up" style={{ animationDelay: '60ms' }}>
-          {/* Card */}
-          <div className="rounded-3xl p-7 sm:p-9"
-            style={{
-              background: 'hsl(var(--surface-raised))',
-              border: '1px solid hsl(var(--border))',
-              boxShadow: '0 20px 60px -20px rgba(0,0,0,0.15), 0 8px 24px -8px rgba(0,0,0,0.08)',
+      {/* ── RIGHT SECTION: Floating Clean Card Auth Form ── */}
+      <div style={{
+        flex: 0.9,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '32px 24px',
+        position: 'relative',
+        zIndex: 2,
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: 440,
+          background: '#ffffff',
+          borderRadius: 24,
+          padding: '40px 36px',
+          boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.12), 0 10px 20px -5px rgba(0,0,0,0.04)',
+          border: '1px solid #f1f5f9',
+          animation: 'fadeSlideUp 0.4s ease-out',
+        }}>
+          {/* Top User Icon Badge */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#eff6ff', border: '1px solid #dbeafe',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#2563eb', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.12)'
             }}>
-            {/* Heading */}
-            <div className="mb-7">
-              <h2 className="text-[1.75rem] font-extrabold tracking-tight mb-1.5">
-                {mode === 'login' ? 'Chào mừng trở lại 👋' : mode === 'register' ? 'Tạo tài khoản mới ✨' : 'Quên mật khẩu? 🔑'}
-              </h2>
-              <p className="text-sm text-[hsl(var(--muted-fg))]">
-                {mode === 'login'
-                  ? 'Đăng nhập để tiếp tục hành trình học tập của bạn.'
-                  : mode === 'register'
-                  ? 'Bắt đầu hành trình học tập chỉ trong 30 giây.'
-                  : 'Nhập email của bạn, chúng tôi sẽ gửi mật khẩu mới về hộp thư.'}
-              </p>
+              <User size={26} />
             </div>
+          </div>
 
-            {/* Tabs */}
-            {mode !== 'forgot' && (
-            <div className="flex p-1 rounded-xl mb-6"
-              style={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}>
-              {(['login', 'register'] as Mode[]).map(m => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => reset(m)}
-                  className="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200"
-                  style={{
-                    background: mode === m ? 'hsl(var(--surface-raised))' : 'transparent',
-                    color: mode === m ? 'hsl(var(--primary))' : 'hsl(var(--muted-fg))',
-                    boxShadow: mode === m ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                  }}
-                >
-                  {m === 'login' ? 'Đăng nhập' : 'Đăng ký'}
-                </button>
-              ))}
-            </div>
+          {/* Heading */}
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px 0' }}>
+              {mode === 'login' ? 'Welcome Back' : mode === 'register' ? 'Tạo tài khoản mới' : 'Quên mật khẩu?'}
+            </h2>
+            <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+              {mode === 'login'
+                ? 'Đăng nhập để bắt đầu làm bài thi và xem lý thuyết'
+                : mode === 'register'
+                ? 'Đăng ký tài khoản để học tập miễn phí trên TQMaster'
+                : 'Nhập email của bạn để lấy lại mật khẩu nhanh chóng'}
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {mode === 'register' && (
+              <>
+                <Field
+                  icon={<User size={18} />}
+                  label="Họ và tên"
+                  id="fullName"
+                  value={fullName}
+                  onChange={setFullName}
+                  placeholder="Nguyễn Văn A"
+                />
+                <Field
+                  icon={<GraduationCap size={18} />}
+                  label="Mã sinh viên"
+                  id="studentCode"
+                  value={studentCode}
+                  onChange={setStudentCode}
+                  placeholder="VD: 2021XXXXXX"
+                  mono
+                />
+              </>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'register' && (
-                <div className="space-y-4 animate-fade-in">
-                  <Field icon={<User size={17} />} label="Họ và tên" id="fullName"
-                    value={fullName} onChange={setFullName} placeholder="Nguyễn Văn A" />
-                  <Field icon={<GraduationCap size={17} />} label="Mã sinh viên" id="studentCode"
-                    value={studentCode} onChange={setStudentCode} placeholder="VD: 2021XXXXXX" mono />
-                </div>
-              )}
+            <Field
+              icon={<Mail size={18} />}
+              label="Địa chỉ Email"
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={setEmail}
+              placeholder="admin@touristms.com"
+            />
 
-              <Field icon={<Mail size={17} />} label="Email" id="email" type="email" required
-                value={email} onChange={setEmail} placeholder="you@example.com" />
-
-              {mode !== 'forgot' && (
-              <div className="space-y-1.5">
-                <label htmlFor="password" className="text-xs font-semibold text-[hsl(var(--subtle-fg))] uppercase tracking-wide">
+            {mode !== 'forgot' && (
+              <div>
+                <label htmlFor="password" style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Mật khẩu
                 </label>
-                <div className="relative group">
-                  <Lock size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[hsl(var(--subtle-fg))] group-focus-within:text-[hsl(var(--primary))] transition-colors" />
+                <div style={{ position: 'relative' }}>
+                  <Lock size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                   <input
                     id="password"
                     type={showPass ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder={mode === 'register' ? 'Tối thiểu 8 ký tự' : '••••••••'}
-                    required minLength={8}
-                    className="w-full h-11 pl-10 pr-11 rounded-xl text-sm transition-all"
+                    required
+                    minLength={8}
                     style={{
-                      background: 'hsl(var(--background))',
-                      border: '1.5px solid hsl(var(--border))',
-                      color: 'hsl(var(--foreground))',
+                      width: '100%',
+                      height: 48,
+                      paddingLeft: 42,
+                      paddingRight: 44,
+                      borderRadius: 12,
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: 14,
+                      color: '#0f172a',
+                      background: '#ffffff',
+                      outline: 'none',
+                      transition: 'all 0.15s ease',
                     }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'hsl(var(--primary))'; e.currentTarget.style.boxShadow = '0 0 0 4px hsl(var(--primary) / 0.12)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'hsl(var(--border))'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
-                  <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[hsl(var(--subtle-fg))] hover:text-foreground hover:bg-[hsl(var(--primary)/0.08)] transition-colors">
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    style={{
+                      position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4
+                    }}
+                  >
+                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {mode === 'login' && (
-                  <div className="flex justify-end pt-1">
-                    <button type="button" onClick={() => reset('forgot')} className="text-xs font-medium text-[hsl(var(--primary))] hover:underline">
-                      Quên mật khẩu?
+              </div>
+            )}
+
+            {/* Remember Me & Forgot Password */}
+            {mode === 'login' && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#475569', fontWeight: 500 }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => setRememberMe(e.target.checked)}
+                    style={{ width: 16, height: 16, accentColor: '#2563eb', borderRadius: 4, cursor: 'pointer' }}
+                  />
+                  Remember me
+                </label>
+                <button
+                  type="button"
+                  onClick={() => reset('forgot')}
+                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
+            {/* Error banner */}
+            {error && (
+              <div style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                background: '#ffe4e6', border: '1px solid #fecdd3', borderRadius: 12,
+                color: '#e11d48', fontSize: 13, fontWeight: 600
+              }}>
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Success banner */}
+            {success && !error && (
+              <div>
+                {mode === 'forgot' ? (
+                  <div style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                    background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 12,
+                    color: '#15803d', fontSize: 13, fontWeight: 600
+                  }}>
+                    <CheckCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span>Đã gửi hướng dẫn đặt lại mật khẩu về email của bạn!</span>
+                  </div>
+                ) : (
+                  <div style={{
+                    padding: 16, background: '#eff6ff', border: '1.5px solid #bfdbfe',
+                    borderRadius: 14, fontSize: 12, color: '#1e3a8a'
+                  }}>
+                    <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 6, color: '#1d4ed8' }}>
+                      🚀 XÁC THỰC EMAIL ĐĂNG KÝ ({countdown}s)
+                    </div>
+                    <p style={{ margin: 0, lineHeight: 1.5 }}>
+                      Vui lòng mở hộp thư Gmail của bạn và bấm vào liên kết <b>"Verify Email"</b> để hoàn tất đăng ký!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setMode('login'); setSuccess(false); }}
+                      style={{ marginTop: 10, background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 8, padding: '6px 12px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Chuyển sang Đăng nhập ngay →
                     </button>
                   </div>
                 )}
               </div>
-              )}
+            )}
 
-              {error && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm animate-slide-up"
-                  style={{ background: 'hsl(var(--danger-light))', border: '1px solid hsl(var(--danger) / 0.25)', color: 'hsl(var(--danger))' }}>
-                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                  <span className="font-medium leading-snug">{error}</span>
-                </div>
-              )}
-
-              {success && !error && (
-                <div className="animate-slide-up">
-                  {mode === 'forgot' ? (
-                    <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm"
-                      style={{ background: 'hsl(var(--success-light))', border: '1px solid hsl(var(--success) / 0.25)', color: 'hsl(var(--success))' }}>
-                      <CheckCircle size={16} className="shrink-0 mt-0.5" />
-                      <span className="font-medium leading-snug">Đã gửi mật khẩu mới về email của bạn! Vui lòng kiểm tra hộp thư, đăng nhập và đổi lại mật khẩu.</span>
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-indigo-50/90 dark:bg-indigo-950/70 border-2 border-indigo-500/60 rounded-2xl space-y-3.5 shadow-lg text-left">
-                      <div className="flex items-center justify-between">
-                        <div className="font-extrabold text-sm text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
-                          <span>🚀 CÁCH XÁC THỰC NHANH VÀ CHUẨN NHẤT:</span>
-                        </div>
-                        <span className="px-2.5 py-0.5 bg-indigo-600 text-white font-extrabold text-xs rounded-full">
-                          {countdown}s
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-foreground/90 font-medium leading-snug">
-                        Người dùng nhận được email này chỉ cần thực hiện 2 thao tác cực kỳ đơn giản:
-                      </p>
-
-                      <div className="space-y-2.5 text-xs">
-                        <div className="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-indigo-100 dark:border-indigo-900 space-y-1">
-                          <div className="font-bold text-indigo-900 dark:text-indigo-200">
-                            Bước 1 (Trong Gmail):
-                          </div>
-                          <ul className="pl-4 list-disc space-y-1 text-[11.5px] text-muted-foreground">
-                            <li>Nếu thư chui vào mục <b>Thư rác (Spam)</b> hoặc có cảnh báo màu đỏ: Bấm nút <b className="text-emerald-600 dark:text-emerald-400">"Không phải spam"</b> (Not spam) ở phía trên.</li>
-                            <li>Bấm trực tiếp vào nút <b className="text-indigo-600 dark:text-indigo-400">"Verify Email"</b> (hoặc đường link) trong thư.</li>
-                          </ul>
-                        </div>
-
-                        <div className="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-indigo-100 dark:border-indigo-900 space-y-1">
-                          <div className="font-bold text-indigo-900 dark:text-indigo-200">
-                            Bước 2 (Trên trang web TQMaster):
-                          </div>
-                          <ul className="pl-4 list-disc space-y-1 text-[11.5px] text-muted-foreground">
-                            <li>Quay lại trang web và bấm nút màu xanh tím <b>"Tôi đã xác thực"</b>.</li>
-                            <li>Hệ thống sẽ lập tức nhận diện email đã được xác nhận và tự động đăng nhập vào ứng dụng ngay!</li>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 flex items-center justify-between border-t border-indigo-200/60 dark:border-indigo-900/60">
-                        <span className="text-[11px] text-muted-foreground italic">Tự động chuyển sang Đăng nhập sau {countdown}s...</span>
-                        <button
-                          type="button"
-                          onClick={() => { setMode('login'); setSuccess(false); }}
-                          className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-                        >
-                          Chuyển sang Đăng nhập ngay →
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-12 rounded-xl font-semibold text-[0.95rem] flex items-center justify-center gap-2 transition-all disabled:opacity-60"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))',
-                  color: 'hsl(var(--primary-foreground, 0 0% 100%))',
-                  boxShadow: '0 8px 20px -6px hsl(var(--primary) / 0.45)',
-                }}
-                onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-              >
-                {loading ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <>
-                    {mode === 'login' ? 'Đăng nhập' : mode === 'register' ? 'Tạo tài khoản' : 'Gửi liên kết đặt lại'}
-                    <ArrowRight size={17} />
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Footer link */}
-            <div className="mt-6 text-center text-sm text-[hsl(var(--muted-fg))]">
-              {mode === 'login' ? (
-                <>Chưa có tài khoản?{' '}
-                  <button onClick={() => reset('register')} className="font-semibold text-[hsl(var(--primary))] hover:underline">
-                    Đăng ký ngay
-                  </button>
-                </>
-              ) : mode === 'register' ? (
-                <>Đã có tài khoản?{' '}
-                  <button onClick={() => reset('login')} className="font-semibold text-[hsl(var(--primary))] hover:underline">
-                    Đăng nhập
-                  </button>
-                </>
+            {/* Main Primary Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                height: 48,
+                width: '100%',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 12,
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'all 0.15s ease',
+                marginTop: 4,
+              }}
+              onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              {loading ? (
+                <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
               ) : (
-                <>Nhớ mật khẩu rồi?{' '}
-                  <button onClick={() => reset('login')} className="font-semibold text-[hsl(var(--primary))] hover:underline">
-                    Quay lại đăng nhập
-                  </button>
+                <>
+                  {mode === 'login' ? 'Sign In' : mode === 'register' ? 'Đăng Ký Tài Khoản' : 'Gửi liên kết đặt lại'}
                 </>
               )}
-            </div>
-          </div>
+            </button>
+          </form>
 
-          <p className="mt-6 text-center text-xs text-[hsl(var(--subtle-fg))]">
-            © {new Date().getFullYear()} TQMaster. Đã đăng ký bản quyền.
-          </p>
+          {/* Toggle Login/Register footer */}
+          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 13, color: '#64748b' }}>
+            {mode === 'login' ? (
+              <>
+                Chưa có tài khoản?{' '}
+                <button
+                  onClick={() => reset('register')}
+                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                >
+                  Đăng ký ngay
+                </button>
+              </>
+            ) : mode === 'register' ? (
+              <>
+                Đã có tài khoản?{' '}
+                <button
+                  onClick={() => reset('login')}
+                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                >
+                  Đăng nhập
+                </button>
+              </>
+            ) : (
+              <>
+                Nhớ mật khẩu rồi?{' '}
+                <button
+                  onClick={() => reset('login')}
+                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                >
+                  Quay lại Đăng nhập
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -399,26 +487,37 @@ function Field({
   placeholder?: string; type?: string; required?: boolean; mono?: boolean;
 }) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-semibold text-[hsl(var(--subtle-fg))] uppercase tracking-wide">
+    <div>
+      <label htmlFor={id} style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}
       </label>
-      <div className="relative group">
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[hsl(var(--subtle-fg))] group-focus-within:text-[hsl(var(--primary))] transition-colors">
+      <div style={{ position: 'relative' }}>
+        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
           {icon}
         </span>
         <input
-          id={id} type={type} value={value} required={required}
+          id={id}
+          type={type}
+          value={value}
+          required={required}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`w-full h-11 pl-10 pr-3 rounded-xl text-sm transition-all ${mono ? 'font-mono' : ''}`}
           style={{
-            background: 'hsl(var(--background))',
-            border: '1.5px solid hsl(var(--border))',
-            color: 'hsl(var(--foreground))',
+            width: '100%',
+            height: 48,
+            paddingLeft: 42,
+            paddingRight: 14,
+            borderRadius: 12,
+            border: '1.5px solid #cbd5e1',
+            fontSize: 14,
+            color: '#0f172a',
+            background: '#ffffff',
+            outline: 'none',
+            fontFamily: mono ? 'monospace' : 'inherit',
+            transition: 'all 0.15s ease',
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'hsl(var(--primary))'; e.currentTarget.style.boxShadow = '0 0 0 4px hsl(var(--primary) / 0.12)'; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = 'hsl(var(--border))'; e.currentTarget.style.boxShadow = 'none'; }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)'; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none'; }}
         />
       </div>
     </div>
