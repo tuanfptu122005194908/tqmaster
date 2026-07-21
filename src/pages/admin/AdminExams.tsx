@@ -307,7 +307,7 @@ export default function AdminExams() {
   const filteredExams = exams.filter(e => {
     const q = searchQuery.toLowerCase();
     if (!q) return true;
-    return e.title.toLowerCase().includes(q) || e.exam_subjects.some(es => es.subjects?.name.toLowerCase().includes(q));
+    return e.title.toLowerCase().includes(q) || (e.exam_subjects ?? []).some(es => es.subjects?.name?.toLowerCase().includes(q));
   });
 
   if (loading) return (
@@ -368,7 +368,7 @@ export default function AdminExams() {
             const subjectsInSem = subjects.filter(s => s.semester === sem);
             if (subjectsInSem.length === 0) return null;
             
-            const examsInSem = filteredExams.filter(e => e.exam_subjects.some(es => es.subjects?.semester === sem));
+            const examsInSem = filteredExams.filter(e => (e.exam_subjects ?? []).some(es => es.subjects?.semester === sem));
             if (examsInSem.length === 0) return null;
 
             return (
@@ -377,7 +377,7 @@ export default function AdminExams() {
                   Kỳ {sem}
                 </div>
                 {subjectsInSem.map(subj => {
-                  const examsInSubj = filteredExams.filter(e => e.exam_subjects.some(es => es.subject_id === subj.id));
+                  const examsInSubj = filteredExams.filter(e => (e.exam_subjects ?? []).some(es => es.subject_id === subj.id));
                   if (examsInSubj.length === 0) return null;
 
                   return (
@@ -441,7 +441,7 @@ export default function AdminExams() {
 
             {/* Unanswered Questions Alert */}
             {(() => {
-              const unanswered = questions.map((q, i) => (!q.options.some(o => o.is_correct) ? (i + 1) : null)).filter(Boolean) as number[];
+              const unanswered = questions.map((q, i) => (!((q.options ?? []).some(o => o.is_correct)) ? (i + 1) : null)).filter(Boolean) as number[];
               if (unanswered.length === 0 || questions.length === 0) return null;
               return (
                 <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 20, padding: 18, marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -539,50 +539,53 @@ export default function AdminExams() {
                   Chưa có câu hỏi nào trong đề thi này
                 </div>
               )}
-              {questions.map((q, i) => (
-                <div key={q.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: (q.options.length > 0 || q.image_url) ? 12 : 0 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                        <span style={{ fontWeight: 900, fontSize: 13.5, color: '#2563eb', background: '#eff6ff', padding: '3px 10px', borderRadius: 8 }}>Câu {i + 1}</span>
-                        <input
-                          type="text"
-                          defaultValue={q.chapter_name || 'Tổng hợp'}
-                          onBlur={async e => {
-                            const val = e.target.value.trim() || 'Tổng hợp';
-                            if (val !== q.chapter_name) {
-                              await supabase.from('questions').update({ chapter_name: val }).eq('id', q.id);
-                              if (selExam) fetchQuestions(selExam.id);
-                            }
-                          }}
-                          placeholder="Tên chương..."
-                          style={{
-                            fontSize: 12, padding: '3px 10px', borderRadius: 8,
-                            border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a',
-                            fontWeight: 700, maxWidth: 220,
-                          }}
-                        />
-                      </div>
-                      <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
-                    </div>
-                    <button style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={15} /></button>
-                  </div>
-                  {q.image_url && (
-                    <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: q.options.length > 0 ? 12 : 0 }} />
-                  )}
-                  {q.options.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingLeft: 12, marginTop: 8 }}>
-                      {q.options.map(o => (
-                        <div key={o.label} style={{ fontSize: 13, color: o.is_correct ? '#15803d' : '#475569', fontWeight: o.is_correct ? 800 : 500, display: 'flex', gap: 6, padding: '6px 10px', background: o.is_correct ? '#dcfce7' : '#f8fafc', borderRadius: 8, border: o.is_correct ? '1px solid #bbf7d0' : '1px solid #f1f5f9' }}>
-                          <strong style={{ minWidth: 16 }}>{o.label}.</strong>
-                          <span>{o.content}</span>
-                          {o.is_correct && <span style={{ marginLeft: 'auto', color: '#15803d', fontWeight: 900 }}>✓</span>}
+              {questions.map((q, i) => {
+                const opts = q.options ?? [];
+                return (
+                  <div key={q.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: (opts.length > 0 || q.image_url) ? 12 : 0 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                          <span style={{ fontWeight: 900, fontSize: 13.5, color: '#2563eb', background: '#eff6ff', padding: '3px 10px', borderRadius: 8 }}>Câu {i + 1}</span>
+                          <input
+                            type="text"
+                            defaultValue={q.chapter_name || 'Tổng hợp'}
+                            onBlur={async e => {
+                              const val = e.target.value.trim() || 'Tổng hợp';
+                              if (val !== q.chapter_name) {
+                                await supabase.from('questions').update({ chapter_name: val }).eq('id', q.id);
+                                if (selExam) fetchQuestions(selExam.id);
+                              }
+                            }}
+                            placeholder="Tên chương..."
+                            style={{
+                              fontSize: 12, padding: '3px 10px', borderRadius: 8,
+                              border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a',
+                              fontWeight: 700, maxWidth: 220,
+                            }}
+                          />
                         </div>
-                      ))}
+                        <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
+                      </div>
+                      <button style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={15} /></button>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {q.image_url && (
+                      <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: opts.length > 0 ? 12 : 0 }} />
+                    )}
+                    {opts.length > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingLeft: 12, marginTop: 8 }}>
+                        {opts.map(o => (
+                          <div key={o.label} style={{ fontSize: 13, color: o.is_correct ? '#15803d' : '#475569', fontWeight: o.is_correct ? 800 : 500, display: 'flex', gap: 6, padding: '6px 10px', background: o.is_correct ? '#dcfce7' : '#f8fafc', borderRadius: 8, border: o.is_correct ? '1px solid #bbf7d0' : '1px solid #f1f5f9' }}>
+                            <strong style={{ minWidth: 16 }}>{o.label}.</strong>
+                            <span>{o.content}</span>
+                            {o.is_correct && <span style={{ marginLeft: 'auto', color: '#15803d', fontWeight: 900 }}>✓</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
