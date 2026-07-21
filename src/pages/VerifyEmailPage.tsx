@@ -26,6 +26,8 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
@@ -33,6 +35,23 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     const t = setInterval(() => setCooldown(c => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
+
+  const verifyByOtp = async () => {
+    setMsg(null);
+    const code = otp.replace(/\D/g, '');
+    if (code.length !== 6) {
+      setMsg({ kind: 'err', text: 'Vui lòng nhập đủ 6 số của mã xác thực.' });
+      return;
+    }
+    setVerifyingOtp(true);
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'signup' });
+    setVerifyingOtp(false);
+    if (error) {
+      setMsg({ kind: 'err', text: 'Mã không đúng hoặc đã hết hạn. Vui lòng thử lại hoặc bấm "Gửi lại email".' });
+      return;
+    }
+    onVerified();
+  };
 
   const remainingThisHour = Math.max(0, RESEND_MAX_PER_HOUR - getResendLog().length);
 
@@ -127,6 +146,39 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
           Tôi đã xác thực
         </button>
 
+        <div className="my-5 flex items-center gap-3">
+          <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
+          <span className="text-xs text-[hsl(var(--muted-fg))] font-medium">HOẶC NHẬP MÃ 6 SỐ</span>
+          <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
+        </div>
+
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          placeholder="______"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          className="w-full h-12 rounded-xl text-center tracking-[0.5em] text-xl font-bold mb-3 focus:outline-none focus:ring-2"
+          style={{
+            background: 'hsl(var(--background))',
+            border: '1.5px solid hsl(var(--border))',
+            color: 'hsl(var(--foreground))',
+          }}
+        />
+
+        <button
+          onClick={verifyByOtp}
+          disabled={verifyingOtp || otp.length !== 6}
+          className="w-full h-11 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mb-3 transition-all disabled:opacity-50"
+          style={{
+            background: 'hsl(var(--success))',
+            color: 'white',
+          }}>
+          {verifyingOtp ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+          Xác thực bằng mã
+        </button>
+
         <button
           onClick={resend}
           disabled={sending || cooldown > 0}
@@ -151,7 +203,7 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
         </button>
 
         <p className="mt-5 text-xs text-center text-[hsl(var(--subtle-fg))] leading-relaxed">
-          Tài khoản chưa xác thực sẽ tự động bị xoá sau 24 giờ.
+          Tài khoản chưa xác thực sẽ tự động bị xoá sau 24 giờ. Nếu không bấm được link, hãy nhập mã 6 số trong email.
         </p>
       </div>
     </div>
