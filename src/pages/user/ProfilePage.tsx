@@ -5,7 +5,7 @@ import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, formatDate, subjectColor, subjectInitials } from '@/lib/mockData';
 import {
   User, Package, BookOpen, Loader2, ChevronDown, Lock, Eye, EyeOff, CheckCircle2,
-  GraduationCap, Award, PlayCircle, ShieldCheck, Download, Sparkles,
+  GraduationCap, Award, PlayCircle, ShieldCheck, Download, Sparkles, Clock,
   Zap, Calendar, ChevronRight, Edit3, ArrowRight, Smartphone, Laptop, Facebook,
   Star, Check, Copy, ExternalLink, HelpCircle
 } from 'lucide-react';
@@ -770,7 +770,7 @@ export default function ProfilePage() {
                   key={String(s)}
                   onClick={() => setSemFilter(s as any)}
                   style={{
-                    padding: '7px 18px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                    padding: '7px 18px', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 700,
                     background: semFilter === s ? '#2563eb' : '#ffffff',
                     color: semFilter === s ? '#ffffff' : '#475569',
                     boxShadow: semFilter === s ? '0 3px 10px rgba(37, 99, 235, 0.3)' : 'none',
