@@ -116,9 +116,32 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
           Chúng tôi đã gửi liên kết xác thực đến:
         </p>
 
-        <div className="text-center font-semibold text-[hsl(var(--primary))] break-all mb-6 p-3 rounded-xl"
+        <div className="text-center font-semibold text-[hsl(var(--primary))] break-all mb-4 p-3 rounded-xl"
           style={{ background: 'hsl(var(--primary) / 0.08)', border: '1px solid hsl(var(--primary) / 0.2)' }}>
           {email}
+        </div>
+
+        {/* Prominent SPAM Warning & Guide Box */}
+        <div className="mb-6 p-4 rounded-2xl border-2 border-amber-500/40 bg-amber-500/10 dark:bg-amber-950/30 text-left space-y-3">
+          <div className="flex items-center gap-2 font-bold text-amber-600 dark:text-amber-400 text-sm">
+            <AlertCircle size={18} className="shrink-0" />
+            <span>HƯỚNG DẪN XÁC THỰC EMAIL (QUAN TRỌNG)</span>
+          </div>
+
+          <div className="space-y-2 text-xs text-foreground/90 leading-relaxed font-medium">
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-[11px]">1</span>
+              <span>Mở hộp thư của bạn (ĐẶC BIỆT KIỂM TRA MỤC <b>THƯ RÁC / SPAM</b>).</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-[11px]">2</span>
+              <span>Nếu thấy cảnh báo <i>"Thư này có thể nguy hiểm"</i>: Bấm nút <b className="text-emerald-600 dark:text-emerald-400">"Không phải thư rác"</b> (Báo cáo không phải spam).</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-[11px]">3</span>
+              <span>Copy <b>Mã 6 số</b> trong email nhập vào ô bên dưới (hoặc bấm liên kết xác thực).</span>
+            </div>
+          </div>
         </div>
 
         {msg && (

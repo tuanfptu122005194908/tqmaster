@@ -271,11 +271,17 @@ export default function AuthPage() {
                     {mode === 'forgot'
                       ? 'Đã gửi mật khẩu mới về email của bạn! Vui lòng kiểm tra hộp thư, đăng nhập và đổi lại mật khẩu.'
                       : (
-                        <div className="space-y-2">
-                          <p>Đăng ký thành công! Hệ thống đã gửi một email xác thực đến địa chỉ của bạn.</p>
-                          <div className="p-3.5 bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-200 rounded-xl text-[0.9rem] font-extrabold border-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] flex items-start gap-3 mt-3 animate-pulse">
-                            <span className="text-xl leading-none">🚨</span>
-                            <span>QUAN TRỌNG: Vui lòng kiểm tra kỹ hộp thư, ĐẶC BIỆT LÀ MỤC THƯ RÁC (SPAM) để tìm email xác thực trước khi đăng nhập!</span>
+                        <div className="space-y-3">
+                          <p className="font-bold text-base text-emerald-800 dark:text-emerald-300">🎉 Đăng ký tài khoản thành công!</p>
+                          <div className="p-4 bg-amber-500/15 border-2 border-amber-500/60 rounded-2xl text-xs space-y-2 text-foreground font-medium shadow-md">
+                            <div className="font-bold text-amber-700 dark:text-amber-400 text-sm flex items-center gap-1.5">
+                              <span>🚨</span> HƯỚNG DẪN XÁC THỰC EMAIL (BẮT BUỘC):
+                            </div>
+                            <ol className="list-decimal list-inside space-y-1.5 text-xs">
+                              <li>Kiểm tra Hộp thư email (và <b>ĐẶC BIỆT LÀ MỤC THƯ RÁC / SPAM</b>).</li>
+                              <li>Nếu bị đưa vào Spam: Bấm chọn <b>"Báo cáo không phải thư rác"</b> (Not Spam).</li>
+                              <li>Copy <b>Mã OTP 6 số</b> trong email nhập vào trang xác thực (hoặc bấm liên kết).</li>
+                            </ol>
                           </div>
                         </div>
                       )}
