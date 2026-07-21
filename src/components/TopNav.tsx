@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/lib/AppContext';
-import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X } from 'lucide-react';
+import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X, ShieldCheck } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 
 export default function TopNav() {
@@ -25,38 +25,44 @@ export default function TopNav() {
   return (
     <nav className="topnav-root" style={{
       position: 'sticky', top: 0, zIndex: 50,
-      height: 'var(--topnav-h)',
-      background: 'hsl(var(--surface-raised))',
-      borderBottom: '1px solid hsl(var(--border))',
+      height: 64,
+      background: '#ffffff',
+      borderBottom: '1px solid #e2e8f0',
       display: 'flex', alignItems: 'center',
-      padding: '0 var(--space-6)', gap: 'var(--space-6)',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06)',
+      padding: '0 28px', gap: 24,
+      boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)',
+      fontFamily: "'Inter', -apple-system, sans-serif"
     }}>
       {/* Brand & Links */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
         {/* Logo */}
         <button
           id="nav-logo"
           onClick={() => setCurrentView(isAdmin ? 'admin-dashboard' : 'home')}
           style={{ 
             display: 'flex', alignItems: 'center', gap: 10, border: 'none', background: 'none', cursor: 'pointer', padding: 0,
-            transition: 'transform var(--duration-fast) var(--ease-out-quart)',
+            transition: 'transform 0.15s ease',
           }}
         >
           <div style={{
-            width: 34, height: 34, borderRadius: '50%',
-            overflow: 'hidden', border: '1.5px solid hsl(var(--surface-raised))',
-            background: 'white', boxShadow: '0 4px 12px hsl(var(--primary) / 0.2)',
+            width: 36, height: 36, borderRadius: '50%',
+            overflow: 'hidden', border: '1.5px solid #e2e8f0',
+            background: '#ffffff', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)',
           }}>
-            <img src={logoAvatar} alt="TQMaster" width={34} height={34} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={logoAvatar} alt="TQMaster" width={36} height={36} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-          <span style={{ fontWeight: 900, fontSize: '1.125rem', letterSpacing: '-0.02em', color: 'hsl(var(--foreground))' }}>TQMaster</span>
+          <span style={{ fontWeight: 900, fontSize: '1.2rem', letterSpacing: '-0.03em', color: '#0f172a' }}>TQMaster</span>
         </button>
 
         {/* Links */}
-        <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)' }}>
+        <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <button 
-            style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: '0.9375rem', fontWeight: 600, color: currentView === 'home' ? 'hsl(var(--primary))' : 'hsl(var(--foreground))', transition: 'color 0.2s' }}
+            style={{
+              border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
+              fontSize: 14, fontWeight: 700,
+              color: currentView === 'home' ? '#2563eb' : '#475569',
+              transition: 'color 0.15s'
+            }}
             onClick={() => setCurrentView('home')}
           >
             Khóa học
@@ -64,14 +70,25 @@ export default function TopNav() {
 
           {profile && !isAdmin && (
             <button 
-              style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: '0.9375rem', fontWeight: 600, color: currentView === 'my-courses' ? 'hsl(var(--primary))' : 'hsl(var(--foreground))', transition: 'color 0.2s' }}
+              style={{
+                border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
+                fontSize: 14, fontWeight: 700,
+                color: currentView === 'my-courses' ? '#2563eb' : '#475569',
+                transition: 'color 0.15s'
+              }}
               onClick={() => setCurrentView('my-courses')}
             >
               Khóa học của bạn
             </button>
           )}
+
           <button 
-            style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: '0.9375rem', fontWeight: 600, color: currentView === 'news' ? 'hsl(var(--primary))' : 'hsl(var(--foreground))', transition: 'color 0.2s' }}
+            style={{
+              border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
+              fontSize: 14, fontWeight: 700,
+              color: currentView === 'news' ? '#2563eb' : '#475569',
+              transition: 'color 0.15s'
+            }}
             onClick={() => setCurrentView('news')}
           >
             Tin tức
@@ -79,17 +96,26 @@ export default function TopNav() {
           
           <div ref={contactRef} style={{ position: 'relative' }}>
             <button 
-              style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: '0.9375rem', fontWeight: 600, color: contactOpen ? 'hsl(var(--primary))' : 'hsl(var(--foreground))', display: 'flex', alignItems: 'center', gap: 4, transition: 'color 0.2s' }}
+              style={{
+                border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
+                fontSize: 14, fontWeight: 700,
+                color: contactOpen ? '#2563eb' : '#475569',
+                display: 'flex', alignItems: 'center', gap: 4, transition: 'color 0.15s'
+              }}
               onClick={() => setContactOpen(!contactOpen)}
             >
               Liên hệ <ChevronDown size={14} style={{ transform: contactOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
             {contactOpen && (
-              <div style={{ position: 'absolute', top: 'calc(100% + 12px)', left: -20, width: 220, background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 12, boxShadow: 'var(--shadow-lg)', padding: 'var(--space-2)', zIndex: 100, animation: 'slideUp 0.2s ease' }}>
-                <a href="https://www.facebook.com/tuanvaquan" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: 'hsl(var(--foreground))', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500, transition: 'background 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'hsl(var(--muted))'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 12px)', left: -10, width: 200,
+                background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16,
+                boxShadow: '0 12px 30px -4px rgba(15, 23, 42, 0.12)', padding: 6, zIndex: 100, animation: 'slideUp 0.15s ease'
+              }}>
+                <a href="https://www.facebook.com/tuanvaquan" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, color: '#0f172a', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
                   <Facebook size={18} color="#1877F2" /> Facebook
                 </a>
-                <a href="https://www.youtube.com/@tuanvaquanfptu" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, color: 'hsl(var(--foreground))', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500, transition: 'background 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'hsl(var(--muted))'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+                <a href="https://www.youtube.com/@tuanvaquanfptu" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, color: '#0f172a', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
                   <Youtube size={18} color="#FF0000" /> YouTube
                 </a>
               </div>
@@ -98,37 +124,34 @@ export default function TopNav() {
         </div>
       </div>
 
-      {/* Global Search - Highlighted */}
+      {/* Global Search */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-        <div className="nav-search-wrap" style={{ position: 'relative', width: '100%', maxWidth: 460 }}>
-          <Search size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-fg))', pointerEvents: 'none' }} />
+        <div className="nav-search-wrap" style={{ position: 'relative', width: '100%', maxWidth: 440 }}>
+          <Search size={17} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
           <input 
             type="text" 
             placeholder="Tìm môn học..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ 
-              width: '100%', padding: '9px 38px 9px 40px', borderRadius: 999, border: '2px solid hsl(var(--border))', 
-              background: 'hsl(var(--muted) / 0.3)', fontSize: '0.875rem', fontWeight: 500, outline: 'none', transition: 'all 0.2s',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
+              width: '100%', padding: '9px 38px 9px 44px', borderRadius: 999, border: '1.5px solid #e2e8f0', 
+              background: '#f8fafc', fontSize: 13.5, fontWeight: 500, outline: 'none', transition: 'all 0.15s',
+              color: '#0f172a',
             }} 
-            onFocus={(e) => { e.target.style.background = 'white'; e.target.style.borderColor = 'hsl(var(--primary))'; e.target.style.boxShadow = '0 0 0 4px hsl(var(--primary) / 0.1), var(--shadow-sm)'; }}
-            onBlur={(e) => { e.target.style.background = 'hsl(var(--muted) / 0.3)'; e.target.style.borderColor = 'hsl(var(--border))'; e.target.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.02)'; }}
+            onFocus={(e) => { e.target.style.background = '#ffffff'; e.target.style.borderColor = '#2563eb'; e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)'; }}
+            onBlur={(e) => { e.target.style.background = '#f8fafc'; e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
               style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                 width: 20, height: 20, borderRadius: '50%',
-                background: 'hsl(var(--muted-fg) / 0.15)', border: 'none',
+                background: '#cbd5e1', border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: 'hsl(var(--muted-fg))', padding: 0,
-                transition: 'background 0.15s',
+                cursor: 'pointer', color: '#ffffff', padding: 0,
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'hsl(var(--muted-fg) / 0.25)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'hsl(var(--muted-fg) / 0.15)'}
             >
               <X size={12} strokeWidth={3} />
             </button>
@@ -141,107 +164,116 @@ export default function TopNav() {
         <button
           id="nav-cart"
           className="btn-ghost hide-on-mobile"
-          style={{ position: 'relative', padding: 'var(--space-2)' }}
+          style={{ position: 'relative', padding: 8, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0', cursor: 'pointer', color: '#475569' }}
           onClick={() => setCurrentView('cart')}
         >
           <ShoppingCart size={18} />
           {cart.length > 0 && (
             <span style={{
-              position: 'absolute', top: 1, right: 1,
-              width: 15, height: 15, borderRadius: '50%',
-              background: 'hsl(var(--primary))', color: 'white',
-              fontSize: '0.5625rem', fontWeight: 700,
+              position: 'absolute', top: -3, right: -3,
+              width: 17, height: 17, borderRadius: '50%',
+              background: '#2563eb', color: 'white',
+              fontSize: 10, fontWeight: 800,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1.5px solid hsl(var(--surface-raised))',
+              border: '2px solid #ffffff',
             }}>{cart.length}</span>
           )}
         </button>
       )}
 
-      {/* User menu */}
+      {/* User profile menu */}
       {!authLoading && profile ? (
         <div ref={menuRef} style={{ position: 'relative' }} className="hide-on-mobile">
           <button
             id="nav-user-menu"
             onClick={() => setMenuOpen(o => !o)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              border: '1px solid hsl(var(--border))',
-              background: menuOpen ? 'hsl(var(--primary-muted))' : 'hsl(var(--surface-raised))',
+              display: 'flex', alignItems: 'center', gap: 9,
+              border: '1.5px solid #cbd5e1',
+              background: menuOpen ? '#f1f5f9' : '#ffffff',
               cursor: 'pointer',
-              padding: '5px var(--space-3) 5px 6px',
-              borderRadius: 999,
-              transition: 'background var(--duration-fast), border-color var(--duration-fast)',
+              padding: '5px 14px 5px 6px',
+              borderRadius: 30,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              transition: 'all 0.15s ease',
             }}
           >
             {/* Avatar circle */}
             <div style={{
-              width: 26, height: 26, borderRadius: '50%',
-              background: 'hsl(var(--primary))',
-              color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: '0.75rem', flexShrink: 0,
-              letterSpacing: '-0.01em',
+              width: 30, height: 30, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 800, fontSize: 13, flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
             }}>{avatarLetter}</div>
 
             <span style={{
-              fontSize: '0.8125rem', fontWeight: 500, maxWidth: 110,
+              fontSize: 13.5, fontWeight: 700, maxWidth: 110,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              color: 'hsl(var(--foreground))',
+              color: '#0f172a',
             }}>
               {profile.full_name || profile.username}
             </span>
-            <ChevronDown size={13} style={{
-              color: 'hsl(var(--muted-fg))', flexShrink: 0,
+            <ChevronDown size={14} style={{
+              color: '#64748b', flexShrink: 0,
               transform: menuOpen ? 'rotate(180deg)' : 'none',
-              transition: 'transform var(--duration-fast)',
+              transition: 'transform 0.15s',
             }} />
           </button>
 
+          {/* User Dropdown Menu */}
           {menuOpen && (
             <div style={{
-              position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-              width: 220,
-              background: 'hsl(var(--surface-raised))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: 'calc(var(--radius) * 1.5)',
-              boxShadow: 'var(--shadow-lg)',
-              zIndex: 100, overflow: 'hidden',
+              position: 'absolute', right: 0, top: 'calc(100% + 10px)',
+              width: 230,
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: 18,
+              boxShadow: '0 16px 36px -6px rgba(15, 23, 42, 0.15), 0 4px 12px -2px rgba(15, 23, 42, 0.05)',
+              zIndex: 100, overflow: 'hidden', padding: 8,
               animation: 'slideUp 140ms cubic-bezier(0.25,1,0.5,1) both',
             }}>
-              {/* User info */}
-              <div style={{ padding: 'var(--space-3) var(--space-4)', borderBottom: '1px solid hsl(var(--border))' }}>
-                <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 2 }}>
+              {/* User info header */}
+              <div style={{ padding: '12px 14px 14px 14px', borderBottom: '1px solid #f1f5f9', marginBottom: 6 }}>
+                <div style={{ fontWeight: 800, fontSize: 14.5, color: '#0f172a', marginBottom: 2 }}>
                   {profile.full_name || profile.username}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>{profile.email}</div>
+                <div style={{ fontSize: 12, color: '#64748b', wordBreak: 'break-all' }}>{profile.email}</div>
                 {isAdmin && (
-                  <span className="badge badge-primary" style={{ marginTop: 'var(--space-2)' }}>Admin</span>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    marginTop: 8, padding: '3px 10px', borderRadius: 12,
+                    background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 800,
+                    border: '1px solid #dbeafe'
+                  }}>
+                    <ShieldCheck size={12} /> Admin
+                  </span>
                 )}
               </div>
 
               {/* Actions */}
-              <div style={{ padding: 'var(--space-2)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {!isAdmin && (
-                  <MenuItem icon={<User size={14} />} label="Hồ sơ của tôi"
+                  <MenuItem icon={<User size={15} />} label="Hồ sơ của tôi"
                     onClick={() => { setCurrentView('profile'); setMenuOpen(false); }} />
                 )}
                 {isAdmin && (
                   <>
-                    <MenuItem icon={<LayoutDashboard size={14} />} label="Trang quản trị"
+                    <MenuItem icon={<LayoutDashboard size={15} />} label="Trang quản trị"
                       onClick={() => { setCurrentView('admin-dashboard'); setMenuOpen(false); }} />
-                    <MenuItem icon={<BookOpen size={14} />} label="Xem trang sinh viên"
+                    <MenuItem icon={<BookOpen size={15} />} label="Xem trang sinh viên"
                       onClick={() => { setCurrentView('home'); setMenuOpen(false); }} />
                   </>
                 )}
-                <div style={{ height: 1, background: 'hsl(var(--border))', margin: '4px var(--space-2)' }} />
-                <MenuItem icon={<LogOut size={14} />} label="Đăng xuất" danger
+                <div style={{ height: 1, background: '#f1f5f9', margin: '4px 6px' }} />
+                <MenuItem icon={<LogOut size={15} />} label="Đăng xuất" danger
                   onClick={() => { signOut(); setMenuOpen(false); }} />
               </div>
             </div>
           )}
         </div>
       ) : !authLoading ? (
-        <button id="nav-login-btn" className="btn-primary" style={{ fontSize: '0.875rem' }}
+        <button id="nav-login-btn" className="btn-primary" style={{ fontSize: 13.5, padding: '8px 18px', borderRadius: 12 }}
           onClick={() => setCurrentView('home')}>
           Đăng nhập
         </button>
@@ -263,19 +295,22 @@ function MenuItem({ icon, label, onClick, danger = false }: {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-        width: '100%', padding: 'var(--space-2) var(--space-3)',
-        border: 'none', borderRadius: 'var(--radius)',
+        display: 'flex', alignItems: 'center', gap: 10,
+        width: '100%', padding: '9px 12px',
+        border: 'none', borderRadius: 10,
         background: hov
-          ? danger ? 'hsl(var(--danger-light))' : 'hsl(var(--primary-muted))'
-          : 'none',
+          ? danger ? '#ffe4e6' : '#f1f5f9'
+          : 'transparent',
         cursor: 'pointer', textAlign: 'left',
-        fontSize: '0.875rem',
-        color: danger ? 'hsl(var(--danger))' : hov ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-        transition: 'background var(--duration-fast), color var(--duration-fast)',
+        fontSize: 13.5, fontWeight: 600,
+        color: danger ? '#e11d48' : hov ? '#2563eb' : '#334155',
+        transition: 'all 0.15s ease',
       }}
     >
-      {icon} {label}
+      <span style={{ color: danger ? '#e11d48' : hov ? '#2563eb' : '#64748b', display: 'flex', alignItems: 'center' }}>
+        {icon}
+      </span>
+      {label}
     </button>
   );
 }
