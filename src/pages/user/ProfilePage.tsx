@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
-import { formatPrice, formatDate } from '@/lib/mockData';
+import { formatPrice, formatDate, subjectColor, subjectInitials } from '@/lib/mockData';
 import {
-  User, Package, BookOpen, Phone, Loader2, ChevronDown, Lock, Eye, EyeOff, CheckCircle2,
-  GraduationCap, Award, PlayCircle, CheckCircle, Clock, ShieldCheck, Download, Sparkles,
-  MessageSquare, Zap, Search, Calendar, ChevronRight, Edit3, ArrowRight, Smartphone, Laptop
+  User, Package, BookOpen, Loader2, ChevronDown, Lock, Eye, EyeOff, CheckCircle2,
+  GraduationCap, Award, PlayCircle, ShieldCheck, Download, Sparkles,
+  Zap, Calendar, ChevronRight, Edit3, ArrowRight, Smartphone, Laptop, Facebook,
+  Star, Check, Copy, ExternalLink, HelpCircle
 } from 'lucide-react';
 
 type Order = Tables<'orders'>;
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [orderItemsMap, setOrderItemsMap] = useState<Record<string, OrderItem[]>>({});
   const [loadingItemsOrderId, setLoadingItemsOrderId] = useState<string | null>(null);
+  const [copiedBank, setCopiedBank] = useState(false);
 
   // Change password states
   const [currentPassword, setCurrentPassword] = useState('');
@@ -77,7 +79,7 @@ export default function ProfilePage() {
     Promise.all([
       supabase.from('orders').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('subjects').select('*').in('id', purchasedIds.length ? purchasedIds : ['x']),
-      supabase.from('system_settings').select('key, value').in('key', ['contact_info', 'bank_name']),
+      supabase.from('system_settings').select('key, value').in('key', ['contact_info', 'bank_name', 'account_number', 'account_holder']),
     ]).then(([ordersRes, subjectsRes, settingsRes]) => {
       setOrders(ordersRes.data ?? []);
       setSubjects(subjectsRes.data ?? []);
@@ -107,6 +109,13 @@ export default function ProfilePage() {
     setOrderItemsMap(prev => ({ ...prev, [orderId]: mappedItems }));
     setExpandedOrderId(orderId);
     setLoadingItemsOrderId(null);
+  };
+
+  const copyBankInfo = () => {
+    const text = `TPBank - STK: ${bankInfo['account_number'] || '0399888888'} - CTK: ${bankInfo['account_holder'] || 'TQMASTER'}`;
+    navigator.clipboard.writeText(text);
+    setCopiedBank(true);
+    setTimeout(() => setCopiedBank(false), 3000);
   };
 
   const statusBadge = (s: string) => {
@@ -208,6 +217,7 @@ export default function ProfilePage() {
 
         {/* Bottom Upgrade Account Button */}
         <button
+          onClick={() => setCurrentView('home')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             padding: '12px', background: '#eff6ff', color: '#2563eb', border: '1.5px solid #dbeafe',
@@ -215,7 +225,7 @@ export default function ProfilePage() {
             transition: 'all 0.15s ease'
           }}
         >
-          <Zap size={16} /> Nâng cấp tài khoản
+          <Zap size={16} /> Đăng ký môn mới
         </button>
       </div>
 
@@ -356,16 +366,16 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Card 4: Chứng chỉ đạt được */}
-                  <div style={{ background: '#ffe4e6', border: '1px solid #fecdd3', borderRadius: 20, padding: 20 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: '#ffffff', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                  {/* Card 4: Đã hoàn thành môn */}
+                  <div style={{ background: '#eafaf5', border: '1px solid #d1fae5', borderRadius: 20, padding: 20 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: '#ffffff', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
                       <Award size={18} />
                     </div>
-                    <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 2 }}>Chứng chỉ đạt được</div>
-                    <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>04</div>
-                    <span style={{ color: '#e11d48', fontSize: 11.5, fontWeight: 800, cursor: 'pointer' }}>
-                      Tải về tất cả 📥
-                    </span>
+                    <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 2 }}>Môn học sở hữu</div>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>{String(subjects.length).padStart(2, '0')}</div>
+                    <button onClick={() => setActiveTab('courses')} style={{ border: 'none', background: 'none', padding: 0, color: '#059669', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      Vào ôn thi ngay <ArrowRight size={12} />
+                    </button>
                   </div>
                 </div>
 
@@ -387,8 +397,8 @@ export default function ProfilePage() {
                           <PlayCircle size={18} />
                         </div>
                         <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Tiếp tục: Lập trình Web ReactJS</div>
-                          <div style={{ fontSize: 11.5, color: '#64748b' }}>Đã xem 45/60 phút · 2 giờ trước</div>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Tiếp tục ôn thi môn học</div>
+                          <div style={{ fontSize: 11.5, color: '#64748b' }}>Đã làm 45/60 câu trắc nghiệm · Vừa xong</div>
                         </div>
                       </div>
                       <span style={{ padding: '3px 10px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8', fontSize: 11, fontWeight: 800 }}>ĐANG HỌC</span>
@@ -400,7 +410,7 @@ export default function ProfilePage() {
                           <CheckCircle2 size={18} />
                         </div>
                         <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Hoàn thành bài tập: Ngân hàng câu hỏi</div>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Hoàn thành bài tập ôn luyện</div>
                           <div style={{ fontSize: 11.5, color: '#64748b' }}>Điểm số: 10/10 · Hôm qua</div>
                         </div>
                       </div>
@@ -666,28 +676,55 @@ export default function ProfilePage() {
               </table>
             </div>
 
-            {/* Support & Upgrade Cards */}
+            {/* ── UPDATED REAL PROJECT SUPPORT CARDS (Facebook Direct Link + Bank Transfer Copy) ── */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 24 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>Cần hỗ trợ thanh toán?</h3>
-                <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px 0' }}>Đội ngũ kỹ thuật của TQMaster luôn sẵn sàng giải đáp thắc mắc 24/7.</p>
-                <button style={{ padding: '10px 18px', background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <MessageSquare size={16} /> Chat với hỗ trợ
-                </button>
+              {/* Card 1: Direct Facebook Link Support */}
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Facebook size={18} color="#1877F2" /> Liên hệ hỗ trợ duyệt đơn nhanh
+                </h3>
+                <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                  Gửi mã đơn hoặc bill chuyển khoản qua Facebook Admin TQMaster để được kích hoạt môn học tức thì 24/7.
+                </p>
+                <a
+                  href="https://www.facebook.com/tuanvaquan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+                    background: '#1877F2', color: '#ffffff', textDecoration: 'none', borderRadius: 12,
+                    fontSize: 13.5, fontWeight: 800, boxShadow: '0 4px 12px rgba(24, 119, 242, 0.25)'
+                  }}
+                >
+                  <Facebook size={16} /> Nhắn tin Facebook Admin <ExternalLink size={14} />
+                </a>
               </div>
 
+              {/* Card 2: Bank Account Info & Copy */}
               <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 24, padding: 24 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1d4ed8', margin: '0 0 6px 0' }}>Đặc quyền Premium</h3>
-                <p style={{ fontSize: 13, color: '#475569', margin: '0 0 16px 0' }}>Mở khóa tất cả 500+ khóa học với gói Premium theo năm. Tiết kiệm tới 40%.</p>
-                <button style={{ padding: '10px 18px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
-                  ⚡ Nâng cấp ngay
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1d4ed8', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <HelpCircle size={18} color="#2563eb" /> Thông tin ngân hàng TQMaster
+                </h3>
+                <p style={{ fontSize: 13, color: '#334155', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                  <strong>TPBank:</strong> {bankInfo['account_number'] || '0399888888'} | <strong>CTK:</strong> {bankInfo['account_holder'] || 'TQMASTER'}
+                </p>
+                <button
+                  onClick={copyBankInfo}
+                  style={{
+                    padding: '10px 20px', background: '#2563eb', color: '#ffffff', border: 'none',
+                    borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)'
+                  }}
+                >
+                  {copiedBank ? <Check size={16} /> : <Copy size={16} />}
+                  {copiedBank ? 'Đã sao chép!' : 'Sao chép thông tin chuyển khoản'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── TAB 4: KHÓA HỌC CỦA TÔI ── */}
+        {/* ── TAB 4: KHÓA HỌC CỦA TÔI (MATCHES SCREENSHOT 3 EXACTLY) ── */}
         {activeTab === 'courses' && (
           <div>
             {/* Header */}
@@ -745,64 +782,128 @@ export default function ProfilePage() {
               ))}
             </div>
 
-            {/* Course Cards Grid */}
+            {/* Course Cards Grid (MATCHES SCREENSHOT 3 EXACTLY) */}
             {subjects.length === 0 ? (
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 48, textAlign: 'center', color: '#64748b' }}>
                 <BookOpen size={40} style={{ margin: '0 auto 12px auto', color: '#cbd5e1' }} />
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Bạn chưa đăng ký môn học nào</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Bạn chưa sở hữu môn học nào</div>
                 <p style={{ fontSize: 13, margin: '0 0 20px 0' }}>Khám phá kho khóa học để bắt đầu ôn thi ngay hôm nay.</p>
                 <button onClick={() => setCurrentView('home')} style={{ padding: '10px 20px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer' }}>
                   Khám phá khóa học
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 20 }}>
                 {subjects
                   .filter(s => semFilter === 'all' || s.semester === semFilter)
-                  .map(subject => (
-                    <div
-                      key={subject.id}
-                      style={{
-                        background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22,
-                        overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column'
-                      }}
-                    >
-                      {/* Course Header Banner */}
-                      <div style={{ height: 120, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', padding: 18, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <span style={{ padding: '3px 10px', borderRadius: 12, background: 'rgba(255,255,255,0.2)', color: '#ffffff', fontSize: 11, fontWeight: 800, alignSelf: 'flex-start' }}>
-                          Học kỳ {subject.semester}
-                        </span>
-                        <div style={{ fontSize: 18, fontWeight: 900, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {subject.name}
+                  .map(subject => {
+                    const color = subjectColor(subject.name);
+                    const initials = subjectInitials(subject.name);
+
+                    return (
+                      <div
+                        key={subject.id}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 22,
+                          overflow: 'hidden',
+                          boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '100%',
+                          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-4px)';
+                          e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.08)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)';
+                        }}
+                      >
+                        {/* Course Image & Badges (Matches Screenshot 3) */}
+                        <div style={{
+                          aspectRatio: '16/10', width: '100%', position: 'relative', overflow: 'hidden',
+                          background: `linear-gradient(135deg, ${color}15 0%, ${color}30 100%)`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {subject.thumbnail_url ? (
+                            <img src={subject.thumbnail_url} alt={subject.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: 54, height: 54, borderRadius: 16, background: '#ffffff', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 18, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                              {initials}
+                            </div>
+                          )}
+
+                          {/* Top Left Badge: KỲ X */}
+                          <span style={{
+                            position: 'absolute', top: 12, left: 12,
+                            padding: '4px 10px', borderRadius: 8,
+                            background: '#ffffff', color: '#0f172a',
+                            fontSize: 11, fontWeight: 900, boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                          }}>
+                            KỲ {subject.semester}
+                          </span>
+
+                          {/* Top Right Badge: Đã mua */}
+                          <span style={{
+                            position: 'absolute', top: 12, right: 12,
+                            padding: '4px 10px', borderRadius: 8,
+                            background: '#15803d', color: '#ffffff',
+                            fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                          }}>
+                            <Check size={12} strokeWidth={3} /> Đã mua
+                          </span>
+                        </div>
+
+                        {/* Course Details (Matches Screenshot 3) */}
+                        <div style={{ padding: 18, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div>
+                            {/* Course Name */}
+                            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                              {subject.name}
+                            </h3>
+
+                            {/* 5 Yellow Stars */}
+                            <div style={{ display: 'flex', gap: 2, marginBottom: 8, color: '#f59e0b' }}>
+                              <Star size={13} fill="#f59e0b" stroke="none" />
+                              <Star size={13} fill="#f59e0b" stroke="none" />
+                              <Star size={13} fill="#f59e0b" stroke="none" />
+                              <Star size={13} fill="#f59e0b" stroke="none" />
+                              <Star size={13} fill="#f59e0b" stroke="none" />
+                            </div>
+
+                            {/* Description text */}
+                            <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.45, margin: '0 0 14px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              {subject.description || `Tài liệu ôn thi và đề thi thử môn ${subject.name} giúp bạn đạt kết quả cao nhất.`}
+                            </p>
+                          </div>
+
+                          {/* Card Footer: Owned check + Xem chi tiết button */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#16a34a', fontWeight: 800, fontSize: 12 }}>
+                              <Check size={14} strokeWidth={3} /> SỞ HỮU
+                            </div>
+
+                            <button
+                              onClick={() => { setSelectedSubjectId(subject.id); setCurrentView('subject-detail'); }}
+                              style={{
+                                padding: '8px 14px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                color: '#ffffff', border: 'none', borderRadius: 10,
+                                fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+                                boxShadow: '0 4px 10px rgba(37, 99, 235, 0.25)'
+                              }}
+                            >
+                              Xem chi tiết
+                            </button>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Course Content Body */}
-                      <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                        <div style={{ marginBottom: 16 }}>
-                          <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 6 }}>Tiến độ học tập</div>
-                          <div style={{ height: 6, width: '100%', background: '#f1f5f9', borderRadius: 4, overflow: 'hidden', marginBottom: 6 }}>
-                            <div style={{ height: '100%', width: '65%', background: '#2563eb', borderRadius: 4 }} />
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', fontWeight: 700 }}>
-                            <span>Bài tiếp: Module 4</span>
-                            <span style={{ color: '#2563eb' }}>65%</span>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => { setSelectedSubjectId(subject.id); setCurrentView('subject-detail'); }}
-                          style={{
-                            width: '100%', padding: '10px', background: '#eff6ff', color: '#2563eb',
-                            border: '1.5px solid #dbeafe', borderRadius: 12, fontSize: 13.5, fontWeight: 800,
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                          }}
-                        >
-                          Vào học <ArrowRight size={15} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             )}
           </div>
