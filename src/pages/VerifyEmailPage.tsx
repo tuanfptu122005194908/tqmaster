@@ -203,7 +203,7 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
         </button>
 
         <p className="mt-5 text-xs text-center text-[hsl(var(--subtle-fg))] leading-relaxed">
-          Tài khoản chưa xác thực sẽ tự động bị xoá sau 24 giờ.
+          Tài khoản chưa xác thực sẽ tự động bị xoá sau 24 giờ. Nếu không bấm được link, hãy nhập mã 6 số trong email.
         </p>
       </div>
     </div>
