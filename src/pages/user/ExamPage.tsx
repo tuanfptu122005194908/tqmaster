@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
-import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Flag, RotateCcw, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Flag, RotateCcw, Loader2, BarChart3, AlertTriangle } from 'lucide-react';
 
 type Exam    = Tables<'exams'>;
 type Question = Tables<'questions'> & { options: Array<Tables<'question_options'>> };
@@ -189,6 +189,52 @@ export default function ExamPage() {
     return { correct, total: questions.length, pct: Math.round((correct / questions.length) * 100) };
   };
 
+  const getChapterAnalytics = () => {
+    const chapters: Record<string, { total: number; correct: number; incorrect: number }> = {};
+    questions.forEach(q => {
+      const chap = (q as any).chapter_name?.trim() || 'Tổng hợp';
+      if (!chapters[chap]) {
+        chapters[chap] = { total: 0, correct: 0, incorrect: 0 };
+      }
+      chapters[chap].total += 1;
+      const given = answers[q.id] ?? [];
+      const correct_labels = getCorrectLabels(q);
+      const isQCorrect = given.length === correct_labels.length && given.every(l => correct_labels.includes(l));
+      if (isQCorrect) {
+        chapters[chap].correct += 1;
+      } else {
+        chapters[chap].incorrect += 1;
+      }
+    });
+
+    return Object.entries(chapters).map(([name, data]) => ({
+      name,
+      ...data,
+      pct: Math.round((data.correct / data.total) * 100),
+      isWeak: data.incorrect > 0 && (data.correct / data.total) < 0.6,
+    }));
+  };
+
+  const handleRedoIncorrect = () => {
+    const incorrectQuestions = questions.filter(q => {
+      const given = answers[q.id] ?? [];
+      const correct_labels = getCorrectLabels(q);
+      return !(given.length === correct_labels.length && given.every(l => correct_labels.includes(l)));
+    });
+
+    if (incorrectQuestions.length === 0) {
+      alert('🎉 Bạn đã làm đúng 100% tất cả các câu hỏi! Không có câu sai nào.');
+      return;
+    }
+
+    setQuestions(incorrectQuestions);
+    setAnswers({});
+    setSubmitted(false);
+    setCurrentIndex(0);
+    setFlagged(new Set());
+    setExamMode('practice');
+  };
+
   // ── Results screen (Modern design) ────────────────────────────
   if (submitted && examMode === 'exam') {
     const { correct, total, pct } = calcScore();
@@ -236,6 +282,74 @@ export default function ExamPage() {
               {pct >= 80 ? '🎉 Xuất sắc! Bạn đã nắm rất tốt kiến thức.' : pct >= 50 ? '👍 Khá tốt! Hãy ôn thêm những phần còn yếu.' : '💪 Cần cố gắng hơn! Hãy xem lại lý thuyết.'}
             </div>
           </div>
+
+          {/* Exam Analytics & Knowledge Gap Section */}
+          {(() => {
+            const chapterStats = getChapterAnalytics();
+            const weakChapters = chapterStats.filter(c => c.isWeak);
+            const totalIncorrect = questions.length - correct;
+
+            return (
+              <div style={{ background: 'white', borderRadius: 16, border: '2px solid #e2e8f0', padding: 24, marginBottom: 32, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ padding: 8, background: '#e0e7ff', borderRadius: 10, color: '#4f46e5' }}>
+                      <BarChart3 size={22} />
+                    </div>
+                    <div>
+                      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>Phân tích lỗ hổng kiến thức theo Chương</h2>
+                      <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Xem kết quả từng chương để lên kế hoạch ôn tập trọng tâm</p>
+                    </div>
+                  </div>
+                  {totalIncorrect > 0 && (
+                    <button
+                      onClick={handleRedoIncorrect}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+                        background: '#4f46e5', color: 'white', border: 'none', borderRadius: 10,
+                        fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <RotateCcw size={16} /> Luyện lại {totalIncorrect} câu làm sai
+                    </button>
+                  )}
+                </div>
+
+                {/* Weak Chapter Warnings */}
+                {weakChapters.length > 0 && (
+                  <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 12, padding: '12px 16px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <AlertTriangle size={20} style={{ color: '#ea580c', flexShrink: 0, marginTop: 2 }} />
+                    <div>
+                      <span style={{ fontWeight: 700, fontSize: 14, color: '#9a3412', display: 'block', marginBottom: 4 }}>Cảnh báo lỗ hổng kiến thức!</span>
+                      <div style={{ fontSize: 13, color: '#c2410c', lineHeight: 1.5 }}>
+                        {weakChapters.map((w, idx) => (
+                          <div key={idx}>• Bạn đang bị hổng ở <strong>{w.name}</strong> (làm sai {w.incorrect}/{w.total} câu - tỷ lệ đúng {w.pct}%)</div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chapter Breakdown Progress Bars */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                  {chapterStats.map((chap, idx) => (
+                    <div key={idx} style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{chap.name}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: chap.isWeak ? '#dc2626' : '#16a34a', background: chap.isWeak ? '#fee2e2' : '#dcfce7', padding: '2px 8px', borderRadius: 20 }}>
+                          {chap.correct}/{chap.total} đúng ({chap.pct}%)
+                        </span>
+                      </div>
+                      <div style={{ height: 8, background: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${chap.pct}%`, background: chap.isWeak ? '#ef4444' : '#22c55e', borderRadius: 4, transition: 'width 0.5s ease' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Review Section - 2 Column Layout */}
           <div className="exam-results-layout">
@@ -380,11 +494,19 @@ export default function ExamPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
+                  {total - correct > 0 && (
+                    <button
+                      style={{ width: '100%', padding: '8px', background: '#4f46e5', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: 'white' }}
+                      onClick={handleRedoIncorrect}
+                    >
+                      🔄 ÔN CÂU SAI ({total - correct})
+                    </button>
+                  )}
                   <button
                     style={{ width: '100%', padding: '8px', background: 'white', border: '2px solid #e5e5ea', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: '#1a1a1a' }}
                     onClick={() => { setSubmitted(false); setAnswers({}); setCurrentIndex(0); setFlagged(new Set()); setTimeLeft(totalTime); }}
                   >
-                    LÀM LẠI
+                    LÀM LẠI TOÀN BỘ
                   </button>
                   <button
                     style={{ width: '100%', padding: '8px', background: '#6C5CE7', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: 'white' }}

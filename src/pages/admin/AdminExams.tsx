@@ -24,12 +24,14 @@ const inputStyle: React.CSSProperties = {
 // Answer line: "Đáp án: 1A 2BC 3C ..."
 function parseQuestions(text: string): Array<{
   content: string;
+  chapter_name: string;
   options: Array<{ label: string; content: string }>;
   correctAnswers: string[];
 }> {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const questions: ReturnType<typeof parseQuestions> = [];
   let cur: (typeof questions)[0] | null = null;
+  let currentChapter = 'Tổng hợp';
 
   const answerLine = lines.find(l => /^(đáp án|answer)[:\s]/i.test(l));
   const answerMap: Record<number, string[]> = {};
@@ -44,11 +46,19 @@ function parseQuestions(text: string): Array<{
   let qNum = 0;
   for (const line of lines) {
     if (/^(đáp án|answer)[:\s]/i.test(line)) continue;
+
+    // Detect chapter header like "Chương 1: Ma trận" or "[Chương 1: Ma trận]"
+    const chapMatch = line.match(/^(?:#+|\[)?\s*(chương\s+\d+[^\]\n]*)/i);
+    if (chapMatch && !line.match(/^(?:câu\s+)?\d+[.:)]/i)) {
+      currentChapter = chapMatch[1].replace(/\]$/, '').trim();
+      continue;
+    }
+
     const qMatch = line.match(/^(?:câu\s+)?(\d+)[.:)]\s*(.*)/i);
     if (qMatch) {
       if (cur) questions.push(cur);
       qNum++;
-      cur = { content: qMatch[2] || '', options: [], correctAnswers: answerMap[qNum] ?? [] };
+      cur = { content: qMatch[2] || '', chapter_name: currentChapter, options: [], correctAnswers: answerMap[qNum] ?? [] };
       continue;
     }
     const optMatch = line.match(/^([A-Za-z])(?:[.)]+\s+(.*)|\s*$)/);
@@ -238,6 +248,7 @@ export default function AdminExams() {
       const { data: q } = await supabase.from('questions').insert({
         exam_id: selExam.id, order_num: startNum++,
         content: p.content || null, type: 'text',
+        chapter_name: p.chapter_name || 'Tổng hợp',
       }).select().single();
       if (q && p.options.length > 0) {
         await supabase.from('question_options').insert(
@@ -525,7 +536,31 @@ export default function AdminExams() {
                 <div key={q.id} style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', padding: 'var(--space-4)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: (q.options.length > 0 || q.image_url) ? 'var(--space-3)' : 0 }}>
                     <div style={{ flex: 1 }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.8125rem', marginRight: 8, color: 'hsl(var(--primary))' }}>Câu {i + 1}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.8125rem', color: 'hsl(var(--primary))' }}>Câu {i + 1}</span>
+                        <input
+                          type="text"
+                          defaultValue={q.chapter_name || 'Tổng hợp'}
+                          onBlur={async e => {
+                            const val = e.target.value.trim() || 'Tổng hợp';
+                            if (val !== q.chapter_name) {
+                              await supabase.from('questions').update({ chapter_name: val }).eq('id', q.id);
+                              if (selExam) fetchQuestions(selExam.id);
+                            }
+                          }}
+                          placeholder="Tên chương..."
+                          style={{
+                            fontSize: '0.75rem',
+                            padding: '2px 8px',
+                            borderRadius: 4,
+                            border: '1px solid hsl(var(--border))',
+                            background: 'hsl(var(--muted))',
+                            color: 'hsl(var(--foreground))',
+                            fontWeight: 600,
+                            maxWidth: 220,
+                          }}
+                        />
+                      </div>
                       <span style={{ fontSize: '0.875rem' }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
                     </div>
                     <button className="btn-ghost" style={{ padding: 5, color: 'hsl(var(--danger))', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={13} /></button>

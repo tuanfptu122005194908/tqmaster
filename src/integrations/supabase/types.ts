@@ -564,6 +564,7 @@ export type Database = {
       }
       questions: {
         Row: {
+          chapter_name: string | null
           content: string | null
           created_at: string
           exam_id: string
@@ -573,6 +574,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          chapter_name?: string | null
           content?: string | null
           created_at?: string
           exam_id: string
@@ -582,6 +584,7 @@ export type Database = {
           type?: string
         }
         Update: {
+          chapter_name?: string | null
           content?: string | null
           created_at?: string
           exam_id?: string
