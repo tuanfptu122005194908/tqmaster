@@ -11,32 +11,33 @@ type Mode = 'login' | 'register' | 'forgot';
 
 function SnowEffect() {
   const snowflakes = useMemo(() => {
-    return Array.from({ length: 50 }).map((_, i) => ({
+    return Array.from({ length: 80 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100,
-      size: Math.random() * 5 + 2, // 2px - 7px
+      size: Math.random() * 6 + 3, // 3px - 9px
       duration: Math.random() * 8 + 6, // 6s - 14s
-      delay: Math.random() * 5,
-      opacity: Math.random() * 0.7 + 0.3,
-      sway: (Math.random() - 0.5) * 40,
+      delay: Math.random() * 6,
+      opacity: Math.random() * 0.65 + 0.35,
+      color: Math.random() > 0.25 ? '#ffffff' : '#93c5fd',
+      glow: Math.random() > 0.3 ? '0 0 12px rgba(255, 255, 255, 0.95), 0 0 6px rgba(59, 130, 246, 0.5)' : '0 0 6px rgba(255, 255, 255, 0.8)',
     }));
   }, []);
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 4 }}>
+    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 5 }}>
       {snowflakes.map(flake => (
         <div
           key={flake.id}
           style={{
             position: 'absolute',
-            top: '-12px',
+            top: '-20px',
             left: `${flake.left}%`,
             width: flake.size,
             height: flake.size,
-            backgroundColor: '#ffffff',
+            backgroundColor: flake.color,
             borderRadius: '50%',
             opacity: flake.opacity,
-            boxShadow: '0 0 8px rgba(255, 255, 255, 0.9)',
+            boxShadow: flake.glow,
             animation: `snowFall ${flake.duration}s linear infinite`,
             animationDelay: `${flake.delay}s`,
           }}
@@ -45,17 +46,21 @@ function SnowEffect() {
       <style>{`
         @keyframes snowFall {
           0% {
-            transform: translateY(0) translateX(0);
+            transform: translateY(-20px) translateX(0) scale(0.8);
             opacity: 0;
           }
-          15% {
-            opacity: 0.85;
+          10% {
+            opacity: 0.95;
           }
-          85% {
-            opacity: 0.85;
+          50% {
+            transform: translateY(50vh) translateX(35px) scale(1.1);
+            opacity: 0.95;
+          }
+          90% {
+            opacity: 0.9;
           }
           100% {
-            transform: translateY(108vh) translateX(45px);
+            transform: translateY(105vh) translateX(-25px) scale(0.9);
             opacity: 0;
           }
         }
@@ -151,8 +156,11 @@ export default function AuthPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: `#ffffff url(${authMountainBg}) no-repeat center center`,
+      backgroundImage: `url(${authMountainBg})`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center center',
       backgroundSize: 'cover',
+      backgroundAttachment: 'fixed',
       fontFamily: "'Inter', -apple-system, sans-serif",
       position: 'relative',
       overflowX: 'hidden',
