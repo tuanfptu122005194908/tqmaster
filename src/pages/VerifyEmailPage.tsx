@@ -26,6 +26,8 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
@@ -33,6 +35,23 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     const t = setInterval(() => setCooldown(c => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
+
+  const verifyByOtp = async () => {
+    setMsg(null);
+    const code = otp.replace(/\D/g, '');
+    if (code.length !== 6) {
+      setMsg({ kind: 'err', text: 'Vui lòng nhập đủ 6 số của mã xác thực.' });
+      return;
+    }
+    setVerifyingOtp(true);
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'signup' });
+    setVerifyingOtp(false);
+    if (error) {
+      setMsg({ kind: 'err', text: 'Mã không đúng hoặc đã hết hạn. Vui lòng thử lại hoặc bấm "Gửi lại email".' });
+      return;
+    }
+    onVerified();
+  };
 
   const remainingThisHour = Math.max(0, RESEND_MAX_PER_HOUR - getResendLog().length);
 
