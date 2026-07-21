@@ -31,7 +31,7 @@ function RevenueTooltip({ active, payload, label }: any) {
       boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
     }}>
       <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>
-        Tháng {label}
+        {label}
       </div>
       <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
         {formatPrice(payload[0].value)}
@@ -43,6 +43,8 @@ function RevenueTooltip({ active, payload, label }: any) {
   );
 }
 
+type RevFilter = 'day' | 'week' | 'month' | 'year';
+
 export default function AdminDashboard() {
   const { setCurrentView } = useApp();
   const [loading, setLoading] = useState(true);
@@ -53,6 +55,7 @@ export default function AdminDashboard() {
     pendingOrders: 0, orders: 0, approved: 0, rejected: 0,
   });
 
+  const [revFilter, setRevFilter] = useState<RevFilter>('month');
   const [topTimeRange, setTopTimeRange] = useState<'week' | 'month' | 'year'>('month');
 
   useEffect(() => {
@@ -101,15 +104,69 @@ export default function AdminDashboard() {
   const approvedOrders = useMemo(() => orders.filter(o => o.status === 'approved'), [orders]);
   const totalRevenue = useMemo(() => approvedOrders.reduce((s, o) => s + Number(o.final_amount), 0), [approvedOrders]);
   const avgTripValue = useMemo(() => approvedOrders.length > 0 ? Math.round(totalRevenue / approvedOrders.length) : 0, [totalRevenue, approvedOrders]);
-  const cancellationRate = useMemo(() => orders.length > 0 ? ((stats.rejected / orders.length) * 100).toFixed(1) : '0.0', [orders, stats.rejected]);
 
-  // Real Monthly Revenue Chart Data
+  // Real Dynamic Revenue Chart Data (Ngày / Tuần / Tháng / Năm)
   const revenueChartData = useMemo(() => {
-    const months = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
-    const byM = Array(12).fill(0);
-    approvedOrders.forEach(o => { byM[new Date(o.created_at).getMonth()] += Number(o.final_amount); });
-    return months.map((label, i) => ({ label, revenue: byM[i] }));
-  }, [approvedOrders]);
+    const now = new Date();
+
+    if (revFilter === 'day') {
+      // 14 ngày gần nhất
+      const days: { label: string; revenue: number }[] = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dayLabel = `${d.getDate()}/${d.getMonth() + 1}`;
+        const rev = approvedOrders
+          .filter(o => {
+            const od = new Date(o.created_at);
+            return od.getDate() === d.getDate() && od.getMonth() === d.getMonth() && od.getFullYear() === d.getFullYear();
+          })
+          .reduce((sum, o) => sum + Number(o.final_amount), 0);
+        days.push({ label: dayLabel, revenue: rev });
+      }
+      return days;
+    }
+
+    if (revFilter === 'week') {
+      // 8 tuần gần nhất
+      const weeks: { label: string; revenue: number }[] = [];
+      for (let i = 7; i >= 0; i--) {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(startOfWeek.getDate() - i * 7);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(endOfWeek.getDate() + 6);
+        
+        const rev = approvedOrders
+          .filter(o => {
+            const od = new Date(o.created_at);
+            return od >= startOfWeek && od <= endOfWeek;
+          })
+          .reduce((sum, o) => sum + Number(o.final_amount), 0);
+        weeks.push({ label: `Tuần ${8 - i}`, revenue: rev });
+      }
+      return weeks;
+    }
+
+    if (revFilter === 'month') {
+      // 12 tháng
+      const months = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
+      const byM = Array(12).fill(0);
+      approvedOrders.forEach(o => { byM[new Date(o.created_at).getMonth()] += Number(o.final_amount); });
+      return months.map((label, i) => ({ label, revenue: byM[i] }));
+    }
+
+    // Năm
+    const yearsMap: Record<string, number> = {};
+    approvedOrders.forEach(o => {
+      const y = String(new Date(o.created_at).getFullYear());
+      yearsMap[y] = (yearsMap[y] ?? 0) + Number(o.final_amount);
+    });
+    const sortedYears = Object.keys(yearsMap).sort();
+    if (sortedYears.length === 0) {
+      return [{ label: String(now.getFullYear()), revenue: totalRevenue }];
+    }
+    return sortedYears.map(y => ({ label: `Năm ${y}`, revenue: yearsMap[y] }));
+  }, [approvedOrders, revFilter, totalRevenue]);
 
   // Filter Approved Orders by Selected Time Range (Tuần / Tháng / Năm)
   const filteredApprovedOrders = useMemo(() => {
@@ -298,43 +355,43 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Card 4: TỶ LỆ TỪ CHỐI THỰC TẾ */}
+        {/* Card 4: TỔNG SINH VIÊN (Thay thế Tỷ lệ từ chối) */}
         <div style={{
-          background: '#fdf2f2',
+          background: '#fff7ed',
           borderRadius: 20,
           padding: '20px 22px',
-          border: '1px solid #ffe4e6',
-          boxShadow: '0 2px 8px rgba(239, 68, 68, 0.05)',
+          border: '1px solid #ffedd5',
+          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.05)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#e11d48', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              TỶ LỆ TỪ CHỐI
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#d97706', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              TỔNG SINH VIÊN
             </span>
             <div style={{
               width: 38, height: 38, borderRadius: '50%', background: '#ffffff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#ef4444', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.15)'
+              color: '#f59e0b', boxShadow: '0 4px 10px rgba(245, 158, 11, 0.18)'
             }}>
-              <XCircle size={18} />
+              <Users size={18} />
             </div>
           </div>
           <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', marginBottom: 8 }}>
-            {cancellationRate}%
+            {stats.users.toLocaleString()} Sinh viên
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>
-            Tổng số <strong style={{ color: '#dc2626' }}>{stats.rejected}</strong> đơn đã bị hủy
+            Đã đăng ký tài khoản hệ thống TQMaster
           </div>
         </div>
       </div>
 
-      {/* ── MIDDLE ROW: REVENUE ANALYTICS + TOP MÔN BÁN CHẠY (TUẦN / THÁNG / NĂM) ── */}
+      {/* ── MIDDLE ROW: REVENUE ANALYTICS (NGÀY / TUẦN / THÁNG / NĂM) + TOP MÔN BÁN CHẠY ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 2.2fr) minmax(0, 1fr)',
         gap: 20,
         marginBottom: 24,
       }}>
-        {/* Left: Real Revenue Analytics Chart */}
+        {/* Left: Real Revenue Analytics Chart with Filters (Ngày / Tuần / Tháng / Năm) */}
         <div style={{
           background: '#ffffff',
           borderRadius: 22,
@@ -342,14 +399,40 @@ export default function AdminDashboard() {
           border: '1px solid #e2e8f0',
           boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
-                Phân Tích Doanh Thu Theo Tháng
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
+                {revFilter === 'day' ? 'Phân Tích Doanh Thu Theo Ngày' :
+                 revFilter === 'week' ? 'Phân Tích Doanh Thu Theo Tuần' :
+                 revFilter === 'month' ? 'Phân Tích Doanh Thu Theo Tháng' : 'Phân Tích Doanh Thu Theo Năm'}
               </h2>
               <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
-                Tổng doanh thu thực tế ghi nhận: <strong style={{ color: '#2563eb' }}>{formatPrice(totalRevenue)}</strong>
+                Tổng doanh thu ghi nhận: <strong style={{ color: '#2563eb' }}>{formatPrice(totalRevenue)}</strong>
               </p>
+            </div>
+
+            {/* Filter Tabs: Ngày / Tuần / Tháng / Năm */}
+            <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 4, borderRadius: 12 }}>
+              {(['day', 'week', 'month', 'year'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setRevFilter(t)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 9,
+                    border: 'none',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    background: revFilter === t ? '#2563eb' : 'transparent',
+                    color: revFilter === t ? '#ffffff' : '#64748b',
+                    boxShadow: revFilter === t ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {t === 'day' ? 'Ngày' : t === 'week' ? 'Tuần' : t === 'month' ? 'Tháng' : 'Năm'}
+                </button>
+              ))}
             </div>
           </div>
 
