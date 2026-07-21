@@ -3,14 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
 import { formatPrice } from '@/lib/mockData';
-import { Plus, Trash2, Pencil, X, Check, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Check, ToggleLeft, ToggleRight, Loader2, Tag, Ticket, HelpCircle } from 'lucide-react';
 
 type Coupon = Tables<'discount_codes'>;
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 12px',
-  border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)',
-  fontSize: '0.875rem', outline: 'none', background: 'hsl(var(--surface-raised))',
+  width: '100%', padding: '10px 14px',
+  border: '1.5px solid #cbd5e1', borderRadius: 12,
+  fontSize: '0.875rem', outline: 'none', background: '#ffffff',
+  color: '#0f172a',
 };
 
 export default function AdminCoupons() {
@@ -80,98 +81,245 @@ export default function AdminCoupons() {
     }
   };
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
+      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+    </div>
+  );
+
+  const activeCount = coupons.filter(c => c.is_active).length;
+  const totalUsed = coupons.reduce((sum, c) => sum + Number(c.used_count || 0), 0);
 
   return (
-    <div style={{ padding: 'var(--space-6) var(--space-8)', flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
-        <div>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Mã giảm giá</h1>
-          <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))' }}>{coupons.length} mã</p>
-        </div>
-        <button id="create-coupon-btn" className="btn-primary" onClick={openCreate}><Plus size={15} /> Tạo mã mới</button>
+    <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      
+      {/* ── Breadcrumb & Header ── */}
+      <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginBottom: 8 }}>
+        Hệ thống <span style={{ margin: '0 6px', color: '#cbd5e1' }}>›</span> <strong style={{ color: '#2563eb' }}>Mã giảm giá</strong>
       </div>
 
-      <div style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', overflow: 'hidden' }}>
-        {coupons.length === 0 ? (
-          <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'hsl(var(--muted-fg))' }}>Chưa có mã giảm giá nào</div>
-        ) : (
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr><th>Mã</th><th>Loại / Giá trị</th><th>Đã dùng</th><th>Trạng thái</th><th>Ngày tạo</th><th style={{ textAlign: 'right' }}>Thao tác</th></tr></thead>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 6px 0' }}>
+            Mã giảm giá
+          </h1>
+          <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
+            Quản lý các chương trình khuyến mãi và voucher ưu đãi khách hàng.
+          </p>
+        </div>
+
+        <button
+          onClick={openCreate}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
+            cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
+            transition: 'transform 0.15s ease'
+          }}
+        >
+          <Plus size={18} /> Tạo mã mới
+        </button>
+      </div>
+
+      {/* ── 4 STAT CARDS ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '18px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>Tổng số mã</div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a' }}>{coupons.length} <span style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8' }}>mã</span></div>
+        </div>
+
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '18px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>Đang hiệu lực</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 26, fontWeight: 900, color: '#2563eb' }}>{activeCount}</span>
+            <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8' }}>ACTIVE</span>
+          </div>
+        </div>
+
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '18px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>Đã sử dụng</div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a' }}>{totalUsed} <span style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8' }}>lượt</span></div>
+        </div>
+
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '18px 22px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 6 }}>Doanh thu ưu đãi</div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a' }}>0 <span style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8' }}>đ</span></div>
+        </div>
+      </div>
+
+      {/* ── MAIN CONTENT (Coupons Table or Dashboard Empty State) ── */}
+      {coupons.length === 0 ? (
+        <div style={{
+          background: '#ffffff',
+          border: '2px dashed #cbd5e1',
+          borderRadius: 24,
+          padding: '64px 32px',
+          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+        }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%',
+            background: '#eff6ff', color: '#2563eb',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px auto', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.15)'
+          }}>
+            <Ticket size={36} />
+          </div>
+
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>
+            Chưa có mã giảm giá nào
+          </h2>
+          <p style={{ fontSize: 14, color: '#64748b', maxWidth: 460, margin: '0 auto 28px auto', lineHeight: 1.5 }}>
+            Hãy bắt đầu tạo các chương trình khuyến mãi đầu tiên để thu hút thêm học viên cho hệ thống của bạn.
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 14 }}>
+            <button
+              onClick={openCreate}
+              style={{
+                padding: '12px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
+                cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)'
+              }}
+            >
+              Tạo chiến dịch mới
+            </button>
+            <button
+              style={{
+                padding: '12px 24px', background: '#ffffff', color: '#475569',
+                border: '1.5px solid #cbd5e1', borderRadius: 14, fontSize: 14, fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Tìm hiểu thêm
+            </button>
+          </div>
+
+          {/* Decorative Tag Icon at Bottom Right */}
+          <div style={{ position: 'absolute', right: 28, bottom: 20, opacity: 0.15, color: '#0f172a' }}>
+            <Tag size={96} />
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>MÃ KHUYẾN MÃI</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>GIÁ TRỊ GiẢM</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>LƯỢT DÙNG</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>TRẠNG THÁI</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>NGÀY TẠO</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textAlign: 'right' }}>THAO TÁC</th>
+              </tr>
+            </thead>
             <tbody>
-              {coupons.map(c => (
-                <tr key={c.id}>
-                  <td><code style={{ fontWeight: 700, fontSize: '0.9rem', background: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: 4 }}>{c.code}</code></td>
-                  <td><span style={{ fontWeight: 700, color: 'hsl(var(--success))' }}>-{c.discount_type === 'percent' ? `${c.value}%` : formatPrice(Number(c.value))}</span></td>
-                  <td style={{ color: 'hsl(var(--muted-fg))' }}>{c.used_count} lần {c.max_uses ? `/ ${c.max_uses}` : ''}</td>
-                  <td>
-                    <button onClick={() => toggle(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {c.is_active
-                        ? <><ToggleRight size={20} style={{ color: 'hsl(var(--success))' }} /><span style={{ fontSize: '0.75rem', color: 'hsl(var(--success))' }}>Hoạt động</span></>
-                        : <><ToggleLeft size={20} style={{ color: 'hsl(var(--muted-fg))' }} /><span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>Tắt</span></>}
+              {coupons.map((c) => (
+                <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '16px 20px', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace', fontSize: 15 }}>
+                    {c.code}
+                  </td>
+                  <td style={{ padding: '16px 20px', fontWeight: 700, color: '#0f172a' }}>
+                    {c.discount_type === 'percent' ? `${c.value}%` : formatPrice(c.value)}
+                  </td>
+                  <td style={{ padding: '16px 20px', color: '#64748b' }}>
+                    {c.used_count ?? 0} {c.max_uses ? `/ ${c.max_uses}` : ''}
+                  </td>
+                  <td style={{ padding: '16px 20px' }}>
+                    <button onClick={() => toggle(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      {c.is_active ? (
+                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>Hoạt động</span>
+                      ) : (
+                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1' }}>Tắt</span>
+                      )}
                     </button>
                   </td>
-                  <td style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))' }}>{c.created_at.split('T')[0]}</td>
-                  <td>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-                      <button className="btn-ghost" style={{ padding: 6 }} onClick={() => openEdit(c)}><Pencil size={14} /></button>
-                      <button className="btn-ghost" style={{ padding: 6, color: 'hsl(var(--danger))' }} onClick={() => remove(c.id)}><Trash2 size={14} /></button>
+                  <td style={{ padding: '16px 20px', color: '#64748b' }}>
+                    {new Date(c.created_at).toLocaleDateString('vi-VN')}
+                  </td>
+                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                      <button onClick={() => openEdit(c)} style={{ padding: 6, background: '#f1f5f9', border: 'none', borderRadius: 8, color: '#475569', cursor: 'pointer' }}>
+                        <Pencil size={15} />
+                      </button>
+                      <button onClick={() => remove(c.id)} style={{ padding: 6, background: '#ffe4e6', border: 'none', borderRadius: 8, color: '#e11d48', cursor: 'pointer' }}>
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
+      {/* ── CREATE / EDIT FORM MODAL ── */}
       {showForm && (
-        <>
-          <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'hsl(240 20% 12% / 0.4)', zIndex: 200 }} />
-          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 360, background: 'hsl(var(--surface-raised))', boxShadow: 'var(--shadow-lg)', zIndex: 201, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderBottom: '1px solid hsl(var(--border))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1rem' }}>{editing ? 'Sửa mã' : 'Tạo mã mới'}</h2>
-              <button className="btn-ghost" style={{ padding: 6 }} onClick={() => setShowForm(false)}><X size={18} /></button>
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: 440, borderRadius: 24,
+            padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                {editing ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá mới'}
+              </h2>
+              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
             </div>
-            <div style={{ flex: 1, padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Mã giảm giá *</label>
-                <input id="coupon-code-input" style={{ ...inputStyle, fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                  value={form.code} onChange={e => setForm(p => ({ ...p, code: e.target.value.toUpperCase() }))} placeholder="VD: SALE20" />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Mã giảm giá</label>
+                <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="VD: CHAOHE2026" style={inputStyle} />
               </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Loại giảm giá</label>
+                  <select value={form.discount_type} onChange={e => setForm({ ...form, discount_type: e.target.value })} style={inputStyle}>
+                    <option value="percent">Phần trăm (%)</option>
+                    <option value="fixed">Số tiền cố định (đ)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Giá trị</label>
+                  <input type="number" value={form.value} onChange={e => setForm({ ...form, value: Number(e.target.value) })} style={inputStyle} />
+                </div>
+              </div>
+
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Loại giảm giá</label>
-                <select style={inputStyle} value={form.discount_type} onChange={e => setForm(p => ({ ...p, discount_type: e.target.value }))}>
-                  <option value="percent">Giảm theo %</option>
-                  <option value="fixed">Giảm số tiền cụ thể (VNĐ)</option>
-                </select>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Số lượt dùng tối đa</label>
+                <input type="number" value={form.max_uses} onChange={e => setForm({ ...form, max_uses: e.target.value })} placeholder="Để trống nếu không giới hạn" style={inputStyle} />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>
-                  {form.discount_type === 'percent' ? 'Phần trăm giảm (%)' : 'Số tiền giảm (VNĐ)'}
-                </label>
-                <input style={inputStyle} type="number" min={1} max={form.discount_type === 'percent' ? 100 : undefined} value={form.value} onChange={e => setForm(p => ({ ...p, value: +e.target.value }))} />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+                <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} id="active-check" style={{ width: 18, height: 18, accentColor: '#2563eb', cursor: 'pointer' }} />
+                <label htmlFor="active-check" style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', cursor: 'pointer' }}>Kích hoạt ngay mã này</label>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>
-                  Số lượt dùng tối đa (để trống nếu không giới hạn)
-                </label>
-                <input style={inputStyle} type="number" min={1} value={form.max_uses} onChange={e => setForm(p => ({ ...p, max_uses: e.target.value }))} placeholder="Không giới hạn" />
-              </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: '0.875rem' }}>
-                <input type="checkbox" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'hsl(var(--primary))' }} />
-                Kích hoạt ngay
-              </label>
-            </div>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderTop: '1px solid hsl(var(--border))', display: 'flex', gap: 'var(--space-3)' }}>
-              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setShowForm(false)}>Hủy</button>
-              <button className="btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={save} disabled={saving}>
-                {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />}
-                {editing ? 'Lưu' : 'Tạo mã'}
+
+              <button
+                onClick={save} disabled={saving}
+                style={{
+                  height: 48, width: '100%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
+                  cursor: saving ? 'not-allowed' : 'pointer', marginTop: 12, boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)'
+                }}
+              >
+                {saving ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : (editing ? 'Lưu thay đổi' : 'Tạo mã giảm giá')}
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

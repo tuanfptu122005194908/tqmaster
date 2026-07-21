@@ -3,16 +3,17 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
 import { formatDate } from '@/lib/mockData';
-import { Plus, Trash2, Pencil, X, Check, Bell, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Bell, BellOff, Loader2, Filter, Clock, BarChart2, Tag } from 'lucide-react';
 import FileUploader from '@/components/FileUploader';
 
 type Announcement = Tables<'announcements'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name'>;
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 12px',
-  border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)',
-  fontSize: '0.875rem', outline: 'none', background: 'hsl(var(--surface-raised))',
+  width: '100%', padding: '10px 14px',
+  border: '1.5px solid #cbd5e1', borderRadius: 12,
+  fontSize: '0.875rem', outline: 'none', background: '#ffffff',
+  color: '#0f172a',
 };
 
 export default function AdminAnnouncements() {
@@ -65,95 +66,263 @@ export default function AdminAnnouncements() {
     fetchAnn();
   };
 
-  const subjectName = (id: string | null) => id ? (subjects.find(s => s.id === id)?.name ?? '—') : 'Tất cả mọi người';
+  const subjectName = (id: string | null) => id ? (subjects.find(s => s.id === id)?.name ?? '—') : 'Tất cả sinh viên';
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
+      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+    </div>
+  );
 
   return (
-    <div style={{ padding: 'var(--space-6) var(--space-8)', flex: 1 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
+    <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      
+      {/* ── Page Header ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Thông báo</h1>
-          <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--muted-fg))' }}>{announcements.length} thông báo</p>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 6px 0' }}>
+            Thông báo
+          </h1>
+          <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
+            Quản lý và điều phối các thông báo hệ thống đến người dùng.
+          </p>
         </div>
-        <button id="create-ann-btn" className="btn-primary" onClick={openCreate}><Plus size={15} /> Đăng thông báo</button>
+
+        <button
+          onClick={openCreate}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
+            cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)'
+          }}
+        >
+          <Plus size={18} /> Đăng thông báo
+        </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
-        <button className={`tab-pill ${filterSubj === 'all' ? 'active' : ''}`} onClick={() => setFilterSubj('all')}>Tất cả</button>
-        {subjects.map(s => <button key={s.id} className={`tab-pill ${filterSubj === s.id ? 'active' : ''}`} onClick={() => setFilterSubj(s.id)}>{s.name}</button>)}
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-        {filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: 'var(--space-12)', color: 'hsl(var(--muted-fg))' }}>
-            <Bell size={40} style={{ margin: '0 auto var(--space-3)', opacity: 0.2 }} />
-            <p>Chưa có thông báo nào</p>
+      {/* ── FILTER BAR CARD ── */}
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 20,
+        padding: '20px 24px',
+        border: '1px solid #e2e8f0',
+        marginBottom: 24,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#2563eb' }}>
+            <Filter size={16} /> Lọc theo môn học
           </div>
-        )}
-        {filtered.map(ann => (
-          <div key={ann.id} style={{ background: 'hsl(var(--surface-raised))', border: '1px solid hsl(var(--border))', borderRadius: 'calc(var(--radius) * 1.5)', padding: 'var(--space-5)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-3)', marginBottom: 'var(--space-2)' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
-                  <span className="badge badge-primary">{subjectName(ann.subject_id)}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>{formatDate(ann.created_at)}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: 14 }}>
+            {subjects.length} Môn học
+          </span>
+        </div>
+
+        {/* Filter Pills */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setFilterSubj('all')}
+            style={{
+              padding: '7px 18px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+              background: filterSubj === 'all' ? '#2563eb' : '#f1f5f9',
+              color: filterSubj === 'all' ? '#ffffff' : '#475569',
+              boxShadow: filterSubj === 'all' ? '0 3px 10px rgba(37, 99, 235, 0.3)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            Tất cả
+          </button>
+          {subjects.map(s => (
+            <button
+              key={s.id}
+              onClick={() => setFilterSubj(s.id)}
+              style={{
+                padding: '7px 18px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                background: filterSubj === s.id ? '#2563eb' : '#f1f5f9',
+                color: filterSubj === s.id ? '#ffffff' : '#475569',
+                boxShadow: filterSubj === s.id ? '0 3px 10px rgba(37, 99, 235, 0.3)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── ANNOUNCEMENTS LIST / DASHED EMPTY STATE ── */}
+      {filtered.length === 0 ? (
+        <div style={{
+          background: '#ffffff',
+          border: '2px dashed #cbd5e1',
+          borderRadius: 24,
+          padding: '48px 32px 32px 32px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+        }}>
+          {/* Bell Icon Circle Badge */}
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%',
+            background: '#f1f5f9', color: '#94a3b8',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px auto'
+          }}>
+            <BellOff size={36} />
+          </div>
+
+          <h2 style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', textAlign: 'center', marginBottom: 8 }}>
+            Chưa có thông báo nào
+          </h2>
+          <p style={{ fontSize: 13.5, color: '#64748b', textAlign: 'center', maxWidth: 480, margin: '0 auto 36px auto', lineHeight: 1.5 }}>
+            Hiện tại chưa có thông báo nào được đăng cho các môn học này. Hãy nhấn nút "Đăng thông báo" để bắt đầu.
+          </p>
+
+          {/* 3 Feature Insight Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18 }}>
+            {/* Feature 1 */}
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 20, textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+                <Clock size={22} />
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
+                Lên lịch gửi
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.45 }}>
+                Gửi thông báo vào thời điểm thích hợp cho sinh viên.
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 20, textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: '#f3eefd', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+                <Tag size={22} />
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
+                Phân loại
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.45 }}>
+                Gắn thẻ thông báo theo mức độ quan trọng: Gấp, Thường.
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 20, textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: '#eafaf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+                <BarChart2 size={22} />
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
+                Theo dõi
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.45 }}>
+                Xem số lượng sinh viên đã đọc thông báo của bạn.
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {filtered.map(ann => (
+            <div key={ann.id} style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: '22px 26px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{ padding: '3px 10px', borderRadius: 12, background: '#e0e7ff', color: '#2563eb', fontSize: 11, fontWeight: 800 }}>
+                    {subjectName(ann.subject_id)}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#94a3b8' }}>
+                    {formatDate(ann.created_at)}
+                  </span>
                 </div>
-                <h3 style={{ fontWeight: 700, fontSize: '0.9375rem' }}>{ann.title}</h3>
-              </div>
-              <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                <button id={`edit-ann-${ann.id}`} className="btn-ghost" style={{ padding: 6 }} onClick={() => openEdit(ann)}><Pencil size={14} /></button>
-                <button className="btn-ghost" style={{ padding: 6, color: 'hsl(var(--danger))' }} onClick={() => remove(ann.id)}><Trash2 size={14} /></button>
-              </div>
-            </div>
-            {ann.image_url && <img src={ann.image_url} alt="" style={{ maxHeight: 180, borderRadius: 'var(--radius)', marginBottom: 8, border: '1px solid hsl(var(--border))' }} />}
-            {ann.content && <p style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-fg))', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{ann.content}</p>}
-          </div>
-        ))}
-      </div>
 
-      {showForm && (
-        <>
-          <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'hsl(240 20% 12% / 0.4)', zIndex: 200 }} />
-          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 420, background: 'hsl(var(--surface-raised))', boxShadow: 'var(--shadow-lg)', zIndex: 201, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderBottom: '1px solid hsl(var(--border))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1rem' }}>{editing ? 'Sửa thông báo' : 'Đăng thông báo mới'}</h2>
-              <button className="btn-ghost" style={{ padding: 6 }} onClick={() => setShowForm(false)}><X size={18} /></button>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+                  {ann.title}
+                </h3>
+
+                {ann.content && (
+                  <p style={{ fontSize: 14, color: '#475569', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+                    {ann.content}
+                  </p>
+                )}
+
+                {ann.image_url && (
+                  <div style={{ maxWidth: 320, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', marginTop: 8 }}>
+                    <img src={ann.image_url} alt="" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <button onClick={() => openEdit(ann)} style={{ padding: 8, background: '#f1f5f9', border: 'none', borderRadius: 10, color: '#475569', cursor: 'pointer' }}>
+                  <Pencil size={16} />
+                </button>
+                <button onClick={() => remove(ann.id)} style={{ padding: 8, background: '#ffe4e6', border: 'none', borderRadius: 10, color: '#e11d48', cursor: 'pointer' }}>
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
-            <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          ))}
+        </div>
+      )}
+
+      {/* ── CREATE / EDIT FORM MODAL ── */}
+      {showForm && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: 500, borderRadius: 24,
+            padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                {editing ? 'Sửa thông báo' : 'Tạo thông báo mới'}
+              </h2>
+              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Gửi tới</label>
-                <select id="ann-subject-select" style={inputStyle} value={form.subject_id} onChange={e => setForm(p => ({ ...p, subject_id: e.target.value }))}>
-                  <option value="">Tất cả mọi người</option>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Tiêu đề thông báo</label>
+                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="VD: Thông báo lịch thi học kỳ" style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Dành cho môn học</label>
+                <select value={form.subject_id} onChange={e => setForm({ ...form, subject_id: e.target.value })} style={inputStyle}>
+                  <option value="">Tất cả sinh viên (Thông báo chung)</option>
                   {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
+
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Tiêu đề *</label>
-                <input id="ann-title-input" style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Tiêu đề thông báo" />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Nội dung chi tiết</label>
+                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={4} placeholder="Nhập nội dung chi tiết thông báo..." style={{ ...inputStyle, resize: 'vertical' }} />
               </div>
+
               <div>
-                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>Nội dung</label>
-                <textarea style={{ ...inputStyle, height: 140, resize: 'vertical' }} value={form.content} onChange={e => setForm(p => ({ ...p, content: e.target.value }))} placeholder="Nội dung thông báo..." />
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Hình ảnh đính kèm (URL)</label>
+                <FileUploader onUploadComplete={(url) => setForm(f => ({ ...f, image_url: url }))} currentUrl={form.image_url} label="Tải ảnh đính kèm" />
               </div>
-              <FileUploader
-                bucket="announcement-images"
-                value={form.image_url}
-                onChange={url => setForm(p => ({ ...p, image_url: url }))}
-                accept="image/*"
-                preview="image"
-                label="Ảnh đính kèm (tùy chọn)"
-              />
-            </div>
-            <div style={{ padding: 'var(--space-5) var(--space-6)', borderTop: '1px solid hsl(var(--border))', display: 'flex', gap: 'var(--space-3)' }}>
-              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => setShowForm(false)}>Hủy</button>
-              <button id="save-ann-btn" className="btn-primary" style={{ flex: 2, justifyContent: 'center' }} onClick={save} disabled={saving}>
-                {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />}
-                {editing ? 'Lưu' : 'Đăng thông báo'}
+
+              <button
+                onClick={save} disabled={saving}
+                style={{
+                  height: 48, width: '100%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
+                  cursor: saving ? 'not-allowed' : 'pointer', marginTop: 10, boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)'
+                }}
+              >
+                {saving ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : (editing ? 'Lưu thay đổi' : 'Đăng thông báo')}
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
