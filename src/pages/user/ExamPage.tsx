@@ -238,9 +238,9 @@ export default function ExamPage() {
           </div>
 
           {/* Review Section - 2 Column Layout */}
-          <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div className="exam-results-layout">
             {/* Left: Detailed Review */}
-            <div style={{ flex: 1, minWidth: 350 }}>
+            <div className="exam-results-details">
               <h2 style={{ fontSize: 20, fontWeight: 800, color: '#000', marginBottom: 20 }}>Chi tiết đáp án</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {questions.map((q, i) => {
@@ -329,10 +329,10 @@ export default function ExamPage() {
             </div>
 
             {/* Right: Sticky Summary (Narrower) */}
-            <div style={{ width: 140, position: 'sticky', top: 100, flexShrink: 0 }}>
+            <div className="exam-results-summary">
               <div style={{ background: 'white', padding: '16px 12px', borderRadius: 12, border: '1px solid #e5e5ea', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <h2 style={{ fontSize: 13, fontWeight: 800, color: '#000', marginBottom: 12, textAlign: 'center' }}>TÓM TẮT</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, maxHeight: '55vh', overflowY: 'auto', paddingRight: 4 }}>
+                <div className="questions-grid-wrap" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, maxHeight: '55vh', overflowY: 'auto', paddingRight: 4 }}>
                   {questions.map((q, i) => {
                     const given = answers[q.id] ?? [];
                     const correct_labels = getCorrectLabels(q);
@@ -460,19 +460,19 @@ export default function ExamPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f7' }}>
       {/* ═══ HEADER ═══ */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'white', borderBottom: '1px solid #e5e5ea', padding: '0 24px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'white', borderBottom: '1px solid #e5e5ea' }}>
         {examMode === 'exam' && (
           <div style={{ height: 3, background: '#e5e5ea' }}>
             <div style={{ height: '100%', width: `${timePercent}%`, background: isTimeLow ? '#ef4444' : '#6C5CE7', transition: 'width 1s linear, background 0.3s' }} />
           </div>
         )}
-        <div style={{ height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="exam-header-inner" style={{ padding: '0 24px' }}>
+          <div className="exam-header-left">
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, color: '#333', fontSize: 20 }} onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}>
               <X size={24} />
             </button>
             <div style={{ borderLeft: '2px solid #eee', paddingLeft: 12 }}>
-              <div style={{ fontWeight: 800, fontSize: 15, color: '#000' }}>{exam.title}</div>
+              <div style={{ fontWeight: 800, fontSize: 15, color: '#000' }} className="truncate-2">{exam.title}</div>
               <div style={{ fontSize: 12, color: '#666', fontWeight: 600 }}>
                 {examMode === 'practice' ? 'CHẾ ĐỘ ÔN TẬP' : 'CHẾ ĐỘ THI THỬ'}
               </div>
@@ -480,8 +480,9 @@ export default function ExamPage() {
           </div>
 
           {/* Navigation Buttons Moved to Top */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="exam-header-center">
             <button
+              className="touch-target"
               disabled={currentIndex === 0}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px',
@@ -493,12 +494,13 @@ export default function ExamPage() {
               }}
               onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
             >
-              <ChevronLeft size={18} /> Câu trước
+              <ChevronLeft size={18} /> <span className="hide-on-mobile">Câu trước</span>
             </button>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#000', minWidth: 80, textAlign: 'center' }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#000', minWidth: 60, textAlign: 'center' }}>
               {currentIndex + 1} / {questions.length}
             </div>
             <button
+              className="touch-target"
               disabled={currentIndex === questions.length - 1}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px',
@@ -510,7 +512,7 @@ export default function ExamPage() {
               }}
               onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))}
             >
-              Câu sau <ChevronRight size={18} />
+              <span className="hide-on-mobile">Câu sau</span> <ChevronRight size={18} />
             </button>
             
             {/* Flag Button Moved Here */}
@@ -539,7 +541,7 @@ export default function ExamPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="exam-header-right">
             {examMode === 'exam' && !submitted && (
               <>
                 <div 
@@ -559,7 +561,7 @@ export default function ExamPage() {
               </>
             )}
             {submitted && (
-               <button style={{
+               <button className="touch-target" style={{
                 background: '#6C5CE7', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8,
                 fontSize: 14, fontWeight: 800, cursor: 'pointer'
               }} onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}>
@@ -590,26 +592,15 @@ export default function ExamPage() {
       </div>
 
       {/* ═══ MAIN CONTENT (2 COLUMNS) ═══ */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div className="exam-main-layout">
         {/* LEFT COLUMN - Question & Answers (Scrollable) */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRight: '1px solid #e5e5ea', padding: '16px', overflowY: 'auto' }}>
+        <div className="exam-main-content">
           {/* Main Question Split View */}
-          <div style={{ 
-            display: 'flex', 
-            background: 'white', 
-            border: '1px solid #000', 
-            borderRadius: 6, 
-            marginBottom: 20,
-            overflow: 'hidden',
-            minHeight: '45vh'
-          }}>
+          <div className="exam-q-split">
             {/* Text Side */}
             {(!!currentQ.content?.trim() || currentQ.options.some(opt => !!opt.content?.trim())) && (
-              <div style={{ 
-                flex: 1, 
-                padding: '20px', 
-                borderRight: currentQ.image_url ? '2px solid #dc2626' : 'none',
-                overflowY: 'auto'
+              <div className="exam-q-text" style={{ 
+                borderRight: currentQ.image_url ? '2px solid #dc2626' : 'none'
               }}>
                 {!!currentQ.content?.trim() && (
                   <div style={{ 
@@ -640,7 +631,7 @@ export default function ExamPage() {
             {/* Image Side */}
             {currentQ.image_url && (
               <div 
-                style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', cursor: 'zoom-in', background: 'white' }}
+                className="exam-q-image"
                 onClick={() => setPreviewImage(currentQ.image_url)}
               >
                 <img
@@ -655,8 +646,8 @@ export default function ExamPage() {
             )}
           </div>
 
-          {/* Answer Options - 4-column Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          {/* Answer Options - Grid */}
+          <div className="exam-options-grid">
             {currentQ.options.map(opt => {
               const cls = getOptionCls(opt.label);
               const isSelected = cls === 'selected';
@@ -737,7 +728,7 @@ export default function ExamPage() {
         </div>
 
         {/* RIGHT COLUMN - Fixed Width Sidebar */}
-        <div style={{ flex: '0 0 260px', background: 'white', display: 'flex', flexDirection: 'column', borderLeft: '1px solid #e5e5ea' }}>
+        <div className="exam-sidebar">
           {/* Panel Header */}
           <div style={{ padding: '16px 12px', borderBottom: '1px solid #e5e5ea' }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#666', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
