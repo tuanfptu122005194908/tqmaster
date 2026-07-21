@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Eye, EyeOff, Loader2, Mail, Lock, User, GraduationCap,
@@ -8,6 +8,61 @@ import logoAvatar from '@/assets/logo-avatar.png';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
 
 type Mode = 'login' | 'register' | 'forgot';
+
+function SnowEffect() {
+  const snowflakes = useMemo(() => {
+    return Array.from({ length: 50 }).map((_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      size: Math.random() * 5 + 2, // 2px - 7px
+      duration: Math.random() * 8 + 6, // 6s - 14s
+      delay: Math.random() * 5,
+      opacity: Math.random() * 0.7 + 0.3,
+      sway: (Math.random() - 0.5) * 40,
+    }));
+  }, []);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 4 }}>
+      {snowflakes.map(flake => (
+        <div
+          key={flake.id}
+          style={{
+            position: 'absolute',
+            top: '-12px',
+            left: `${flake.left}%`,
+            width: flake.size,
+            height: flake.size,
+            backgroundColor: '#ffffff',
+            borderRadius: '50%',
+            opacity: flake.opacity,
+            boxShadow: '0 0 8px rgba(255, 255, 255, 0.9)',
+            animation: `snowFall ${flake.duration}s linear infinite`,
+            animationDelay: `${flake.delay}s`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes snowFall {
+          0% {
+            transform: translateY(0) translateX(0);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.85;
+          }
+          85% {
+            opacity: 0.85;
+          }
+          100% {
+            transform: translateY(108vh) translateX(45px);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('login');
@@ -103,6 +158,9 @@ export default function AuthPage() {
       overflowX: 'hidden',
       padding: '24px',
     }}>
+      {/* Falling Snow Effect */}
+      <SnowEffect />
+
       {/* Soft overall backdrop filter for readability */}
       <div style={{
         position: 'absolute',
