@@ -6,6 +6,7 @@ interface Props {
   bucket: string;
   value?: string;                       // current public URL
   onChange: (url: string) => void;
+  onFileNameChange?: (name: string) => void; // original file name from picker
   accept?: string;                      // e.g. "image/*" or ".pdf,.doc"
   preview?: 'image' | 'file' | 'none';  // what to render
   pathPrefix?: string;                  // optional folder inside bucket
