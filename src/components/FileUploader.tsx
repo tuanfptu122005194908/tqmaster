@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function FileUploader({
-  bucket, value, onChange,
+  bucket, value, onChange, onFileNameChange,
   accept = 'image/*',
   preview = 'image',
   pathPrefix = '',
