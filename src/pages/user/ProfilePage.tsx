@@ -415,7 +415,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Hoạt động gần đây */}
+                {/* Hoạt động gần đây - DỮ LIỆU THỰC TẾ TỪ SUPABASE */}
                 <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>
@@ -427,31 +427,58 @@ export default function ProfilePage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: '#f8fafc', borderRadius: 14, border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <PlayCircle size={18} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Tiếp tục ôn thi môn học</div>
-                          <div style={{ fontSize: 11.5, color: '#64748b' }}>Đã làm 45/60 câu trắc nghiệm · Vừa xong</div>
-                        </div>
+                    {subjects.length === 0 && orders.length === 0 ? (
+                      <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+                        Bạn chưa có hoạt động học tập hoặc đơn hàng nào gần đây
                       </div>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8', fontSize: 11, fontWeight: 800 }}>ĐANG HỌC</span>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Render real purchased subjects */}
+                        {subjects.slice(0, 2).map((subject) => (
+                          <div key={subject.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: '#f8fafc', borderRadius: 14, border: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <PlayCircle size={18} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
+                                  Tiếp tục học: {subject.name}
+                                </div>
+                                <div style={{ fontSize: 11.5, color: '#64748b' }}>
+                                  Học kỳ {subject.semester} · Đã sở hữu môn học
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => { setSelectedSubjectId(subject.id); setCurrentView('subject-detail'); }}
+                              style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', padding: '6px 14px', borderRadius: 12, fontSize: 11.5, fontWeight: 800, cursor: 'pointer' }}
+                            >
+                              VÀO HỌC
+                            </button>
+                          </div>
+                        ))}
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: '#f8fafc', borderRadius: 14, border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <CheckCircle2 size={18} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Hoàn thành bài tập ôn luyện</div>
-                          <div style={{ fontSize: 11.5, color: '#64748b' }}>Điểm số: 10/10 · Hôm qua</div>
-                        </div>
-                      </div>
-                      <span style={{ padding: '3px 10px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontSize: 11, fontWeight: 800 }}>HOÀN THÀNH</span>
-                    </div>
+                        {/* Render real recent orders */}
+                        {orders.slice(0, 2).map((order) => (
+                          <div key={order.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: '#f8fafc', borderRadius: 14, border: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ width: 36, height: 36, borderRadius: 10, background: order.status === 'approved' ? '#dcfce7' : '#fff7ed', color: order.status === 'approved' ? '#16a34a' : '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Package size={18} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
+                                  Đơn hàng #{order.id.slice(0, 8).toUpperCase()} ({formatPrice(Number(order.final_amount))})
+                                </div>
+                                <div style={{ fontSize: 11.5, color: '#64748b' }}>
+                                  Tạo ngày {formatDate(order.created_at)}
+                                </div>
+                              </div>
+                            </div>
+                            {statusBadge(order.status)}
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 </div>
 
