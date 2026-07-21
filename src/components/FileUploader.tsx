@@ -6,6 +6,7 @@ interface Props {
   bucket: string;
   value?: string;                       // current public URL
   onChange: (url: string) => void;
+  onFileNameChange?: (name: string) => void; // original file name from picker
   accept?: string;                      // e.g. "image/*" or ".pdf,.doc"
   preview?: 'image' | 'file' | 'none';  // what to render
   pathPrefix?: string;                  // optional folder inside bucket
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export default function FileUploader({
-  bucket, value, onChange,
+  bucket, value, onChange, onFileNameChange,
   accept = 'image/*',
   preview = 'image',
   pathPrefix = '',
@@ -52,6 +53,7 @@ export default function FileUploader({
 
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
     onChange(publicUrl);
+    onFileNameChange?.(file.name);
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
   };

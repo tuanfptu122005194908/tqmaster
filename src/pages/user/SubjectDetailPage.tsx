@@ -422,9 +422,12 @@ export default function SubjectDetailPage() {
                   )}
                 </div>
                 <a
-                  href={item.url}
+                  href={item.type === 'link' || !item.file_name
+                    ? item.url
+                    : `${item.url}${item.url.includes('?') ? '&' : '?'}download=${encodeURIComponent(item.file_name)}`}
                   target="_blank"
                   rel="noreferrer"
+                  download={item.type !== 'link' ? (item.file_name || undefined) : undefined}
                   className="btn-primary"
                   style={{ textDecoration: 'none', flexShrink: 0 }}
                 >
