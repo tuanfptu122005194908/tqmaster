@@ -75,7 +75,7 @@ export default function AdminAnnouncements() {
   );
 
   return (
-    <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="admin-announcements-container" style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
       
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
@@ -324,6 +324,14 @@ export default function AdminAnnouncements() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-announcements-container {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

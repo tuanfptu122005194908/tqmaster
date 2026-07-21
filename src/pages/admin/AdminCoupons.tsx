@@ -91,7 +91,7 @@ export default function AdminCoupons() {
   const totalUsed = coupons.reduce((sum, c) => sum + Number(c.used_count || 0), 0);
 
   return (
-    <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="admin-coupons-container" style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
       
       {/* ── Breadcrumb & Header ── */}
       <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginBottom: 8 }}>
@@ -205,55 +205,86 @@ export default function AdminCoupons() {
         </div>
       ) : (
         <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>MÃ KHUYẾN MÃI</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>GIÁ TRỊ GiẢM</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>LƯỢT DÙNG</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>TRẠNG THÁI</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>NGÀY TẠO</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textAlign: 'right' }}>THAO TÁC</th>
-              </tr>
-            </thead>
-            <tbody>
-              {coupons.map((c) => (
-                <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '16px 20px', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace', fontSize: 15 }}>
-                    {c.code}
-                  </td>
-                  <td style={{ padding: '16px 20px', fontWeight: 700, color: '#0f172a' }}>
-                    {c.discount_type === 'percent' ? `${c.value}%` : formatPrice(c.value)}
-                  </td>
-                  <td style={{ padding: '16px 20px', color: '#64748b' }}>
-                    {c.used_count ?? 0} {c.max_uses ? `/ ${c.max_uses}` : ''}
-                  </td>
-                  <td style={{ padding: '16px 20px' }}>
-                    <button onClick={() => toggle(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                      {c.is_active ? (
-                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>Hoạt động</span>
-                      ) : (
-                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1' }}>Tắt</span>
-                      )}
-                    </button>
-                  </td>
-                  <td style={{ padding: '16px 20px', color: '#64748b' }}>
-                    {new Date(c.created_at).toLocaleDateString('vi-VN')}
-                  </td>
-                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                      <button onClick={() => openEdit(c)} style={{ padding: 6, background: '#f1f5f9', border: 'none', borderRadius: 8, color: '#475569', cursor: 'pointer' }}>
-                        <Pencil size={15} />
-                      </button>
-                      <button onClick={() => remove(c.id)} style={{ padding: 6, background: '#ffe4e6', border: 'none', borderRadius: 8, color: '#e11d48', cursor: 'pointer' }}>
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
+          {/* Desktop Table View */}
+          <div className="hidden-mobile" style={{ overflowX: 'auto', width: '100%' }}>
+            <table style={{ width: '100%', minWidth: 650, borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>MÃ KHUYẾN MÃI</th>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>GIÁ TRỊ GIẢM</th>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>LƯỢT DÙNG</th>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>TRẠNG THÁI</th>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569' }}>NGÀY TẠO</th>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textAlign: 'right' }}>THAO TÁC</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {coupons.map((c) => (
+                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '16px 20px', fontWeight: 900, color: '#2563eb', fontFamily: 'monospace', fontSize: 15 }}>
+                      {c.code}
+                    </td>
+                    <td style={{ padding: '16px 20px', fontWeight: 800, color: '#15803d' }}>
+                      {c.discount_type === 'percent' ? `Giảm ${c.value}%` : `Giảm ${formatPrice(c.value)}`}
+                    </td>
+                    <td style={{ padding: '16px 20px', color: '#475569', fontWeight: 600 }}>
+                      {c.used_count ?? 0} {c.max_uses ? `/ ${c.max_uses}` : ''}
+                    </td>
+                    <td style={{ padding: '16px 20px' }}>
+                      <button onClick={() => toggle(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: c.is_active ? '#dcfce7' : '#f1f5f9', color: c.is_active ? '#15803d' : '#64748b', border: c.is_active ? '1px solid #bbf7d0' : '1px solid #cbd5e1' }}>
+                          {c.is_active ? 'Hoạt động' : 'Đã ẩn'}
+                        </span>
+                      </button>
+                    </td>
+                    <td style={{ padding: '16px 20px', color: '#64748b' }}>
+                      {new Date(c.created_at).toLocaleDateString('vi-VN')}
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                        <button onClick={() => openEdit(c)} style={{ padding: 6, background: '#f1f5f9', border: 'none', borderRadius: 8, color: '#475569', cursor: 'pointer' }}>
+                          <Pencil size={15} />
+                        </button>
+                        <button onClick={() => remove(c.id)} style={{ padding: 6, background: '#ffe4e6', border: 'none', borderRadius: 8, color: '#e11d48', cursor: 'pointer' }}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards List */}
+          <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 16 }}>
+            {coupons.map((c) => (
+              <div key={c.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontWeight: 900, color: '#2563eb', fontSize: 15, fontFamily: 'monospace' }}>{c.code}</span>
+                  <button onClick={() => toggle(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, background: c.is_active ? '#dcfce7' : '#f1f5f9', color: c.is_active ? '#15803d' : '#64748b' }}>
+                      {c.is_active ? 'Hoạt động' : 'Đã ẩn'}
+                    </span>
+                  </button>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#15803d', marginBottom: 4 }}>
+                  {c.discount_type === 'percent' ? `Giảm ${c.value}%` : `Giảm ${formatPrice(c.value)}`}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: '#64748b' }}>
+                  <span>Lượt dùng: {c.used_count ?? 0}{c.max_uses ? `/${c.max_uses}` : ''}</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => openEdit(c)} style={{ padding: 6, background: '#f1f5f9', border: 'none', borderRadius: 8, color: '#475569', cursor: 'pointer' }}>
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => remove(c.id)} style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer' }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -321,6 +352,16 @@ export default function AdminCoupons() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-coupons-container {
+            padding: 16px !important;
+          }
+          .hidden-mobile { display: none !important; }
+          .visible-mobile { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -63,7 +63,7 @@ export default function AdminSettings() {
   );
 
   return (
-    <div style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a', maxWidth: 840 }}>
+    <div className="admin-settings-container" style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a', maxWidth: 840 }}>
       
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
@@ -107,7 +107,7 @@ export default function AdminSettings() {
           <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Tên ngân hàng</label>
           <input id="bank-name-input" style={inputStyle} value={settings['bank_name'] ?? ''} onChange={e => set('bank_name', e.target.value)} placeholder="VD: MBBank / Vietcombank" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Số tài khoản</label>
             <input id="account-number-input" style={{ ...inputStyle, fontFamily: 'monospace', fontWeight: 800 }} value={settings['bank_account'] ?? ''} onChange={e => set('bank_account', e.target.value)} placeholder="VD: 0987654321" />
@@ -152,6 +152,13 @@ export default function AdminSettings() {
         </button>
       </div>
 
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-settings-container {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

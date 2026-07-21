@@ -193,7 +193,7 @@ export default function AdminUsers() {
   );
 
   return (
-    <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="admin-users-container" style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
       
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
@@ -404,7 +404,8 @@ export default function AdminUsers() {
 
       {/* ── MAIN USER TABLE ── */}
       <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-        <div style={{ overflowX: 'auto' }}>
+        {/* Desktop Table View */}
+        <div className="hidden-mobile" style={{ overflowX: 'auto', width: '100%' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
@@ -537,6 +538,39 @@ export default function AdminUsers() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile User Cards List */}
+        <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 16 }}>
+          {paginatedRows.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: 13 }}>
+              Không tìm thấy thành viên nào
+            </div>
+          ) : (
+            paginatedRows.map(user => {
+              const isAdmin = user.roles.includes('admin');
+              return (
+                <div key={user.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>{user.full_name || user.username}</div>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, background: isAdmin ? '#eff6ff' : '#f1f5f9', color: isAdmin ? '#2563eb' : '#64748b' }}>
+                      {isAdmin ? 'Admin' : 'User'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 4 }}>{user.email}</div>
+                  {user.student_code && <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 700, fontFamily: 'monospace', marginBottom: 10 }}>MSV: {user.student_code}</div>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #e2e8f0' }}>
+                    <button style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => openEditModal(user)}>
+                      Môn học ({user.subject_count})
+                    </button>
+                    <button onClick={() => deleteUser(user.id)} style={{ border: 'none', background: '#ffe4e6', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer' }}>
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* ── TABLE FOOTER & PAGINATION ── */}
@@ -776,6 +810,16 @@ export default function AdminUsers() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-users-container {
+            padding: 16px !important;
+          }
+          .hidden-mobile { display: none !important; }
+          .visible-mobile { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -83,7 +83,7 @@ export default function AdminNews() {
   );
 
   return (
-    <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="admin-news-container" style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
       
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
@@ -127,7 +127,7 @@ export default function AdminNews() {
             const formattedTime = `${createdDate.toLocaleTimeString('vi-VN')} ${createdDate.toLocaleDateString('vi-VN')}`;
 
             return (
-              <div key={p.id} style={{
+              <div key={p.id} className="admin-news-card" style={{
                 background: '#ffffff',
                 border: '1px solid #e2e8f0',
                 borderRadius: 22,
@@ -349,6 +349,21 @@ export default function AdminNews() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-news-container {
+            padding: 16px !important;
+          }
+          .admin-news-card {
+            flex-direction: column !important;
+          }
+          .admin-news-card > div:first-child {
+            width: 100% !important;
+            height: 180px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

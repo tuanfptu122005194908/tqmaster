@@ -154,7 +154,7 @@ export default function AdminTheory() {
   );
 
   return (
-    <div style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+    <div className="admin-theory-container" style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
       
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
@@ -452,6 +452,13 @@ export default function AdminTheory() {
         </>
       )}
 
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-theory-container {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

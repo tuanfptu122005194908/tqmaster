@@ -366,10 +366,10 @@ export default function AdminExams() {
   );
 
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f4f7fc', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+    <div className="admin-exams-root" style={{ display: 'flex', height: '100vh', background: '#f4f7fc', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
       
       {/* Sidebar — exam list */}
-      <div style={{ width: 340, borderRight: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <div className="admin-exams-sidebar" style={{ width: 340, borderRight: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>Đề thi</h1>
@@ -738,6 +738,22 @@ export default function AdminExams() {
           </div>
         </>
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-exams-root {
+            flex-direction: column !important;
+            height: auto !important;
+            min-height: 100vh;
+          }
+          .admin-exams-sidebar {
+            width: 100% !important;
+            max-height: 280px !important;
+            border-right: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
