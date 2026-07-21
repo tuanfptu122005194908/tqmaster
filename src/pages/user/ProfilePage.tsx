@@ -343,21 +343,29 @@ export default function ProfilePage() {
                   </button>
                 </div>
 
-                {/* TQM Points Card */}
-                <div style={{ background: '#f3eefd', border: '1px solid #ede9fe', borderRadius: 24, padding: 22, boxShadow: '0 2px 10px rgba(139, 92, 246, 0.05)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 12, background: '#8b5cf6', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Sparkles size={18} />
+                {/* Số tiền đã chi Card */}
+                {(() => {
+                  const totalSpent = orders
+                    .filter(o => o.status === 'approved')
+                    .reduce((sum, o) => sum + Number(o.final_amount), 0);
+
+                  return (
+                    <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 24, padding: 22, boxShadow: '0 2px 10px rgba(37, 99, 235, 0.05)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 12, background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <CreditCard size={18} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Số tiền đã chi</div>
+                          <div style={{ fontSize: 11, color: '#2563eb', fontWeight: 700 }}>Tổng thanh toán đã duyệt</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: '#2563eb', letterSpacing: '-0.03em' }}>
+                        {formatPrice(totalSpent)}
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Điểm tích lũy</div>
-                      <div style={{ fontSize: 11, color: '#8b5cf6', fontWeight: 700 }}>Xếp hạng: Vàng</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-                    1,250 <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>TQM Points</span>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
 
               {/* Right Column: 4 Stat Cards + Recent Activity */}
