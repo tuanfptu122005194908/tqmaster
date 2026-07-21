@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, Loader2, RefreshCw, CheckCircle, LogOut, AlertCircle } from 'lucide-react';
+import { Mail, Loader2, RefreshCw, CheckCircle, LogOut, AlertCircle, ExternalLink, ShieldAlert } from 'lucide-react';
 
 const RESEND_COOLDOWN_S = 60;
 const RESEND_MAX_PER_HOUR = 3;
@@ -26,8 +26,6 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   useEffect(() => {
@@ -35,23 +33,6 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     const t = setInterval(() => setCooldown(c => Math.max(0, c - 1)), 1000);
     return () => clearInterval(t);
   }, [cooldown]);
-
-  const verifyByOtp = async () => {
-    setMsg(null);
-    const code = otp.replace(/\D/g, '');
-    if (code.length !== 6) {
-      setMsg({ kind: 'err', text: 'Vui lòng nhập đủ 6 số của mã xác thực.' });
-      return;
-    }
-    setVerifyingOtp(true);
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'signup' });
-    setVerifyingOtp(false);
-    if (error) {
-      setMsg({ kind: 'err', text: 'Mã không đúng hoặc đã hết hạn. Vui lòng thử lại hoặc bấm "Gửi lại email".' });
-      return;
-    }
-    onVerified();
-  };
 
   const remainingThisHour = Math.max(0, RESEND_MAX_PER_HOUR - getResendLog().length);
 
@@ -87,65 +68,70 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     if (data.user?.email_confirmed_at) {
       onVerified();
     } else {
-      setMsg({ kind: 'err', text: 'Tài khoản chưa được xác thực. Vui lòng bấm vào liên kết trong email rồi thử lại.' });
+      setMsg({ kind: 'err', text: 'Tài khoản chưa được xác thực. Vui lòng bấm vào "Verify Email" trong email rồi thử lại.' });
     }
   };
 
   const logout = async () => { await supabase.auth.signOut(); };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'hsl(var(--background))' }}>
-      <div className="w-full max-w-[460px] rounded-3xl p-8"
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ background: 'hsl(var(--background))' }}>
+      <div className="w-full max-w-[500px] rounded-3xl p-6 sm:p-8"
         style={{
           background: 'hsl(var(--surface-raised))',
           border: '1px solid hsl(var(--border))',
           boxShadow: '0 20px 60px -20px rgba(0,0,0,0.15)',
         }}>
-        <div className="flex justify-center mb-5">
+        <div className="flex justify-center mb-4">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
             style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}>
-            <Mail size={30} />
+            <Mail size={32} />
           </div>
         </div>
 
-        <h1 className="text-2xl font-extrabold text-center mb-2">Xác thực email</h1>
-        <p className="text-sm text-center text-[hsl(var(--muted-fg))] mb-1">
-          Bạn cần xác thực email trước khi sử dụng hệ thống.
-        </p>
-        <p className="text-sm text-center mb-6">
-          Chúng tôi đã gửi liên kết xác thực đến:
+        <h1 className="text-2xl font-extrabold text-center mb-1.5">Xác thực email tài khoản</h1>
+        <p className="text-sm text-center text-[hsl(var(--muted-fg))] mb-4">
+          Chúng tôi đã gửi email xác thực đến địa chỉ:
         </p>
 
-        <div className="text-center font-semibold text-[hsl(var(--primary))] break-all mb-4 p-3 rounded-xl"
+        <div className="text-center font-bold text-base text-[hsl(var(--primary))] break-all mb-6 p-3 rounded-xl"
           style={{ background: 'hsl(var(--primary) / 0.08)', border: '1px solid hsl(var(--primary) / 0.2)' }}>
           {email}
         </div>
 
-        {/* Prominent SPAM Warning & Guide Box */}
-        <div className="mb-6 p-4 rounded-2xl border-2 border-amber-500/40 bg-amber-500/10 dark:bg-amber-950/30 text-left space-y-3">
-          <div className="flex items-center gap-2 font-bold text-amber-600 dark:text-amber-400 text-sm">
-            <AlertCircle size={18} className="shrink-0" />
-            <span>HƯỚNG DẪN XÁC THỰC EMAIL (QUAN TRỌNG)</span>
+        {/* 🚀 STEP BY STEP GUIDANCE BANNER */}
+        <div className="mb-6 p-4 rounded-2xl border-2 border-indigo-500/40 bg-indigo-50/50 dark:bg-indigo-950/40 space-y-3.5 text-left shadow-sm">
+          <div className="flex items-center gap-2 font-bold text-indigo-700 dark:text-indigo-300 text-sm">
+            <ShieldAlert size={18} className="shrink-0 text-indigo-600 dark:text-indigo-400" />
+            <span>🚀 CÁCH XÁC THỰC NHANH VÀ CHUẨN NHẤT:</span>
           </div>
 
-          <div className="space-y-2 text-xs text-foreground/90 leading-relaxed font-medium">
-            <div className="flex items-start gap-2">
-              <span className="shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-[11px]">1</span>
-              <span>Mở hộp thư của bạn (ĐẶC BIỆT KIỂM TRA MỤC <b>THƯ RÁC / SPAM</b>).</span>
+          <div className="space-y-3 text-xs text-foreground/90 leading-relaxed font-medium">
+            <div className="p-3 bg-white dark:bg-zinc-900/80 rounded-xl border border-indigo-100 dark:border-indigo-900/50 space-y-1">
+              <div className="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+                <span>Bước 1 (Trong Gmail / Hộp thư):</span>
+              </div>
+              <ul className="pl-6 space-y-1 list-disc text-[11.5px] text-muted-foreground">
+                <li>Nếu thấy thư ở mục <b>Thư rác (Spam)</b> hoặc có cảnh báo màu đỏ: Bấm nút <b className="text-emerald-600 dark:text-emerald-400">"Không phải spam"</b> (Not spam).</li>
+                <li>Bấm trực tiếp vào nút <b className="text-indigo-600 dark:text-indigo-400">"Verify Email"</b> (hoặc đường link) trong thư.</li>
+              </ul>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-[11px]">2</span>
-              <span>Nếu thấy cảnh báo <i>"Thư này có thể nguy hiểm"</i>: Bấm nút <b className="text-emerald-600 dark:text-emerald-400">"Không phải thư rác"</b> (Báo cáo không phải spam).</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold flex items-center justify-center text-[11px]">3</span>
-              <span>Copy <b>Mã 6 số</b> trong email nhập vào ô bên dưới (hoặc bấm liên kết xác thực).</span>
+
+            <div className="p-3 bg-white dark:bg-zinc-900/80 rounded-xl border border-indigo-100 dark:border-indigo-900/50 space-y-1">
+              <div className="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
+                <span>Bước 2 (Trên trang web TQMaster):</span>
+              </div>
+              <p className="pl-6 text-[11.5px] text-muted-foreground">
+                Quay lại đây và bấm nút xanh bên dưới <b>"Tôi đã xác thực"</b> để tự động đăng nhập!
+              </p>
             </div>
           </div>
         </div>
 
         {msg && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm mb-4"
+          <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm mb-4 animate-slide-up"
             style={{
               background: msg.kind === 'ok' ? 'hsl(var(--success-light))' : 'hsl(var(--danger-light))',
               border: `1px solid ${msg.kind === 'ok' ? 'hsl(var(--success) / 0.25)' : 'hsl(var(--danger) / 0.25)'}`,
@@ -159,47 +145,14 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
         <button
           onClick={checkVerified}
           disabled={checking}
-          className="w-full h-12 rounded-xl font-semibold flex items-center justify-center gap-2 mb-3 transition-all disabled:opacity-60"
+          className="w-full h-12 rounded-xl font-bold text-base flex items-center justify-center gap-2 mb-3 transition-all active:scale-[0.99] disabled:opacity-60"
           style={{
             background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))',
             color: 'hsl(var(--primary-foreground, 0 0% 100%))',
             boxShadow: '0 8px 20px -6px hsl(var(--primary) / 0.45)',
           }}>
-          {checking ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
+          {checking ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={20} />}
           Tôi đã xác thực
-        </button>
-
-        <div className="my-5 flex items-center gap-3">
-          <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
-          <span className="text-xs text-[hsl(var(--muted-fg))] font-medium">HOẶC NHẬP MÃ 6 SỐ</span>
-          <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
-        </div>
-
-        <input
-          type="text"
-          inputMode="numeric"
-          maxLength={6}
-          placeholder="______"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-          className="w-full h-12 rounded-xl text-center tracking-[0.5em] text-xl font-bold mb-3 focus:outline-none focus:ring-2"
-          style={{
-            background: 'hsl(var(--background))',
-            border: '1.5px solid hsl(var(--border))',
-            color: 'hsl(var(--foreground))',
-          }}
-        />
-
-        <button
-          onClick={verifyByOtp}
-          disabled={verifyingOtp || otp.length !== 6}
-          className="w-full h-11 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mb-3 transition-all disabled:opacity-50"
-          style={{
-            background: 'hsl(var(--success))',
-            color: 'white',
-          }}>
-          {verifyingOtp ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-          Xác thực bằng mã
         </button>
 
         <button
@@ -226,9 +179,10 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
         </button>
 
         <p className="mt-5 text-xs text-center text-[hsl(var(--subtle-fg))] leading-relaxed">
-          Tài khoản chưa xác thực sẽ tự động bị xoá sau 24 giờ. Nếu không bấm được link, hãy nhập mã 6 số trong email.
+          Tài khoản chưa xác thực sẽ tự động bị xoá sau 24 giờ.
         </p>
       </div>
     </div>
   );
 }
+

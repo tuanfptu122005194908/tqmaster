@@ -19,8 +19,26 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [studentCode, setStudentCode] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [countdown, setCountdown] = useState(60);
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    if (!success || mode !== 'register') return;
+    setCountdown(60);
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setMode('login');
+          setSuccess(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [success, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,12 +75,6 @@ export default function AuthPage() {
         setError(signUpErr.message.includes('already') ? 'Email này đã được đăng ký' : signUpErr.message);
       } else {
         setSuccess(true);
-        // Do NOT auto sign-in — email must be verified first.
-        // Switch to login mode so user can sign in after verifying.
-        setTimeout(() => {
-          setMode('login');
-          setSuccess(false);
-        }, 10000);
       }
     }
     setLoading(false);
@@ -264,28 +276,62 @@ export default function AuthPage() {
               )}
 
               {success && !error && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm animate-slide-up"
-                  style={{ background: 'hsl(var(--success-light))', border: '1px solid hsl(var(--success) / 0.25)', color: 'hsl(var(--success))' }}>
-                  <CheckCircle size={16} className="shrink-0 mt-0.5" />
-                  <div className="font-medium leading-snug flex-1">
-                    {mode === 'forgot'
-                      ? 'Đã gửi mật khẩu mới về email của bạn! Vui lòng kiểm tra hộp thư, đăng nhập và đổi lại mật khẩu.'
-                      : (
-                        <div className="space-y-3">
-                          <p className="font-bold text-base text-emerald-800 dark:text-emerald-300">🎉 Đăng ký tài khoản thành công!</p>
-                          <div className="p-4 bg-amber-500/15 border-2 border-amber-500/60 rounded-2xl text-xs space-y-2 text-foreground font-medium shadow-md">
-                            <div className="font-bold text-amber-700 dark:text-amber-400 text-sm flex items-center gap-1.5">
-                              <span>🚨</span> HƯỚNG DẪN XÁC THỰC EMAIL (BẮT BUỘC):
-                            </div>
-                            <ol className="list-decimal list-inside space-y-1.5 text-xs">
-                              <li>Kiểm tra Hộp thư email (và <b>ĐẶC BIỆT LÀ MỤC THƯ RÁC / SPAM</b>).</li>
-                              <li>Nếu bị đưa vào Spam: Bấm chọn <b>"Báo cáo không phải thư rác"</b> (Not Spam).</li>
-                              <li>Copy <b>Mã OTP 6 số</b> trong email nhập vào trang xác thực (hoặc bấm liên kết).</li>
-                            </ol>
-                          </div>
+                <div className="animate-slide-up">
+                  {mode === 'forgot' ? (
+                    <div className="flex items-start gap-2.5 p-3 rounded-xl text-sm"
+                      style={{ background: 'hsl(var(--success-light))', border: '1px solid hsl(var(--success) / 0.25)', color: 'hsl(var(--success))' }}>
+                      <CheckCircle size={16} className="shrink-0 mt-0.5" />
+                      <span className="font-medium leading-snug">Đã gửi mật khẩu mới về email của bạn! Vui lòng kiểm tra hộp thư, đăng nhập và đổi lại mật khẩu.</span>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-indigo-50/90 dark:bg-indigo-950/70 border-2 border-indigo-500/60 rounded-2xl space-y-3.5 shadow-lg text-left">
+                      <div className="flex items-center justify-between">
+                        <div className="font-extrabold text-sm text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                          <span>🚀 CÁCH XÁC THỰC NHANH VÀ CHUẨN NHẤT:</span>
                         </div>
-                      )}
-                  </div>
+                        <span className="px-2.5 py-0.5 bg-indigo-600 text-white font-extrabold text-xs rounded-full">
+                          {countdown}s
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-foreground/90 font-medium leading-snug">
+                        Người dùng nhận được email này chỉ cần thực hiện 2 thao tác cực kỳ đơn giản:
+                      </p>
+
+                      <div className="space-y-2.5 text-xs">
+                        <div className="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-indigo-100 dark:border-indigo-900 space-y-1">
+                          <div className="font-bold text-indigo-900 dark:text-indigo-200">
+                            Bước 1 (Trong Gmail):
+                          </div>
+                          <ul className="pl-4 list-disc space-y-1 text-[11.5px] text-muted-foreground">
+                            <li>Nếu thư chui vào mục <b>Thư rác (Spam)</b> hoặc có cảnh báo màu đỏ: Bấm nút <b className="text-emerald-600 dark:text-emerald-400">"Không phải spam"</b> (Not spam) ở phía trên.</li>
+                            <li>Bấm trực tiếp vào nút <b className="text-indigo-600 dark:text-indigo-400">"Verify Email"</b> (hoặc đường link) trong thư.</li>
+                          </ul>
+                        </div>
+
+                        <div className="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-indigo-100 dark:border-indigo-900 space-y-1">
+                          <div className="font-bold text-indigo-900 dark:text-indigo-200">
+                            Bước 2 (Trên trang web TQMaster):
+                          </div>
+                          <ul className="pl-4 list-disc space-y-1 text-[11.5px] text-muted-foreground">
+                            <li>Quay lại trang web và bấm nút màu xanh tím <b>"Tôi đã xác thực"</b>.</li>
+                            <li>Hệ thống sẽ lập tức nhận diện email đã được xác nhận và tự động đăng nhập vào ứng dụng ngay!</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between border-t border-indigo-200/60 dark:border-indigo-900/60">
+                        <span className="text-[11px] text-muted-foreground italic">Tự động chuyển sang Đăng nhập sau {countdown}s...</span>
+                        <button
+                          type="button"
+                          onClick={() => { setMode('login'); setSuccess(false); }}
+                          className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                        >
+                          Chuyển sang Đăng nhập ngay →
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
