@@ -880,7 +880,7 @@ export default function ProfilePage() {
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 22 }}>
                 {subjects
                   .filter(s => semFilter === 'all' || s.semester === semFilter)
                   .map(subject => {

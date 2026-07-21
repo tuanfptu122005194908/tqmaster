@@ -60,7 +60,7 @@ export default function HomePage() {
   const isMyCourses = currentView === 'my-courses';
 
   return (
-    <div className="page-shell" style={{ margin: '0 auto', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="page-shell" style={{ maxWidth: '100%', padding: '24px 30px', margin: 0, fontFamily: "'Inter', -apple-system, sans-serif" }}>
       
       {/* ════════════════════════════════════════════
           MY COURSES TOP HEADER & STATS (MATCHES SCREENSHOT 2)
@@ -207,7 +207,7 @@ export default function HomePage() {
           {/* ════════════════════════════════════════════
               HIGH-END SUBJECTS GRID (MATCHES SCREENSHOT 2 & 3)
               ════════════════════════════════════════════ */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 22 }}>
             {filtered.map((subject) => {
               const color    = subjectColor(subject.name);
               const initials = subjectInitials(subject.name);
