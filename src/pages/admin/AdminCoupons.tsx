@@ -20,7 +20,7 @@ export default function AdminCoupons() {
   const [saving,   setSaving]   = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editing,  setEditing]  = useState<string | null>(null);
-  const [form, setForm] = useState({ code: '', value: 10, discount_type: 'percent', is_active: true });
+  const [form, setForm] = useState({ code: '', value: 10, discount_type: 'percent', is_active: true, max_uses: '' });
 
   const fetch = async () => {
     const { data } = await supabase.from('discount_codes').select('*').order('created_at', { ascending: false });
@@ -29,24 +29,56 @@ export default function AdminCoupons() {
   };
   useEffect(() => { fetch(); }, []);
 
-  const openCreate = () => { setForm({ code: '', value: 10, discount_type: 'percent', is_active: true }); setEditing(null); setShowForm(true); };
-  const openEdit   = (c: Coupon) => { setForm({ code: c.code, value: c.value, discount_type: c.discount_type || 'percent', is_active: c.is_active }); setEditing(c.id); setShowForm(true); };
+  const openCreate = () => { setForm({ code: '', value: 10, discount_type: 'percent', is_active: true, max_uses: '' }); setEditing(null); setShowForm(true); };
+  const openEdit   = (c: Coupon) => { setForm({ code: c.code, value: c.value, discount_type: c.discount_type || 'percent', is_active: c.is_active, max_uses: c.max_uses ? String(c.max_uses) : '' }); setEditing(c.id); setShowForm(true); };
 
   const save = async () => {
     if (!form.code.trim()) return;
     setSaving(true);
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      value: form.value,
+      discount_type: form.discount_type,
+      is_active: form.is_active,
+      max_uses: form.max_uses ? Number(form.max_uses) : null,
+    };
+
+    let err = null;
     if (editing) {
-      await supabase.from('discount_codes').update({ code: form.code, value: form.value, discount_type: form.discount_type, is_active: form.is_active }).eq('id', editing);
+      const { error } = await supabase.from('discount_codes').update(payload).eq('id', editing);
+      err = error;
     } else {
-      await supabase.from('discount_codes').insert({ code: form.code, value: form.value, discount_type: form.discount_type, is_active: form.is_active, created_by: profile?.id });
+      const { error } = await supabase.from('discount_codes').insert({ ...payload, created_by: profile?.id });
+      err = error;
     }
-    await fetch();
+
     setSaving(false);
-    setShowForm(false);
+    if (err) {
+      alert('Lỗi lưu mã giảm giá: ' + err.message);
+    } else {
+      setShowForm(false);
+      await fetch();
+    }
   };
 
-  const remove  = async (id: string) => { if (!confirm('Xóa mã này?')) return; await supabase.from('discount_codes').delete().eq('id', id); fetch(); };
-  const toggle  = async (c: Coupon) => { await supabase.from('discount_codes').update({ is_active: !c.is_active }).eq('id', c.id); fetch(); };
+  const remove  = async (id: string) => {
+    if (!confirm('Xóa mã này?')) return;
+    const { error } = await supabase.from('discount_codes').delete().eq('id', id);
+    if (error) {
+      alert('Không thể xóa mã giảm giá: ' + error.message);
+    } else {
+      await fetch();
+    }
+  };
+
+  const toggle  = async (c: Coupon) => {
+    const { error } = await supabase.from('discount_codes').update({ is_active: !c.is_active }).eq('id', c.id);
+    if (error) {
+      alert('Lỗi cập nhật trạng thái: ' + error.message);
+    } else {
+      await fetch();
+    }
+  };
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-16)' }}><Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))' }} /></div>;
 
@@ -119,6 +151,12 @@ export default function AdminCoupons() {
                   {form.discount_type === 'percent' ? 'Phần trăm giảm (%)' : 'Số tiền giảm (VNĐ)'}
                 </label>
                 <input style={inputStyle} type="number" min={1} max={form.discount_type === 'percent' ? 100 : undefined} value={form.value} onChange={e => setForm(p => ({ ...p, value: +e.target.value }))} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: 6 }}>
+                  Số lượt dùng tối đa (để trống nếu không giới hạn)
+                </label>
+                <input style={inputStyle} type="number" min={1} value={form.max_uses} onChange={e => setForm(p => ({ ...p, max_uses: e.target.value }))} placeholder="Không giới hạn" />
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: '0.875rem' }}>
                 <input type="checkbox" checked={form.is_active} onChange={e => setForm(p => ({ ...p, is_active: e.target.checked }))} style={{ width: 16, height: 16, accentColor: 'hsl(var(--primary))' }} />
