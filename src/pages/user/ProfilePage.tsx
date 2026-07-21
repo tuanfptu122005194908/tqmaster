@@ -98,16 +98,27 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!profile) return;
+    const safePurchasedIds = (Array.isArray(purchasedIds) && purchasedIds.length > 0)
+      ? purchasedIds
+      : ['00000000-0000-0000-0000-000000000000'];
+
     Promise.all([
       supabase.from('orders').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }),
-      supabase.from('subjects').select('*').in('id', purchasedIds.length ? purchasedIds : ['x']),
+      supabase.from('subjects').select('*').in('id', safePurchasedIds),
       supabase.from('system_settings').select('key, value'),
     ]).then(([ordersRes, subjectsRes, settingsRes]) => {
-      setOrders(ordersRes.data ?? []);
-      setSubjects(subjectsRes.data ?? []);
+      setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+      setSubjects(Array.isArray(subjectsRes.data) ? subjectsRes.data : []);
       const m: Record<string, string> = {};
-      (settingsRes.data ?? []).forEach(r => { if (r.key && r.value) m[r.key] = r.value; });
+      if (Array.isArray(settingsRes.data)) {
+        settingsRes.data.forEach(r => { if (r && r.key && r.value) m[r.key] = r.value; });
+      }
       setBankInfo(m);
+      setLoading(false);
+    }).catch(err => {
+      console.error('Error fetching profile data:', err);
+      setOrders([]);
+      setSubjects([]);
       setLoading(false);
     });
   }, [profile, purchasedIds]);

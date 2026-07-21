@@ -20,17 +20,23 @@ export const SUBJECT_COLORS = [
 ];
 
 /** Pick a deterministic color from a subject's name */
-export function subjectColor(name: string): string {
+export function subjectColor(name?: string | null): string {
+  if (!name || typeof name !== 'string') return SUBJECT_COLORS[0];
   let hash = 0;
   for (const ch of name) hash = ch.charCodeAt(0) + ((hash << 5) - hash);
   return SUBJECT_COLORS[Math.abs(hash) % SUBJECT_COLORS.length];
 }
 
 /** Return 1–2 uppercase initials from a subject name */
-export function subjectInitials(name: string): string {
-  const words = name.trim().split(/\s+/);
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[words.length - 2][0] + words[words.length - 1][0]).toUpperCase();
+export function subjectInitials(name?: string | null): string {
+  if (!name || typeof name !== 'string') return 'MH';
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return 'MH';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase() || 'MH';
+  const first = words[words.length - 2]?.[0] ?? '';
+  const second = words[words.length - 1]?.[0] ?? '';
+  const res = (first + second).toUpperCase();
+  return res || 'MH';
 }
 
 export function formatPrice(amount: number): string {
