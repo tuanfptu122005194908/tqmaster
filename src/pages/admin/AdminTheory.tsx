@@ -240,11 +240,8 @@ export default function AdminTheory() {
                 <FileUploader
                   bucket={form.type === 'image' ? 'theory-images' : 'theory-files'}
                   value={form.url}
-                  onChange={url => setForm(p => ({
-                    ...p,
-                    url,
-                    file_name: p.file_name || (url ? decodeURIComponent(url.split('/').pop() ?? '') : ''),
-                  }))}
+                  onChange={url => setForm(p => ({ ...p, url }))}
+                  onFileNameChange={name => setForm(p => ({ ...p, file_name: name }))}
                   accept={form.type === 'image' ? 'image/*' : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt'}
                   preview={form.type === 'image' ? 'image' : 'file'}
                   maxSizeMB={20}
