@@ -310,10 +310,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [loadProfileAndRole, refreshPurchased, isAdmin, refreshPendingOrdersCount, enforceSingleSession]);
 
   // ── Cart helpers ─────────────────────────────────────────
-  const addToCart    = (s: Subject) => setCart(c => c.find(i => i.id === s.id) ? c : [...c, s]);
-  const removeFromCart = (id: string) => setCart(c => c.filter(i => i.id !== id));
+  const addToCart = (s: Subject | string) => {
+    if (typeof s === 'string') {
+      supabase.from('subjects').select('*').eq('id', s).maybeSingle().then(({ data }) => {
+        if (data) setCart(c => c.find(i => (typeof i === 'string' ? i : i?.id) === data.id) ? c : [...c, data as any]);
+      });
+    } else if (s && s.id) {
+      setCart(c => c.find(i => (typeof i === 'string' ? i : i?.id) === s.id) ? c : [...c, s]);
+    }
+  };
+  const removeFromCart = (id: string) => setCart(c => c.filter(i => (typeof i === 'string' ? i : i?.id) !== id));
   const clearCart    = () => setCart([]);
-  const isInCart     = (id: string) => cart.some(i => i.id === id);
+  const isInCart     = (id: string) => cart.some(i => (typeof i === 'string' ? i : i?.id) === id);
   const isPurchased  = (id: string) => purchasedIds.includes(id);
 
   // ── Sign out ─────────────────────────────────────────────

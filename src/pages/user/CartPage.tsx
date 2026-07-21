@@ -28,6 +28,7 @@ export default function CartPage() {
   const [orderId,     setOrderId]     = useState<string | null>(null);
   const [bankInfo,    setBankInfo]    = useState<Record<string, string>>({});
   const [copied,      setCopied]      = useState<string | null>(null);
+  const [displayCart, setDisplayCart] = useState<Tables<'subjects'>[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -41,7 +42,41 @@ export default function CartPage() {
       });
   }, []);
 
-  const subtotal = cart.reduce((sum, i) => sum + Number(i.price), 0);
+  // Auto-resolve any string IDs or missing subject details in cart
+  useEffect(() => {
+    const rawCart = Array.isArray(cart) ? cart : [];
+    if (rawCart.length === 0) {
+      setDisplayCart([]);
+      return;
+    }
+
+    const missingIds = rawCart
+      .map(i => (typeof i === 'string' ? i : (!i || !i.name || i.price === undefined) ? (i as any)?.id : null))
+      .filter((id): id is string => Boolean(id));
+
+    const validObjects = rawCart.filter((i): i is Tables<'subjects'> => typeof i === 'object' && i !== null && Boolean(i.id) && Boolean(i.name));
+
+    if (missingIds.length > 0) {
+      supabase.from('subjects').select('*').in('id', missingIds).then(({ data }) => {
+        if (data && data.length > 0) {
+          const map = new Map<string, Tables<'subjects'>>();
+          validObjects.forEach(s => map.set(s.id, s));
+          data.forEach(s => map.set(s.id, s));
+          const list = rawCart.map(i => {
+            const id = typeof i === 'string' ? i : i?.id;
+            return map.get(id) || (typeof i === 'object' && i ? i : { id, name: 'Môn học', price: 0, semester: 1 } as any);
+          });
+          setDisplayCart(list);
+        } else {
+          setDisplayCart(validObjects);
+        }
+      });
+    } else {
+      setDisplayCart(validObjects);
+    }
+  }, [cart]);
+
+  const subtotal = displayCart.reduce((sum, i) => sum + (Number(i?.price) || 0), 0);
   const discount = coupon
     ? coupon.discount_type === 'percent'
       ? Math.floor(subtotal * Number(coupon.value) / 100)
@@ -93,7 +128,7 @@ export default function CartPage() {
       // Server-authoritative order creation. Prices/discount are recomputed from DB.
       const { data, error } = await supabase.functions.invoke('create-order', {
         body: {
-          subjectIds: cart.map(s => s.id),
+          subjectIds: displayCart.map(s => s.id),
           couponCode: coupon?.code ?? null,
           fullName,
           studentCode,
@@ -186,7 +221,7 @@ export default function CartPage() {
   }
 
   // ═══ EMPTY CART ═══════════════════════════════════════
-  if (cart.length === 0 && step === 'cart') {
+  if (displayCart.length === 0 && step === 'cart') {
     return (
       <div className="page-shell" style={{ maxWidth: 720, margin: '0 auto' }}>
         <div style={{
@@ -229,7 +264,7 @@ export default function CartPage() {
       </div>
 
       <div style={{ padding: 'var(--space-4) var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', maxHeight: 280, overflowY: 'auto' }}>
-        {cart.map(item => {
+        {displayCart.map(item => {
           const c = subjectColor(item.name);
           return (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: '0.875rem' }}>
@@ -251,7 +286,7 @@ export default function CartPage() {
 
       <div style={{ padding: 'var(--space-4) var(--space-5)', borderTop: '1px solid hsl(var(--border))', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: '0.875rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'hsl(var(--muted-fg))' }}>
-          <span>Tạm tính ({cart.length} môn)</span>
+          <span>Tạm tính ({displayCart.length} môn)</span>
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatPrice(subtotal)}</span>
         </div>
         {coupon && (
@@ -586,9 +621,9 @@ export default function CartPage() {
             <h2 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Package size={18} style={{ color: 'hsl(var(--primary))' }} />
               Giỏ hàng của bạn
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: 'hsl(var(--primary-muted))', color: 'hsl(var(--primary))' }}>{cart.length}</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '2px 10px', borderRadius: 999, background: 'hsl(var(--primary-muted))', color: 'hsl(var(--primary))' }}>{displayCart.length}</span>
             </h2>
-            {cart.length > 0 && (
+            {displayCart.length > 0 && (
               <button onClick={clearCart} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 color: 'hsl(var(--muted-fg))', fontSize: '0.8125rem', fontWeight: 600,
@@ -600,13 +635,13 @@ export default function CartPage() {
           </div>
 
           <div>
-            {cart.map((item, i) => {
+            {displayCart.map((item, i) => {
               const c = subjectColor(item.name);
               return (
                 <div key={item.id} style={{
                   display: 'flex', alignItems: 'center', gap: 'var(--space-4)',
                   padding: 'var(--space-4) var(--space-5)',
-                  borderBottom: i < cart.length - 1 ? '1px solid hsl(var(--border))' : 'none',
+                  borderBottom: i < displayCart.length - 1 ? '1px solid hsl(var(--border))' : 'none',
                   transition: 'background 0.15s',
                 }}>
                   <div style={{

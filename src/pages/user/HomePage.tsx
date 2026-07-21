@@ -354,7 +354,7 @@ export default function HomePage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (inCart) removeFromCart(subject.id);
-                              else addToCart(subject.id);
+                              else addToCart(subject);
                             }}
                             style={{
                               padding: '8px 14px',
