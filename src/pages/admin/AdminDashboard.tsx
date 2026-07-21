@@ -11,58 +11,37 @@ import {
 import {
   Users, BookOpen, FileText, CircleHelp, Clock, TrendingUp,
   Loader2, ShoppingCart, Award, ArrowUpRight,
-  BarChart, Package
+  BarChart3, Package, ChevronRight
 } from 'lucide-react';
 
 type Order = Tables<'orders'>;
 type Subject = Tables<'subjects'>;
 type OrderItem = Tables<'order_items'>;
 
-// ─── palette for chart gradient fills ───────────────────────────
-const CHART_COLORS = {
-  revenue: { stroke: '#818cf8', gradStart: 'rgba(129,140,248,0.35)', gradEnd: 'rgba(129,140,248,0)' },
-  bar:     ['#818cf8','#34d399','#fb923c','#f472b6','#60a5fa','#facc15','#a78bfa','#2dd4bf'],
-};
-
-// ─── Custom tooltip ──────────────────────────────────────────────
+// ─── Custom tooltip for Light Mode ──────────────────────────────────────────
 function RevenueTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: 'rgba(10, 10, 20, 0.85)',
-      backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(129, 140, 248, 0.35)',
-      borderRadius: 16,
-      padding: '14px 18px',
-      boxShadow: '0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(129,140,248,0.15)',
-      animation: 'fadeSlideUp 0.3s ease-out',
+      background: '#ffffff',
+      border: '1px solid #e2e8f0',
+      borderRadius: 12,
+      padding: '12px 16px',
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {label}
       </div>
-      <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', marginBottom: 4 }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', marginBottom: 4 }}>
         {formatPrice(payload[0].value)}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(52,211,153,0.15)', padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, color: '#34d399' }}>
-          <TrendingUp size={10} />
-          <span>+8.4%</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#dcfce7', padding: '2px 6px', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#15803d' }}>
+          <TrendingUp size={12} />
+          <span>Tăng trưởng</span>
         </div>
-        <span style={{ fontSize: 10, color: '#475569' }}>so với kỳ trước</span>
+        <span style={{ fontSize: 11, color: '#64748b' }}>kỳ ghi nhận</span>
       </div>
-    </div>
-  );
-}
-
-function ProductTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div style={{
-      background: 'rgba(15,15,30,0.95)', border: '1px solid rgba(52,211,153,0.3)',
-      borderRadius: 10, padding: '10px 14px',
-    }}>
-      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: '#34d399' }}>{payload[0].value} đơn</div>
     </div>
   );
 }
@@ -87,16 +66,16 @@ function Counter({ value, isString }: { value: number | string; isString?: boole
   return <>{display.toLocaleString('vi-VN')}</>;
 }
 
-// ─── Stat card config ────────────────────────────────────────────
+// ─── Stat card config for Light SaaS theme ───────────────────────────
 const STAT_DEFS = [
-  { key: 'revenue',      label: 'Tổng doanh thu',   icon: TrendingUp,  color: '#818cf8', bg: 'rgba(129,140,248,0.12)', isString: true },
-  { key: 'users',        label: 'Người dùng',        icon: Users,       color: '#34d399', bg: 'rgba(52,211,153,0.12)'  },
-  { key: 'orders',       label: 'Tổng đơn hàng',    icon: ShoppingCart,color: '#fb923c', bg: 'rgba(251,146,60,0.12)'  },
-  { key: 'pendingOrders',label: 'Đơn chờ duyệt',    icon: Clock,       color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
-  { key: 'subjects',     label: 'Môn học',            icon: BookOpen,    color: '#60a5fa', bg: 'rgba(96,165,250,0.12)'  },
-  { key: 'exams',        label: 'Đề thi',             icon: FileText,    color: '#facc15', bg: 'rgba(250,204,21,0.12)'  },
-  { key: 'questions',    label: 'Câu hỏi',            icon: CircleHelp,  color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-  { key: 'approved',     label: 'Đơn đã duyệt',      icon: Award,       color: '#2dd4bf', bg: 'rgba(45,212,191,0.12)'  },
+  { key: 'revenue',      label: 'Tổng doanh thu',   icon: TrendingUp,   color: '#4f46e5', bg: '#e0e7ff', border: '#c7d2fe', isString: true },
+  { key: 'users',        label: 'Người dùng',        icon: Users,        color: '#059669', bg: '#dcfce7', border: '#a7f3d0' },
+  { key: 'orders',       label: 'Tổng đơn hàng',    icon: ShoppingCart, color: '#d97706', bg: '#fef3c7', border: '#fde68a' },
+  { key: 'pendingOrders',label: 'Đơn chờ duyệt',    icon: Clock,        color: '#e11d48', bg: '#ffe4e6', border: '#fecdd3' },
+  { key: 'subjects',     label: 'Môn học',            icon: BookOpen,     color: '#0284c7', bg: '#e0f2fe', border: '#bae6fd' },
+  { key: 'exams',        label: 'Đề thi',             icon: FileText,     color: '#ca8a04', bg: '#fef9c3', border: '#fef08a' },
+  { key: 'questions',    label: 'Câu hỏi',            icon: CircleHelp,   color: '#7c3aed', bg: '#f3e8ff', border: '#ddd6fe' },
+  { key: 'approved',     label: 'Đơn đã duyệt',      icon: Award,        color: '#0d9488', bg: '#ccfbf1', border: '#99f6e4' },
 ];
 
 type RevTab = 'day' | 'month' | 'year';
@@ -208,80 +187,105 @@ export default function AdminDashboard() {
   };
 
   const statusBadge = (s: string) => {
-    if (s === 'pending')  return <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: 'rgba(250,204,21,0.15)', color: '#fbbf24' }}>Chờ duyệt</span>;
-    if (s === 'approved') return <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: 'rgba(52,211,153,0.15)', color: '#34d399' }}>Đã duyệt</span>;
-    return <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: 'rgba(244,114,182,0.15)', color: '#f472b6' }}>Từ chối</span>;
+    if (s === 'pending')  return <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>Chờ duyệt</span>;
+    if (s === 'approved') return <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>Đã duyệt</span>;
+    return <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3' }}>Từ chối</span>;
   };
 
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 320 }}>
-      <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: '#818cf8' }} />
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f8fafc' }}>
+      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#4f46e5' }} />
     </div>
   );
 
-  const maxCount = topSubjects[0]?.count || 1;
-
   return (
-    <div style={{ padding: '28px 32px', flex: 1, minWidth: 0, background: '#0a0a1a', minHeight: '100vh', color: '#e2e8f0' }}>
+    <div style={{ padding: '32px 36px', flex: 1, minWidth: 0, background: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
       {/* ── Header ── */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <div style={{ width: 4, height: 32, borderRadius: 2, background: 'linear-gradient(180deg,#818cf8,#34d399)', boxShadow: '0 0 12px rgba(129,140,248,0.6)' }} />
-          <h1 className="text-prominent" style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', margin: 0 }}>
-            Dashboard Admin
-          </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
+              Dashboard Admin
+            </h1>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px',
+              borderRadius: 20, background: '#dcfce7', color: '#15803d',
+              fontSize: 12, fontWeight: 700, border: '1px solid #bbf7d0'
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} /> Trực tiếp
+            </span>
+          </div>
+          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>
+            Tổng quan chỉ số hiệu suất & tình hình kinh doanh TQMaster
+          </p>
         </div>
-        <p style={{ fontSize: 13, color: '#64748b', marginLeft: 14, letterSpacing: '0.01em' }}>
-          Tổng quan hệ thống TQMaster
-          <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 4, background: 'rgba(52,211,153,0.12)', color: '#34d399', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>● Live</span>
-        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            onClick={() => setCurrentView('admin-orders')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px',
+              background: '#ffffff', color: '#334155', border: '1px solid #cbd5e1',
+              borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'all 0.15s'
+            }}
+          >
+            <ShoppingCart size={16} /> Quản lý đơn hàng ({stats.pendingOrders} mới)
+          </button>
+        </div>
       </div>
 
       {/* ── Stat cards ── */}
-      <div className="dash-stats-grid">
-        {STAT_DEFS.map((def, idx) => {
+      <div className="dash-stats-grid" style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18, marginBottom: 28
+      }}>
+        {STAT_DEFS.map((def) => {
           const Icon = def.icon;
           const val = statValues[def.key];
           return (
-            <div key={def.key} className="dash-stat-card" style={{
-              background: `linear-gradient(135deg, ${def.color}10 0%, rgba(10,10,26,0.8) 100%)`,
-              border: `1px solid ${def.color}33`,
-              borderRadius: 18,
+            <div key={def.key} style={{
+              background: '#ffffff',
+              border: `1px solid #e2e8f0`,
+              borderRadius: 16,
               padding: '20px 22px',
-              position: 'relative',
-              overflow: 'hidden',
-              transition: 'transform 0.22s cubic-bezier(0.25,1,0.5,1), box-shadow 0.22s',
-              animationDelay: `${idx * 55}ms`,
-              animation: 'fadeSlideUp 0.45s cubic-bezier(0.25,1,0.5,1) both',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 6px 12px -2px rgba(0,0,0,0.02)',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
               cursor: 'default',
             }}
               onMouseEnter={e => {
                 const el = e.currentTarget as HTMLElement;
-                el.style.transform = 'translateY(-5px)';
-                el.style.boxShadow = `0 16px 40px ${def.color}30, 0 4px 12px rgba(0,0,0,0.4)`;
-                el.style.borderColor = `${def.color}66`;
+                el.style.transform = 'translateY(-3px)';
+                el.style.boxShadow = '0 12px 24px -4px rgba(0,0,0,0.08)';
+                el.style.borderColor = def.color;
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLElement;
                 el.style.transform = '';
-                el.style.boxShadow = '';
-                el.style.borderColor = '';
+                el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04), 0 6px 12px -2px rgba(0,0,0,0.02)';
+                el.style.borderColor = '#e2e8f0';
               }}
             >
-              {/* shimmer line at top */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${def.color}, transparent)`, opacity: 0.7 }} />
-              {/* glow blob */}
-              <div style={{ position: 'absolute', bottom: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: def.color, opacity: 0.1, filter: 'blur(24px)' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 12, background: `${def.color}20`, border: `1px solid ${def.color}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 12px ${def.color}20` }}>
-                  <Icon size={18} style={{ color: def.color }} />
+                <div style={{
+                  width: 42, height: 42, borderRadius: 12, background: def.bg,
+                  border: `1px solid ${def.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Icon size={20} style={{ color: def.color }} />
                 </div>
-                <ArrowUpRight size={14} style={{ color: def.color, opacity: 0.7 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f1f5f9', padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: '#475569' }}>
+                  <span>+0%</span>
+                  <ArrowUpRight size={12} />
+                </div>
               </div>
-              <div style={{ fontSize: def.isString ? 18 : 30, fontWeight: 900, color: def.color, lineHeight: 1.05, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginBottom: 5, textShadow: `0 0 20px ${def.color}60` }}>
+              <div style={{
+                fontSize: def.isString ? 22 : 28, fontWeight: 800, color: '#0f172a',
+                lineHeight: 1.1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginBottom: 6
+              }}>
                 <Counter value={val} isString={def.isString} />
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{def.label}</div>
+              <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, letterSpacing: '0.01em' }}>
+                {def.label}
+              </div>
             </div>
           );
         })}
@@ -289,43 +293,39 @@ export default function AdminDashboard() {
 
       {/* ── Revenue Section ── */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(129,140,248,0.08) 0%, rgba(15,15,30,0.6) 60%, rgba(52,211,153,0.06) 100%)',
-        border: '1px solid rgba(129,140,248,0.25)',
-        borderRadius: 24,
-        padding: '28px 28px 20px',
-        marginBottom: 24,
-        position: 'relative',
-        overflow: 'hidden',
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 20,
+        padding: '28px',
+        marginBottom: 28,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 10px 20px -5px rgba(0,0,0,0.03)',
       }}>
-        {/* glow decorations */}
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 320, height: 320, borderRadius: '50%', background: '#818cf8', opacity: 0.07, filter: 'blur(80px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 260, height: 260, borderRadius: '50%', background: '#34d399', opacity: 0.06, filter: 'blur(70px)', pointerEvents: 'none' }} />
-
         {/* Top: title + tab + big number */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(129,140,248,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BarChart size={16} style={{ color: '#818cf8' }} />
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5' }}>
+                <BarChart3 size={18} />
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Phân tích doanh thu</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: '#4f46e5', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Phân tích doanh thu</span>
             </div>
-            <div style={{ fontSize: 40, fontWeight: 900, color: '#c7d2fe', letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums', lineHeight: 1, marginBottom: 6 }}>
+            <div style={{ fontSize: 36, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1, marginBottom: 6 }}>
               {formatPrice(totalRevenue)}
             </div>
             <div style={{ display: 'flex', gap: 16 }}>
-              <span style={{ fontSize: 12, color: '#64748b' }}>Từ <strong style={{ color: '#34d399' }}>{approvedOrders.length}</strong> đơn đã duyệt</span>
-              <span style={{ fontSize: 12, color: '#64748b' }}>Chờ duyệt: <strong style={{ color: '#f472b6' }}>{stats.pendingOrders}</strong></span>
+              <span style={{ fontSize: 13, color: '#64748b' }}>Đã xác nhận từ <strong style={{ color: '#059669' }}>{approvedOrders.length}</strong> đơn hàng</span>
+              <span style={{ fontSize: 13, color: '#64748b' }}>Chờ xử lý: <strong style={{ color: '#e11d48' }}>{stats.pendingOrders}</strong> đơn</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 6, background: 'rgba(0,0,0,0.3)', padding: 4, borderRadius: 12, alignSelf: 'flex-start' }}>
+
+          <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 4, borderRadius: 12 }}>
             {(['day','month','year'] as RevTab[]).map(t => (
               <button key={t} onClick={() => setRevTab(t)} style={{
-                padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                background: revTab === t ? 'linear-gradient(135deg,#818cf8,#6366f1)' : 'transparent',
-                color: revTab === t ? '#fff' : '#64748b',
-                boxShadow: revTab === t ? '0 4px 14px rgba(129,140,248,0.4)' : 'none',
-                transition: 'all 0.2s',
+                padding: '8px 18px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                background: revTab === t ? '#4f46e5' : 'transparent',
+                color: revTab === t ? '#ffffff' : '#64748b',
+                boxShadow: revTab === t ? '0 2px 8px rgba(79,70,229,0.25)' : 'none',
+                transition: 'all 0.15s ease',
               }}>
                 {t === 'day' ? '30 Ngày' : t === 'month' ? 'Tháng' : 'Năm'}
               </button>
@@ -333,125 +333,110 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* KPI strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 22 }}>
+        {/* KPI Summary Strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
           {[
-            { label: 'Doanh thu tháng này', value: formatPrice(revenueChartData[new Date().getMonth()]?.revenue ?? 0), color: '#818cf8' },
-            { label: 'Cao nhất', value: formatPrice(Math.max(...revenueChartData.map(d => d.revenue))), color: '#34d399' },
-            { label: 'TB / kỳ', value: formatPrice(revenueChartData.filter(d=>d.revenue>0).length ? Math.round(totalRevenue / revenueChartData.filter(d=>d.revenue>0).length) : 0), color: '#fb923c' },
+            { label: 'Doanh thu tháng này', value: formatPrice(revenueChartData[new Date().getMonth()]?.revenue ?? 0), color: '#4f46e5', bg: '#f5f3ff' },
+            { label: 'Doanh thu cao nhất', value: formatPrice(Math.max(...revenueChartData.map(d => d.revenue))), color: '#059669', bg: '#f0fdf4' },
+            { label: 'Doanh thu trung bình', value: formatPrice(revenueChartData.filter(d=>d.revenue>0).length ? Math.round(totalRevenue / revenueChartData.filter(d=>d.revenue>0).length) : 0), color: '#d97706', bg: '#fffbeb' },
           ].map(kpi => (
-            <div key={kpi.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: '12px 16px', border: `1px solid ${kpi.color}22` }}>
-              <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>{kpi.label}</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: kpi.color, fontVariantNumeric: 'tabular-nums' }}>{kpi.value}</div>
+            <div key={kpi.label} style={{ background: kpi.bg, borderRadius: 12, padding: '14px 18px', border: `1px solid ${kpi.color}20` }}>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{kpi.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: kpi.color, fontVariantNumeric: 'tabular-nums' }}>{kpi.value}</div>
             </div>
           ))}
         </div>
 
         {/* Area chart */}
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={revenueChartData} margin={{ top: 20, right: 10, bottom: 0, left: -15 }}>
             <defs>
-              <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#818cf8" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+              <linearGradient id="revGradLight" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.01} />
               </linearGradient>
-              <filter id="lineShadow" height="200%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur" />
-                <feOffset dx="0" dy="4" result="offsetblur" />
-                <feFlood floodColor="#818cf8" floodOpacity="0.5" />
-                <feComposite in2="offsetblur" operator="in" />
-                <feMerge>
-                  <feMergeNode />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
             </defs>
-            <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }}
+              tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
               axisLine={false}
               tickLine={false}
               interval={revTab === 'day' ? 4 : 0}
               dy={10}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#64748b', fontWeight: 500 }}
+              tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={v => v === 0 ? '0' : `${(v/1000000).toFixed(1)}M`}
               dx={-5}
             />
-            <Tooltip content={<RevenueTooltip />} cursor={{ stroke: 'rgba(129, 140, 248, 0.2)', strokeWidth: 1 }} />
+            <Tooltip content={<RevenueTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }} />
             <Area
               type="monotone"
               dataKey="revenue"
-              stroke="#818cf8"
-              strokeWidth={4}
-              fill="url(#revGrad)"
-              filter="url(#lineShadow)"
-              animationDuration={1500}
-              dot={{ r: 4, fill: '#0f0f12', stroke: '#818cf8', strokeWidth: 2, fillOpacity: 1 }}
-              activeDot={{ r: 7, fill: '#818cf8', stroke: '#fff', strokeWidth: 3 }}
+              stroke="#4f46e5"
+              strokeWidth={3}
+              fill="url(#revGradLight)"
+              animationDuration={1200}
+              dot={{ r: 4, fill: '#ffffff', stroke: '#4f46e5', strokeWidth: 2, fillOpacity: 1 }}
+              activeDot={{ r: 7, fill: '#4f46e5', stroke: '#ffffff', strokeWidth: 3 }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
       {/* ── Bottom row: Best sellers + Recent orders ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 24 }}>
 
-        {/* Best-selling products — donut chart */}
-        <div style={{ background: 'linear-gradient(135deg,rgba(52,211,153,0.07) 0%,rgba(15,15,30,0.5) 100%)', border: '1px solid rgba(52,211,153,0.2)', borderRadius: 24, padding: 24, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', background: '#34d399', opacity: 0.06, filter: 'blur(60px)', pointerEvents: 'none' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={16} style={{ color: '#34d399' }} />
+        {/* Top 5 Products — Donut chart */}
+        <div style={{
+          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 24,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 10px 20px -5px rgba(0,0,0,0.03)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+              <Package size={18} />
             </div>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Top 5 Sản phẩm bán chạy</h2>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>Top 5 Môn học bán chạy</h2>
+            </div>
           </div>
-          <p style={{ fontSize: 11, color: '#64748b', marginBottom: 16, marginLeft: 40 }}>Theo doanh thu từ đơn đã duyệt</p>
+          <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16, marginLeft: 44 }}>Phân bổ doanh thu theo từng khóa học</p>
 
           {topSubjects.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#64748b', fontSize: 13, padding: '60px 0' }}>Chưa có dữ liệu đơn hàng</div>
+            <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13, padding: '60px 0' }}>Chưa có dữ liệu đơn hàng</div>
           ) : (() => {
-            const PIE_COLORS = ['#818cf8','#34d399','#fb923c','#f472b6','#60a5fa'];
+            const PIE_COLORS = ['#4f46e5','#10b981','#f59e0b','#ec4899','#06b6d4'];
             const totalRev = topSubjects.reduce((s,x) => s + x.revenue, 0) || 1;
             const pieData = topSubjects.map((s,i) => ({ name: s.name, value: s.revenue, count: s.count, color: PIE_COLORS[i] }));
             const DonutLabel = ({ cx, cy }: any) => (
               <>
-                <text x={cx} y={cy - 8} textAnchor="middle" fill="#c7d2fe" fontSize={22} fontWeight={900} fontFamily="inherit">
+                <text x={cx} y={cy - 6} textAnchor="middle" fill="#0f172a" fontSize={22} fontWeight={800} fontFamily="inherit">
                   {topSubjects.length}
                 </text>
-                <text x={cx} y={cy + 14} textAnchor="middle" fill="#64748b" fontSize={10} fontFamily="inherit">
+                <text x={cx} y={cy + 14} textAnchor="middle" fill="#64748b" fontSize={11} fontWeight={600} fontFamily="inherit">
                   môn học
                 </text>
               </>
             );
             return (
               <div>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={210}>
                   <PieChart>
-                    <defs>
-                      {PIE_COLORS.map((c,i) => (
-                        <radialGradient key={i} id={`pieGrad${i}`} cx="50%" cy="50%" r="50%">
-                          <stop offset="0%" stopColor={c} stopOpacity={1} />
-                          <stop offset="100%" stopColor={c} stopOpacity={0.7} />
-                        </radialGradient>
-                      ))}
-                    </defs>
                     <Pie
                       data={pieData}
                       cx="50%" cy="50%"
-                      innerRadius={58} outerRadius={88}
-                      paddingAngle={3}
+                      innerRadius={60} outerRadius={88}
+                      paddingAngle={4}
                       dataKey="value"
                       labelLine={false}
                       label={DonutLabel}
                       isAnimationActive
                     >
                       {pieData.map((entry, i) => (
-                        <Cell key={i} fill={`url(#pieGrad${i})`} stroke="rgba(0,0,0,0.3)" strokeWidth={1} />
+                        <Cell key={i} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
                       ))}
                     </Pie>
                     <Tooltip
@@ -459,27 +444,30 @@ export default function AdminDashboard() {
                         if (!active || !payload?.length) return null;
                         const d = payload[0].payload;
                         return (
-                          <div style={{ background: 'rgba(10,10,26,0.95)', border: `1px solid ${d.color}44`, borderRadius: 10, padding: '10px 14px' }}>
-                            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 3 }}>{d.name}</div>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: d.color }}>{formatPrice(d.value)}</div>
-                            <div style={{ fontSize: 11, color: '#64748b' }}>{d.count} đơn · {Math.round(d.value/totalRev*100)}%</div>
+                          <div style={{ background: '#ffffff', border: `1px solid ${d.color}`, borderRadius: 10, padding: '10px 14px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+                            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, marginBottom: 3 }}>{d.name}</div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: d.color }}>{formatPrice(d.value)}</div>
+                            <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>{d.count} đơn đã bán ({Math.round(d.value/totalRev*100)}%)</div>
                           </div>
                         );
                       }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                {/* Legend */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                
+                {/* Legend list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
                   {pieData.map((d, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 8, background: '#f8fafc' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
                         <div style={{ width: 10, height: 10, borderRadius: 3, background: d.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>{d.name}</span>
+                        <span style={{ fontSize: 13, color: '#1e293b', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 170 }}>{d.name}</span>
                       </div>
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
-                        <span style={{ fontSize: 11, color: d.color, fontWeight: 700 }}>{Math.round(d.value/totalRev*100)}%</span>
-                        <span style={{ fontSize: 11, color: '#475569', fontVariantNumeric: 'tabular-nums' }}>{formatPrice(d.value)}</span>
+                      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: 12, color: d.color, fontWeight: 800, background: '#ffffff', padding: '2px 8px', borderRadius: 12, border: `1px solid ${d.color}30` }}>
+                          {Math.round(d.value/totalRev*100)}%
+                        </span>
+                        <span style={{ fontSize: 13, color: '#0f172a', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatPrice(d.value)}</span>
                       </div>
                     </div>
                   ))}
@@ -490,57 +478,54 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent orders */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(251,146,60,0.15)', borderRadius: 20, overflow: 'hidden', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: '#fb923c', opacity: 0.05, filter: 'blur(40px)', pointerEvents: 'none' }} />
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShoppingCart size={17} style={{ color: '#fb923c' }} />
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Đơn hàng gần nhất</h2>
+        <div style={{
+          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 10px 20px -5px rgba(0,0,0,0.03)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                <ShoppingCart size={18} />
+              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>Đơn hàng mới nhất</h2>
             </div>
-            <button onClick={() => setCurrentView('admin-orders')} style={{
-              fontSize: 12, fontWeight: 600, color: '#fb923c', background: 'rgba(251,146,60,0.1)',
-              border: '1px solid rgba(251,146,60,0.2)', borderRadius: 8, padding: '5px 12px', cursor: 'pointer',
-            }}>
-              Xem tất cả
+            <button
+              onClick={() => setCurrentView('admin-orders')}
+              style={{
+                fontSize: 12, fontWeight: 700, color: '#4f46e5', background: '#e0e7ff',
+                border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s'
+              }}
+            >
+              Xem tất cả <ChevronRight size={14} />
             </button>
           </div>
 
           {recentOrders.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#64748b', padding: '40px 0', fontSize: 13 }}>Chưa có đơn hàng</div>
-          ) : recentOrders.map((order, i) => (
+            <div style={{ textAlign: 'center', color: '#94a3b8', padding: '60px 0', fontSize: 13 }}>Chưa có đơn hàng nào</div>
+          ) : recentOrders.map((order) => (
             <div key={order.id} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '13px 24px', borderBottom: '1px solid rgba(255,255,255,0.04)',
+              padding: '14px 24px', borderBottom: '1px solid #f8fafc',
               transition: 'background 0.15s',
             }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#f8fafc'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
             >
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', marginBottom: 3 }}>{order.full_name}</div>
-                <div style={{ fontSize: 11, color: '#475569', fontVariantNumeric: 'tabular-nums' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 3 }}>{order.full_name}</div>
+                <div style={{ fontSize: 12, color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
                   {new Date(order.created_at).toLocaleDateString('vi-VN')} · #{order.id.slice(0, 8)}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#fb923c', fontVariantNumeric: 'tabular-nums' }}>{formatPrice(order.final_amount)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{formatPrice(order.final_amount)}</span>
                 {statusBadge(order.status)}
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      <style>{`
-        @keyframes fadeSlideUp {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
