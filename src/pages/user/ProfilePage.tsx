@@ -7,7 +7,7 @@ import {
   User, Package, BookOpen, Loader2, ChevronDown, Lock, Eye, EyeOff, CheckCircle2,
   GraduationCap, Award, PlayCircle, ShieldCheck, Download, Sparkles, Clock,
   Zap, Calendar, ChevronRight, Edit3, ArrowRight, Smartphone, Laptop, Facebook,
-  Star, Check, Copy, ExternalLink, HelpCircle, FileText
+  Star, Check, Copy, ExternalLink, HelpCircle, FileText, CreditCard
 } from 'lucide-react';
 
 type Order = Tables<'orders'>;
