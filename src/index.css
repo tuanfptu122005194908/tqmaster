@@ -1149,7 +1149,14 @@
   background: #94a3b8;
 }
 
+  .checkout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
   @media (max-width: 768px) {
+    .checkout-grid { grid-template-columns: 1fr !important; }
     .profile-grid { grid-template-columns: 1fr; gap: var(--space-4); }
     .profile-subjects { grid-template-columns: 1fr !important; }
   }

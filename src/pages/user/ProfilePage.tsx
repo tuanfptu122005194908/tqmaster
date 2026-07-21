@@ -175,17 +175,17 @@ export default function ProfilePage() {
   const approvedOrdersCount = orders.filter(o => o.status === 'approved').length;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f7fc', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+    <div className="profile-page-root" style={{ display: 'flex', minHeight: '100vh', background: '#f4f7fc', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
       
       {/* ── LEFT SIDEBAR NAVIGATION ── */}
-      <div style={{
+      <div className="profile-page-sidebar" style={{
         width: 260,
         background: '#ffffff',
         borderRight: '1px solid #e2e8f0',
         padding: '24px 18px',
         display: 'flex',
         flexDirection: 'column',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         flexShrink: 0,
         boxShadow: '2px 0 12px rgba(15, 23, 42, 0.02)'
       }}>
@@ -199,7 +199,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Navigation Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="profile-page-nav" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <button
               onClick={() => setActiveTab('profile')}
               style={{
@@ -277,7 +277,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── RIGHT MAIN CONTENT AREA ── */}
-      <div style={{ flex: 1, padding: '28px 36px', overflowY: 'auto', minWidth: 0 }}>
+      <div className="profile-page-main" style={{ flex: 1, padding: '28px 36px', overflowY: 'auto', minWidth: 0 }}>
         
         {/* ── TAB 1: HỒ SƠ & THỐNG KÊ ── */}
         {activeTab === 'profile' && (
@@ -293,7 +293,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Layout Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: 20 }}>
+            <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: 20 }}>
               
               {/* Left Column: Personal Card & Points */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -1005,6 +1005,37 @@ export default function ProfilePage() {
         )}
 
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .profile-page-root {
+            flex-direction: column !important;
+          }
+          .profile-page-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 16px !important;
+          }
+          .profile-page-nav {
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            padding-bottom: 6px !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .profile-page-nav button {
+            white-space: nowrap !important;
+            padding: 8px 14px !important;
+            font-size: 13px !important;
+          }
+          .profile-page-main {
+            padding: 16px !important;
+          }
+          .profile-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

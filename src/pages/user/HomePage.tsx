@@ -60,7 +60,7 @@ export default function HomePage() {
   const isMyCourses = currentView === 'my-courses';
 
   return (
-    <div className="page-shell" style={{ maxWidth: '100%', padding: '24px 30px', margin: 0, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div className="home-page-container page-shell" style={{ maxWidth: '100%', padding: '24px 30px', margin: 0, fontFamily: "'Inter', -apple-system, sans-serif" }}>
       
       {/* ════════════════════════════════════════════
           MY COURSES TOP HEADER & STATS (MATCHES SCREENSHOT 2)
@@ -379,6 +379,13 @@ export default function HomePage() {
           </div>
         </>
       )}
+      <style>{`
+        @media (max-width: 768px) {
+          .home-page-container {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
