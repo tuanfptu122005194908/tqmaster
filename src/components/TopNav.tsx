@@ -19,6 +19,11 @@ export default function TopNav() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const navigateTo = (view: any) => {
+    setSearchQuery('');
+    setCurrentView(view);
+  };
+
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase()
     ?? profile?.username?.charAt(0)?.toUpperCase() ?? '?';
 
@@ -38,7 +43,7 @@ export default function TopNav() {
         {/* Logo */}
         <button
           id="nav-logo"
-          onClick={() => setCurrentView(isAdmin ? 'admin-dashboard' : 'home')}
+          onClick={() => navigateTo(isAdmin ? 'admin-dashboard' : 'home')}
           style={{ 
             display: 'flex', alignItems: 'center', gap: 10, border: 'none', background: 'none', cursor: 'pointer', padding: 0,
             transition: 'transform 0.15s ease',
@@ -63,7 +68,7 @@ export default function TopNav() {
               color: currentView === 'home' ? '#2563eb' : '#475569',
               transition: 'color 0.15s'
             }}
-            onClick={() => setCurrentView('home')}
+            onClick={() => navigateTo('home')}
           >
             Khóa học
           </button>
@@ -76,7 +81,7 @@ export default function TopNav() {
                 color: currentView === 'my-courses' ? '#2563eb' : '#475569',
                 transition: 'color 0.15s'
               }}
-              onClick={() => setCurrentView('my-courses')}
+              onClick={() => navigateTo('my-courses')}
             >
               Khóa học của bạn
             </button>
@@ -89,7 +94,7 @@ export default function TopNav() {
               color: currentView === 'news' ? '#2563eb' : '#475569',
               transition: 'color 0.15s'
             }}
-            onClick={() => setCurrentView('news')}
+            onClick={() => navigateTo('news')}
           >
             Tin tức
           </button>
@@ -124,12 +129,18 @@ export default function TopNav() {
         </div>
       </div>
 
-      {/* Global Search */}
+      {/* Global Search with Anti-Autofill protection */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         <div className="nav-search-wrap" style={{ position: 'relative', width: '100%', maxWidth: 440 }}>
           <Search size={17} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
           <input 
-            type="text" 
+            type="search"
+            name="search_query_course_tqmaster"
+            id="search_query_course_tqmaster"
+            autoComplete="off"
+            data-lpignore="true"
+            data-form-type="other"
+            aria-autocomplete="none"
             placeholder="Tìm môn học..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -165,7 +176,7 @@ export default function TopNav() {
           id="nav-cart"
           className="btn-ghost hide-on-mobile"
           style={{ position: 'relative', padding: 8, borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0', cursor: 'pointer', color: '#475569' }}
-          onClick={() => setCurrentView('cart')}
+          onClick={() => navigateTo('cart')}
         >
           <ShoppingCart size={18} />
           {cart.length > 0 && (
@@ -255,14 +266,14 @@ export default function TopNav() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {!isAdmin && (
                   <MenuItem icon={<User size={15} />} label="Hồ sơ của tôi"
-                    onClick={() => { setCurrentView('profile'); setMenuOpen(false); }} />
+                    onClick={() => { navigateTo('profile'); setMenuOpen(false); }} />
                 )}
                 {isAdmin && (
                   <>
                     <MenuItem icon={<LayoutDashboard size={15} />} label="Trang quản trị"
-                      onClick={() => { setCurrentView('admin-dashboard'); setMenuOpen(false); }} />
+                      onClick={() => { navigateTo('admin-dashboard'); setMenuOpen(false); }} />
                     <MenuItem icon={<BookOpen size={15} />} label="Xem trang sinh viên"
-                      onClick={() => { setCurrentView('home'); setMenuOpen(false); }} />
+                      onClick={() => { navigateTo('home'); setMenuOpen(false); }} />
                   </>
                 )}
                 <div style={{ height: 1, background: '#f1f5f9', margin: '4px 6px' }} />
@@ -274,7 +285,7 @@ export default function TopNav() {
         </div>
       ) : !authLoading ? (
         <button id="nav-login-btn" className="btn-primary" style={{ fontSize: 13.5, padding: '8px 18px', borderRadius: 12 }}
-          onClick={() => setCurrentView('home')}>
+          onClick={() => navigateTo('home')}>
           Đăng nhập
         </button>
       ) : null}

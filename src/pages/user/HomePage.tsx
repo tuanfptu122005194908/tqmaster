@@ -130,28 +130,46 @@ export default function HomePage() {
       {filtered.length === 0 ? (
         <div style={{
           textAlign: 'center', 
-          padding: 'var(--space-20) var(--space-8)',
-          color: 'hsl(var(--muted-fg))',
-          background: 'hsl(var(--primary-subtle))',
-          border: '1px solid hsl(var(--primary) / 0.1)',
-          borderRadius: 'calc(var(--radius) * 3)',
-          boxShadow: 'inset 0 0 40px hsl(var(--primary) / 0.03)',
+          padding: '60px 24px',
+          color: '#64748b',
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 24,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
         }}>
           <div style={{ 
-            width: 80, height: 80, borderRadius: '50%', 
-            background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto var(--space-6)', boxShadow: 'var(--shadow-sm)'
+            width: 72, height: 72, borderRadius: '50%', 
+            background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px auto'
           }}>
-            <BookOpen size={32} style={{ color: 'hsl(var(--primary))', opacity: 0.8 }} />
+            <BookOpen size={32} />
           </div>
-          <h3 style={{ fontWeight: 800, marginBottom: 'var(--space-3)', fontSize: '1.25rem', color: 'hsl(var(--foreground))' }}>
-            {currentView === 'my-courses' ? 'Bạn chưa sở hữu khóa học nào' : 'Không tìm thấy tài liệu'}
+          <h3 style={{ fontWeight: 800, marginBottom: 8, fontSize: '1.25rem', color: '#0f172a' }}>
+            {searchQuery 
+              ? `Không tìm thấy khóa học nào khớp với từ khóa "${searchQuery}"`
+              : currentView === 'my-courses' 
+                ? 'Bạn chưa sở hữu khóa học nào' 
+                : 'Không tìm thấy tài liệu'}
           </h3>
-          <p style={{ fontSize: '1rem', lineHeight: 1.6, maxWidth: '400px', margin: '0 auto' }}>
-            {currentView === 'my-courses' 
-              ? 'Hãy khám phá các khóa học và chọn cho mình những tài liệu phù hợp nhất để bắt đầu học tập.' 
-              : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm để tìm thấy nội dung bạn cần.'}
+          <p style={{ fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '440px', margin: '0 auto 20px auto' }}>
+            {searchQuery
+              ? 'Hãy kiểm tra lại từ khóa tìm kiếm hoặc xóa bộ lọc tìm kiếm để xem các khóa học.'
+              : currentView === 'my-courses' 
+                ? 'Hãy khám phá các khóa học và chọn cho mình những tài liệu phù hợp nhất để bắt đầu học tập.' 
+                : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm để tìm thấy nội dung bạn cần.'}
           </p>
+
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                padding: '10px 20px', borderRadius: 12, border: 'none', background: '#2563eb', color: '#ffffff',
+                fontWeight: 700, fontSize: 13.5, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)'
+              }}
+            >
+              Xóa từ khóa tìm kiếm
+            </button>
+          )}
         </div>
       ) : (
         <>
