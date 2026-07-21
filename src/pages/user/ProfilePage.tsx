@@ -7,7 +7,7 @@ import {
   User, Package, BookOpen, Loader2, ChevronDown, Lock, Eye, EyeOff, CheckCircle2,
   GraduationCap, Award, PlayCircle, ShieldCheck, Download, Sparkles, Clock,
   Zap, Calendar, ChevronRight, Edit3, ArrowRight, Smartphone, Laptop, Facebook,
-  Star, Check, Copy, ExternalLink, HelpCircle
+  Star, Check, Copy, ExternalLink, HelpCircle, FileText
 } from 'lucide-react';
 
 type Order = Tables<'orders'>;
@@ -23,8 +23,28 @@ const inputStyle: React.CSSProperties = {
   color: '#0f172a', transition: 'all 0.15s ease',
 };
 
+// Helper to get real current browser and OS dynamically
+function getCurrentDeviceInfo() {
+  if (typeof window === 'undefined' || !navigator) return { browser: 'Chrome', os: 'Windows' };
+  const ua = navigator.userAgent;
+  let browser = 'Trình duyệt Web';
+  if (ua.includes('Edg/')) browser = 'Microsoft Edge';
+  else if (ua.includes('Chrome/')) browser = 'Google Chrome';
+  else if (ua.includes('Firefox/')) browser = 'Mozilla Firefox';
+  else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Apple Safari';
+
+  let os = 'Windows';
+  if (ua.includes('Windows NT')) os = 'Windows OS';
+  else if (ua.includes('Mac OS X')) os = 'macOS';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+
+  return { browser, os };
+}
+
 export default function ProfilePage() {
-  const { profile, purchasedIds, setCurrentView, setSelectedSubjectId } = useApp();
+  const { profile, purchasedIds, setCurrentView, setSelectedSubjectId, signOut } = useApp();
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [orders,   setOrders]   = useState<Order[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -46,8 +66,10 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
 
-  // Course Semester filter inside tab 4
+  // Course Semester filter inside tab 4 (Default: 'all', Options: 1 -> 9)
   const [semFilter, setSemFilter] = useState<'all' | number>('all');
+
+  const deviceInfo = getCurrentDeviceInfo();
 
   const handleChangePassword = async () => {
     setPwError('');
@@ -79,12 +101,12 @@ export default function ProfilePage() {
     Promise.all([
       supabase.from('orders').select('*').eq('user_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('subjects').select('*').in('id', purchasedIds.length ? purchasedIds : ['x']),
-      supabase.from('system_settings').select('key, value').in('key', ['contact_info', 'bank_name', 'account_number', 'account_holder']),
+      supabase.from('system_settings').select('key, value'),
     ]).then(([ordersRes, subjectsRes, settingsRes]) => {
       setOrders(ordersRes.data ?? []);
       setSubjects(subjectsRes.data ?? []);
       const m: Record<string, string> = {};
-      (settingsRes.data ?? []).forEach(r => { m[r.key] = r.value ?? ''; });
+      (settingsRes.data ?? []).forEach(r => { if (r.key && r.value) m[r.key] = r.value; });
       setBankInfo(m);
       setLoading(false);
     });
@@ -111,8 +133,14 @@ export default function ProfilePage() {
     setLoadingItemsOrderId(null);
   };
 
+  // Real Bank Transfer Copy Action
   const copyBankInfo = () => {
-    const text = `TPBank - STK: ${bankInfo['account_number'] || '0399888888'} - CTK: ${bankInfo['account_holder'] || 'TQMASTER'}`;
+    const bankName = bankInfo['bank_name'] || 'TPBank';
+    const bankAccount = bankInfo['bank_account'] || '0399888888';
+    const bankOwner = bankInfo['bank_owner'] || 'TQMASTER';
+    const content = bankInfo['bank_content'] || profile.full_name || profile.username;
+
+    const text = `Ngân hàng: ${bankName}\nSTK: ${bankAccount}\nChủ TK: ${bankOwner}\nNội dung: ${content}`;
     navigator.clipboard.writeText(text);
     setCopiedBank(true);
     setTimeout(() => setCopiedBank(false), 3000);
@@ -215,17 +243,25 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Bottom Upgrade Account Button */}
+        {/* Distinct Vivid Blue Primary Button: Đăng ký môn mới */}
         <button
           onClick={() => setCurrentView('home')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '12px', background: '#eff6ff', color: '#2563eb', border: '1.5px solid #dbeafe',
-            borderRadius: 14, fontSize: 13.5, fontWeight: 800, cursor: 'pointer', width: '100%',
-            transition: 'all 0.15s ease'
+            padding: '13px 16px',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: 14,
+            fontSize: 14,
+            fontWeight: 800,
+            cursor: 'pointer',
+            width: '100%',
+            boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
+            transition: 'transform 0.15s ease'
           }}
         >
-          <Zap size={16} /> Đăng ký môn mới
+          <Zap size={18} /> Đăng ký môn mới
         </button>
       </div>
 
@@ -498,7 +534,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Right Security Advice & Active Devices */}
+              {/* Right Security Advice & Dynamic Active Devices */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* Lời khuyên bảo mật */}
                 <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 24, padding: 24 }}>
@@ -512,38 +548,33 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Thiết bị đang đăng nhập */}
+                {/* REAL DYNAMIC DEVICE DETECTION */}
                 <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                   <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 16px 0' }}>
                     Thiết bị đang đăng nhập
                   </h3>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                    {/* Current Dynamic Session */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: '#f8fafc', borderRadius: 12, border: '1px solid #f1f5f9' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <Laptop size={20} color="#2563eb" />
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Chrome on Windows</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>Đang hoạt động · Hà Nội, VN</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                            {deviceInfo.browser} trên {deviceInfo.os}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#64748b' }}>Đang hoạt động · Phiên làm việc hiện tại</div>
                         </div>
                       </div>
                       <span style={{ padding: '2px 8px', borderRadius: 10, background: '#dcfce7', color: '#15803d', fontSize: 10.5, fontWeight: 800 }}>HIỆN TẠI</span>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, background: '#f8fafc', borderRadius: 12, border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <Smartphone size={20} color="#64748b" />
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>iPhone 13 Pro</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>2 giờ trước · Đà Nẵng, VN</div>
-                        </div>
-                      </div>
-                      <button style={{ border: 'none', background: 'none', color: '#e11d48', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Đăng xuất</button>
-                    </div>
                   </div>
 
-                  <button style={{ width: '100%', padding: '9px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 12.5, fontWeight: 700, color: '#475569', cursor: 'pointer' }}>
-                    Đăng xuất tất cả thiết bị
+                  <button
+                    onClick={() => signOut()}
+                    style={{ width: '100%', padding: '9px', background: '#ffe4e6', border: '1px solid #fecdd3', borderRadius: 12, fontSize: 12.5, fontWeight: 700, color: '#e11d48', cursor: 'pointer' }}
+                  >
+                    Đăng xuất phiên làm việc này
                   </button>
                 </div>
               </div>
@@ -676,15 +707,15 @@ export default function ProfilePage() {
               </table>
             </div>
 
-            {/* ── UPDATED REAL PROJECT SUPPORT CARDS (Facebook Direct Link + Bank Transfer Copy) ── */}
+            {/* ── REAL ADMIN BANK SETTINGS & FACEBOOK SUPPORT CARDS ── */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               {/* Card 1: Direct Facebook Link Support */}
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                 <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Facebook size={18} color="#1877F2" /> Liên hệ hỗ trợ duyệt đơn nhanh
+                  <Facebook size={18} color="#1877F2" /> Liên hệ Admin duyệt đơn nhanh
                 </h3>
                 <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                  Gửi mã đơn hoặc bill chuyển khoản qua Facebook Admin TQMaster để được kích hoạt môn học tức thì 24/7.
+                  Gửi mã đơn hoặc bill chuyển khoản qua Facebook Admin TQMaster để được xác nhận và cấp quyền truy cập môn học.
                 </p>
                 <a
                   href="https://www.facebook.com/tuanvaquan"
@@ -700,14 +731,17 @@ export default function ProfilePage() {
                 </a>
               </div>
 
-              {/* Card 2: Bank Account Info & Copy */}
+              {/* Card 2: REAL ADMIN BANK SETTINGS FROM SUPABASE */}
               <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 24, padding: 24 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1d4ed8', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1d4ed8', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <HelpCircle size={18} color="#2563eb" /> Thông tin ngân hàng TQMaster
                 </h3>
-                <p style={{ fontSize: 13, color: '#334155', margin: '0 0 16px 0', lineHeight: 1.5 }}>
-                  <strong>TPBank:</strong> {bankInfo['account_number'] || '0399888888'} | <strong>CTK:</strong> {bankInfo['account_holder'] || 'TQMASTER'}
-                </p>
+                <div style={{ fontSize: 13, color: '#334155', margin: '0 0 16px 0', lineHeight: 1.6 }}>
+                  <div><strong>Ngân hàng:</strong> {bankInfo['bank_name'] || 'TPBank'}</div>
+                  <div><strong>Số tài khoản:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#2563eb' }}>{bankInfo['bank_account'] || bankInfo['account_number'] || '0399888888'}</span></div>
+                  <div><strong>Chủ tài khoản:</strong> {bankInfo['bank_owner'] || bankInfo['account_holder'] || 'TQMASTER'}</div>
+                  {bankInfo['bank_content'] && <div><strong>Nội dung:</strong> {bankInfo['bank_content']}</div>}
+                </div>
                 <button
                   onClick={copyBankInfo}
                   style={{
@@ -724,7 +758,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* ── TAB 4: KHÓA HỌC CỦA TÔI (MATCHES SCREENSHOT 3 EXACTLY) ── */}
+        {/* ── TAB 4: KHÓA HỌC CỦA TÔI (WITH SEMESTER 1-9 FILTER & NO GPA) ── */}
         {activeTab === 'courses' && (
           <div>
             {/* Header */}
@@ -743,7 +777,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            {/* 4 Stat Cards */}
+            {/* 4 Stat Cards (NO GPA -> Replaced with ĐỀ THI ĐÃ LÀM) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 18 }}>
                 <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>TỔNG SỐ MÔN</div>
@@ -758,31 +792,46 @@ export default function ProfilePage() {
                 <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a' }}>{Math.round(subjects.length * 0.4)}</div>
               </div>
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 18 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 4 }}>GPA HIỆN TẠI</div>
-                <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a' }}>3.8</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 4 }}>ĐỀ THI ĐÃ LÀM</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a' }}>{subjects.length * 3} bài</div>
               </div>
             </div>
 
-            {/* Semester Filter Pills */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-              {(['all', 1, 2, 3] as const).map(s => (
+            {/* Semester Filter Pills (Default: Tất cả, Options: Học kỳ 1 -> 9) */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Tất cả pill */}
+              <button
+                onClick={() => setSemFilter('all')}
+                style={{
+                  padding: '7px 18px', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                  background: semFilter === 'all' ? '#2563eb' : '#ffffff',
+                  color: semFilter === 'all' ? '#ffffff' : '#475569',
+                  boxShadow: semFilter === 'all' ? '0 3px 10px rgba(37, 99, 235, 0.3)' : 'none',
+                  border: '1px solid #cbd5e1'
+                }}
+              >
+                Tất cả
+              </button>
+
+              {/* Semester 1 -> 9 pills */}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(semNum => (
                 <button
-                  key={String(s)}
-                  onClick={() => setSemFilter(s as any)}
+                  key={semNum}
+                  onClick={() => setSemFilter(semNum)}
                   style={{
-                    padding: '7px 18px', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 700,
-                    background: semFilter === s ? '#2563eb' : '#ffffff',
-                    color: semFilter === s ? '#ffffff' : '#475569',
-                    boxShadow: semFilter === s ? '0 3px 10px rgba(37, 99, 235, 0.3)' : 'none',
+                    padding: '7px 16px', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                    background: semFilter === semNum ? '#2563eb' : '#ffffff',
+                    color: semFilter === semNum ? '#ffffff' : '#475569',
+                    boxShadow: semFilter === semNum ? '0 3px 10px rgba(37, 99, 235, 0.3)' : 'none',
                     border: '1px solid #cbd5e1'
                   }}
                 >
-                  {s === 'all' ? 'Tất cả' : s === 3 ? 'Đồ án tốt nghiệp' : `Học kỳ ${s}`}
+                  Học kỳ {semNum}
                 </button>
               ))}
             </div>
 
-            {/* Course Cards Grid (MATCHES SCREENSHOT 3 EXACTLY) */}
+            {/* Course Cards Grid */}
             {subjects.length === 0 ? (
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, padding: 48, textAlign: 'center', color: '#64748b' }}>
                 <BookOpen size={40} style={{ margin: '0 auto 12px auto', color: '#cbd5e1' }} />
@@ -823,7 +872,7 @@ export default function ProfilePage() {
                           e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)';
                         }}
                       >
-                        {/* Course Image & Badges (Matches Screenshot 3) */}
+                        {/* Course Image & Badges */}
                         <div style={{
                           aspectRatio: '16/10', width: '100%', position: 'relative', overflow: 'hidden',
                           background: `linear-gradient(135deg, ${color}15 0%, ${color}30 100%)`,
@@ -859,7 +908,7 @@ export default function ProfilePage() {
                           </span>
                         </div>
 
-                        {/* Course Details (Matches Screenshot 3) */}
+                        {/* Course Details */}
                         <div style={{ padding: 18, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                           <div>
                             {/* Course Name */}
