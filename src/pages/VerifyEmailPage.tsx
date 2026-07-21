@@ -146,6 +146,39 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
           Tôi đã xác thực
         </button>
 
+        <div className="my-5 flex items-center gap-3">
+          <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
+          <span className="text-xs text-[hsl(var(--muted-fg))] font-medium">HOẶC NHẬP MÃ 6 SỐ</span>
+          <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
+        </div>
+
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          placeholder="______"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          className="w-full h-12 rounded-xl text-center tracking-[0.5em] text-xl font-bold mb-3 focus:outline-none focus:ring-2"
+          style={{
+            background: 'hsl(var(--background))',
+            border: '1.5px solid hsl(var(--border))',
+            color: 'hsl(var(--foreground))',
+          }}
+        />
+
+        <button
+          onClick={verifyByOtp}
+          disabled={verifyingOtp || otp.length !== 6}
+          className="w-full h-11 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mb-3 transition-all disabled:opacity-50"
+          style={{
+            background: 'hsl(var(--success))',
+            color: 'white',
+          }}>
+          {verifyingOtp ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+          Xác thực bằng mã
+        </button>
+
         <button
           onClick={resend}
           disabled={sending || cooldown > 0}
