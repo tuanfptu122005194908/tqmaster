@@ -986,6 +986,169 @@
     grid-template-columns: 1fr 2fr;
     gap: var(--space-6);
   }
+  .admin-shell {
+  /* Light Theme Variables */
+  --background:       210 40% 98%;        /* #f8fafc */
+  --surface:          0 0% 100%;          /* #ffffff */
+  --surface-raised:   0 0% 100%;          /* #ffffff */
+  --card:             0 0% 100%;
+  --card-foreground:  222.2 84% 4.9%;
+  --popover:          0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  /* Text */
+  --foreground:       222.2 84% 4.9%;     /* #0f172a */
+  --muted-fg:         215.4 16.3% 46.9%;  /* #64748b */
+  --subtle-fg:        215.4 16.3% 60%;
+
+  /* Borders */
+  --border:           214.3 31.8% 91.4%;  /* #e2e8f0 */
+  --border-strong:    214.3 31.8% 85%;
+
+  /* Primary */
+  --primary:          238 84% 60%;        /* #4f46e5 */
+  --primary-light:    238 84% 94%;        /* #e0e7ff */
+  --primary-dark:     238 84% 50%;
+  --primary-muted:    238 84% 96%;
+  --primary-subtle:   238 84% 98%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Semantic */
+  --success:          162 70% 40%;        /* #059669 */
+  --success-light:    162 70% 95%;
+  --warning:          38  92% 50%;        /* #d97706 */
+  --warning-light:    38  92% 95%;
+  --danger:           346 84% 61%;        /* #e11d48 */
+  --danger-light:     346 84% 96%;
+
+  /* Accent */
+  --accent:           238 84% 60%;
+  --accent-light:     238 84% 96%;
+  --accent-foreground: 238 84% 40%;
+
+  /* shadcn compat */
+  --muted:            210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --input:            214.3 31.8% 91.4%;
+  --secondary:        210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --destructive:      346 84% 61%;
+  --destructive-foreground: 0 0% 100%;
+  --ring:             238 84% 60%;
+
+  /* Sidebar */
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 215.4 16.3% 46.9%;
+  --sidebar-primary:    238 84% 60%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent:     238 84% 96%;
+  --sidebar-accent-foreground: 238 84% 50%;
+  --sidebar-border:     214.3 31.8% 91.4%;
+  --sidebar-ring:       238 84% 60%;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.1);
+
+  color-scheme: light;
+}
+
+/* Make admin shell background & text light */
+.admin-shell,
+.admin-shell body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Admin TopNav override */
+.admin-shell .topnav {
+  background: #ffffff;
+  border-bottom-color: #e2e8f0;
+}
+
+/* Admin stat-card on light */
+.admin-shell .stat-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+.admin-shell .stat-card:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 8px 16px -2px rgba(0,0,0,0.08);
+}
+
+/* Admin panel on light */
+.admin-shell .panel {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* Tables on Light SaaS theme */
+.admin-shell .data-table {
+  background: #ffffff;
+}
+.admin-shell .data-table th {
+  background: #f1f5f9;
+  border-bottom: 2px solid #e2e8f0;
+  color: #334155;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 12px 18px;
+}
+.admin-shell .data-table td {
+  border-bottom: 1px solid #f1f5f9;
+  color: #0f172a;
+  padding: 14px 18px;
+  background: #ffffff;
+}
+.admin-shell .data-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* Badges for light theme */
+.admin-shell .badge-pending  { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.admin-shell .badge-approved { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.admin-shell .badge-rejected { background: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
+.admin-shell .badge-primary  { background: #e0e7ff; color: #4f46e5; border: 1px solid #c7d2fe; font-weight: 700; }
+.admin-shell .badge-neutral  { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+/* Field inputs on light */
+.admin-shell .field-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.admin-shell .field-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Drawer / overlay on light */
+.admin-shell .drawer {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+}
+
+/* Mobile admin header */
+.admin-shell .show-on-mobile {
+  background: #ffffff !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+/* Scrollbar in admin */
+.admin-shell ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+.admin-shell ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
   @media (max-width: 768px) {
     .profile-grid { grid-template-columns: 1fr; gap: var(--space-4); }
     .profile-subjects { grid-template-columns: 1fr !important; }
