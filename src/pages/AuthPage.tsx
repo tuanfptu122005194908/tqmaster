@@ -5,6 +5,7 @@ import {
   CheckCircle, AlertCircle
 } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
+import authMountainBg from '@/assets/auth-mountain-bg.png';
 
 type Mode = 'login' | 'register' | 'forgot';
 
@@ -91,19 +92,30 @@ export default function AuthPage() {
   return (
     <div style={{
       minHeight: '100vh',
+      width: '100vw',
       display: 'flex',
-      background: 'linear-gradient(135deg, #f0f4ff 0%, #e6effe 50%, #f5f8ff 100%)',
+      background: `#ffffff url(${authMountainBg}) no-repeat left center`,
+      backgroundSize: 'cover',
       fontFamily: "'Inter', -apple-system, sans-serif",
       position: 'relative',
-      overflow: 'hidden',
+      overflowX: 'hidden',
     }}>
-      {/* ── LEFT SECTION: Landscape Vector Illustration & Branding ── */}
+      {/* Overlay gradient mask for smooth right fade */}
       <div style={{
-        flex: 1.1,
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(90deg, rgba(255,255,255,0) 45%, rgba(248,250,252,0.65) 65%, rgba(248,250,252,1) 85%)',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }} />
+
+      {/* ── LEFT SECTION: Branding & Feature Cards ── */}
+      <div style={{
+        flex: 1.2,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '48px 56px',
+        padding: '44px 56px',
         position: 'relative',
         zIndex: 2,
       }} className="hidden lg:flex">
@@ -111,99 +123,41 @@ export default function AuthPage() {
         {/* Top Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
-            width: 46, height: 46, borderRadius: 16, overflow: 'hidden',
+            width: 48, height: 48, borderRadius: 16, overflow: 'hidden',
             boxShadow: '0 10px 25px rgba(59, 130, 246, 0.25)',
             border: '2px solid #ffffff', background: '#ffffff'
           }}>
             <img src={logoAvatar} alt="TQMaster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#1e293b', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#1e293b', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
               TQMaster
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#3b82f6', letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#2563eb', letterSpacing: '0.01em' }}>
               Hệ thống Học tập & Ôn thi
             </div>
           </div>
         </div>
 
-        {/* Center SVG Landscape Vector (Mountains & Hot Air Balloon Style) */}
-        <div style={{ position: 'relative', margin: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <svg viewBox="0 0 600 400" style={{ width: '100%', maxWidth: 520, height: 'auto', filter: 'drop-shadow(0 15px 30px rgba(59,130,246,0.12))' }}>
-            <defs>
-              <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#eff6ff" stopOpacity="0.2" />
-              </linearGradient>
-              <linearGradient id="mtn1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#93c5fd" />
-                <stop offset="100%" stopColor="#3b82f6" />
-              </linearGradient>
-              <linearGradient id="mtn2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#bfdbfe" />
-                <stop offset="100%" stopColor="#60a5fa" />
-              </linearGradient>
-              <linearGradient id="mtn3" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#dbeafe" />
-                <stop offset="100%" stopColor="#93c5fd" />
-              </linearGradient>
-              <linearGradient id="balloonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#60a5fa" />
-                <stop offset="100%" stopColor="#2563eb" />
-              </linearGradient>
-            </defs>
-
-            {/* Sun / Soft Glow */}
-            <circle cx="300" cy="120" r="70" fill="#ffffff" opacity="0.6" />
-
-            {/* Clouds */}
-            <path d="M120 110 Q135 95 155 105 Q175 90 195 105 Q210 100 220 110 Z" fill="#ffffff" opacity="0.8" />
-            <path d="M380 90 Q395 75 415 85 Q435 70 455 85 Q470 80 480 90 Z" fill="#ffffff" opacity="0.7" />
-
-            {/* Background Mountains */}
-            <polygon points="40,320 200,160 360,320" fill="url(#mtn3)" opacity="0.7" />
-            <polygon points="260,320 420,140 560,320" fill="url(#mtn3)" opacity="0.6" />
-
-            {/* Midground Mountains */}
-            <polygon points="100,340 280,180 440,340" fill="url(#mtn2)" opacity="0.85" />
-
-            {/* Snow Caps */}
-            <polygon points="280,180 250,210 270,205 280,215 290,205 310,210" fill="#ffffff" />
-            <polygon points="200,160 180,185 195,180 200,190 205,180 220,185" fill="#ffffff" />
-
-            {/* Foreground Mountain Peak */}
-            <polygon points="0,380 180,200 360,380" fill="url(#mtn1)" />
-            <polygon points="180,200 160,225 175,220 180,230 185,220 200,225" fill="#ffffff" />
-
-            {/* Hot Air Balloon */}
-            <g transform="translate(390, 110)">
-              <ellipse cx="25" cy="30" rx="20" ry="26" fill="url(#balloonGrad)" />
-              <path d="M12 26 C12 45 38 45 38 26 Z" fill="#2563eb" opacity="0.3" />
-              <line x1="17" y1="52" x2="20" y2="58" stroke="#3b82f6" strokeWidth="1.5" />
-              <line x1="33" y1="52" x2="30" y2="58" stroke="#3b82f6" strokeWidth="1.5" />
-              <rect x="19" y="58" width="12" height="9" rx="2" fill="#1e3a8a" />
-            </g>
-
-            {/* Birds */}
-            <path d="M220 130 Q225 124 230 130 Q235 124 240 130" stroke="#3b82f6" strokeWidth="2" fill="none" opacity="0.7" />
-            <path d="M250 145 Q254 140 258 145 Q262 140 266 145" stroke="#3b82f6" strokeWidth="1.5" fill="none" opacity="0.6" />
-          </svg>
-        </div>
+        {/* Middle Spacer for background artwork visibility */}
+        <div style={{ flex: 1 }} />
 
         {/* Bottom Feature Badges */}
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 16, maxWidth: 640 }}>
           {[
-            { title: '10.000+ Sinh viên', desc: 'Đăng ký & tin dùng' },
-            { title: 'Ngân hàng 100k+ Đề', desc: 'Cập nhật liên tục' },
-            { title: 'Luyện thi Chuẩn 100%', desc: 'Dễ dàng đạt điểm A' },
+            { title: '10.000+ Sinh viên', desc: 'Tin dùng & học tập mỗi ngày' },
+            { title: 'Ngân hàng 100k+ Đề', desc: 'Sát cấu trúc đề thi thực tế' },
+            { title: 'Luyện thi Đạt Điểm A', desc: 'Phương pháp ôn tập tối ưu' },
           ].map((item, idx) => (
             <div key={idx} style={{
-              flex: 1, padding: '14px 16px', background: '#ffffff',
-              borderRadius: 16, border: '1px solid #e2e8f0',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.06)'
+              flex: 1, padding: '16px 18px',
+              background: 'rgba(255, 255, 255, 0.88)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: 18, border: '1px solid rgba(255, 255, 255, 0.9)',
+              boxShadow: '0 10px 30px rgba(59, 130, 246, 0.08)'
             }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b', marginBottom: 2 }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: '#64748b' }}>{item.desc}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 3 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>{item.desc}</div>
             </div>
           ))}
         </div>
@@ -211,11 +165,11 @@ export default function AuthPage() {
 
       {/* ── RIGHT SECTION: Floating Clean Card Auth Form ── */}
       <div style={{
-        flex: 0.9,
+        flex: 0.95,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '32px 24px',
+        padding: '36px 28px',
         position: 'relative',
         zIndex: 2,
       }}>
@@ -224,29 +178,28 @@ export default function AuthPage() {
           maxWidth: 440,
           background: '#ffffff',
           borderRadius: 24,
-          padding: '40px 36px',
-          boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.12), 0 10px 20px -5px rgba(0,0,0,0.04)',
+          padding: '42px 38px',
+          boxShadow: '0 25px 60px -10px rgba(59, 130, 246, 0.15), 0 10px 25px -5px rgba(0,0,0,0.05)',
           border: '1px solid #f1f5f9',
-          animation: 'fadeSlideUp 0.4s ease-out',
         }}>
           {/* Top User Icon Badge */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
             <div style={{
-              width: 56, height: 56, borderRadius: '50%',
-              background: '#eff6ff', border: '1px solid #dbeafe',
+              width: 58, height: 58, borderRadius: '50%',
+              background: '#eff6ff', border: '1.5px solid #dbeafe',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#2563eb', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.12)'
+              color: '#2563eb', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.12)'
             }}>
-              <User size={26} />
+              <User size={28} />
             </div>
           </div>
 
           {/* Heading */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px 0' }}>
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px 0' }}>
               {mode === 'login' ? 'Welcome Back' : mode === 'register' ? 'Tạo tài khoản mới' : 'Quên mật khẩu?'}
             </h2>
-            <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+            <p style={{ fontSize: 13, color: '#64748b', margin: 0, lineHeight: 1.45 }}>
               {mode === 'login'
                 ? 'Đăng nhập để bắt đầu làm bài thi và xem lý thuyết'
                 : mode === 'register'
