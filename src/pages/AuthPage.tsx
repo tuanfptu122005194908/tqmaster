@@ -161,16 +161,6 @@ export default function AuthPage() {
       {/* Falling Snow Effect */}
       <SnowEffect />
 
-      {/* Soft overall backdrop filter for readability */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'rgba(255, 255, 255, 0.25)',
-        backdropFilter: 'blur(2px)',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }} />
-
       {/* Top Floating Logo */}
       <div style={{
         position: 'absolute',
@@ -205,7 +195,7 @@ export default function AuthPage() {
         background: '#ffffff',
         borderRadius: 28,
         padding: '48px 44px',
-        boxShadow: '0 30px 70px -10px rgba(37, 99, 235, 0.18), 0 12px 30px -5px rgba(0,0,0,0.06)',
+        boxShadow: '0 30px 70px -10px rgba(37, 99, 235, 0.22), 0 12px 30px -5px rgba(0,0,0,0.08)',
         border: '1px solid rgba(226, 232, 240, 0.8)',
         position: 'relative',
         zIndex: 10,
