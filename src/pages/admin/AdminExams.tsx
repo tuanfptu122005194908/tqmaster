@@ -122,7 +122,12 @@ export default function AdminExams() {
       .select('*, question_options(*)')
       .eq('exam_id', examId)
       .order('order_num');
-    setQuestions((data as any) ?? []);
+
+    const formatted: Question[] = (data ?? []).map((q: any) => ({
+      ...q,
+      options: (q.question_options ?? q.options ?? []).sort((a: any, b: any) => (a.label || '').localeCompare(b.label || '')),
+    }));
+    setQuestions(formatted);
   };
 
   const openCreate = () => {
