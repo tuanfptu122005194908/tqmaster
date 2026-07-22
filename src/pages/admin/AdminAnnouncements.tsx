@@ -307,7 +307,7 @@ export default function AdminAnnouncements() {
 
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Hình ảnh đính kèm (URL)</label>
-                <FileUploader onUploadComplete={(url) => setForm(f => ({ ...f, image_url: url }))} currentUrl={form.image_url} label="Tải ảnh đính kèm" />
+                <FileUploader bucket="announcement-images" value={form.image_url} onChange={(url) => setForm(f => ({ ...f, image_url: url }))} preview="image" label="Tải ảnh đính kèm" />
               </div>
 
               <button
