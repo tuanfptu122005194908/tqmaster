@@ -397,7 +397,8 @@ export default function AdminTheory() {
                   <FileUploader
                     bucket="theory-files"
                     value={form.url}
-                    onChange={(url, name) => setForm(p => ({ ...p, url, file_name: name || p.file_name }))}
+                    onChange={(url) => setForm(p => ({ ...p, url }))}
+                    onFileNameChange={(name) => setForm(p => ({ ...p, file_name: name || p.file_name }))}
                     accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                     preview="file"
                     label="Tải file tài liệu"
@@ -409,7 +410,8 @@ export default function AdminTheory() {
                   <FileUploader
                     bucket="theory-files"
                     value={form.url}
-                    onChange={(url, name) => setForm(p => ({ ...p, url, file_name: name || p.file_name }))}
+                    onChange={(url) => setForm(p => ({ ...p, url }))}
+                    onFileNameChange={(name) => setForm(p => ({ ...p, file_name: name || p.file_name }))}
                     accept="image/*"
                     preview="image"
                     label="Tải ảnh tài liệu"
@@ -441,7 +443,7 @@ export default function AdminTheory() {
             </div>
 
             {/* Sticky Modal Footer */}
-            <div style={{ padding: 20, borderTop: '1px solid #e2e8f0', background: '#ffffff', sticky: 'bottom', display: 'flex', gap: 10 }}>
+            <div style={{ padding: 20, borderTop: '1px solid #e2e8f0', background: '#ffffff', position: 'sticky', bottom: 0, display: 'flex', gap: 10 }}>
               <button style={{ flex: 1, padding: 12, borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 800, cursor: 'pointer' }} onClick={() => setShowForm(false)}>Hủy</button>
               <button style={{ flex: 2, padding: 12, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={save} disabled={saving}>
                 {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={16} strokeWidth={3} />}

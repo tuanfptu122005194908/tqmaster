@@ -343,7 +343,7 @@ export default function AdminUsers() {
         marginBottom: 20,
         boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: 14,
@@ -560,8 +560,8 @@ export default function AdminUsers() {
                   <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 4 }}>{user.email}</div>
                   {user.student_code && <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 700, fontFamily: 'monospace', marginBottom: 10 }}>MSV: {user.student_code}</div>}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #e2e8f0' }}>
-                    <button style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => openEditModal(user)}>
-                      Môn học ({user.subject_count})
+                    <button style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => setSubjectUserModal(user)}>
+                      Môn học ({user.subjectIds.length})
                     </button>
                     <button onClick={() => deleteUser(user.id)} style={{ border: 'none', background: '#ffe4e6', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer' }}>
                       <Trash2 size={15} />

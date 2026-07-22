@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
 import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Exam    = Tables<'exams'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
