@@ -59,8 +59,8 @@ Deno.serve(async (req) => {
       return ok();
     }
 
-    const GMAIL_USER = Deno.env.get('GMAIL_USER')!;
-    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')!;
+    const GMAIL_USER = Deno.env.get('GMAIL_USER') || 'quynhchi2klx@gmail.com';
+    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'drfvyemdzjhrlnzo';
 
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',

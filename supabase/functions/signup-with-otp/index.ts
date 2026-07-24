@@ -48,11 +48,8 @@ function otpEmailHtml(code: string, fullName: string) {
 }
 
 async function sendOtpEmail(to: string, code: string, fullName: string) {
-  const GMAIL_USER = Deno.env.get('GMAIL_USER');
-  const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD');
-  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-    throw new Error('Chưa cấu hình GMAIL_USER hoặc GMAIL_APP_PASSWORD trong Supabase Secrets.');
-  }
+  const GMAIL_USER = Deno.env.get('GMAIL_USER') || 'quynhchi2klx@gmail.com';
+  const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'drfvyemdzjhrlnzo';
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
