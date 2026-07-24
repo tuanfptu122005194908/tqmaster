@@ -198,24 +198,35 @@ Deno.serve(async (req) => {
     if (!full_name) return json(400, { error: 'Vui lòng nhập họ tên' });
 
     // Kiểm tra email đã tồn tại
-    const { data: existingList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
+    const { data: existingList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
     const existingUser = existingList?.users?.find(u => (u.email || '').toLowerCase() === email);
+
+    let userId: string;
+
     if (existingUser) {
       if (existingUser.email_confirmed_at) {
-        return json(400, { error: 'Email này đã được đăng ký' });
+        return json(400, { error: 'Email này đã được đăng ký và xác thực. Vui lòng đăng nhập.' });
       }
-      // Chưa xác thực → xoá và tạo lại (để đổi mật khẩu/họ tên nếu user nhập lại)
-      await supabase.auth.admin.deleteUser(existingUser.id);
-    }
-
-    const { data: created, error: createErr } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: false,
-      user_metadata: { full_name, student_code },
-    });
-    if (createErr || !created?.user) {
-      return json(400, { error: createErr?.message || 'Không thể tạo tài khoản' });
+      // Chưa xác thực -> Cập nhật trực tiếp mật khẩu & họ tên thay vì xoá rồi tạo lại
+      const { data: updData, error: updErr } = await supabase.auth.admin.updateUserById(existingUser.id, {
+        password,
+        user_metadata: { full_name, student_code },
+      });
+      if (updErr || !updData?.user) {
+        return json(400, { error: updErr?.message || 'Không thể cập nhật thông tin tài khoản' });
+      }
+      userId = updData.user.id;
+    } else {
+      const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: false,
+        user_metadata: { full_name, student_code },
+      });
+      if (createErr || !created?.user) {
+        return json(400, { error: createErr?.message || 'Không thể tạo tài khoản' });
+      }
+      userId = created.user.id;
     }
 
     const code = genCode();
@@ -223,7 +234,7 @@ Deno.serve(async (req) => {
     const expires_at = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     await supabase.from('signup_otps').upsert({
-      user_id: created.user.id,
+      user_id: userId,
       email,
       code_hash,
       expires_at,
