@@ -83,6 +83,7 @@ export default function AuthPage() {
   const [studentCode, setStudentCode] = useState('');
   const [mounted, setMounted] = useState(false);
   const [countdown, setCountdown] = useState(60);
+  const [pendingVerify, setPendingVerify] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
