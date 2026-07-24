@@ -144,66 +144,38 @@ export default function AdminUsers() {
     }
     setSavingAdd(true);
     try {
-      // 1. Thử gọi Edge Function signup-with-otp với action 'admin_create' (xác thực sẵn, không cần OTP)
-      const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('signup-with-otp', {
-        body: {
-          action: 'admin_create',
-          email: addForm.email.trim(),
-          password: addForm.password.trim(),
-          username: addForm.username.trim(),
-          full_name: addForm.fullName.trim(),
-          student_code: addForm.studentCode.trim(),
-          role: addForm.role,
+      // Create user via Supabase Auth signup
+      const { data, error } = await supabase.auth.signUp({
+        email: addForm.email.trim(),
+        password: addForm.password.trim(),
+        options: {
+          data: {
+            username: addForm.username.trim(),
+            full_name: addForm.fullName.trim(),
+            student_code: addForm.studentCode.trim(),
+          }
         }
       });
 
-      let createdUserId: string | null = (edgeData as any)?.user?.id || null;
-      let isSuccess = (edgeData as any)?.success === true;
+      if (error) throw error;
 
-      // 2. Dự phòng nếu Edge Function không phản hồi hoặc gặp sự cố
-      if (!isSuccess) {
-        const edgeErrMsg = (edgeData as any)?.error || edgeErr?.message;
-        if (edgeErrMsg && edgeErrMsg !== 'Edge Function returned a non-2xx status code' && !edgeErrMsg.includes('FunctionsFetchError')) {
-          throw new Error(edgeErrMsg);
-        }
-
-        // Tạo tài khoản trực tiếp qua Supabase Auth SDK
-        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+      if (data.user) {
+        // Upsert profile
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          username: addForm.username.trim(),
+          full_name: addForm.fullName.trim() || addForm.username.trim(),
           email: addForm.email.trim(),
-          password: addForm.password.trim(),
-          options: {
-            data: {
-              username: addForm.username.trim(),
-              full_name: addForm.fullName.trim(),
-              student_code: addForm.studentCode.trim(),
-            }
-          }
+          student_code: addForm.studentCode.trim() || null,
         });
 
-        if (signUpErr) throw signUpErr;
-
-        if (signUpData.user) {
-          createdUserId = signUpData.user.id;
-          // Kích hoạt xác thực tài khoản tức thì qua RPC
-          await supabase.rpc('admin_confirm_user', { target_user_id: createdUserId });
-
-          // Upsert profile
-          await supabase.from('profiles').upsert({
-            id: createdUserId,
-            username: addForm.username.trim(),
-            full_name: addForm.fullName.trim() || addForm.username.trim(),
-            email: addForm.email.trim(),
-            student_code: addForm.studentCode.trim() || null,
-          });
-
-          // Phân quyền admin nếu chọn
-          if (addForm.role === 'admin') {
-            await supabase.from('user_roles').insert({ user_id: createdUserId, role: 'admin' });
-          }
+        // Grant role if admin
+        if (addForm.role === 'admin') {
+          await supabase.from('user_roles').insert({ user_id: data.user.id, role: 'admin' });
         }
       }
 
-      alert('Tạo tài khoản thành công! Tài khoản đã được xác thực và sẵn sàng sử dụng.');
+      alert('Tạo tài khoản thành công!');
       setShowAddModal(false);
       setAddForm({ fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user' });
       fetch();

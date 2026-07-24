@@ -57,23 +57,16 @@ Deno.serve(async (req) => {
     if (updErr) {
       console.error('updateUserById error:', updErr.message);
       return ok();
-    const accounts: Array<{ user: string; pass: string }> = [];
-    const addAcc = (user?: string, pass?: string) => {
-      if (user && pass) accounts.push({ user: user.trim(), pass: pass.trim() });
-    };
+    }
 
-    addAcc('caothanhtuan664@gmail.com', 'skpwbkxwnouqakzy');
-    addAcc('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
-    addAcc('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
+    const GMAIL_USER = Deno.env.get('GMAIL_USER')!;
+    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')!;
 
-    addAcc(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
-    addAcc(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
-
-    const seenAccs = new Set<string>();
-    const validAccounts = accounts.filter(acc => {
-      if (seenAccs.has(acc.user.toLowerCase())) return false;
-      seenAccs.add(acc.user.toLowerCase());
-      return true;
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
     });
 
     const html = `
@@ -89,90 +82,20 @@ Deno.serve(async (req) => {
     <p style="font-size:14px;line-height:1.6;color:#dc2626;margin:0 0 16px;">⚠️ Vì lý do bảo mật, hãy đăng nhập và đổi mật khẩu ngay trong phần Hồ sơ.</p>
     <p style="font-size:12px;color:#9ca3af;margin:24px 0 0;text-align:center;">Nếu bạn không yêu cầu việc này, vui lòng đổi mật khẩu ngay hoặc liên hệ quản trị viên.</p>
   </div>
-    // 1. Thử gửi qua Brevo API
-    const defaultBrevoKey = ['xkeysib', 'c28483c354193656ec7a0bf870c45f714f4a39cf36780a0c0fe402b48908bcaa', 'W6dsKvxomYEKEGyj'].join('-');
-    const brevoKey = Deno.env.get('BREVO_API_KEY') || defaultBrevoKey;
-    if (brevoKey) {
-      try {
-        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'api-key': brevoKey.trim(),
-          },
-          body: JSON.stringify({
-            sender: { name: 'TQMaster', email: 'caothanhtuan664@gmail.com' },
-            to: [{ email: cleanEmail }],
-            subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
-            htmlContent: html,
-          }),
-        });
-        if (res.ok) {
-          console.log(`[forgot-password] Email sent successfully via Brevo API`);
-          return ok();
-        }
-      } catch (bErr) {
-        console.warn(`[forgot-password] Brevo API error:`, bErr);
-      }
-    }
+</div>`;
 
-    // 2. Thử gửi qua Resend API
-    const resendKey = Deno.env.get('RESEND_STUDENT_API_KEY') || Deno.env.get('RESEND_API_KEY') || 're_69iud2fc_E8XzddsBEcJfnuxfAN4zFBEd';
-    if (resendKey) {
-      try {
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${resendKey.trim()}`,
-          },
-          body: JSON.stringify({
-            from: 'TQMaster <onboarding@resend.dev>',
-            to: [cleanEmail],
-            subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
-            html,
-          }),
-        });
-        if (res.ok) {
-          console.log(`[forgot-password] Email sent successfully via Resend API`);
-          return ok();
-        }
-      } catch (rErr) {
-        console.warn(`[forgot-password] Resend API error:`, rErr);
-      }
-    }
+    await transporter.sendMail({
+      from: `"TQMaster" <${GMAIL_USER}>`,
+      to: cleanEmail,
+      subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
+      html,
+    });
 
-    // 2. Dự phòng xoay vòng các tài khoản Gmail SMTP
-    for (const acc of validAccounts) {
-      const configs = [
-        { service: 'gmail', auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
-        { host: 'smtp.gmail.com', port: 587, secure: false, requireTLS: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
-        { host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
-      ];
-      let sent = false;
-      for (const config of configs) {
-        try {
-          const transporter = nodemailer.createTransport(config as any);
-          await transporter.sendMail({
-            from: `"TQMaster" <${acc.user}>`,
-            to: cleanEmail,
-            subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
-            html,
-          });
-          console.log(`[forgot-password] Email sent successfully via ${acc.user}`);
-          sent = true;
-          break;
-        } catch (sendErr) {
-          console.warn(`[forgot-password] Transport failed for ${acc.user}:`, sendErr instanceof Error ? sendErr.message : sendErr);
-        }
-      }
-      if (sent) break;
-    }
 
     return ok();
   } catch (err) {
     console.error('forgot-password error:', err instanceof Error ? err.message : err);
+    // Still return success to avoid leaking info
     return ok();
   }
 });
