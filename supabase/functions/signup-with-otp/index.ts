@@ -51,9 +51,7 @@ async function sendOtpEmail(to: string, code: string, fullName: string) {
   const GMAIL_USER = Deno.env.get('GMAIL_USER') || 'quynhchi2klx@gmail.com';
   const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'drfvyemdzjhrlnzo';
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    service: 'gmail',
     auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
   });
   await transporter.sendMail({

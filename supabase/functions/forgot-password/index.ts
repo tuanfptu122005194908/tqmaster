@@ -63,9 +63,7 @@ Deno.serve(async (req) => {
     const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'drfvyemdzjhrlnzo';
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      service: 'gmail',
       auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
     });
 
