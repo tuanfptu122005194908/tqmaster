@@ -74,8 +74,8 @@ function getGmailAccounts(): GmailAccount[] {
 }
 
 async function sendOtpEmail(to: string, code: string, fullName: string) {
-  // 1. Thử gửi qua Resend API nếu có cấu hình RESEND_API_KEY
-  const resendKey = Deno.env.get('RESEND_API_KEY');
+  // 1. Thử gửi qua Resend API (sử dụng API Key riêng gửi thông báo cho student)
+  const resendKey = Deno.env.get('RESEND_STUDENT_API_KEY') || Deno.env.get('RESEND_API_KEY') || 're_69iud2fc_E8XzddsBEcJfnuxfAN4zFBEd';
   if (resendKey) {
     try {
       const res = await fetch('https://api.resend.com/emails', {

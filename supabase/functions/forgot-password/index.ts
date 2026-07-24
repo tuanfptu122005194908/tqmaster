@@ -88,8 +88,33 @@ Deno.serve(async (req) => {
     <p style="font-size:14px;line-height:1.6;color:#dc2626;margin:0 0 16px;">⚠️ Vì lý do bảo mật, hãy đăng nhập và đổi mật khẩu ngay trong phần Hồ sơ.</p>
     <p style="font-size:12px;color:#9ca3af;margin:24px 0 0;text-align:center;">Nếu bạn không yêu cầu việc này, vui lòng đổi mật khẩu ngay hoặc liên hệ quản trị viên.</p>
   </div>
-</div>`;
+    // 1. Thử gửi qua Resend API trước
+    const resendKey = Deno.env.get('RESEND_STUDENT_API_KEY') || Deno.env.get('RESEND_API_KEY') || 're_69iud2fc_E8XzddsBEcJfnuxfAN4zFBEd';
+    if (resendKey) {
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${resendKey.trim()}`,
+          },
+          body: JSON.stringify({
+            from: 'TQMaster <onboarding@resend.dev>',
+            to: [cleanEmail],
+            subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
+            html,
+          }),
+        });
+        if (res.ok) {
+          console.log(`[forgot-password] Email sent successfully via Resend API`);
+          return ok();
+        }
+      } catch (rErr) {
+        console.warn(`[forgot-password] Resend API error:`, rErr);
+      }
+    }
 
+    // 2. Dự phòng xoay vòng các tài khoản Gmail SMTP
     for (const acc of validAccounts) {
       const configs = [
         { service: 'gmail', auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
