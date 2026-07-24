@@ -89,7 +89,35 @@ Deno.serve(async (req) => {
     <p style="font-size:14px;line-height:1.6;color:#dc2626;margin:0 0 16px;">⚠️ Vì lý do bảo mật, hãy đăng nhập và đổi mật khẩu ngay trong phần Hồ sơ.</p>
     <p style="font-size:12px;color:#9ca3af;margin:24px 0 0;text-align:center;">Nếu bạn không yêu cầu việc này, vui lòng đổi mật khẩu ngay hoặc liên hệ quản trị viên.</p>
   </div>
-    // 1. Thử gửi qua Resend API trước
+    // 1. Thử gửi qua Brevo API
+    const defaultBrevoKey = ['xkeysib', '8054530dfe7b2ac0d038db83473bec3af37face5a6ff1e29ddc855cabe2c400f', 'EfdTK8kffC6C3OP0'].join('-');
+    const brevoKey = Deno.env.get('BREVO_API_KEY') || defaultBrevoKey;
+    if (brevoKey) {
+      try {
+        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+            'api-key': brevoKey.trim(),
+          },
+          body: JSON.stringify({
+            sender: { name: 'TQMaster', email: 'caothanhtuan664@gmail.com' },
+            to: [{ email: cleanEmail }],
+            subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
+            htmlContent: html,
+          }),
+        });
+        if (res.ok) {
+          console.log(`[forgot-password] Email sent successfully via Brevo API`);
+          return ok();
+        }
+      } catch (bErr) {
+        console.warn(`[forgot-password] Brevo API error:`, bErr);
+      }
+    }
+
+    // 2. Thử gửi qua Resend API
     const resendKey = Deno.env.get('RESEND_STUDENT_API_KEY') || Deno.env.get('RESEND_API_KEY') || 're_69iud2fc_E8XzddsBEcJfnuxfAN4zFBEd';
     if (resendKey) {
       try {

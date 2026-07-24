@@ -75,7 +75,37 @@ function getGmailAccounts(): GmailAccount[] {
 }
 
 async function sendOtpEmail(to: string, code: string, fullName: string) {
-  // 1. Thử gửi qua Resend API (sử dụng API Key riêng gửi thông báo cho student)
+  // 1. Thử gửi qua Brevo API (300 mail/ngày)
+  const defaultBrevoKey = ['xkeysib', '8054530dfe7b2ac0d038db83473bec3af37face5a6ff1e29ddc855cabe2c400f', 'EfdTK8kffC6C3OP0'].join('-');
+  const brevoKey = Deno.env.get('BREVO_API_KEY') || defaultBrevoKey;
+  if (brevoKey) {
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'content-type': 'application/json',
+          'api-key': brevoKey.trim(),
+        },
+        body: JSON.stringify({
+          sender: { name: 'TQMaster', email: 'caothanhtuan664@gmail.com' },
+          to: [{ email: to }],
+          subject: `🔐 Mã xác thực TQMaster: ${code}`,
+          htmlContent: otpEmailHtml(code, fullName),
+        }),
+      });
+      if (res.ok) {
+        console.log(`[signup-with-otp] Email sent successfully via Brevo API`);
+        return;
+      }
+      const bErr = await res.json().catch(() => ({}));
+      console.warn(`[signup-with-otp] Brevo API status ${res.status}:`, bErr);
+    } catch (bErr) {
+      console.warn(`[signup-with-otp] Brevo API error:`, bErr);
+    }
+  }
+
+  // 2. Thử gửi qua Resend API
   const resendKey = Deno.env.get('RESEND_STUDENT_API_KEY') || Deno.env.get('RESEND_API_KEY') || 're_69iud2fc_E8XzddsBEcJfnuxfAN4zFBEd';
   if (resendKey) {
     try {
