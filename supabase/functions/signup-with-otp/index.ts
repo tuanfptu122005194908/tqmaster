@@ -74,35 +74,64 @@ function getGmailAccounts(): GmailAccount[] {
 }
 
 async function sendOtpEmail(to: string, code: string, fullName: string) {
+  // 1. Thử gửi qua Resend API nếu có cấu hình RESEND_API_KEY
+  const resendKey = Deno.env.get('RESEND_API_KEY');
+  if (resendKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${resendKey.trim()}`,
+        },
+        body: JSON.stringify({
+          from: 'TQMaster <onboarding@resend.dev>',
+          to: [to],
+          subject: `🔐 Mã xác thực TQMaster: ${code}`,
+          html: otpEmailHtml(code, fullName),
+        }),
+      });
+      if (res.ok) {
+        console.log(`[signup-with-otp] Email sent successfully via Resend API`);
+        return;
+      }
+      const errRes = await res.json().catch(() => ({}));
+      console.warn(`[signup-with-otp] Resend API status ${res.status}:`, errRes);
+    } catch (rErr) {
+      console.warn(`[signup-with-otp] Resend API error:`, rErr);
+    }
+  }
+
+  // 2. Thử xoay vòng lần lượt các tài khoản Gmail
   const accounts = getGmailAccounts();
   let lastErr: any = null;
 
   for (const acc of accounts) {
-    const transportConfigs = [
-      { service: 'gmail', auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
-      { host: 'smtp.gmail.com', port: 587, secure: false, requireTLS: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
-      { host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
-    ];
-
-    for (const config of transportConfigs) {
-      try {
-        const transporter = nodemailer.createTransport(config as any);
-        await transporter.sendMail({
-          from: `"TQMaster" <${acc.user}>`,
-          to,
-          subject: `🔐 Mã xác thực TQMaster: ${code}`,
-          html: otpEmailHtml(code, fullName),
-        });
-        console.log(`[signup-with-otp] Email sent successfully via ${acc.user}`);
-        return;
-      } catch (err) {
-        lastErr = err;
-        console.warn(`[signup-with-otp] Transport failed for ${acc.user}:`, err instanceof Error ? err.message : err);
-      }
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: acc.user, pass: acc.pass },
+        connectionTimeout: 8000,
+      });
+      await transporter.sendMail({
+        from: `"TQMaster" <${acc.user}>`,
+        to,
+        subject: `🔐 Mã xác thực TQMaster: ${code}`,
+        html: otpEmailHtml(code, fullName),
+      });
+      console.log(`[signup-with-otp] Email sent successfully via ${acc.user}`);
+      return;
+    } catch (err: any) {
+      lastErr = err;
+      console.warn(`[signup-with-otp] Gmail ${acc.user} failed:`, err?.message || err);
     }
   }
 
-  throw lastErr || new Error('Tất cả cổng kết nối Gmail SMTP đều không thể gửi email.');
+  const errMsg = lastErr?.message || '';
+  if (errMsg.includes('550') || errMsg.includes('limit exceeded')) {
+    throw new Error('Tất cả tài khoản Gmail SMTP dự phòng đều đã chạm giới hạn gửi email trong ngày (Google 550 limit). Vui lòng cung cấp thêm 1 Gmail App Password khác.');
+  }
+  throw lastErr || new Error('Tất cả tài khoản Gmail đều không thể gửi email.');
 }
 
 Deno.serve(async (req) => {
