@@ -128,17 +128,20 @@ export default function AuthPage() {
       if (err) setError(err.message === 'Invalid login credentials' ? 'Email hoặc mật khẩu không đúng' : err.message);
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
-      const { error: signUpErr } = await supabase.auth.signUp({
-        email, password,
-        options: {
-          emailRedirectTo: 'https://tqmaster.vercel.app/',
-          data: { full_name: fullName, student_code: studentCode },
+      const { data, error: fnErr } = await supabase.functions.invoke('signup-with-otp', {
+        body: {
+          action: 'signup',
+          email: email.trim(),
+          password,
+          full_name: fullName.trim(),
+          student_code: studentCode.trim(),
         },
       });
-      if (signUpErr) {
-        setError(signUpErr.message.includes('already') ? 'Email này đã được đăng ký' : signUpErr.message);
+      const errMsg = (data as any)?.error || fnErr?.message;
+      if (errMsg || !(data as any)?.success) {
+        setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
       } else {
-        setSuccess(true);
+        setPendingVerify({ email: email.trim(), password });
       }
     }
     setLoading(false);
