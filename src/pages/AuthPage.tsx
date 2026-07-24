@@ -129,35 +129,55 @@ export default function AuthPage() {
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
       
-      // Đăng ký trực tiếp qua Supabase Auth SDK (Không phụ thuộc vào Edge Function chưa deploy)
-      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            student_code: studentCode.trim(),
-          },
+      // 1. Thử đăng ký qua Edge Function signup-with-otp (Dùng Brevo gửi OTP 6 số, không gửi link mặc định của Supabase)
+      const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('signup-with-otp', {
+        body: {
+          action: 'signup',
+          email: email.trim(),
+          password,
+          full_name: fullName.trim(),
+          student_code: studentCode.trim(),
         },
       });
 
-      if (signUpErr) {
-        setError(signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered')
-          ? 'Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.'
-          : signUpErr.message);
-      } else if (signUpData?.user) {
-        // Gửi OTP qua Brevo API Edge Function
-        await supabase.functions.invoke('signup-with-otp', {
-          body: { action: 'resend', email: email.trim() },
-        }).catch(() => {});
-
-        if (signUpData.session) {
-          setSuccess(true);
-        } else {
-          setPendingVerify({ email: email.trim(), password });
-        }
+      if (!edgeErr && (edgeData as any)?.success) {
+        setPendingVerify({ email: email.trim(), password });
       } else {
-        setError('Không thể tạo tài khoản. Vui lòng thử lại.');
+        let edgeErrorText = (edgeData as any)?.error;
+        if (!edgeErrorText && edgeErr) {
+          try {
+            if ((edgeErr as any).context && typeof (edgeErr as any).context.json === 'function') {
+              const body = await (edgeErr as any).context.json();
+              edgeErrorText = body?.error || body?.message;
+            }
+          } catch {}
+        }
+
+        if (edgeErrorText) {
+          setError(edgeErrorText);
+        } else {
+          // Dự phòng đăng ký trực tiếp qua Supabase Auth SDK nếu Edge Function bị lỗi
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+            options: {
+              data: {
+                full_name: fullName.trim(),
+                student_code: studentCode.trim(),
+              },
+            },
+          });
+
+          if (signUpErr) {
+            setError(signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered')
+              ? 'Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.'
+              : signUpErr.message);
+          } else if (signUpData?.user) {
+            setPendingVerify({ email: email.trim(), password });
+          } else {
+            setError('Không thể tạo tài khoản. Vui lòng thử lại.');
+          }
+        }
       }
     }
     setLoading(false);
