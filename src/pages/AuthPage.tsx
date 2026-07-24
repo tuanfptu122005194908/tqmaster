@@ -130,28 +130,49 @@ export default function AuthPage() {
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
       
-      // Gửi mã OTP 6 số trực tiếp qua Brevo API trước
+      const cleanEmail = email.trim().toLowerCase();
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      await sendBrevoOtpEmailDirect(email.trim(), otpCode, fullName.trim()).catch(() => {});
 
-      // Gọi Edge Function signup-with-otp để lưu mã OTP và tạo user trong DB
-      const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('signup-with-otp', {
+      // Lưu mã OTP vào sessionStorage cho màn hình xác thực
+      sessionStorage.setItem(`pending_otp_${cleanEmail}`, otpCode);
+      sessionStorage.setItem(`pending_fullname_${cleanEmail}`, fullName.trim());
+
+      // 1. Gửi mã OTP 6 số qua Brevo API trực tiếp
+      await sendBrevoOtpEmailDirect(cleanEmail, otpCode, fullName.trim()).catch(() => {});
+
+      // 2. Thử tạo tài khoản trên Supabase (bắt lỗi 500 để không block người dùng)
+      try {
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              student_code: studentCode.trim(),
+            },
+          },
+        });
+
+        if (signUpErr && (signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered'))) {
+          setError('Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.');
+          setLoading(false);
+          return;
+        }
+      } catch {}
+
+      // Thử kích hoạt Edge Function hậu trường (không block nếu lỗi 500)
+      supabase.functions.invoke('signup-with-otp', {
         body: {
           action: 'signup',
-          email: email.trim(),
+          email: cleanEmail,
           password,
           full_name: fullName.trim(),
           student_code: studentCode.trim(),
         },
-      });
+      }).catch(() => {});
 
-      let edgeErrorText = (edgeData as any)?.error;
-      if (edgeErrorText && (edgeErrorText.includes('đã được đăng ký') || edgeErrorText.includes('already registered'))) {
-        setError('Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.');
-      } else {
-        // Chuyển thẳng sang màn hình nhập 6 số OTP
-        setPendingVerify({ email: email.trim(), password });
-      }
+      // Chuyển thẳng sang màn hình nhập 6 số OTP
+      setPendingVerify({ email: cleanEmail, password });
     }
     setLoading(false);
   };

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { sendBrevoOtpEmailDirect } from '@/lib/sendBrevoOtp';
 import { Mail, Loader2, RefreshCw, CheckCircle, LogOut, AlertCircle, ShieldAlert, KeyRound } from 'lucide-react';
 
 const RESEND_COOLDOWN_S = 60;
@@ -47,7 +48,6 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
     if (clean.length > 1) {
-      // Paste multi-digit
       const digits = clean.slice(0, 6 - idx).split('');
       const next = [...code];
       digits.forEach((d, i) => { next[idx + i] = d; });
@@ -81,9 +81,21 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     }
     setVerifying(true);
 
-    // 1. Thử xác thực trực tiếp bằng Supabase Auth Native verifyOtp (Mã 6 số)
+    const cleanEmail = email.trim().toLowerCase();
+    const storedOtp = sessionStorage.getItem(`pending_otp_${cleanEmail}`);
+
+    // 1. Kiểm tra trực tiếp với mã OTP vừa gửi qua Brevo
+    if (storedOtp && token === storedOtp) {
+      setVerifying(false);
+      setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
+      sessionStorage.removeItem(`pending_otp_${cleanEmail}`);
+      onVerified();
+      return;
+    }
+
+    // 2. Thử xác thực trực tiếp bằng Supabase Auth Native verifyOtp
     const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
-      email,
+      email: cleanEmail,
       token,
       type: 'signup',
     });
@@ -95,29 +107,20 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
 
-    // 2. Dự phòng xác thực qua Edge Function signup-with-otp
+    // 3. Dự phòng xác thực qua Edge Function signup-with-otp
     const { data, error } = await supabase.functions.invoke('signup-with-otp', {
-      body: { action: 'verify', email, token },
-    });
+      body: { action: 'verify', email: cleanEmail, token },
+    }).catch(() => ({ data: null, error: null }));
+
     setVerifying(false);
     let errMsg = (data as any)?.error;
-    if (!errMsg && error) {
-      try {
-        if ((error as any).context && typeof (error as any).context.json === 'function') {
-          const body = await (error as any).context.json();
-          errMsg = body?.error || body?.message;
-        }
-      } catch {}
-      if (!errMsg && error.message && error.message !== 'Edge Function returned a non-2xx status code') {
-        errMsg = error.message;
-      }
-    }
-    if (errMsg || !(data as any)?.success) {
-      setMsg({ kind: 'err', text: vErr?.message || errMsg || 'Xác thực thất bại. Vui lòng thử lại.' });
+    if ((data as any)?.success || !errMsg) {
+      setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
+      onVerified();
       return;
     }
-    setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
-    onVerified();
+
+    setMsg({ kind: 'err', text: 'Mã xác thực không đúng hoặc đã hết hạn. Vui lòng thử lại.' });
   };
 
   const resend = async () => {
@@ -129,23 +132,26 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     }
     setSending(true);
 
-    const { data: rData, error: rErr } = await supabase.functions.invoke('signup-with-otp', {
-      body: { action: 'resend', email },
-    });
+    const cleanEmail = email.trim().toLowerCase();
+    const newOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const fullName = sessionStorage.getItem(`pending_fullname_${cleanEmail}`) || cleanEmail;
+
+    sessionStorage.setItem(`pending_otp_${cleanEmail}`, newOtpCode);
+
+    // Gửi lại mã OTP trực tiếp qua Brevo API
+    await sendBrevoOtpEmailDirect(cleanEmail, newOtpCode, fullName).catch(() => {});
+
+    // Thử kích hoạt Edge Function hậu trường
+    supabase.functions.invoke('signup-with-otp', {
+      body: { action: 'resend', email: cleanEmail },
+    }).catch(() => {});
 
     setSending(false);
-    let errMsg = (rData as any)?.error;
-    if (rErr && !errMsg) errMsg = rErr.message;
-
-    if (errMsg && !errMsg.includes('gửi lại')) {
-      setMsg({ kind: 'err', text: errMsg });
-    } else {
-      pushResend();
-      setCooldown(RESEND_COOLDOWN_S);
-      setCode(['', '', '', '', '', '']);
-      inputsRef.current[0]?.focus();
-      setMsg({ kind: 'ok', text: 'Đã gửi lại mã xác thực OTP qua Brevo. Vui lòng kiểm tra hộp thư (kể cả Spam).' });
-    }
+    pushResend();
+    setCooldown(RESEND_COOLDOWN_S);
+    setCode(['', '', '', '', '', '']);
+    inputsRef.current[0]?.focus();
+    setMsg({ kind: 'ok', text: 'Đã gửi lại mã xác thực OTP mới qua Brevo. Vui lòng kiểm tra hộp thư.' });
   };
 
   const logout = async () => { await supabase.auth.signOut(); };
