@@ -84,7 +84,18 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       body: { action: 'verify', email, token },
     });
     setVerifying(false);
-    const errMsg = (data as any)?.error || error?.message;
+    let errMsg = (data as any)?.error;
+    if (!errMsg && error) {
+      try {
+        if ((error as any).context && typeof (error as any).context.json === 'function') {
+          const body = await (error as any).context.json();
+          errMsg = body?.error || body?.message;
+        }
+      } catch {}
+      if (!errMsg && error.message && error.message !== 'Edge Function returned a non-2xx status code') {
+        errMsg = error.message;
+      }
+    }
     if (errMsg || !(data as any)?.success) {
       setMsg({ kind: 'err', text: errMsg || 'Xác thực thất bại. Vui lòng thử lại.' });
       return;
@@ -105,7 +116,18 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       body: { action: 'resend', email },
     });
     setSending(false);
-    const errMsg = (data as any)?.error || error?.message;
+    let errMsg = (data as any)?.error;
+    if (!errMsg && error) {
+      try {
+        if ((error as any).context && typeof (error as any).context.json === 'function') {
+          const body = await (error as any).context.json();
+          errMsg = body?.error || body?.message;
+        }
+      } catch {}
+      if (!errMsg && error.message && error.message !== 'Edge Function returned a non-2xx status code') {
+        errMsg = error.message;
+      }
+    }
     if (errMsg || !(data as any)?.success) {
       setMsg({ kind: 'err', text: errMsg || 'Không thể gửi lại mã. Vui lòng thử lại.' });
     } else {

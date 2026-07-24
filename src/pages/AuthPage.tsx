@@ -137,9 +137,20 @@ export default function AuthPage() {
           student_code: studentCode.trim(),
         },
       });
-      const errMsg = (data as any)?.error || fnErr?.message;
+      let errMsg = (data as any)?.error;
+      if (!errMsg && fnErr) {
+        try {
+          if ((fnErr as any).context && typeof (fnErr as any).context.json === 'function') {
+            const body = await (fnErr as any).context.json();
+            errMsg = body?.error || body?.message;
+          }
+        } catch {}
+        if (!errMsg && fnErr.message && fnErr.message !== 'Edge Function returned a non-2xx status code') {
+          errMsg = fnErr.message;
+        }
+      }
       if (errMsg || !(data as any)?.success) {
-        setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
+        setError(errMsg || 'Không thể tạo tài khoản. Vui lòng kiểm tra lại cấu hình email server.');
       } else {
         setPendingVerify({ email: email.trim(), password });
       }
