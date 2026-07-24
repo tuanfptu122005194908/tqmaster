@@ -9,5 +9,5 @@ verify_jwt = false
 [functions.forgot-password]
 verify_jwt = false
 
-[functions.notify-order-approved]
+[functions.signup-with-otp]
 verify_jwt = false
