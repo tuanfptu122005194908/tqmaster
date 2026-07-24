@@ -63,13 +63,14 @@ Deno.serve(async (req) => {
     const addAcc = (user?: string, pass?: string) => {
       if (user && pass) accounts.push({ user: user.trim(), pass: pass.trim() });
     };
-    addAcc(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
-    addAcc(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
-    addAcc(Deno.env.get('GMAIL_USER_3'), Deno.env.get('GMAIL_APP_PASSWORD_3'));
 
     addAcc('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
     addAcc('caothanhtuan664@gmail.com', 'skpwbkwnouqakzy');
     addAcc('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
+
+    addAcc(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
+    addAcc(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
+    addAcc(Deno.env.get('GMAIL_USER_3'), Deno.env.get('GMAIL_APP_PASSWORD_3'));
 
     const seenAccs = new Set<string>();
     const validAccounts = accounts.filter(acc => {

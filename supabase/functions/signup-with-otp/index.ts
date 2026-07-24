@@ -58,13 +58,14 @@ function getGmailAccounts(): GmailAccount[] {
     if (user && pass) list.push({ user: user.trim(), pass: pass.trim() });
   };
 
-  add(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
-  add(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
-  add(Deno.env.get('GMAIL_USER_3'), Deno.env.get('GMAIL_APP_PASSWORD_3'));
-
+  // Fresh working accounts first
   add('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
   add('caothanhtuan664@gmail.com', 'skpwbkwnouqakzy');
   add('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
+
+  add(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
+  add(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
+  add(Deno.env.get('GMAIL_USER_3'), Deno.env.get('GMAIL_APP_PASSWORD_3'));
 
   const seen = new Set<string>();
   return list.filter(acc => {
