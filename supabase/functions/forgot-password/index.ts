@@ -57,8 +57,6 @@ Deno.serve(async (req) => {
     if (updErr) {
       console.error('updateUserById error:', updErr.message);
       return ok();
-    }
-
     const accounts: Array<{ user: string; pass: string }> = [];
     const addAcc = (user?: string, pass?: string) => {
       if (user && pass) accounts.push({ user: user.trim(), pass: pass.trim() });
@@ -93,29 +91,34 @@ Deno.serve(async (req) => {
 </div>`;
 
     for (const acc of validAccounts) {
-      try {
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: { user: acc.user, pass: acc.pass },
-        });
-        await transporter.sendMail({
-          from: `"TQMaster" <${acc.user}>`,
-          to: cleanEmail,
-          subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
-          html,
-        });
-        console.log(`[forgot-password] Email sent successfully via ${acc.user}`);
-        break;
-      } catch (sendErr) {
-        console.warn(`[forgot-password] Email via ${acc.user} failed:`, sendErr instanceof Error ? sendErr.message : sendErr);
+      const configs = [
+        { service: 'gmail', auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
+        { host: 'smtp.gmail.com', port: 587, secure: false, requireTLS: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
+        { host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
+      ];
+      let sent = false;
+      for (const config of configs) {
+        try {
+          const transporter = nodemailer.createTransport(config as any);
+          await transporter.sendMail({
+            from: `"TQMaster" <${acc.user}>`,
+            to: cleanEmail,
+            subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
+            html,
+          });
+          console.log(`[forgot-password] Email sent successfully via ${acc.user}`);
+          sent = true;
+          break;
+        } catch (sendErr) {
+          console.warn(`[forgot-password] Transport failed for ${acc.user}:`, sendErr instanceof Error ? sendErr.message : sendErr);
+        }
       }
+      if (sent) break;
     }
-
 
     return ok();
   } catch (err) {
     console.error('forgot-password error:', err instanceof Error ? err.message : err);
-    // Still return success to avoid leaking info
     return ok();
   }
 });

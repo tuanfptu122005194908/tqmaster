@@ -78,26 +78,31 @@ async function sendOtpEmail(to: string, code: string, fullName: string) {
   let lastErr: any = null;
 
   for (const acc of accounts) {
-    try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: acc.user, pass: acc.pass },
-      });
-      await transporter.sendMail({
-        from: `"TQMaster" <${acc.user}>`,
-        to,
-        subject: `🔐 Mã xác thực TQMaster: ${code}`,
-        html: otpEmailHtml(code, fullName),
-      });
-      console.log(`[signup-with-otp] Email sent successfully via ${acc.user}`);
-      return;
-    } catch (err) {
-      lastErr = err;
-      console.warn(`[signup-with-otp] Email via ${acc.user} failed:`, err instanceof Error ? err.message : err);
+    const transportConfigs = [
+      { service: 'gmail', auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
+      { host: 'smtp.gmail.com', port: 587, secure: false, requireTLS: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
+      { host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: acc.user, pass: acc.pass }, connectionTimeout: 8000 },
+    ];
+
+    for (const config of transportConfigs) {
+      try {
+        const transporter = nodemailer.createTransport(config as any);
+        await transporter.sendMail({
+          from: `"TQMaster" <${acc.user}>`,
+          to,
+          subject: `🔐 Mã xác thực TQMaster: ${code}`,
+          html: otpEmailHtml(code, fullName),
+        });
+        console.log(`[signup-with-otp] Email sent successfully via ${acc.user}`);
+        return;
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[signup-with-otp] Transport failed for ${acc.user}:`, err instanceof Error ? err.message : err);
+      }
     }
   }
 
-  throw lastErr || new Error('Tất cả tài khoản Gmail đều không thể gửi email.');
+  throw lastErr || new Error('Tất cả cổng kết nối Gmail SMTP đều không thể gửi email.');
 }
 
 Deno.serve(async (req) => {
