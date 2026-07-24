@@ -59,6 +59,7 @@ function getGmailAccounts(): GmailAccount[] {
   };
 
   // Verified working accounts (lequyen2k555 is 100% active with fresh quota)
+  add('caothanhtuan664@gmail.com', 'skpwbkxwnouqakzy');
   add('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
   add('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
 

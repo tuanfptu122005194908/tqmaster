@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
       if (user && pass) accounts.push({ user: user.trim(), pass: pass.trim() });
     };
 
+    addAcc('caothanhtuan664@gmail.com', 'skpwbkxwnouqakzy');
     addAcc('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
     addAcc('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
 
