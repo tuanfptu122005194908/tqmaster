@@ -76,7 +76,7 @@ function getGmailAccounts(): GmailAccount[] {
 
 async function sendOtpEmail(to: string, code: string, fullName: string) {
   // 1. Thử gửi qua Brevo API (300 mail/ngày)
-  const defaultBrevoKey = ['xkeysib', '8054530dfe7b2ac0d038db83473bec3af37face5a6ff1e29ddc855cabe2c400f', 'EfdTK8kffC6C3OP0'].join('-');
+  const defaultBrevoKey = ['xkeysib', 'c28483c354193656ec7a0bf870c45f714f4a39cf36780a0c0fe402b48908bcaa', 'W6dsKvxomYEKEGyj'].join('-');
   const brevoKey = Deno.env.get('BREVO_API_KEY') || defaultBrevoKey;
   if (brevoKey) {
     try {

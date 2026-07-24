@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     <p style="font-size:12px;color:#9ca3af;margin:24px 0 0;text-align:center;">Nếu bạn không yêu cầu việc này, vui lòng đổi mật khẩu ngay hoặc liên hệ quản trị viên.</p>
   </div>
     // 1. Thử gửi qua Brevo API
-    const defaultBrevoKey = ['xkeysib', '8054530dfe7b2ac0d038db83473bec3af37face5a6ff1e29ddc855cabe2c400f', 'EfdTK8kffC6C3OP0'].join('-');
+    const defaultBrevoKey = ['xkeysib', 'c28483c354193656ec7a0bf870c45f714f4a39cf36780a0c0fe402b48908bcaa', 'W6dsKvxomYEKEGyj'].join('-');
     const brevoKey = Deno.env.get('BREVO_API_KEY') || defaultBrevoKey;
     if (brevoKey) {
       try {
