@@ -129,60 +129,30 @@ export default function AuthPage() {
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
       
-      // 1. Thử đăng ký qua Edge Function signup-with-otp
-      const { data, error: fnErr } = await supabase.functions.invoke('signup-with-otp', {
-        body: {
-          action: 'signup',
-          email: email.trim(),
-          password,
-          full_name: fullName.trim(),
-          student_code: studentCode.trim(),
+      // Đăng ký trực tiếp qua Supabase Auth SDK (Không phụ thuộc vào Edge Function chưa deploy)
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            student_code: studentCode.trim(),
+          },
         },
       });
 
-      let errMsg = (data as any)?.error;
-      if (!errMsg && fnErr) {
-        try {
-          if ((fnErr as any).context && typeof (fnErr as any).context.json === 'function') {
-            const body = await (fnErr as any).context.json();
-            errMsg = body?.error || body?.message;
-          }
-        } catch {}
-      }
-
-      if ((data as any)?.success) {
-        setPendingVerify({ email: email.trim(), password });
-      } else if (errMsg) {
-        // Nếu Edge Function trả về câu thông báo lỗi cụ thể (VD: Email đã được đăng ký,...)
-        setError(errMsg);
-      } else {
-        // Chỉ fallback nếu Edge Function gặp lỗi hạ tầng không phản hồi
-        console.warn('signup-with-otp infrastructure error, falling back to direct supabase.auth.signUp:', fnErr?.message);
-        
-        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: {
-              full_name: fullName.trim(),
-              student_code: studentCode.trim(),
-            },
-          },
-        });
-
-        if (signUpErr) {
-          setError(signUpErr.message === 'User already registered' || signUpErr.message?.includes('already registered')
-            ? 'Email này đã được đăng ký. Vui lòng chuyển sang Đăng nhập.'
-            : signUpErr.message);
-        } else if (signUpData?.user) {
-          if (signUpData.session) {
-            setSuccess(true);
-          } else {
-            setPendingVerify({ email: email.trim(), password });
-          }
+      if (signUpErr) {
+        setError(signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered')
+          ? 'Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.'
+          : signUpErr.message);
+      } else if (signUpData?.user) {
+        if (signUpData.session) {
+          setSuccess(true);
         } else {
-          setError('Không thể tạo tài khoản. Vui lòng thử lại.');
+          setPendingVerify({ email: email.trim(), password });
         }
+      } else {
+        setError('Không thể tạo tài khoản. Vui lòng thử lại.');
       }
     }
     setLoading(false);
