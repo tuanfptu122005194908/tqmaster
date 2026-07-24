@@ -152,9 +152,12 @@ export default function AuthPage() {
 
       if ((data as any)?.success) {
         setPendingVerify({ email: email.trim(), password });
+      } else if (errMsg) {
+        // Nếu Edge Function trả về câu thông báo lỗi cụ thể (VD: Email đã được đăng ký,...)
+        setError(errMsg);
       } else {
-        // 2. Tự động chuyển hướng đăng ký trực tiếp qua Supabase Auth nếu Edge Function gặp sự cố 500
-        console.warn('signup-with-otp failed, falling back to direct supabase.auth.signUp:', errMsg || fnErr?.message);
+        // Chỉ fallback nếu Edge Function gặp lỗi hạ tầng không phản hồi
+        console.warn('signup-with-otp infrastructure error, falling back to direct supabase.auth.signUp:', fnErr?.message);
         
         const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
           email: email.trim(),
@@ -168,7 +171,9 @@ export default function AuthPage() {
         });
 
         if (signUpErr) {
-          setError(signUpErr.message === 'User already registered' ? 'Email này đã được đăng ký' : signUpErr.message);
+          setError(signUpErr.message === 'User already registered' || signUpErr.message?.includes('already registered')
+            ? 'Email này đã được đăng ký. Vui lòng chuyển sang Đăng nhập.'
+            : signUpErr.message);
         } else if (signUpData?.user) {
           if (signUpData.session) {
             setSuccess(true);
@@ -176,7 +181,7 @@ export default function AuthPage() {
             setPendingVerify({ email: email.trim(), password });
           }
         } else {
-          setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
+          setError('Không thể tạo tài khoản. Vui lòng thử lại.');
         }
       }
     }
