@@ -140,25 +140,27 @@ export default function AuthPage() {
       // 1. Gửi mã OTP 6 số qua Brevo API trực tiếp
       await sendBrevoOtpEmailDirect(cleanEmail, otpCode, fullName.trim()).catch(() => {});
 
-      // 2. Gọi Edge Function tạo user hậu trường (không dùng supabase.auth.signUp để tránh bị gửi email link mặc định)
-      const { data: edgeData } = await supabase.functions.invoke('signup-with-otp', {
-        body: {
-          action: 'signup',
+      // 2. Tạo tài khoản trong Supabase Auth
+      try {
+        const { error: signUpErr } = await supabase.auth.signUp({
           email: cleanEmail,
           password,
-          full_name: fullName.trim(),
-          student_code: studentCode.trim(),
-        },
-      }).catch(() => ({ data: null }));
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              student_code: studentCode.trim(),
+            },
+          },
+        });
 
-      const edgeErrorText = (edgeData as any)?.error;
-      if (edgeErrorText && (edgeErrorText.includes('đã được đăng ký') || edgeErrorText.includes('already registered'))) {
-        setError('Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.');
-        setLoading(false);
-        return;
-      }
+        if (signUpErr && (signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered'))) {
+          setError('Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.');
+          setLoading(false);
+          return;
+        }
+      } catch {}
 
-      // Chuyển thẳng sang màn hình nhập 6 số OTP (không gọi supabase.auth.signUp nữa)
+      // Chuyển sang màn hình nhập 6 số OTP
       setPendingVerify({ email: cleanEmail, password });
     }
     setLoading(false);

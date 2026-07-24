@@ -107,20 +107,9 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
 
-    // 3. Dự phòng xác thực qua Edge Function signup-with-otp
-    const { data, error } = await supabase.functions.invoke('signup-with-otp', {
-      body: { action: 'verify', email: cleanEmail, token },
-    }).catch(() => ({ data: null, error: null }));
-
+    // 3. Nếu không khớp mã OTP đã lưu hoặc Supabase Auth
     setVerifying(false);
-    let errMsg = (data as any)?.error;
-    if ((data as any)?.success || !errMsg) {
-      setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
-      onVerified();
-      return;
-    }
-
-    setMsg({ kind: 'err', text: 'Mã xác thực không đúng hoặc đã hết hạn. Vui lòng thử lại.' });
+    setMsg({ kind: 'err', text: 'Mã xác thực không đúng. Vui lòng kiểm tra lại mã 6 số gửi từ Brevo.' });
   };
 
   const resend = async () => {
@@ -140,11 +129,6 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
 
     // Gửi lại mã OTP trực tiếp qua Brevo API
     await sendBrevoOtpEmailDirect(cleanEmail, newOtpCode, fullName).catch(() => {});
-
-    // Thử kích hoạt Edge Function hậu trường
-    supabase.functions.invoke('signup-with-otp', {
-      body: { action: 'resend', email: cleanEmail },
-    }).catch(() => {});
 
     setSending(false);
     pushResend();
