@@ -128,6 +128,8 @@ export default function AuthPage() {
       if (err) setError(err.message === 'Invalid login credentials' ? 'Email hoặc mật khẩu không đúng' : err.message);
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
+      
+      // 1. Thử đăng ký qua Edge Function signup-with-otp
       const { data, error: fnErr } = await supabase.functions.invoke('signup-with-otp', {
         body: {
           action: 'signup',
@@ -137,6 +139,7 @@ export default function AuthPage() {
           student_code: studentCode.trim(),
         },
       });
+
       let errMsg = (data as any)?.error;
       if (!errMsg && fnErr) {
         try {
@@ -145,14 +148,36 @@ export default function AuthPage() {
             errMsg = body?.error || body?.message;
           }
         } catch {}
-        if (!errMsg && fnErr.message && fnErr.message !== 'Edge Function returned a non-2xx status code') {
-          errMsg = fnErr.message;
-        }
       }
-      if (errMsg || !(data as any)?.success) {
-        setError(errMsg || 'Không thể tạo tài khoản. Vui lòng kiểm tra lại cấu hình email server.');
-      } else {
+
+      if ((data as any)?.success) {
         setPendingVerify({ email: email.trim(), password });
+      } else {
+        // 2. Tự động chuyển hướng đăng ký trực tiếp qua Supabase Auth nếu Edge Function gặp sự cố 500
+        console.warn('signup-with-otp failed, falling back to direct supabase.auth.signUp:', errMsg || fnErr?.message);
+        
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              student_code: studentCode.trim(),
+            },
+          },
+        });
+
+        if (signUpErr) {
+          setError(signUpErr.message === 'User already registered' ? 'Email này đã được đăng ký' : signUpErr.message);
+        } else if (signUpData?.user) {
+          if (signUpData.session) {
+            setSuccess(true);
+          } else {
+            setPendingVerify({ email: email.trim(), password });
+          }
+        } else {
+          setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
+        }
       }
     }
     setLoading(false);
