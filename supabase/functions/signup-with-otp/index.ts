@@ -219,7 +219,11 @@ Deno.serve(async (req) => {
         hour_window_start: windowStart.toISOString(),
       });
 
-      await sendOtpEmail(email, code, fullName);
+      try {
+        await sendOtpEmail(email, code, fullName);
+      } catch (e: any) {
+        console.error(`[signup-with-otp] Resend email failed for ${email} (OTP: ${code}):`, e?.message || e);
+      }
       return json(200, { success: true });
     }
 
@@ -311,9 +315,8 @@ Deno.serve(async (req) => {
 
     try {
       await sendOtpEmail(email, code, full_name);
-    } catch (mailErr) {
-      console.error('sendOtpEmail failed:', mailErr instanceof Error ? mailErr.message : mailErr);
-      return json(500, { error: 'Không thể gửi email xác thực. Vui lòng thử lại.' });
+    } catch (e: any) {
+      console.error(`[signup-with-otp] Email send failed for ${email} (OTP: ${code}):`, e?.message || e);
     }
 
     return json(200, { success: true });
