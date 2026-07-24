@@ -256,6 +256,57 @@ Deno.serve(async (req) => {
       return json(200, { success: true });
     }
 
+    // ---------- ADMIN CREATE USER (Xác thực sẵn, không cần OTP) ----------
+    if (action === 'admin_create') {
+      const email = String(body.email || '').trim().toLowerCase();
+      const password = String(body.password || '');
+      const username = String(body.username || '').trim();
+      const full_name = String(body.full_name || '').trim();
+      const student_code = String(body.student_code || '').trim() || null;
+      const role = String(body.role || 'user').trim();
+
+      if (!email || !password || !username) {
+        return json(400, { error: 'Thiếu thông tin email, mật khẩu hoặc username' });
+      }
+
+      // Kiểm tra email đã tồn tại chưa
+      const { data: existingList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const existingUser = existingList?.users?.find(u => (u.email || '').toLowerCase() === email);
+      if (existingUser) {
+        return json(400, { error: 'Email này đã được đăng ký trên hệ thống.' });
+      }
+
+      // Tạo người dùng trực tiếp với email_confirm: true (xác thực sẵn)
+      const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { username, full_name: full_name || username, student_code },
+      });
+
+      if (createErr || !created?.user) {
+        return json(400, { error: createErr?.message || 'Không thể tạo tài khoản người dùng' });
+      }
+
+      const newUserId = created.user.id;
+
+      // Upsert profile
+      await supabase.from('profiles').upsert({
+        id: newUserId,
+        username,
+        full_name: full_name || username,
+        email,
+        student_code,
+      });
+
+      // Grant role nếu là admin
+      if (role === 'admin') {
+        await supabase.from('user_roles').insert({ user_id: newUserId, role: 'admin' });
+      }
+
+      return json(200, { success: true, user: created.user });
+    }
+
     // ---------- SIGNUP ----------
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
