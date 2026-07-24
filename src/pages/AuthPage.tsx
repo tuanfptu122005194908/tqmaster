@@ -146,6 +146,11 @@ export default function AuthPage() {
           ? 'Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.'
           : signUpErr.message);
       } else if (signUpData?.user) {
+        // Gửi OTP qua Brevo API Edge Function
+        await supabase.functions.invoke('signup-with-otp', {
+          body: { action: 'resend', email: email.trim() },
+        }).catch(() => {});
+
         if (signUpData.session) {
           setSuccess(true);
         } else {
