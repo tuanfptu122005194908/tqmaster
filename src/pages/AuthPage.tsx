@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
+import VerifyEmailPage from '@/pages/VerifyEmailPage';
 
 type Mode = 'login' | 'register' | 'forgot';
 
