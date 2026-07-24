@@ -47,19 +47,58 @@ function otpEmailHtml(code: string, fullName: string) {
 </div>`;
 }
 
+interface GmailAccount {
+  user: string;
+  pass: string;
+}
+
+function getGmailAccounts(): GmailAccount[] {
+  const list: GmailAccount[] = [];
+  const add = (user?: string, pass?: string) => {
+    if (user && pass) list.push({ user: user.trim(), pass: pass.trim() });
+  };
+
+  add(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
+  add(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
+  add(Deno.env.get('GMAIL_USER_3'), Deno.env.get('GMAIL_APP_PASSWORD_3'));
+
+  add('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
+  add('caothanhtuan664@gmail.com', 'skpwbkwnouqakzy');
+  add('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
+
+  const seen = new Set<string>();
+  return list.filter(acc => {
+    if (seen.has(acc.user.toLowerCase())) return false;
+    seen.add(acc.user.toLowerCase());
+    return true;
+  });
+}
+
 async function sendOtpEmail(to: string, code: string, fullName: string) {
-  const GMAIL_USER = Deno.env.get('GMAIL_USER') || 'quynhchi2klx@gmail.com';
-  const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'drfvyemdzjhrlnzo';
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
-  });
-  await transporter.sendMail({
-    from: `"TQMaster" <${GMAIL_USER}>`,
-    to,
-    subject: `🔐 Mã xác thực TQMaster: ${code}`,
-    html: otpEmailHtml(code, fullName),
-  });
+  const accounts = getGmailAccounts();
+  let lastErr: any = null;
+
+  for (const acc of accounts) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: acc.user, pass: acc.pass },
+      });
+      await transporter.sendMail({
+        from: `"TQMaster" <${acc.user}>`,
+        to,
+        subject: `🔐 Mã xác thực TQMaster: ${code}`,
+        html: otpEmailHtml(code, fullName),
+      });
+      console.log(`[signup-with-otp] Email sent successfully via ${acc.user}`);
+      return;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[signup-with-otp] Email via ${acc.user} failed:`, err instanceof Error ? err.message : err);
+    }
+  }
+
+  throw lastErr || new Error('Tất cả tài khoản Gmail đều không thể gửi email.');
 }
 
 Deno.serve(async (req) => {

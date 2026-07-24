@@ -59,12 +59,23 @@ Deno.serve(async (req) => {
       return ok();
     }
 
-    const GMAIL_USER = Deno.env.get('GMAIL_USER') || 'quynhchi2klx@gmail.com';
-    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'drfvyemdzjhrlnzo';
+    const accounts: Array<{ user: string; pass: string }> = [];
+    const addAcc = (user?: string, pass?: string) => {
+      if (user && pass) accounts.push({ user: user.trim(), pass: pass.trim() });
+    };
+    addAcc(Deno.env.get('GMAIL_USER'), Deno.env.get('GMAIL_APP_PASSWORD'));
+    addAcc(Deno.env.get('GMAIL_USER_2'), Deno.env.get('GMAIL_APP_PASSWORD_2'));
+    addAcc(Deno.env.get('GMAIL_USER_3'), Deno.env.get('GMAIL_APP_PASSWORD_3'));
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+    addAcc('lequyen2k555@gmail.com', 'ellgvghwrbrszixj');
+    addAcc('caothanhtuan664@gmail.com', 'skpwbkwnouqakzy');
+    addAcc('quynhchi2klx@gmail.com', 'drfvyemdzjhrlnzo');
+
+    const seenAccs = new Set<string>();
+    const validAccounts = accounts.filter(acc => {
+      if (seenAccs.has(acc.user.toLowerCase())) return false;
+      seenAccs.add(acc.user.toLowerCase());
+      return true;
     });
 
     const html = `
@@ -82,12 +93,24 @@ Deno.serve(async (req) => {
   </div>
 </div>`;
 
-    await transporter.sendMail({
-      from: `"TQMaster" <${GMAIL_USER}>`,
-      to: cleanEmail,
-      subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
-      html,
-    });
+    for (const acc of validAccounts) {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: { user: acc.user, pass: acc.pass },
+        });
+        await transporter.sendMail({
+          from: `"TQMaster" <${acc.user}>`,
+          to: cleanEmail,
+          subject: '🔐 Mật khẩu mới cho tài khoản TQMaster',
+          html,
+        });
+        console.log(`[forgot-password] Email sent successfully via ${acc.user}`);
+        break;
+      } catch (sendErr) {
+        console.warn(`[forgot-password] Email via ${acc.user} failed:`, sendErr instanceof Error ? sendErr.message : sendErr);
+      }
+    }
 
 
     return ok();
