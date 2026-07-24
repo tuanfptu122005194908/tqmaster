@@ -80,6 +80,22 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
     setVerifying(true);
+
+    // 1. Thử xác thực trực tiếp bằng Supabase Auth Native verifyOtp (Mã 6 số)
+    const { data: vData, error: vErr } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+
+    if (!vErr && (vData?.user || vData?.session)) {
+      setVerifying(false);
+      setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
+      onVerified();
+      return;
+    }
+
+    // 2. Dự phòng xác thực qua Edge Function signup-with-otp
     const { data, error } = await supabase.functions.invoke('signup-with-otp', {
       body: { action: 'verify', email, token },
     });
@@ -97,7 +113,7 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       }
     }
     if (errMsg || !(data as any)?.success) {
-      setMsg({ kind: 'err', text: errMsg || 'Xác thực thất bại. Vui lòng thử lại.' });
+      setMsg({ kind: 'err', text: vErr?.message || errMsg || 'Xác thực thất bại. Vui lòng thử lại.' });
       return;
     }
     setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
@@ -112,24 +128,19 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
     setSending(true);
-    const { data, error } = await supabase.functions.invoke('signup-with-otp', {
-      body: { action: 'resend', email },
+
+    const { error: resendErr } = await supabase.auth.resend({
+      type: 'signup',
+      email,
     });
+
+    await supabase.functions.invoke('signup-with-otp', {
+      body: { action: 'resend', email },
+    }).catch(() => {});
+
     setSending(false);
-    let errMsg = (data as any)?.error;
-    if (!errMsg && error) {
-      try {
-        if ((error as any).context && typeof (error as any).context.json === 'function') {
-          const body = await (error as any).context.json();
-          errMsg = body?.error || body?.message;
-        }
-      } catch {}
-      if (!errMsg && error.message && error.message !== 'Edge Function returned a non-2xx status code') {
-        errMsg = error.message;
-      }
-    }
-    if (errMsg || !(data as any)?.success) {
-      setMsg({ kind: 'err', text: errMsg || 'Không thể gửi lại mã. Vui lòng thử lại.' });
+    if (resendErr) {
+      setMsg({ kind: 'err', text: resendErr.message || 'Không thể gửi lại mã. Vui lòng thử lại.' });
     } else {
       pushResend();
       setCooldown(RESEND_COOLDOWN_S);
