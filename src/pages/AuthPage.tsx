@@ -154,6 +154,27 @@ export default function AuthPage() {
 
   if (!mounted) return null;
 
+  if (pendingVerify) {
+    return (
+      <VerifyEmailPage
+        email={pendingVerify.email}
+        onVerified={async () => {
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: pendingVerify.email,
+            password: pendingVerify.password,
+          });
+          setPendingVerify(null);
+          if (signInErr) {
+            setMode('login');
+            setEmail(pendingVerify.email);
+            setError('Xác thực thành công. Vui lòng đăng nhập.');
+          }
+        }}
+      />
+    );
+  }
+
+
   return (
     <div style={{
       minHeight: '100vh',
