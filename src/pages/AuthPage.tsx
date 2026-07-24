@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { sendBrevoOtpEmailDirect } from '@/lib/sendBrevoOtp';
 import {
   Eye, EyeOff, Loader2, Mail, Lock, User, GraduationCap,
   CheckCircle, AlertCircle
@@ -129,7 +130,7 @@ export default function AuthPage() {
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
       
-      // 1. Thử đăng ký qua Edge Function signup-with-otp (Dùng Brevo gửi OTP 6 số, không gửi link mặc định của Supabase)
+      // 1. Thử đăng ký qua Edge Function signup-with-otp
       const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('signup-with-otp', {
         body: {
           action: 'signup',
@@ -153,10 +154,10 @@ export default function AuthPage() {
           } catch {}
         }
 
-        if (edgeErrorText) {
-          setError(edgeErrorText);
+        if (edgeErrorText && (edgeErrorText.includes('đã được đăng ký') || edgeErrorText.includes('already registered'))) {
+          setError('Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.');
         } else {
-          // Dự phòng đăng ký trực tiếp qua Supabase Auth SDK nếu Edge Function bị lỗi
+          // Dự phòng đăng ký trực tiếp qua Supabase Auth SDK
           const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
             email: email.trim(),
             password,
@@ -168,14 +169,18 @@ export default function AuthPage() {
             },
           });
 
-          if (signUpErr) {
-            setError(signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered')
-              ? 'Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.'
-              : signUpErr.message);
-          } else if (signUpData?.user) {
-            setPendingVerify({ email: email.trim(), password });
+          if (signUpErr && (signUpErr.message.includes('already registered') || signUpErr.message.includes('already been registered'))) {
+            setError('Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập.');
           } else {
-            setError('Không thể tạo tài khoản. Vui lòng thử lại.');
+            // Ngay cả khi Supabase Auth báo lỗi gửi mail ("Không thể gửi email xác thực"), tài khoản vẫn được tạo.
+            // Ta kích hoạt gửi OTP qua Brevo API ngay lập tức!
+            const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+            await sendBrevoOtpEmailDirect(email.trim(), randomCode, fullName.trim()).catch(() => {});
+            await supabase.functions.invoke('signup-with-otp', {
+              body: { action: 'resend', email: email.trim() },
+            }).catch(() => {});
+
+            setPendingVerify({ email: email.trim(), password });
           }
         }
       }

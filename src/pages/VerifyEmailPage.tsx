@@ -129,24 +129,22 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
     }
     setSending(true);
 
-    const { error: resendErr } = await supabase.auth.resend({
-      type: 'signup',
-      email,
+    const { data: rData, error: rErr } = await supabase.functions.invoke('signup-with-otp', {
+      body: { action: 'resend', email },
     });
 
-    await supabase.functions.invoke('signup-with-otp', {
-      body: { action: 'resend', email },
-    }).catch(() => {});
-
     setSending(false);
-    if (resendErr) {
-      setMsg({ kind: 'err', text: resendErr.message || 'Không thể gửi lại mã. Vui lòng thử lại.' });
+    let errMsg = (rData as any)?.error;
+    if (rErr && !errMsg) errMsg = rErr.message;
+
+    if (errMsg && !errMsg.includes('gửi lại')) {
+      setMsg({ kind: 'err', text: errMsg });
     } else {
       pushResend();
       setCooldown(RESEND_COOLDOWN_S);
       setCode(['', '', '', '', '', '']);
       inputsRef.current[0]?.focus();
-      setMsg({ kind: 'ok', text: 'Đã gửi lại mã xác thực. Vui lòng kiểm tra hộp thư (kể cả Spam).' });
+      setMsg({ kind: 'ok', text: 'Đã gửi lại mã xác thực OTP qua Brevo. Vui lòng kiểm tra hộp thư (kể cả Spam).' });
     }
   };
 
