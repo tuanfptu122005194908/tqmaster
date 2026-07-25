@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
+import { parseFunctionError } from '@/lib/utils';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, generateOrderId, subjectColor, subjectInitials } from '@/lib/mockData';
 import {
@@ -136,8 +137,9 @@ export default function CartPage() {
         },
       });
 
-      if (error || !data?.orderId) {
-        const msg = (data as any)?.error || error?.message || 'Không thể tạo đơn hàng. Vui lòng thử lại.';
+      const parsedError = await parseFunctionError(data, error);
+      if (parsedError || !data?.orderId) {
+        const msg = parsedError || 'Không thể tạo đơn hàng. Vui lòng thử lại.';
         alert(msg);
         return;
       }

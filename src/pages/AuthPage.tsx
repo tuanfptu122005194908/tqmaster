@@ -9,6 +9,7 @@ import logoAvatar from '@/assets/logo-avatar.png';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
 import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import { toast } from 'sonner';
+import { parseFunctionError } from '@/lib/utils';
 
 // Google SVG Icon
 const GoogleIcon = () => (
@@ -147,11 +148,12 @@ export default function AuthPage() {
     if (mode === 'forgot') {
       if (!email.trim()) { setError('Vui lòng nhập email'); return; }
       setLoading(true);
-      const { error: err } = await supabase.functions.invoke('forgot-password', {
+      const { data, error: err } = await supabase.functions.invoke('forgot-password', {
         body: { email: email.trim() },
       });
       setLoading(false);
-      if (err) { setError('Có lỗi xảy ra, vui lòng thử lại'); return; }
+      const errMsg = await parseFunctionError(data, err);
+      if (errMsg || err) { setError(errMsg || 'Có lỗi xảy ra, vui lòng thử lại'); return; }
       setSuccess(true);
       return;
     }
@@ -173,7 +175,7 @@ export default function AuthPage() {
           student_code: studentCode.trim(),
         },
       });
-      const errMsg = (data as any)?.error || fnErr?.message;
+      const errMsg = await parseFunctionError(data, fnErr);
       if (errMsg || !(data as any)?.success) {
         setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
       } else {
@@ -292,34 +294,14 @@ export default function AuthPage() {
             {mode === 'login'
               ? 'Đăng nhập để bắt đầu làm bài thi và xem lý thuyết'
               : mode === 'register'
-              ? 'Đăng ký tài khoản để học tập miễn phí trên TQMaster'
+              ? 'Sử dụng tài khoản Google để đăng ký nhanh chóng'
               : 'Nhập email của bạn để lấy lại mật khẩu nhanh chóng'}
           </p>
         </div>
 
         {/* Form */}
+        {mode !== 'register' && (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {mode === 'register' && (
-            <>
-              <Field
-                icon={<User size={20} />}
-                label="Họ và tên"
-                id="fullName"
-                value={fullName}
-                onChange={setFullName}
-                placeholder="Nguyễn Văn A"
-              />
-              <Field
-                icon={<GraduationCap size={20} />}
-                label="Mã sinh viên"
-                id="studentCode"
-                value={studentCode}
-                onChange={setStudentCode}
-                placeholder="VD: 2021XXXXXX"
-                mono
-              />
-            </>
-          )}
 
           <Field
             icon={<Mail size={20} />}
@@ -495,9 +477,10 @@ export default function AuthPage() {
             )}
           </button>
         </form>
+        )}
 
         {/* Divider */}
-        {mode !== 'forgot' && (
+        {mode === 'login' && (
           <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
             <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
             <span style={{ padding: '0 12px', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>HOẶC</span>

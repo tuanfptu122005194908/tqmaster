@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Loader2, RefreshCw, CheckCircle, LogOut, AlertCircle, ShieldAlert, KeyRound } from 'lucide-react';
+import { parseFunctionError } from '@/lib/utils';
 
 const RESEND_COOLDOWN_S = 60;
 const RESEND_MAX_PER_HOUR = 3;
@@ -84,7 +85,7 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       body: { action: 'verify', email, token },
     });
     setVerifying(false);
-    const errMsg = (data as any)?.error || error?.message;
+    const errMsg = await parseFunctionError(data, error);
     if (errMsg || !(data as any)?.success) {
       setMsg({ kind: 'err', text: errMsg || 'Xác thực thất bại. Vui lòng thử lại.' });
       return;
@@ -105,7 +106,7 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       body: { action: 'resend', email },
     });
     setSending(false);
-    const errMsg = (data as any)?.error || error?.message;
+    const errMsg = await parseFunctionError(data, error);
     if (errMsg || !(data as any)?.success) {
       setMsg({ kind: 'err', text: errMsg || 'Không thể gửi lại mã. Vui lòng thử lại.' });
     } else {
