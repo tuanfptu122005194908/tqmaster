@@ -64,6 +64,19 @@ async function sendOtpEmail(to: string, code: string, fullName: string) {
   });
 }
 
+async function findUserByEmail(supabase: any, email: string) {
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) break;
+    const users = data?.users || [];
+    const hit = users.find((u: any) => (u.email || '').toLowerCase() === target);
+    if (hit) return hit;
+    if (users.length < 200) break;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -81,12 +94,10 @@ Deno.serve(async (req) => {
       const email = String(body.email || '').trim().toLowerCase();
       if (!email) return json(400, { error: 'Email không hợp lệ' });
 
-      const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
-      const user = list?.users?.find(u => (u.email || '').toLowerCase() === email);
+      const user = await findUserByEmail(supabase, email);
       if (!user) return json(404, { error: 'Không tìm thấy tài khoản' });
       if (user.email_confirmed_at) return json(400, { error: 'Email đã được xác thực' });
 
-      // Rate limit: 3 lần / giờ
       const { data: existing } = await supabase.from('signup_otps').select('*').eq('user_id', user.id).maybeSingle();
       const now = new Date();
       let windowStart = existing ? new Date(existing.hour_window_start) : now;
@@ -128,8 +139,7 @@ Deno.serve(async (req) => {
       const token = String(body.token || '').trim();
       if (!email || !/^\d{6}$/.test(token)) return json(400, { error: 'Mã không hợp lệ' });
 
-      const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
-      const user = list?.users?.find(u => (u.email || '').toLowerCase() === email);
+      const user = await findUserByEmail(supabase, email);
       if (!user) return json(404, { error: 'Không tìm thấy tài khoản' });
       if (user.email_confirmed_at) return json(200, { success: true, already: true });
 
@@ -162,13 +172,11 @@ Deno.serve(async (req) => {
     if (!full_name) return json(400, { error: 'Vui lòng nhập họ tên' });
 
     // Kiểm tra email đã tồn tại
-    const { data: existingList } = await supabase.auth.admin.listUsers({ page: 1, perPage: 200 });
-    const existingUser = existingList?.users?.find(u => (u.email || '').toLowerCase() === email);
+    const existingUser = await findUserByEmail(supabase, email);
     if (existingUser) {
       if (existingUser.email_confirmed_at) {
         return json(400, { error: 'Email này đã được đăng ký' });
       }
-      // Chưa xác thực → xoá và tạo lại (để đổi mật khẩu/họ tên nếu user nhập lại)
       await supabase.auth.admin.deleteUser(existingUser.id);
     }
 
