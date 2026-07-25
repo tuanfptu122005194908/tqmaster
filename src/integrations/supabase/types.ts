@@ -857,6 +857,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_confirm_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       cleanup_unverified_users: { Args: never; Returns: undefined }
       delete_user_by_admin: {
         Args: { target_user_id: string }
