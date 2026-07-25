@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
+import VerifyEmailPage from '@/pages/VerifyEmailPage';
 
 type Mode = 'login' | 'register' | 'forgot';
 
@@ -82,6 +83,7 @@ export default function AuthPage() {
   const [studentCode, setStudentCode] = useState('');
   const [mounted, setMounted] = useState(false);
   const [countdown, setCountdown] = useState(60);
+  const [pendingVerify, setPendingVerify] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -126,17 +128,20 @@ export default function AuthPage() {
       if (err) setError(err.message === 'Invalid login credentials' ? 'Email hoặc mật khẩu không đúng' : err.message);
     } else {
       if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
-      const { error: signUpErr } = await supabase.auth.signUp({
-        email, password,
-        options: {
-          emailRedirectTo: 'https://tqmaster.vercel.app/',
-          data: { full_name: fullName, student_code: studentCode },
+      const { data, error: fnErr } = await supabase.functions.invoke('signup-with-otp', {
+        body: {
+          action: 'signup',
+          email: email.trim(),
+          password,
+          full_name: fullName.trim(),
+          student_code: studentCode.trim(),
         },
       });
-      if (signUpErr) {
-        setError(signUpErr.message.includes('already') ? 'Email này đã được đăng ký' : signUpErr.message);
+      const errMsg = (data as any)?.error || fnErr?.message;
+      if (errMsg || !(data as any)?.success) {
+        setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
       } else {
-        setSuccess(true);
+        setPendingVerify({ email: email.trim(), password });
       }
     }
     setLoading(false);
@@ -148,6 +153,27 @@ export default function AuthPage() {
   };
 
   if (!mounted) return null;
+
+  if (pendingVerify) {
+    return (
+      <VerifyEmailPage
+        email={pendingVerify.email}
+        onVerified={async () => {
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: pendingVerify.email,
+            password: pendingVerify.password,
+          });
+          setPendingVerify(null);
+          if (signInErr) {
+            setMode('login');
+            setEmail(pendingVerify.email);
+            setError('Xác thực thành công. Vui lòng đăng nhập.');
+          }
+        }}
+      />
+    );
+  }
+
 
   return (
     <div style={{
@@ -363,19 +389,34 @@ export default function AuthPage() {
                 </div>
               ) : (
                 <div style={{
-                  padding: 18, background: '#eff6ff', border: '1.5px solid #bfdbfe',
-                  borderRadius: 16, fontSize: 13, color: '#1e3a8a'
+                  padding: '20px 22px', background: '#eff6ff', border: '1.5px solid #93c5fd',
+                  borderRadius: 18, fontSize: 13.5, color: '#1e3a8a',
+                  boxShadow: '0 8px 24px rgba(37, 99, 235, 0.12)'
                 }}>
-                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 6, color: '#1d4ed8' }}>
-                    🚀 XÁC THỰC EMAIL ĐĂNG KÝ ({countdown}s)
+                  <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 8, color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>🚀 HƯỚNG DẪN XÁC THỰC EMAIL ({countdown}s)</span>
                   </div>
-                  <p style={{ margin: 0, lineHeight: 1.5 }}>
-                    Vui lòng mở hộp thư Gmail của bạn và bấm vào liên kết <b>"Verify Email"</b> để hoàn tất đăng ký!
+                  <p style={{ margin: '0 0 10px 0', lineHeight: 1.5, fontWeight: 600, color: '#1e40af' }}>
+                    Email xác thực đã được gửi tới <b>{email}</b>. Vui lòng làm theo các bước sau:
                   </p>
+                  <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.65, color: '#1e3a8a', fontSize: 13 }}>
+                    <li style={{ marginBottom: 4 }}>Mở ứng dụng hoặc trang web <b>Gmail / Email</b> của bạn.</li>
+                    <li style={{ marginBottom: 4, color: '#dc2626', fontWeight: 700 }}>
+                      ⚠️ Kiểm tra thư mục <u>Thư rác (Spam)</u> hoặc <u>Quảng cáo (Promotions)</u> nếu không thấy ở Hộp thư đến.
+                    </li>
+                    <li style={{ marginBottom: 4 }}>Bấm vào thư từ <b>TQMaster</b> và nhấn <b>"Không phải Spam" (Not Spam)</b>.</li>
+                    <li>Lấy mã OTP hoặc click vào nút <b>"Verify Email"</b> để hoàn tất đăng ký!</li>
+                  </ol>
                   <button
                     type="button"
                     onClick={() => { setMode('login'); setSuccess(false); }}
-                    style={{ marginTop: 12, background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 10, padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
+                    style={{
+                      marginTop: 14, width: '100%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      color: '#ffffff', border: 'none', borderRadius: 12, padding: '10px 16px',
+                      fontWeight: 800, fontSize: 13.5, cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                    }}
                   >
                     Chuyển sang Đăng nhập ngay →
                   </button>

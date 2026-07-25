@@ -49,13 +49,6 @@ export default function AdminOrders() {
       toast.error('Lỗi: ' + error.message);
     } else {
       toast.success(status === 'approved' ? 'Đã duyệt đơn hàng' : 'Đã từ chối đơn hàng');
-      if (status === 'approved') {
-        supabase.functions.invoke('notify-order-approved', { body: { orderId: id } })
-          .then(({ error: mailErr }) => {
-            if (mailErr) toast.error('Đã duyệt nhưng gửi email thông báo thất bại');
-            else toast.success('Đã gửi email thông báo cho khách hàng');
-          });
-      }
     }
     setViewOrder(v => v?.id === id ? { ...v, status } : v);
     await fetch();

@@ -80,10 +80,13 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
     setVerifying(true);
-    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+    const { data, error } = await supabase.functions.invoke('signup-with-otp', {
+      body: { action: 'verify', email, token },
+    });
     setVerifying(false);
-    if (error) {
-      setMsg({ kind: 'err', text: error.message.includes('expired') || error.message.includes('invalid') ? 'Mã không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại hoặc gửi mã mới.' : error.message });
+    const errMsg = (data as any)?.error || error?.message;
+    if (errMsg || !(data as any)?.success) {
+      setMsg({ kind: 'err', text: errMsg || 'Xác thực thất bại. Vui lòng thử lại.' });
       return;
     }
     setMsg({ kind: 'ok', text: 'Xác thực thành công! Đang chuyển hướng...' });
@@ -98,10 +101,13 @@ export default function VerifyEmailPage({ email, onVerified }: { email: string; 
       return;
     }
     setSending(true);
-    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    const { data, error } = await supabase.functions.invoke('signup-with-otp', {
+      body: { action: 'resend', email },
+    });
     setSending(false);
-    if (error) {
-      setMsg({ kind: 'err', text: error.message });
+    const errMsg = (data as any)?.error || error?.message;
+    if (errMsg || !(data as any)?.success) {
+      setMsg({ kind: 'err', text: errMsg || 'Không thể gửi lại mã. Vui lòng thử lại.' });
     } else {
       pushResend();
       setCooldown(RESEND_COOLDOWN_S);

@@ -286,28 +286,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
 
-    // Real-time subscription for orders (only if admin)
-    let ordersSubscription: any = null;
-    if (isAdmin) {
-      ordersSubscription = supabase
-        .channel('admin-orders-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-          refreshPendingOrdersCount();
-        })
-        .subscribe();
-    }
-
     return () => {
       mounted = false;
       clearTimeout(safety);
       subscription.unsubscribe();
-      if (ordersSubscription) ordersSubscription.unsubscribe();
       if (sessionVisibilityHandlerRef.current) {
         document.removeEventListener('visibilitychange', sessionVisibilityHandlerRef.current);
         sessionVisibilityHandlerRef.current = null;
       }
     };
-  }, [loadProfileAndRole, refreshPurchased, isAdmin, refreshPendingOrdersCount, enforceSingleSession]);
+  }, [loadProfileAndRole, refreshPurchased, refreshPendingOrdersCount, enforceSingleSession]);
+
+  // ── Real-time subscription for orders (admin badge) ─────
+  // Separated from auth useEffect so it only depends on isAdmin
+  // and doesn't cause the auth listener to be torn down & re-created.
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    // Fetch count immediately when becoming admin
+    refreshPendingOrdersCount();
+
+    const ordersChannel = supabase
+      .channel('admin-orders-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          refreshPendingOrdersCount();
+        }
+      )
+      .subscribe((status) => {
+        console.log('admin-orders-realtime channel status:', status);
+      });
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+    };
+  }, [isAdmin, refreshPendingOrdersCount]);
 
   // ── Cart helpers ─────────────────────────────────────────
   const addToCart = (s: Subject | string) => {
