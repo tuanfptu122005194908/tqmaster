@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import {
   Eye, EyeOff, Loader2, Mail, Lock, User, GraduationCap,
   CheckCircle, AlertCircle
