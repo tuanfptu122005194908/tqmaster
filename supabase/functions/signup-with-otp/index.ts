@@ -97,7 +97,42 @@ Deno.serve(async (req) => {
       const user = await findUserByEmail(supabase, email);
       if (!user) return json(404, { error: 'Không tìm thấy tài khoản' });
       if (user.email_confirmed_at) return json(400, { error: 'Email đã được xác thực' });
-...
+
+      const { data: existing } = await supabase.from('signup_otps').select('*').eq('user_id', user.id).maybeSingle();
+      const now = new Date();
+      let windowStart = existing ? new Date(existing.hour_window_start) : now;
+      let sentCount = existing?.sent_count_hour ?? 0;
+      if (now.getTime() - windowStart.getTime() > 3600_000) {
+        windowStart = now;
+        sentCount = 0;
+      }
+      if (sentCount >= 3) {
+        return json(429, { error: 'Bạn đã gửi quá 3 lần trong 1 giờ. Vui lòng thử lại sau.' });
+      }
+      if (existing && now.getTime() - new Date(existing.last_sent_at).getTime() < 55_000) {
+        return json(429, { error: 'Vui lòng đợi ít nhất 60 giây trước khi gửi lại.' });
+      }
+
+      const code = genCode();
+      const code_hash = await sha256(`${email}:${code}`);
+      const expires_at = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      const fullName = (user.user_metadata as any)?.full_name || '';
+
+      await supabase.from('signup_otps').upsert({
+        user_id: user.id,
+        email,
+        code_hash,
+        expires_at,
+        attempts: 0,
+        last_sent_at: now.toISOString(),
+        sent_count_hour: sentCount + 1,
+        hour_window_start: windowStart.toISOString(),
+      });
+
+      await sendOtpEmail(email, code, fullName);
+      return json(200, { success: true });
+    }
+
     // ---------- VERIFY ----------
     if (action === 'verify') {
       const email = String(body.email || '').trim().toLowerCase();
@@ -107,14 +142,41 @@ Deno.serve(async (req) => {
       const user = await findUserByEmail(supabase, email);
       if (!user) return json(404, { error: 'Không tìm thấy tài khoản' });
       if (user.email_confirmed_at) return json(200, { success: true, already: true });
-...
+
+      const { data: row } = await supabase.from('signup_otps').select('*').eq('user_id', user.id).maybeSingle();
+      if (!row) return json(400, { error: 'Không có mã xác thực. Vui lòng gửi lại mã.' });
+      if (new Date(row.expires_at).getTime() < Date.now()) return json(400, { error: 'Mã đã hết hạn. Vui lòng gửi lại mã mới.' });
+      if (row.attempts >= 5) return json(429, { error: 'Bạn đã nhập sai quá nhiều lần. Vui lòng gửi lại mã mới.' });
+
+      const hash = await sha256(`${email}:${token}`);
+      if (hash !== row.code_hash) {
+        await supabase.from('signup_otps').update({ attempts: row.attempts + 1 }).eq('user_id', user.id);
+        return json(400, { error: 'Mã không đúng. Vui lòng kiểm tra lại.' });
+      }
+
+      const { error: updErr } = await supabase.auth.admin.updateUserById(user.id, { email_confirm: true });
+      if (updErr) return json(500, { error: updErr.message });
+
+      await supabase.from('signup_otps').delete().eq('user_id', user.id);
+      return json(200, { success: true });
+    }
+
+    // ---------- SIGNUP ----------
+    const email = String(body.email || '').trim().toLowerCase();
+    const password = String(body.password || '');
+    const full_name = String(body.full_name || '').trim();
+    const student_code = String(body.student_code || '').trim() || null;
+
+    if (!email || !password) return json(400, { error: 'Thiếu email hoặc mật khẩu' });
+    if (password.length < 8) return json(400, { error: 'Mật khẩu phải có ít nhất 8 ký tự' });
+    if (!full_name) return json(400, { error: 'Vui lòng nhập họ tên' });
+
     // Kiểm tra email đã tồn tại
     const existingUser = await findUserByEmail(supabase, email);
     if (existingUser) {
       if (existingUser.email_confirmed_at) {
         return json(400, { error: 'Email này đã được đăng ký' });
       }
-      // Chưa xác thực → xoá và tạo lại (để đổi mật khẩu/họ tên nếu user nhập lại)
       await supabase.auth.admin.deleteUser(existingUser.id);
     }
 
