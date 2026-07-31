@@ -48,8 +48,8 @@ interface AppContextValue {
   setSelectedSubjectId: (id: string | null) => void;
   selectedExamId:     string | null;
   setSelectedExamId:  (id: string | null) => void;
-  examMode:           'practice' | 'exam' | null;
-  setExamMode:        (m: 'practice' | 'exam' | null) => void;
+  examMode:           'practice' | 'exam' | 'flashcard' | null;
+  setExamMode:        (m: 'practice' | 'exam' | 'flashcard' | null) => void;
 
   // Cart (local only — subjects not yet paid)
   cart:         CartItem[];
@@ -81,7 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentView,        setCurrentView]        = useState<ViewKey>(() => (localStorage.getItem('currentView') as ViewKey) || 'home');
   const [selectedSubjectId,  setSelectedSubjectId]  = useState<string | null>(() => localStorage.getItem('selectedSubjectId'));
   const [selectedExamId,     setSelectedExamId]     = useState<string | null>(() => localStorage.getItem('selectedExamId'));
-  const [examMode,           setExamMode]           = useState<'practice' | 'exam' | null>(() => localStorage.getItem('examMode') as any);
+  const [examMode,           setExamMode]           = useState<'practice' | 'exam' | 'flashcard' | null>(() => localStorage.getItem('examMode') as any);
 
   const [cart,          setCart]          = useState<CartItem[]>([]);
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);

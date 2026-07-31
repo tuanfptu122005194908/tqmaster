@@ -6,7 +6,7 @@ import { formatPrice, formatDate } from '@/lib/mockData';
 import {
   ArrowLeft, ShoppingCart, CheckCircle, Clock,
   BookOpen, Bell, FileText, ExternalLink,
-  Download, Image as ImageIcon, Play, Eye, Loader2, Lock, Star,
+  Download, Image as ImageIcon, Play, Eye, Loader2, Lock, Star, Layers
 } from 'lucide-react';
 
 type Subject       = Tables<'subjects'>;
@@ -357,6 +357,13 @@ export default function SubjectDetailPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0 }}>
+                    <button
+                      id={`flashcard-${exam.id}`}
+                      className="btn-ghost"
+                      onClick={() => startExam(exam.id, 'flashcard')}
+                    >
+                      <Layers size={14} /> Flashcard
+                    </button>
                     <button
                       id={`practice-${exam.id}`}
                       className="btn-ghost"
