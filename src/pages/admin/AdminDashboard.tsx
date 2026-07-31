@@ -45,8 +45,10 @@ function RevenueTooltip({ active, payload, label }: any) {
 
 type RevFilter = 'day' | 'week' | 'month' | 'year';
 
+import { useNavigate } from 'react-router-dom';
+
 export default function AdminDashboard() {
-  const { setCurrentView } = useApp();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<(OrderItem & { subject_name?: string })[]>([]);
@@ -253,7 +255,7 @@ export default function AdminDashboard() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            onClick={() => setCurrentView('admin-orders')}
+            onClick={() => navigate('/admin/orders')}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px',
               background: '#2563eb', color: '#ffffff', border: 'none',
@@ -609,7 +611,7 @@ export default function AdminDashboard() {
             </div>
 
             <button
-              onClick={() => setCurrentView('admin-orders')}
+              onClick={() => navigate('/admin/orders')}
               style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '7px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 12.5, fontWeight: 700, color: '#2563eb', background: '#eff6ff', cursor: 'pointer' }}
             >
               Xem tất cả đơn ({stats.orders}) <ChevronRight size={14} />

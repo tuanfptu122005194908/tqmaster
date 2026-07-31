@@ -19,11 +19,7 @@ export type Subject  = Tables<'subjects'>;
 export type Profile  = Tables<'profiles'>;
 export type CartItem = Subject;
 
-export type ViewKey =
-  | 'home' | 'my-courses' | 'cart' | 'subject-detail' | 'exam' | 'profile' | 'news' | 'study-hub'
-  | 'admin-dashboard' | 'admin-subjects' | 'admin-exams'
-  | 'admin-theory' | 'admin-announcements' | 'admin-orders'
-  | 'admin-coupons' | 'admin-users' | 'admin-settings' | 'admin-news';
+
 
 interface AppContextValue {
   // Auth
@@ -39,17 +35,8 @@ interface AppContextValue {
   refreshAuthUser:    () => Promise<void>;
   signOut:            () => Promise<void>;
 
-  // Navigation
-  currentView:        ViewKey;
-  setCurrentView:     (v: ViewKey) => void;
   searchQuery:        string;
   setSearchQuery:     (q: string) => void;
-  selectedSubjectId:  string | null;
-  setSelectedSubjectId: (id: string | null) => void;
-  selectedExamId:     string | null;
-  setSelectedExamId:  (id: string | null) => void;
-  examMode:           'practice' | 'exam' | 'flashcard' | null;
-  setExamMode:        (m: 'practice' | 'exam' | 'flashcard' | null) => void;
 
   // Cart (local only — subjects not yet paid)
   cart:         CartItem[];
@@ -78,19 +65,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [mustChangePassword, setMustChangePassword] = useState(false);
-  const [currentView,        setCurrentView]        = useState<ViewKey>(() => (localStorage.getItem('currentView') as ViewKey) || 'home');
-  const [selectedSubjectId,  setSelectedSubjectId]  = useState<string | null>(() => localStorage.getItem('selectedSubjectId'));
-  const [selectedExamId,     setSelectedExamId]     = useState<string | null>(() => localStorage.getItem('selectedExamId'));
-  const [examMode,           setExamMode]           = useState<'practice' | 'exam' | 'flashcard' | null>(() => localStorage.getItem('examMode') as any);
 
   const [cart,          setCart]          = useState<CartItem[]>([]);
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
-  useEffect(() => { localStorage.setItem('currentView', currentView); }, [currentView]);
-  useEffect(() => { if (selectedSubjectId) localStorage.setItem('selectedSubjectId', selectedSubjectId); else localStorage.removeItem('selectedSubjectId'); }, [selectedSubjectId]);
-  useEffect(() => { if (selectedExamId) localStorage.setItem('selectedExamId', selectedExamId); else localStorage.removeItem('selectedExamId'); }, [selectedExamId]);
-  useEffect(() => { if (examMode) localStorage.setItem('examMode', examMode); else localStorage.removeItem('examMode'); }, [examMode]);
+
 
   // ── Load profile + role ──────────────────────────────────
   const loadProfileAndRole = useCallback(async (userId: string) => {
@@ -260,7 +240,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (event === 'SIGNED_IN') {
               enforceSingleSession(session.user.id);
               setSearchQuery('');
-              if (!localStorage.getItem('currentView')) setCurrentView('home');
             }
           }
         } else {
@@ -280,7 +259,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setPurchasedIds([]);
           setCart([]);
           setSearchQuery('');
-          setCurrentView('home');
         }
       }, 0);
     });
@@ -358,14 +336,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [loadProfileAndRole, refreshPurchased]);
 
-  // ── Admin view guard ─────────────────────────────────────
-  // If user is not admin but somehow lands on admin view, redirect
-  // Only redirect after auth is fully loaded and we're sure user is not admin
-  useEffect(() => {
-    if (!authLoading && profile && !isAdmin && currentView.startsWith('admin-')) {
-      setCurrentView('home');
-    }
-  }, [authLoading, profile, isAdmin, currentView]);
 
   const [searchQuery,       setSearchQuery]       = useState('');
 
@@ -374,11 +344,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     passwordRecovery, clearPasswordRecovery: () => setPasswordRecovery(false),
     mustChangePassword, clearMustChangePassword: () => setMustChangePassword(false),
     refreshAuthUser, signOut,
-    currentView, setCurrentView,
     searchQuery, setSearchQuery,
-    selectedSubjectId, setSelectedSubjectId,
-    selectedExamId, setSelectedExamId,
-    examMode, setExamMode,
     cart, addToCart, removeFromCart, clearCart, isInCart,
     purchasedIds, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,

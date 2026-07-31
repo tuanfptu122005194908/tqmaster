@@ -21,8 +21,12 @@ const NAV = [
   { key: 'admin-settings',      label: 'Cài đặt',     icon: Settings },
 ];
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 export default function AdminSidebar() {
-  const { currentView, setCurrentView, pendingOrdersCount } = useApp();
+  const { pendingOrdersCount } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <aside style={{
@@ -80,7 +84,8 @@ export default function AdminSidebar() {
           if (!item) return (
             <div key={i} style={{ height: 1, background: '#f1f5f9', margin: '10px 8px' }} />
           );
-          const active = currentView === item.key;
+          const pathName = `/admin/${item.key.replace('admin-', '')}`;
+          const active = location.pathname === pathName;
           const Icon   = item.icon;
           const hasBadge = item.key === 'admin-orders' && pendingOrdersCount > 0;
 
@@ -88,7 +93,7 @@ export default function AdminSidebar() {
             <button
               key={item.key}
               id={`admin-nav-${item.key}`}
-              onClick={() => setCurrentView(item.key as any)}
+              onClick={() => navigate(pathName)}
               style={{
                 width: '100%',
                 display: 'flex',

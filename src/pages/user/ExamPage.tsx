@@ -14,8 +14,14 @@ function formatTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+
 export default function ExamPage() {
-  const { selectedExamId, examMode, setCurrentView, setExamMode, profile } = useApp();
+  const { id: selectedExamId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const examMode = searchParams.get('mode');
+  const navigate = useNavigate();
+  const { profile } = useApp();
 
   const [exam,      setExam]      = useState<Exam | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -162,7 +168,7 @@ export default function ExamPage() {
   if (!exam || questions.length === 0) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--space-4)' }}>
       <p style={{ color: 'hsl(var(--muted-fg))' }}>Đề thi chưa có câu hỏi nào.</p>
-      <button className="btn-primary" onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}>Quay lại</button>
+      <button className="btn-primary" onClick={() => navigate(-1)}>Quay lại</button>
     </div>
   );
 
@@ -298,7 +304,7 @@ export default function ExamPage() {
     setSubmitted(false);
     setCurrentIndex(0);
     setFlagged(new Set());
-    setExamMode('practice');
+    setSearchParams({ mode: 'practice' });
   };
 
   // ── Results screen (Modern design) ────────────────────────────
@@ -311,7 +317,7 @@ export default function ExamPage() {
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           {/* Top Back Button */}
           <button
-            onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}
+            onClick={() => navigate(-1)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
               background: 'white', border: '2px solid #000', borderRadius: 8,
@@ -576,7 +582,7 @@ export default function ExamPage() {
                   </button>
                   <button
                     style={{ width: '100%', padding: '8px', background: '#6C5CE7', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', color: 'white' }}
-                    onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}
+                    onClick={() => navigate(-1)}
                   >
                     THOÁT
                   </button>
@@ -654,7 +660,7 @@ export default function ExamPage() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0' }}>
           <button 
-            onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}
+            onClick={() => navigate(-1)}
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 14, color: '#0f172a' }}
           >
             <ChevronLeft size={20} /> Quay lại
@@ -873,7 +879,7 @@ export default function ExamPage() {
         )}
         <div className="exam-header-inner" style={{ padding: '0 24px' }}>
           <div className="exam-header-left">
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, color: '#333', fontSize: 20 }} onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, color: '#333', fontSize: 20 }} onClick={() => navigate(-1)}>
               <X size={24} />
             </button>
             <div style={{ borderLeft: '2px solid #eee', paddingLeft: 12 }}>
@@ -971,7 +977,7 @@ export default function ExamPage() {
                <button className="touch-target" style={{
                 background: '#6C5CE7', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8,
                 fontSize: 14, fontWeight: 800, cursor: 'pointer'
-              }} onClick={() => { setCurrentView('subject-detail'); setExamMode(null); }}>
+              }} onClick={() => navigate(-1)}>
                 THOÁT
               </button>
             )}

@@ -15,10 +15,12 @@ type Theory        = Tables<'theories'>;
 type Announcement  = Tables<'announcements'>;
 type Tab = 'exams' | 'theory' | 'announcements';
 
+import { useParams, useNavigate } from 'react-router-dom';
+
 export default function SubjectDetailPage() {
+  const { id: selectedSubjectId } = useParams();
+  const navigate = useNavigate();
   const {
-    selectedSubjectId, setCurrentView,
-    setSelectedExamId, setExamMode,
     isPurchased, isInCart, addToCart, removeFromCart,
   } = useApp();
 
@@ -56,10 +58,8 @@ export default function SubjectDetailPage() {
   const purchased = isPurchased(subject.id);
   const inCart    = isInCart(subject.id);
 
-  const startExam = (examId: string, mode: 'practice' | 'exam') => {
-    setSelectedExamId(examId);
-    setExamMode(mode);
-    setCurrentView('exam');
+  const startExam = (examId: string, mode: 'practice' | 'exam' | 'flashcard') => {
+    navigate(`/exams/${examId}?mode=${mode}`);
   };
 
   const TypeIcon = ({ type }: { type: string }) => {
@@ -81,7 +81,7 @@ export default function SubjectDetailPage() {
       <button
         className="btn-ghost"
         style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-2) 0', gap: 'var(--space-2)' }}
-        onClick={() => setCurrentView('home')}
+        onClick={() => navigate(-1)}
       >
         <ArrowLeft size={15} /> Quay lại
       </button>

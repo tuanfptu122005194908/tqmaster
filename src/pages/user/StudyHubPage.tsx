@@ -4,17 +4,20 @@ import { toast } from 'sonner';
 // @ts-ignore
 import studyHubHtml from '../../assets/google-cloud-study-hub.html?raw';
 
+import { useNavigate } from 'react-router-dom';
+
 export default function StudyHubPage() {
-  const { isPurchased, setCurrentView, isAdmin } = useApp();
+  const { isPurchased, isAdmin } = useApp();
+  const navigate = useNavigate();
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     // Basic protection to ensure only buyers or admins can see it
     if (!isAdmin && !isPurchased('9d863b0b-22fa-4cb5-b467-15103a8904e5')) {
       toast.error('Bạn chưa mua khóa học này hoặc đơn hàng chưa được duyệt!');
-      setCurrentView('home');
+      navigate('/');
     }
-  }, [isPurchased, setCurrentView, isAdmin]);
+  }, [isPurchased, navigate, isAdmin]);
 
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 64px)' }}>

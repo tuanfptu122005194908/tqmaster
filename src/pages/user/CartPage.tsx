@@ -13,8 +13,11 @@ import {
 type Step = 'cart' | 'checkout' | 'confirm';
 type DiscountCode = Tables<'discount_codes'>;
 
+import { useNavigate } from 'react-router-dom';
+
 export default function CartPage() {
-  const { cart, removeFromCart, clearCart, profile, refreshPurchased, setCurrentView } = useApp();
+  const { cart, removeFromCart, clearCart, profile, refreshPurchased } = useApp();
+  const navigate = useNavigate();
 
   const [step,        setStep]        = useState<Step>('cart');
   const [couponCode,  setCouponCode]  = useState('');
@@ -211,10 +214,10 @@ export default function CartPage() {
           <span>Theo dõi trạng thái tại <strong>Hồ sơ → Đơn hàng</strong></span>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button className="btn-ghost touch-target" style={{ border: '1px solid hsl(var(--border))' }} onClick={() => setCurrentView('home')}>
+          <button className="btn-ghost touch-target" style={{ border: '1px solid hsl(var(--border))' }} onClick={() => navigate('/')}>
             Tiếp tục mua sắm
           </button>
-          <button className="btn-primary touch-target" onClick={() => setCurrentView('profile')}>
+          <button className="btn-primary touch-target" onClick={() => navigate('/profile')}>
             Xem đơn hàng <ArrowRight size={16} />
           </button>
         </div>
@@ -243,7 +246,7 @@ export default function CartPage() {
           <p style={{ color: 'hsl(var(--muted-fg))', fontSize: '0.9375rem', marginBottom: 'var(--space-6)', maxWidth: 360, margin: '0 auto var(--space-6)' }}>
             Khám phá các môn học và thêm vào giỏ để bắt đầu hành trình học tập.
           </p>
-          <button className="btn-primary touch-target" onClick={() => setCurrentView('home')}>
+          <button className="btn-primary touch-target" onClick={() => navigate('/')}>
             <ArrowLeft size={16} /> Khám phá khóa học
           </button>
         </div>
@@ -705,7 +708,7 @@ export default function CartPage() {
           <button
             className="btn-ghost touch-target"
             style={{ width: '100%', justifyContent: 'center', border: '1px solid hsl(var(--border))', background: 'white', color: 'hsl(var(--foreground))' }}
-            onClick={() => setCurrentView('home')}
+            onClick={() => navigate('/')}
           >
             <ArrowLeft size={16} /> Tiếp tục mua sắm
           </button>

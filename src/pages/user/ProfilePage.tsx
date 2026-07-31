@@ -43,8 +43,11 @@ function getCurrentDeviceInfo() {
   return { browser, os };
 }
 
+import { useNavigate } from 'react-router-dom';
+
 export default function ProfilePage() {
-  const { profile, purchasedIds, setCurrentView, setSelectedSubjectId, signOut } = useApp();
+  const { profile, purchasedIds, signOut } = useApp();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [orders,   setOrders]   = useState<Order[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -256,7 +259,7 @@ export default function ProfilePage() {
 
         {/* Distinct Vivid Blue Primary Button: Đăng ký môn mới */}
         <button
-          onClick={() => setCurrentView('home')}
+          onClick={() => navigate('/')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             padding: '13px 16px',
@@ -469,7 +472,7 @@ export default function ProfilePage() {
                               </div>
                             </div>
                             <button
-                              onClick={() => { setSelectedSubjectId(subject.id); setCurrentView('subject-detail'); }}
+                              onClick={() => navigate(`/subjects/${subject.id}`)}
                               style={{ border: 'none', background: '#dbeafe', color: '#1d4ed8', padding: '6px 14px', borderRadius: 12, fontSize: 11.5, fontWeight: 800, cursor: 'pointer' }}
                             >
                               VÀO HỌC
@@ -818,7 +821,7 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              <button onClick={() => setCurrentView('home')} style={{ padding: '10px 18px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={() => navigate('/')} style={{ padding: '10px 18px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 + Đăng ký thêm
               </button>
             </div>
@@ -883,7 +886,7 @@ export default function ProfilePage() {
                 <BookOpen size={40} style={{ margin: '0 auto 12px auto', color: '#cbd5e1' }} />
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Bạn chưa sở hữu môn học nào</div>
                 <p style={{ fontSize: 13, margin: '0 0 20px 0' }}>Khám phá kho khóa học để bắt đầu ôn thi ngay hôm nay.</p>
-                <button onClick={() => setCurrentView('home')} style={{ padding: '10px 20px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer' }}>
+                <button onClick={() => navigate('/')} style={{ padding: '10px 20px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer' }}>
                   Khám phá khóa học
                 </button>
               </div>
@@ -984,7 +987,7 @@ export default function ProfilePage() {
                             </div>
 
                             <button
-                              onClick={() => { setSelectedSubjectId(subject.id); setCurrentView('subject-detail'); }}
+                              onClick={() => navigate(`/subjects/${subject.id}`)}
                               style={{
                                 padding: '8px 14px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                                 color: '#ffffff', border: 'none', borderRadius: 10,

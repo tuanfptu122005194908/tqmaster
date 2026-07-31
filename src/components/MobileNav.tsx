@@ -2,10 +2,14 @@ import React from 'react';
 import { Home, BookOpen, ShoppingCart, User, Newspaper } from 'lucide-react';
 import { useApp } from '@/lib/AppContext';
 
-export default function MobileNav() {
-  const { currentView, setCurrentView, isAdmin } = useApp();
+import { useNavigate, useLocation } from 'react-router-dom';
 
-  if (isAdmin && currentView.startsWith('admin-')) {
+export default function MobileNav() {
+  const { isAdmin } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  if (isAdmin && location.pathname.startsWith('/admin')) {
     return null;
   }
 
@@ -32,12 +36,13 @@ export default function MobileNav() {
       zIndex: 100,
     }}>
       {navItems.map(item => {
+        const pathName = item.id === 'home' ? '/' : `/${item.id}`;
         const Icon = item.icon;
-        const isActive = currentView === item.id;
+        const isActive = location.pathname === pathName;
         return (
           <button
             key={item.id}
-            onClick={() => setCurrentView(item.id as any)}
+            onClick={() => navigate(pathName)}
             style={{
               display: 'flex',
               flexDirection: 'column',

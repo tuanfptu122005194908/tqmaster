@@ -3,8 +3,12 @@ import { useApp } from '@/lib/AppContext';
 import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X, ShieldCheck } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 export default function TopNav() {
-  const { profile, isAdmin, cart, currentView, setCurrentView, signOut, authLoading, searchQuery, setSearchQuery } = useApp();
+  const { profile, isAdmin, cart, signOut, authLoading, searchQuery, setSearchQuery } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -19,9 +23,17 @@ export default function TopNav() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const navigateTo = (view: any) => {
+  const navigateTo = (view: string) => {
     setSearchQuery('');
-    setCurrentView(view);
+    
+    // Map view string to path
+    let path = '/';
+    if (view === 'home') path = '/';
+    else if (view === 'admin-dashboard') path = '/admin/dashboard';
+    else if (view.startsWith('admin-')) path = `/admin/${view.replace('admin-', '')}`;
+    else path = `/${view}`;
+    
+    navigate(path);
   };
 
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase()
@@ -65,7 +77,7 @@ export default function TopNav() {
             style={{
               border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
               fontSize: 14, fontWeight: 700,
-              color: currentView === 'home' ? '#2563eb' : '#475569',
+              color: location.pathname === '/' ? '#2563eb' : '#475569',
               transition: 'color 0.15s'
             }}
             onClick={() => navigateTo('home')}
@@ -78,7 +90,7 @@ export default function TopNav() {
               style={{
                 border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
                 fontSize: 14, fontWeight: 700,
-                color: currentView === 'my-courses' ? '#2563eb' : '#475569',
+                color: location.pathname === '/my-courses' ? '#2563eb' : '#475569',
                 transition: 'color 0.15s'
               }}
               onClick={() => navigateTo('my-courses')}
@@ -91,7 +103,7 @@ export default function TopNav() {
             style={{
               border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
               fontSize: 14, fontWeight: 700,
-              color: currentView === 'news' ? '#2563eb' : '#475569',
+              color: location.pathname === '/news' ? '#2563eb' : '#475569',
               transition: 'color 0.15s'
             }}
             onClick={() => navigateTo('news')}

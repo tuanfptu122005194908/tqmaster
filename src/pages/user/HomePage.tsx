@@ -8,8 +8,13 @@ import { ShoppingCart, BookOpen, Loader2, Check, Star, ArrowRight, Zap, PlayCirc
 
 type Subject = Tables<'subjects'>;
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 export default function HomePage() {
-  const { addToCart, removeFromCart, isInCart, isPurchased, currentView, setCurrentView, setSelectedSubjectId, searchQuery, purchasedIds } = useApp();
+  const { addToCart, removeFromCart, isInCart, isPurchased, setSelectedSubjectId, searchQuery, purchasedIds } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isMyCourses = location.pathname === '/my-courses';
   const [subjects,  setSubjects]  = useState<Subject[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [semFilter, setSemFilter] = useState<number | 'all'>('all');
@@ -26,14 +31,13 @@ export default function HomePage() {
 
   const filtered = useMemo(() => {
     return subjects.filter(s => {
-      const isMine = currentView === 'my-courses';
-      if (isMine && !isPurchased(s.id)) return false;
+      if (isMyCourses && !isPurchased(s.id)) return false;
       
       const matchSem = semFilter === 'all' || s.semester === semFilter;
       const matchSearch = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase());
       return matchSem && matchSearch;
     });
-  }, [subjects, currentView, isPurchased, semFilter, searchQuery]);
+  }, [subjects, isMyCourses, isPurchased, semFilter, searchQuery]);
 
   const myCoursesCount = useMemo(() => {
     return subjects.filter(s => isPurchased(s.id)).length;
@@ -41,11 +45,10 @@ export default function HomePage() {
 
   const openDetail = (s: Subject) => {
     if (s.id === '9d863b0b-22fa-4cb5-b467-15103a8904e5' && isPurchased(s.id)) {
-      setCurrentView('study-hub');
+      navigate('/study-hub');
       return;
     }
-    setSelectedSubjectId(s.id);
-    setCurrentView('subject-detail');
+    navigate(`/subjects/${s.id}`);
   };
 
   if (loading) return (
@@ -57,7 +60,7 @@ export default function HomePage() {
     </div>
   );
 
-  const isMyCourses = currentView === 'my-courses';
+
 
   return (
     <div className="home-page-container page-shell" style={{ maxWidth: '100%', padding: '24px 30px', margin: 0, fontFamily: "'Inter', -apple-system, sans-serif" }}>
@@ -78,7 +81,7 @@ export default function HomePage() {
             </div>
 
             <button
-              onClick={() => setCurrentView('home')}
+              onClick={() => navigate('/')}
               style={{
                 padding: '10px 20px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                 color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
@@ -192,7 +195,7 @@ export default function HomePage() {
 
           {isMyCourses && (
             <button
-              onClick={() => setCurrentView('home')}
+              onClick={() => navigate('/')}
               style={{
                 padding: '10px 20px', borderRadius: 12, border: 'none', background: '#2563eb', color: '#ffffff',
                 fontWeight: 800, fontSize: 13.5, cursor: 'pointer', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)'
