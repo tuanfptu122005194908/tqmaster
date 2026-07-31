@@ -3,6 +3,7 @@ import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Flag, RotateCcw, Loader2, BarChart3, AlertTriangle, MousePointerClick, ZoomIn } from 'lucide-react';
+import { playSound } from '@/lib/sound';
 
 type Exam    = Tables<'exams'>;
 type Question = Tables<'questions'> & { options: Array<Tables<'question_options'>> };
@@ -89,11 +90,14 @@ export default function ExamPage() {
       // Ignore if user is typing in some input (though there are no inputs here)
       if (e.code === 'Space' && examMode === 'flashcard') {
         e.preventDefault();
-        setIsFlipped(prev => !prev);
+        setIsFlipped(prev => {
+          playSound.flip();
+          return !prev;
+        });
       } else if (e.code === 'ArrowLeft') {
-        setCurrentIndex(i => Math.max(0, i - 1));
+        setCurrentIndex(i => { if (i > 0) playSound.click(); return Math.max(0, i - 1); });
       } else if (e.code === 'ArrowRight') {
-        setCurrentIndex(i => Math.min(questions.length - 1, i + 1));
+        setCurrentIndex(i => { if (i < questions.length - 1) playSound.click(); return Math.min(questions.length - 1, i + 1); });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -172,6 +176,23 @@ export default function ExamPage() {
 
   const toggleAnswer = (label: string) => {
     if (submitted) return;
+    
+    if (examMode === 'exam') {
+      playSound.click();
+    } else if (examMode === 'practice') {
+      const currentlySelected = (answers[currentQ.id] ?? []).includes(label);
+      if (currentlySelected) {
+        playSound.click();
+      } else {
+        const isCorrectOption = currentQ.options.find(o => o.label === label)?.is_correct;
+        if (isCorrectOption) {
+          playSound.correct();
+        } else {
+          playSound.incorrect();
+        }
+      }
+    }
+
     setAnswers(prev => {
       const cur = prev[currentQ.id] ?? [];
       const next = cur.includes(label) ? cur.filter(l => l !== label) : [...cur, label];
@@ -190,6 +211,7 @@ export default function ExamPage() {
   const handleSubmit = async () => {
     clearInterval(timerRef.current);
     setSubmitted(true);
+    playSound.success();
     if (exam) {
       localStorage.removeItem(`exam_draft_${exam.id}_${examMode}`);
     }
@@ -672,7 +694,7 @@ export default function ExamPage() {
 
             {/* Flashcard */}
             <div 
-              onClick={() => setIsFlipped(!isFlipped)}
+              onClick={() => { setIsFlipped(!isFlipped); playSound.flip(); }}
               style={{ 
                 width: '100%', maxWidth: 1400, minHeight: 400, 
                 background: 'white', borderRadius: 24, 
