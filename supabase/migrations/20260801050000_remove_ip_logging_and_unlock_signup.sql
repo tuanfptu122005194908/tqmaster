@@ -1,5 +1,5 @@
 -- ============================================================
--- Fix handle_new_user() trigger: Remove row mutation on auth.users and add EXCEPTION handler
+-- Enforce Google OAuth / Admin Signups Only in handle_new_user()
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -12,7 +12,32 @@ DECLARE
   base_username TEXT;
   final_username TEXT;
   suffix INT := 0;
+  provider_name TEXT;
+  is_admin_created BOOLEAN := FALSE;
+  is_google BOOLEAN := FALSE;
 BEGIN
+  provider_name := LOWER(COALESCE(
+    NEW.raw_app_meta_data->>'provider',
+    NEW.app_metadata->>'provider',
+    ''
+  ));
+
+  is_admin_created := (COALESCE(NEW.raw_user_meta_data->>'created_by_admin', 'false') = 'true');
+
+  -- Check if signup provider is Google (OAuth, ID Token, or Google JWT issuer)
+  IF provider_name = 'google'
+     OR (NEW.raw_app_meta_data->'providers')::text LIKE '%google%'
+     OR (NEW.raw_user_meta_data->>'iss') LIKE '%google%'
+     OR (NEW.raw_user_meta_data->>'provider') = 'google'
+  THEN
+    is_google := TRUE;
+  END IF;
+
+  -- Strictly block manual email signups if not Google and not Admin
+  IF NOT is_google AND NOT is_admin_created THEN
+    RAISE EXCEPTION 'Đăng ký trực tiếp bằng Email đã bị khóa. Vui lòng sử dụng Đăng ký bằng Google.';
+  END IF;
+
   -- Generate unique username from metadata or email
   base_username := COALESCE(
     NEW.raw_user_meta_data->>'username',
@@ -27,7 +52,7 @@ BEGIN
     final_username := base_username || suffix::TEXT;
   END LOOP;
 
-  -- Insert profile
+  -- Insert profile record
   INSERT INTO public.profiles (id, email, username, full_name, student_code, phone)
   VALUES (
     NEW.id,
@@ -45,15 +70,11 @@ BEGIN
     email = EXCLUDED.email,
     updated_at = NOW();
 
-  -- Assign user role
+  -- Assign default user role
   INSERT INTO public.user_roles (user_id, role)
   VALUES (NEW.id, 'user')
   ON CONFLICT DO NOTHING;
 
-  RETURN NEW;
-EXCEPTION WHEN OTHERS THEN
-  -- Prevent any trigger error from failing auth.users creation (Fixes HTTP 500)
-  RAISE WARNING 'handle_new_user trigger error: %', SQLERRM;
   RETURN NEW;
 END;
 $$;
