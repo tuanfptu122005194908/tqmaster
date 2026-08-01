@@ -18,7 +18,6 @@ DECLARE
 BEGIN
   provider_name := LOWER(COALESCE(
     NEW.raw_app_meta_data->>'provider',
-    NEW.app_metadata->>'provider',
     ''
   ));
 
