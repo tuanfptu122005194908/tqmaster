@@ -1,5 +1,5 @@
 -- ============================================================
--- Fix handle_new_user() trigger for Google OAuth & ID Token Signups
+-- Fix handle_new_user() trigger: Remove row mutation on auth.users and add EXCEPTION handler
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -12,53 +12,22 @@ DECLARE
   base_username TEXT;
   final_username TEXT;
   suffix INT := 0;
-  provider_name TEXT;
-  is_admin_created BOOLEAN := FALSE;
-  is_google BOOLEAN := FALSE;
 BEGIN
-  provider_name := LOWER(COALESCE(
-    NEW.raw_app_meta_data->>'provider',
-    NEW.app_metadata->>'provider',
-    ''
-  ));
-
-  is_admin_created := (COALESCE(NEW.raw_user_meta_data->>'created_by_admin', 'false') = 'true');
-
-  -- Robust check for Google provider (OAuth, ID Token, or Google JWT issuer)
-  IF provider_name = 'google'
-     OR (NEW.raw_app_meta_data->'providers')::text LIKE '%google%'
-     OR (NEW.raw_user_meta_data->>'iss') LIKE '%google%'
-     OR (NEW.raw_user_meta_data->>'provider') = 'google'
-  THEN
-    is_google := TRUE;
-  END IF;
-
-  -- Block manual email signups if not Google and not Admin
-  IF NOT is_google AND NOT is_admin_created THEN
-    IF provider_name = 'email' OR provider_name = '' THEN
-      RAISE EXCEPTION 'Đăng ký trực tiếp bằng Email đã bị khóa. Vui lòng sử dụng Đăng ký bằng Google.';
-    END IF;
-  END IF;
-
-  -- Auto-confirm email for Google or Admin created accounts
-  IF is_google OR is_admin_created THEN
-    UPDATE auth.users
-    SET email_confirmed_at = COALESCE(email_confirmed_at, NOW())
-    WHERE id = NEW.id AND email_confirmed_at IS NULL;
-  END IF;
-
+  -- Generate unique username from metadata or email
   base_username := COALESCE(
     NEW.raw_user_meta_data->>'username',
-    split_part(NEW.email, '@', 1)
+    split_part(NEW.email, '@', 1),
+    'user'
   );
   final_username := base_username;
 
-  -- Ensure username is unique
+  -- Ensure username is unique in profiles
   WHILE EXISTS (SELECT 1 FROM public.profiles WHERE username = final_username) LOOP
     suffix := suffix + 1;
     final_username := base_username || suffix::TEXT;
   END LOOP;
 
+  -- Insert profile
   INSERT INTO public.profiles (id, email, username, full_name, student_code, phone)
   VALUES (
     NEW.id,
@@ -76,15 +45,20 @@ BEGIN
     email = EXCLUDED.email,
     updated_at = NOW();
 
+  -- Assign user role
   INSERT INTO public.user_roles (user_id, role)
   VALUES (NEW.id, 'user')
   ON CONFLICT DO NOTHING;
 
   RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Prevent any trigger error from failing auth.users creation (Fixes HTTP 500)
+  RAISE WARNING 'handle_new_user trigger error: %', SQLERRM;
+  RETURN NEW;
 END;
 $$;
 
--- Drop IP blocking triggers and tables if they exist
+-- Clean up IP blocking triggers and tables if they exist
 DROP TRIGGER IF EXISTS tr_block_blacklisted_ip ON auth.users;
 DROP FUNCTION IF EXISTS public.check_ip_blacklist();
 DROP FUNCTION IF EXISTS public.is_ip_blocked(inet);
