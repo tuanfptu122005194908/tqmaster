@@ -1,19 +1,16 @@
-// Trigger Vercel deploy
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Eye, EyeOff, Loader2, Mail, Lock, User, GraduationCap,
-  CheckCircle, AlertCircle
+  Eye, EyeOff, Loader2, Mail, Lock, User, CheckCircle, AlertCircle, Sparkles, ArrowRight
 } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
-import VerifyEmailPage from '@/pages/VerifyEmailPage';
 import { toast } from 'sonner';
 import { parseFunctionError } from '@/lib/utils';
 
 // Google SVG Icon
 const GoogleIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 48 48" style={{ marginRight: '8px' }}>
+  <svg width="20" height="20" viewBox="0 0 48 48" style={{ marginRight: '10px', flexShrink: 0 }}>
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z" />
     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
     <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
@@ -26,11 +23,11 @@ type Mode = 'login' | 'register' | 'forgot';
 
 function SnowEffect() {
   const snowflakes = useMemo(() => {
-    return Array.from({ length: 80 }).map((_, i) => ({
+    return Array.from({ length: 60 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100,
-      size: Math.random() * 6 + 3, // 3px - 9px
-      duration: Math.random() * 8 + 6, // 6s - 14s
+      size: Math.random() * 6 + 3,
+      duration: Math.random() * 8 + 6,
       delay: Math.random() * 6,
       opacity: Math.random() * 0.65 + 0.35,
       color: Math.random() > 0.25 ? '#ffffff' : '#93c5fd',
@@ -60,24 +57,11 @@ function SnowEffect() {
       ))}
       <style>{`
         @keyframes snowFall {
-          0% {
-            transform: translateY(-20px) translateX(0) scale(0.8);
-            opacity: 0;
-          }
-          10% {
-            opacity: 0.95;
-          }
-          50% {
-            transform: translateY(50vh) translateX(35px) scale(1.1);
-            opacity: 0.95;
-          }
-          90% {
-            opacity: 0.9;
-          }
-          100% {
-            transform: translateY(105vh) translateX(-25px) scale(0.9);
-            opacity: 0;
-          }
+          0% { transform: translateY(-20px) translateX(0) scale(0.8); opacity: 0; }
+          10% { opacity: 0.95; }
+          50% { transform: translateY(50vh) translateX(35px) scale(1.1); opacity: 0.95; }
+          90% { opacity: 0.9; }
+          100% { transform: translateY(105vh) translateX(-25px) scale(0.9); opacity: 0; }
         }
       `}</style>
     </div>
@@ -93,16 +77,13 @@ export default function AuthPage() {
   const [rememberMe, setRememberMe] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [studentCode, setStudentCode] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [countdown, setCountdown] = useState(60);
-  const [pendingVerify, setPendingVerify] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setError('');
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -112,30 +93,15 @@ export default function AuthPage() {
       });
       if (error) {
         toast.error('Lỗi đăng nhập Google: ' + (error.message || 'Vui lòng thử lại'));
+        setError(error.message);
         setLoading(false);
       }
     } catch (e: any) {
       toast.error('Lỗi đăng nhập Google: ' + (e?.message || 'Vui lòng thử lại'));
+      setError(e?.message || 'Không thể mở trang đăng nhập Google');
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!success || mode !== 'register') return;
-    setCountdown(60);
-    const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setMode('login');
-          setSuccess(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [success, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,60 +120,24 @@ export default function AuthPage() {
       return;
     }
 
-    if (password.length < 8) { setError('Mật khẩu phải có ít nhất 8 ký tự'); return; }
-    setLoading(true);
-
     if (mode === 'login') {
-      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-      if (err) setError(err.message === 'Invalid login credentials' ? 'Email hoặc mật khẩu không đúng' : err.message);
-    } else {
-      if (!fullName.trim()) { setError('Vui lòng nhập họ tên'); setLoading(false); return; }
-      const { data, error: fnErr } = await supabase.functions.invoke('signup-with-otp', {
-        body: {
-          action: 'signup',
-          email: email.trim(),
-          password,
-          full_name: fullName.trim(),
-          student_code: studentCode.trim(),
-        },
-      });
-      const errMsg = await parseFunctionError(data, fnErr);
-      if (errMsg || !(data as any)?.success) {
-        setError(errMsg || 'Không thể tạo tài khoản. Vui lòng thử lại.');
-      } else {
-        setPendingVerify({ email: email.trim(), password });
+      if (!email.trim()) { setError('Vui lòng nhập email'); return; }
+      if (password.length < 8) { setError('Mật khẩu phải có ít nhất 8 ký tự'); return; }
+      setLoading(true);
+      const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      setLoading(false);
+      if (err) {
+        setError(err.message === 'Invalid login credentials' ? 'Email hoặc mật khẩu không đúng' : err.message);
       }
     }
-    setLoading(false);
   };
 
   const reset = (m: Mode) => {
     setMode(m); setError(''); setSuccess(false);
-    setEmail(''); setPassword(''); setFullName(''); setStudentCode('');
+    setEmail(''); setPassword('');
   };
 
   if (!mounted) return null;
-
-  if (pendingVerify) {
-    return (
-      <VerifyEmailPage
-        email={pendingVerify.email}
-        onVerified={async () => {
-          const { error: signInErr } = await supabase.auth.signInWithPassword({
-            email: pendingVerify.email,
-            password: pendingVerify.password,
-          });
-          setPendingVerify(null);
-          if (signInErr) {
-            setMode('login');
-            setEmail(pendingVerify.email);
-            setError('Xác thực thành công. Vui lòng đăng nhập.');
-          }
-        }}
-      />
-    );
-  }
-
 
   return (
     <div style={{
@@ -256,7 +186,7 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* ── CENTERED LARGE FLOATING CARD ── */}
+      {/* ── CENTERED FLOATING CARD ── */}
       <div style={{
         width: '100%',
         maxWidth: 480,
@@ -283,200 +213,259 @@ export default function AuthPage() {
 
         {/* Heading */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 8px 0' }}>
-            {mode === 'login' ? 'Welcome Back' : mode === 'register' ? 'Tạo tài khoản mới' : 'Quên mật khẩu?'}
+          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 8px 0' }}>
+            {mode === 'login' ? 'Welcome Back' : mode === 'register' ? 'Đăng ký tài khoản' : 'Quên mật khẩu?'}
           </h2>
           <p style={{ fontSize: 14, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
             {mode === 'login'
               ? 'Đăng nhập để bắt đầu làm bài thi và xem lý thuyết'
               : mode === 'register'
-              ? 'Sử dụng tài khoản Google để đăng ký nhanh chóng'
+              ? 'Đăng ký nhanh chóng 1-Click bằng tài khoản Google'
               : 'Nhập email của bạn để lấy lại mật khẩu nhanh chóng'}
           </p>
         </div>
 
-        {/* Form */}
-        {mode !== 'register' && (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          <Field
-            icon={<Mail size={20} />}
-            label="Địa chỉ Email"
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={setEmail}
-            placeholder="admin@gmail.com"
-          />
-
-          {mode !== 'forgot' && (
-            <div>
-              <label htmlFor="password" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Mật khẩu
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={20} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                <input
-                  id="password"
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === 'register' ? 'Tối thiểu 8 ký tự' : '••••••••'}
-                  required
-                  minLength={8}
-                  style={{
-                    width: '100%',
-                    height: 52,
-                    paddingLeft: 48,
-                    paddingRight: 48,
-                    borderRadius: 14,
-                    border: '1.5px solid #cbd5e1',
-                    fontSize: 15,
-                    color: '#0f172a',
-                    background: '#ffffff',
-                    outline: 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.14)'; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none'; }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  style={{
-                    position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4
-                  }}
-                >
-                  {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Remember Me & Forgot Password */}
-          {mode === 'login' && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13.5 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#475569', fontWeight: 600 }}>
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={e => setRememberMe(e.target.checked)}
-                  style={{ width: 17, height: 17, accentColor: '#2563eb', borderRadius: 4, cursor: 'pointer' }}
-                />
-                Remember me
-              </label>
-              <button
-                type="button"
-                onClick={() => reset('forgot')}
-                style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
-
-          {/* Error banner */}
-          {error && (
-            <div style={{
-              display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px',
-              background: '#ffe4e6', border: '1px solid #fecdd3', borderRadius: 14,
-              color: '#e11d48', fontSize: 14, fontWeight: 600
-            }}>
-              <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Success banner */}
-          {success && !error && (
-            <div>
-              {mode === 'forgot' ? (
-                <div style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px',
-                  background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 14,
-                  color: '#15803d', fontSize: 14, fontWeight: 600
-                }}>
-                  <CheckCircle size={20} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Đã gửi hướng dẫn đặt lại mật khẩu về email của bạn!</span>
-                </div>
-              ) : (
-                <div style={{
-                  padding: '20px 22px', background: '#eff6ff', border: '1.5px solid #93c5fd',
-                  borderRadius: 18, fontSize: 13.5, color: '#1e3a8a',
-                  boxShadow: '0 8px 24px rgba(37, 99, 235, 0.12)'
-                }}>
-                  <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 8, color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span>🚀 HƯỚNG DẪN XÁC THỰC EMAIL ({countdown}s)</span>
-                  </div>
-                  <p style={{ margin: '0 0 10px 0', lineHeight: 1.5, fontWeight: 600, color: '#1e40af' }}>
-                    Email xác thực đã được gửi tới <b>{email}</b>. Vui lòng làm theo các bước sau:
-                  </p>
-                  <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.65, color: '#1e3a8a', fontSize: 13 }}>
-                    <li style={{ marginBottom: 4 }}>Mở ứng dụng hoặc trang web <b>Gmail / Email</b> của bạn.</li>
-                    <li style={{ marginBottom: 4, color: '#dc2626', fontWeight: 700 }}>
-                      ⚠️ Kiểm tra thư mục <u>Thư rác (Spam)</u> hoặc <u>Quảng cáo (Promotions)</u> nếu không thấy ở Hộp thư đến.
-                    </li>
-                    <li style={{ marginBottom: 4 }}>Bấm vào thư từ <b>TQMaster</b> và nhấn <b>"Không phải Spam" (Not Spam)</b>.</li>
-                    <li>Lấy mã OTP hoặc click vào nút <b>"Verify Email"</b> để hoàn tất đăng ký!</li>
-                  </ol>
-                  <button
-                    type="button"
-                    onClick={() => { setMode('login'); setSuccess(false); }}
-                    style={{
-                      marginTop: 14, width: '100%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                      color: '#ffffff', border: 'none', borderRadius: 12, padding: '10px 16px',
-                      fontWeight: 800, fontSize: 13.5, cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                    }}
-                  >
-                    Chuyển sang Đăng nhập ngay →
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Main Primary Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              height: 52,
-              width: '100%',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: 14,
-              fontSize: 16,
-              fontWeight: 800,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 10px 24px -4px rgba(37, 99, 235, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              transition: 'all 0.15s ease',
-              marginTop: 6,
-            }}
-            onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-          >
-            {loading ? (
-              <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
-            ) : (
-              <>
-                {mode === 'login' ? 'Sign In' : mode === 'register' ? 'Đăng Ký Tài Khoản' : 'Gửi liên kết đặt lại'}
-              </>
-            )}
-          </button>
-        </form>
+        {/* Error banner */}
+        {error && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px',
+            background: '#ffe4e6', border: '1px solid #fecdd3', borderRadius: 14,
+            color: '#e11d48', fontSize: 14, fontWeight: 600, marginBottom: 20
+          }}>
+            <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>{error}</span>
+          </div>
         )}
 
+        {/* Success banner */}
+        {success && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '14px 16px',
+            background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: 14,
+            color: '#15803d', fontSize: 14, fontWeight: 600, marginBottom: 20
+          }}>
+            <CheckCircle size={20} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>Đã gửi hướng dẫn đặt lại mật khẩu về email của bạn!</span>
+          </div>
+        )}
 
-        {/* Toggle Login/Register footer */}
+        {/* ── REGISTER MODE: GOOGLE ONLY ── */}
+        {mode === 'register' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Info Banner */}
+            <div style={{
+              padding: '20px 22px',
+              background: '#edf5ff',
+              border: '1.5px solid #dbeafe',
+              borderRadius: 18,
+              fontSize: 14,
+              color: '#1e40af',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12,
+              boxShadow: '0 4px 14px rgba(37, 99, 235, 0.08)'
+            }}>
+              <Sparkles size={22} style={{ color: '#2563eb', flexShrink: 0, marginTop: 2 }} />
+              <div style={{ lineHeight: 1.55 }}>
+                <strong style={{ color: '#1d4ed8', display: 'block', marginBottom: 4, fontSize: 14.5 }}>
+                  Đăng ký nhanh 1-Click
+                </strong>
+                TQMaster hỗ trợ Đăng ký nhanh bằng tài khoản Google. Không cần điền form phức tạp hay xác thực email!
+              </div>
+            </div>
+
+            {/* Google Register Button */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              style={{
+                height: 54,
+                width: '100%',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                color: '#0f172a',
+                border: '2px solid #cbd5e1',
+                borderRadius: 16,
+                fontSize: 15.5,
+                fontWeight: 800,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.06)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => !loading && (e.currentTarget.style.borderColor = '#3b82f6', e.currentTarget.style.transform = 'translateY(-2px)')}
+              onMouseLeave={(e) => (!loading && (e.currentTarget.style.borderColor = '#cbd5e1', e.currentTarget.style.transform = 'translateY(0)'))}
+            >
+              {loading ? (
+                <Loader2 size={22} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+              ) : (
+                <>
+                  <GoogleIcon />
+                  Đăng ký ngay bằng Google
+                  <ArrowRight size={18} style={{ marginLeft: 6, color: '#3b82f6' }} />
+                </>
+              )}
+            </button>
+          </div>
+        ) : (
+          /* ── LOGIN & FORGOT MODE: FORM ── */
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <Field
+              icon={<Mail size={20} />}
+              label="Địa chỉ Email"
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={setEmail}
+              placeholder="admin@gmail.com"
+            />
+
+            {mode === 'login' && (
+              <div>
+                <label htmlFor="password" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Mật khẩu
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={20} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    id="password"
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                    style={{
+                      width: '100%',
+                      height: 52,
+                      paddingLeft: 48,
+                      paddingRight: 48,
+                      borderRadius: 14,
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: 15,
+                      color: '#0f172a',
+                      background: '#ffffff',
+                      outline: 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.14)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    style={{
+                      position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4
+                    }}
+                  >
+                    {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Remember Me & Forgot Password */}
+            {mode === 'login' && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13.5 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: '#475569', fontWeight: 600 }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => setRememberMe(e.target.checked)}
+                    style={{ width: 17, height: 17, accentColor: '#2563eb', borderRadius: 4, cursor: 'pointer' }}
+                  />
+                  Remember me
+                </label>
+                <button
+                  type="button"
+                  onClick={() => reset('forgot')}
+                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
+            {/* Main Primary Action Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                height: 52,
+                width: '100%',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 14,
+                fontSize: 16,
+                fontWeight: 800,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 10px 24px -4px rgba(37, 99, 235, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                transition: 'all 0.15s ease',
+                marginTop: 6,
+              }}
+              onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              {loading ? (
+                <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <>
+                  {mode === 'login' ? 'Sign In' : 'Gửi liên kết đặt lại'}
+                </>
+              )}
+            </button>
+
+            {/* Divider (Login Mode Only) */}
+            {mode === 'login' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 8px 0' }}>
+                  <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                  <span style={{ padding: '0 12px', fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>HOẶC</span>
+                  <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                </div>
+
+                {/* Google Login Button */}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  style={{
+                    height: 52,
+                    width: '100%',
+                    background: '#ffffff',
+                    color: '#334155',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: 14,
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => !loading && (e.currentTarget.style.borderColor = '#94a3b8', e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={(e) => !loading && (e.currentTarget.style.borderColor = '#cbd5e1', e.currentTarget.style.background = '#ffffff')}
+                >
+                  <GoogleIcon />
+                  Đăng nhập bằng Google
+                </button>
+              </>
+            )}
+          </form>
+        )}
+
+        {/* Toggle Login/Register Footer */}
         <div style={{ marginTop: 28, textAlign: 'center', fontSize: 14, color: '#64748b' }}>
           {mode === 'login' ? (
             <>
@@ -485,7 +474,7 @@ export default function AuthPage() {
                 onClick={() => reset('register')}
                 style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 800, cursor: 'pointer', padding: 0 }}
               >
-                Đăng ký ngay
+                Đăng ký bằng Google
               </button>
             </>
           ) : mode === 'register' ? (
