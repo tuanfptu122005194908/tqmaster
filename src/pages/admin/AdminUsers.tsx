@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import {
@@ -144,8 +145,20 @@ export default function AdminUsers() {
     }
     setSavingAdd(true);
     try {
-      // Create user via Supabase Auth signup
-      const { data, error } = await supabase.auth.signUp({
+      // Create a non-persisted client so Admin session is not overwritten or logged out
+      const tempClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+          },
+        }
+      );
+
+      const { data, error } = await tempClient.auth.signUp({
         email: addForm.email.trim(),
         password: addForm.password.trim(),
         options: {
@@ -160,7 +173,7 @@ export default function AdminUsers() {
       if (error) throw error;
 
       if (data.user) {
-        // Upsert profile
+        // Upsert profile via admin client
         await supabase.from('profiles').upsert({
           id: data.user.id,
           username: addForm.username.trim(),
@@ -180,7 +193,7 @@ export default function AdminUsers() {
       setAddForm({ fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user' });
       fetch();
     } catch (err: any) {
-      alert('Lỗi tạo tài khoản: ' + err.message);
+      alert('Lỗi tạo tài khoản: ' + (err.message || 'Không thể tạo tài khoản'));
     } finally {
       setSavingAdd(false);
     }
