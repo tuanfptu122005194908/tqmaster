@@ -14,6 +14,11 @@ DECLARE
   final_username TEXT;
   suffix INT := 0;
 BEGIN
+  -- Auto-confirm email so no verification link is needed for created users
+  UPDATE auth.users
+  SET email_confirmed_at = COALESCE(email_confirmed_at, NOW())
+  WHERE id = NEW.id AND email_confirmed_at IS NULL;
+
   base_username := COALESCE(
     NEW.raw_user_meta_data->>'username',
     split_part(NEW.email, '@', 1)
