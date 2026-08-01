@@ -475,43 +475,6 @@ export default function AuthPage() {
         </form>
         )}
 
-        {/* Divider */}
-        {mode === 'login' && (
-          <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
-            <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-            <span style={{ padding: '0 12px', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>HOẶC</span>
-            <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-          </div>
-        )}
-
-        {/* Google Login Button */}
-        {mode !== 'forgot' && (
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            style={{
-              height: 52,
-              width: '100%',
-              background: '#ffffff',
-              color: '#334155',
-              border: '1.5px solid #cbd5e1',
-              borderRadius: 14,
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => !loading && (e.currentTarget.style.borderColor = '#94a3b8', e.currentTarget.style.background = '#f8fafc')}
-            onMouseLeave={(e) => !loading && (e.currentTarget.style.borderColor = '#cbd5e1', e.currentTarget.style.background = '#ffffff')}
-          >
-            <GoogleIcon />
-            {mode === 'login' ? 'Đăng nhập bằng Google' : 'Đăng ký bằng Google'}
-          </button>
-        )}
 
         {/* Toggle Login/Register footer */}
         <div style={{ marginTop: 28, textAlign: 'center', fontSize: 14, color: '#64748b' }}>
