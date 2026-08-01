@@ -8,6 +8,14 @@ import authMountainBg from '@/assets/auth-mountain-bg.png';
 import { toast } from 'sonner';
 import { parseFunctionError } from '@/lib/utils';
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+const GOOGLE_CLIENT_ID = "968560504644-v4m2qqsi3v7cni3ao22rijquhmstvd7j.apps.googleusercontent.com";
+
 // Google SVG Icon
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 48 48" style={{ marginRight: '10px', flexShrink: 0 }}>
@@ -81,24 +89,101 @@ export default function AuthPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const handleGoogleLogin = async () => {
+  // Handle GIS Callback from Google Popup / One Tap
+  const handleGoogleCredentialResponse = async (response: any) => {
+    if (!response?.credential) {
+      toast.error('Không nhận được mã xác thực từ Google');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Direct ID Token authentication with Supabase (No page redirects!)
+      const { data, error: idTokenErr } = await supabase.auth.signInWithIdToken({
         provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
+        token: response.credential,
       });
-      if (error) {
-        toast.error('Lỗi đăng nhập Google: ' + (error.message || 'Vui lòng thử lại'));
-        setError(error.message);
-        setLoading(false);
+
+      if (idTokenErr) {
+        // Fallback to signInWithOAuth if signInWithIdToken is disabled on backend
+        console.warn('IdToken login fallback to OAuth:', idTokenErr.message);
+        const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin },
+        });
+        if (oauthErr) {
+          toast.error('Lỗi đăng nhập Google: ' + oauthErr.message);
+          setError(oauthErr.message);
+        }
+      } else {
+        toast.success('Đăng nhập bằng Google thành công!');
       }
     } catch (e: any) {
       toast.error('Lỗi đăng nhập Google: ' + (e?.message || 'Vui lòng thử lại'));
-      setError(e?.message || 'Không thể mở trang đăng nhập Google');
+      setError(e?.message || 'Không thể xác thực với Google');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initialize GIS and render Google button
+  useEffect(() => {
+    const setupGIS = () => {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+          });
+
+          const btnDiv = document.getElementById('googleButtonDiv');
+          if (btnDiv) {
+            btnDiv.innerHTML = '';
+            window.google.accounts.id.renderButton(btnDiv, {
+              theme: 'outline',
+              size: 'large',
+              width: 380,
+              text: mode === 'register' ? 'signup_with' : 'signin_with',
+              shape: 'rectangular',
+              logo_alignment: 'center',
+            });
+          }
+        } catch (err) {
+          console.error('Failed to init Google GIS:', err);
+        }
+      }
+    };
+
+    setupGIS();
+    const timer = setTimeout(setupGIS, 800);
+    return () => clearTimeout(timer);
+  }, [mode, mounted]);
+
+  const handleGoogleLogin = async () => {
+    if (window.google?.accounts?.id) {
+      setLoading(true);
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredentialResponse,
+      });
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // If prompt was skipped or blocked, fallback to standard OAuth popup
+          supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.origin }
+          }).finally(() => setLoading(false));
+        }
+      });
+    } else {
+      // Fallback if GIS script not loaded
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+      if (error) toast.error('Lỗi Google: ' + error.message);
       setLoading(false);
     }
   };
@@ -251,10 +336,11 @@ export default function AuthPage() {
 
         {/* ── REGISTER MODE: GOOGLE ONLY ── */}
         {mode === 'register' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
             {/* Info Banner */}
             <div style={{
-              padding: '20px 22px',
+              width: '100%',
+              padding: '18px 20px',
               background: '#edf5ff',
               border: '1.5px solid #dbeafe',
               borderRadius: 18,
@@ -270,11 +356,14 @@ export default function AuthPage() {
                 <strong style={{ color: '#1d4ed8', display: 'block', marginBottom: 4, fontSize: 14.5 }}>
                   Đăng ký nhanh 1-Click
                 </strong>
-                TQMaster hỗ trợ Đăng ký nhanh bằng tài khoản Google. Không cần điền form phức tạp hay xác thực email!
+                TQMaster hỗ trợ Đăng ký bằng tài khoản Google. Cửa sổ Google Popup sẽ mở ngay trên trang web mà không chuyển hướng!
               </div>
             </div>
 
-            {/* Google Register Button */}
+            {/* Official GIS Button Div Container */}
+            <div id="googleButtonDiv" style={{ display: 'flex', justifyContent: 'center', width: '100%', minHeight: 44 }}></div>
+
+            {/* Custom Styled Google Register Button */}
             <button
               type="button"
               onClick={handleGoogleLogin}
@@ -433,7 +522,10 @@ export default function AuthPage() {
                   <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
                 </div>
 
-                {/* Google Login Button */}
+                {/* Official GIS Button Container */}
+                <div id="googleButtonDiv" style={{ display: 'flex', justifyContent: 'center', width: '100%', minHeight: 44 }}></div>
+
+                {/* Custom Google Login Button */}
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
