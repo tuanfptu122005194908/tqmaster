@@ -31,6 +31,7 @@ export default function ExamPage() {
   const [answers,  setAnswers]  = useState<Record<string, string[]>>({});
   const [flagged,  setFlagged]  = useState<Set<number>>(new Set());
   const [submitted, setSubmitted] = useState(false);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [timeLeft,  setTimeLeft]  = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -215,6 +216,7 @@ export default function ExamPage() {
   };
 
   const handleSubmit = async () => {
+    setShowSubmitConfirm(false);
     clearInterval(timerRef.current);
     setSubmitted(true);
     playSound.success();
@@ -967,7 +969,7 @@ export default function ExamPage() {
                     style={{
                     background: '#6C5CE7', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8,
                     fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 0 #4a3eb3'
-                  }} onClick={handleSubmit}>
+                  }} onClick={() => setShowSubmitConfirm(true)}>
                     NỘP BÀI
                   </button>
                 )}
@@ -1130,7 +1132,7 @@ export default function ExamPage() {
                    
                    {examMode === 'exam' && !submitted && (
                      <button 
-                       onClick={handleSubmit}
+                       onClick={() => setShowSubmitConfirm(true)}
                        style={{
                          padding: '10px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8,
                          fontSize: 14, fontWeight: 800, cursor: 'pointer'
@@ -1363,6 +1365,131 @@ export default function ExamPage() {
 
       {/* REMOVED STICKY BOTTOM NAVIGATION */}
       
+      {/* ═══ CONFIRM SUBMIT MODAL ═══ */}
+      {showSubmitConfirm && (
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(15, 23, 42, 0.6)', 
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: 24
+          }}
+          onClick={() => setShowSubmitConfirm(false)}
+        >
+          <div 
+            style={{ 
+              background: '#ffffff', 
+              borderRadius: 24, 
+              width: '100%', 
+              maxWidth: 460, 
+              padding: 28, 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 20
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header / Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ 
+                width: 48, 
+                height: 48, 
+                borderRadius: 14, 
+                background: (questions.length - answeredCount) > 0 ? '#fff7ed' : '#edf5ff', 
+                border: `1px solid ${(questions.length - answeredCount) > 0 ? '#ffedd5' : '#dbeafe'}`,
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                color: (questions.length - answeredCount) > 0 ? '#d97706' : '#3b82f6',
+                flexShrink: 0
+              }}>
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                  Xác nhận nộp bài thi
+                </h3>
+                <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+                  Bạn có chắc chắn muốn kết thúc bài thi thử ngay bây giờ?
+                </p>
+              </div>
+            </div>
+
+            {/* Stats Summary */}
+            <div style={{ background: '#f8fafc', borderRadius: 16, border: '1px solid #e2e8f0', padding: 14, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              <div style={{ textAlign: 'center', padding: '8px 4px', background: 'white', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Đã làm</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a' }}>{answeredCount}</div>
+              </div>
+              <div style={{ textAlign: 'center', padding: '8px 4px', background: (questions.length - answeredCount) > 0 ? '#fef2f2' : 'white', borderRadius: 10, border: `1px solid ${(questions.length - answeredCount) > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: (questions.length - answeredCount) > 0 ? '#e11d48' : '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Chưa làm</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: (questions.length - answeredCount) > 0 ? '#e11d48' : '#64748b' }}>{questions.length - answeredCount}</div>
+              </div>
+              <div style={{ textAlign: 'center', padding: '8px 4px', background: flagged.size > 0 ? '#fffbeb' : 'white', borderRadius: 10, border: `1px solid ${flagged.size > 0 ? '#fde68a' : '#e2e8f0'}` }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: flagged.size > 0 ? '#b45309' : '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Đánh dấu</div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: flagged.size > 0 ? '#b45309' : '#64748b' }}>{flagged.size}</div>
+              </div>
+            </div>
+
+            {(questions.length - answeredCount) > 0 && (
+              <div style={{ fontSize: 12, color: '#c2410c', background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 10, padding: '10px 12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertTriangle size={16} style={{ flexShrink: 0, color: '#ea580c' }} />
+                <span>Bạn vẫn còn <strong>{questions.length - answeredCount}</strong> câu chưa làm.</span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+              <button
+                onClick={() => setShowSubmitConfirm(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'white',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 12,
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: '#334155',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Tiếp tục làm bài
+              </button>
+              <button
+                onClick={() => {
+                  setShowSubmitConfirm(false);
+                  handleSubmit();
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Nộp bài ngay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ═══ IMAGE PREVIEW MODAL ═══ */}
       {previewImage && (
         <div 

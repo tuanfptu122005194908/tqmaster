@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import mammoth from 'mammoth';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
-import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText } from 'lucide-react';
+import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Exam    = Tables<'exams'>;
@@ -92,6 +93,9 @@ export default function AdminExams() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
   const imgInputRef = useRef<HTMLInputElement>(null);
+
+  const [wordUploading, setWordUploading] = useState(false);
+  const wordInputRef = useRef<HTMLInputElement>(null);
 
   const fetchExams = async () => {
     const { data } = await supabase
@@ -201,6 +205,32 @@ export default function AdminExams() {
   const deleteQuestion = async (id: string) => {
     await supabase.from('questions').delete().eq('id', id);
     if (selExam) fetchQuestions(selExam.id);
+  };
+
+  const handleWordUpload = async (file: File) => {
+    if (!file.name.endsWith('.docx')) {
+      toast.error('Chỉ hỗ trợ file .docx. Hãy lưu file Word dưới dạng .docx rồi thử lại.');
+      return;
+    }
+    setWordUploading(true);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      const text = result.value.trim();
+      if (!text) {
+        toast.error('File Word rỗng hoặc không đọc được nội dung.');
+        setWordUploading(false);
+        return;
+      }
+      setImportText(text);
+      toast.success(`Đã đọc file Word thành công! Kiểm tra nội dung rồi nhấn "Nhập câu hỏi".`);
+    } catch (err) {
+      console.error('mammoth error:', err);
+      toast.error('Không đọc được file Word. Hãy thử lại với file .docx khác.');
+    } finally {
+      setWordUploading(false);
+      if (wordInputRef.current) wordInputRef.current.value = '';
+    }
   };
 
   const importQuestions = async () => {
@@ -512,6 +542,36 @@ export default function AdminExams() {
               <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
                 Định dạng: <code>Câu 1: &lt;nội dung&gt;</code> → <code>A. &lt;lựa chọn&gt;</code> → cuối dòng <code>Đáp án: 1A 2BC</code>
               </p>
+              {/* Word file upload */}
+              <input
+                ref={wordInputRef}
+                type="file"
+                accept=".docx"
+                style={{ display: 'none' }}
+                onChange={e => e.target.files?.[0] && handleWordUpload(e.target.files[0])}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '10px 14px', background: '#f0fdf4', border: '1px dashed #86efac', borderRadius: 14 }}>
+                <button
+                  onClick={() => wordInputRef.current?.click()}
+                  disabled={wordUploading}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 16px', background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)',
+                    color: '#ffffff', border: 'none', borderRadius: 10,
+                    fontSize: 13, fontWeight: 800, cursor: wordUploading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)', flexShrink: 0,
+                    opacity: wordUploading ? 0.7 : 1,
+                  }}
+                >
+                  {wordUploading
+                    ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Đang đọc...</>
+                    : <><Upload size={14} /> Tải file Word (.docx)</>}
+                </button>
+                <div>
+                  <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Tải file Word để nhập nhanh</p>
+                  <p style={{ margin: 0, fontSize: 11.5, color: '#4ade80' }}>Hỗ trợ định dạng: Cau 1: ... / A. ... / B. ... / C. ... / D. ...</p>
+                </div>
+              </div>
               <textarea
                 style={{ ...inputStyle, height: 130, resize: 'vertical', fontFamily: 'monospace', fontSize: 12.5 }}
                 value={importText}

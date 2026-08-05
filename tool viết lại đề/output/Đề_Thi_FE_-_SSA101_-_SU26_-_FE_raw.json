@@ -1,0 +1,892 @@
+[
+  {
+    "id": "q1",
+    "source_title": "Multiple Choice Question 1",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Employers value analytical thinkers because they:",
+    "options": {
+      "A": "Work alone confidently and work with AI effectively",
+      "B": "Use logical thinking to solve issues",
+      "C": "Avoid workplace conflict and maintain professionalism",
+      "D": "Prefer routine tasks"
+    },
+    "_source_file": "q1.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q2",
+    "source_title": "Multiple Choice Question 2",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Analytical thinking is commonly used when:",
+    "options": {
+      "A": "Writing poetry only",
+      "B": "Solving complex problems",
+      "C": "Avoiding decisions",
+      "D": "Relaxing"
+    },
+    "_source_file": "q2.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q3",
+    "source_title": "Multiple Choice Question 3",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Analytical thinking involves:",
+    "options": {
+      "A": "Trusting intuition",
+      "B": "Breaking a whole into parts",
+      "C": "Following emotions",
+      "D": "Avoiding structure"
+    },
+    "_source_file": "q3.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q4",
+    "source_title": "Multiple Choice Question 4",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Amazon is significantly successful business based in analytical thinking, which of the following is a sign of applying analytical thinking?",
+    "options": {
+      "A": "Intuition",
+      "B": "Hyper organization",
+      "C": "Random processes",
+      "D": "Individual memory"
+    },
+    "_source_file": "q4.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q5",
+    "source_title": "Multiple Choice Question 5",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is time management?",
+    "options": {
+      "A": "Controlling others",
+      "B": "Planning time use",
+      "C": "Working randomly",
+      "D": "Avoiding tasks and responsibilities"
+    },
+    "_source_file": "q5.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q6",
+    "source_title": "Multiple Choice Question 6",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which statement best reflects how time management in college differs from high school?",
+    "options": {
+      "A": "College students have fewer deadlines",
+      "B": "College schedules are more structured and require more efforts to follow",
+      "C": "College requires students to independently plan and allocate time",
+      "D": "Time management is less important in college"
+    },
+    "_source_file": "q6.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q7",
+    "source_title": "Multiple Choice Question 7",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which of the following best represents an effective use of a planner?",
+    "options": {
+      "A": "Recording deadlines after they pass",
+      "B": "Scheduling tasks without estimating duration",
+      "C": "Planning tasks while considering priorities and time-on-task",
+      "D": "Using it during exam weeks to cram knowledge in a short period of time"
+    },
+    "_source_file": "q7.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q8",
+    "source_title": "Multiple Choice Question 8",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is scheduling?",
+    "options": {
+      "A": "Ignoring time",
+      "B": "Planning activities",
+      "C": "Avoiding tasks",
+      "D": "Doing tasks randomly without any structure or order"
+    },
+    "_source_file": "q8.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q9",
+    "source_title": "Multiple Choice Question 9",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What tool helps prioritize tasks?",
+    "options": {
+      "A": "Calendar only",
+      "B": "Priority list",
+      "C": "Social media",
+      "D": "Email inbox"
+    },
+    "_source_file": "q9.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q10",
+    "source_title": "Multiple Choice Question 10",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "A student spends hours on low-priority tasks. What is the issue?",
+    "options": {
+      "A": "Good planning",
+      "B": "High productivity",
+      "C": "Poor prioritization",
+      "D": "Effective scheduling"
+    },
+    "_source_file": "q10.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q11",
+    "source_title": "Multiple Choice Question 11",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is \"keyword searching\"?",
+    "options": {
+      "A": "Writing essays",
+      "B": "Reading books strategically",
+      "C": "Using key terms",
+      "D": "Copying text"
+    },
+    "_source_file": "q11.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q12",
+    "source_title": "Multiple Choice Question 12",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is information literacy?",
+    "options": {
+      "A": "Reading and present articles professionally",
+      "B": "Evaluating information",
+      "C": "Memorizing data",
+      "D": "Copying content"
+    },
+    "_source_file": "q12.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q13",
+    "source_title": "Multiple Choice Question 13",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "A student finds an article that supports their argument but is written by an anonymous author on a personal blog. Based on Chapter 7, what should the student do first?",
+    "options": {
+      "A": "Use the article because it supports the claim",
+      "B": "Evaluate the author's credibility and evidence provided",
+      "C": "Replace it with any academic article because journal articles are qualified",
+      "D": "Ignore online sources entirely"
+    },
+    "_source_file": "q13.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q14",
+    "source_title": "Multiple Choice Question 14",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Why is problem-solving linked with other thinking skills?",
+    "options": {
+      "A": "Problem-solving replaces analytical thinking and creative thinking",
+      "B": "Effective problem-solving Integrates multiple types of thinking",
+      "C": "Creative thinking Interferes with problem-solving",
+      "D": "Critical thinking Is unnecessary"
+    },
+    "_source_file": "q14.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q15",
+    "source_title": "Multiple Choice Question 15",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Reviewing results after solving a problem helps students:",
+    "options": {
+      "A": "Assign blame to less responsible person",
+      "B": "Improve future problem-solving efforts",
+      "C": "Prove effort was sufficient to solve any problem",
+      "D": "Avoid repeating tasks"
+    },
+    "_source_file": "q15.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q16",
+    "source_title": "Multiple Choice Question 16",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which action best represents effective problem-solving?",
+    "options": {
+      "A": "Selecting the first solution that seems reasonable",
+      "B": "Ignoring alternative approaches",
+      "C": "Evaluating possible solutions before Implementation",
+      "D": "Avoiding feedback after solving the problem"
+    },
+    "_source_file": "q16.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q17",
+    "source_title": "Multiple Choice Question 17",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Why B flexibility important in problem-solving?",
+    "options": {
+      "A": "Problems rarely change once identified",
+      "B": "Initial solutions may not fully address the problem",
+      "C": "Flexibility reduces accountability",
+      "D": "It saves time in decision-making"
+    },
+    "_source_file": "q17.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q18",
+    "source_title": "Multiple Choice Question 18",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is active listening?",
+    "options": {
+      "A": "Hearing only",
+      "B": "Engaging fully",
+      "C": "Interrupting to clarify if needed",
+      "D": "Ignoring speaker"
+    },
+    "_source_file": "q18.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q19",
+    "source_title": "Multiple Choice Question 19",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is nonverbal communication?",
+    "options": {
+      "A": "Spoken words",
+      "B": "Body language",
+      "C": "Written text",
+      "D": "Grammar rules"
+    },
+    "_source_file": "q19.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q20",
+    "source_title": "Multiple Choice Question 20",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is clarity in communication?",
+    "options": {
+      "A": "Long and complex sentences",
+      "B": "Beautiful and eloquent language",
+      "C": "Easy understanding",
+      "D": "Repetition and emphasizing"
+    },
+    "_source_file": "q20.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 21",
+    "source_title": "Multiple Choice Question 21",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which of the following best reflects the relationship between digital literacy and human agency?",
+    "options": {
+      "A": "Digital literacy reduces personal responsibility",
+      "B": "Algorithms fully determine human choices and thinking process",
+      "C": "Digital literacy helps Individuals navigate algorithmic influence",
+      "D": "Human agency is irrelevant in digital environments"
+    },
+    "_source_file": "q21.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 22",
+    "source_title": "Multiple Choice Question 22",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which term describes Al systems producing incorrect or fabricated information?",
+    "options": {
+      "A": "Automation",
+      "B": "Optimization",
+      "C": "Hallucination",
+      "D": "Simulation"
+    },
+    "_source_file": "q22.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 23",
+    "source_title": "Multiple Choice Question 23",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "According to the American Library Association (2011), digital literacy primarily refers to the ability to:",
+    "options": {
+      "A": "Program artificial intelligence systems to get the most productive information system",
+      "B": "Use information and communication technologies to find, evaluate, create, and communicate information",
+      "C": "Detect Al-generated content",
+      "D": "Replace human judgment with algorithms"
+    },
+    "_source_file": "q23.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 24",
+    "source_title": "Multiple Choice Question 24",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which Al-supported strategy best aligns with improving memory storage?",
+    "options": {
+      "A": "Asking Al to summarize a chapter and skipping the reading",
+      "B": "Using AI to plan spaced practice after understanding the material",
+      "C": "Letting Al answer practice questions and remember the answer list",
+      "D": "Relying on Al-generated notes only"
+    },
+    "_source_file": "q24.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 25",
+    "source_title": "Multiple Choice Question 25",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which of the following principle could best guides ethical student use of Al?",
+    "options": {
+      "A": "Use Al whenever it saves time and when you are too busy",
+      "B": "Use Al to support learning goals, not replace them",
+      "C": "Avoid Al entirely in higher education because it causes more harm than benefit",
+      "D": "Use Al only for graded tasks"
+    },
+    "_source_file": "q25.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q26",
+    "source_title": "Multiple Choice Question 26",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Why is using Al to complete assignments unethical?",
+    "options": {
+      "A": "It takes too much time",
+      "B": "It replaces the intended learning process",
+      "C": "It requires technical skills",
+      "D": "It reduces collaboration and social learning"
+    },
+    "_source_file": "q26.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q27",
+    "source_title": "Multiple Choice Question 27",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "A student skips classes but studies alone. What is the likely issue?",
+    "options": {
+      "A": "Too much collaboration",
+      "B": "Low behavioral engagement",
+      "C": "Overconfidence",
+      "D": "Excessive motivation"
+    },
+    "_source_file": "q27.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q28",
+    "source_title": "Multiple Choice Question 28",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "A student reads the syllabus carefully and plans ahead. This shows:",
+    "options": {
+      "A": "Passive learning",
+      "B": "Avoidance behavior",
+      "C": "Self-management",
+      "D": "Dependence on teachers"
+    },
+    "_source_file": "q28.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q29",
+    "source_title": "Multiple Choice Question 29",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which term describes taking responsibility for your own learning?",
+    "options": {
+      "A": "Passive learning",
+      "B": "Academic ownership",
+      "C": "External motivation",
+      "D": "Teacher-led learning systems"
+    },
+    "_source_file": "q29.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q30",
+    "source_title": "Multiple Choice Question 30",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which question reflects a metacognitive approach to learning?",
+    "options": {
+      "A": "How many pages do I need to read?",
+      "B": "What strategy am I using, and is it effective?",
+      "C": "Will this be on the exam and how can I have support?",
+      "D": "How long is this assignment?"
+    },
+    "_source_file": "q30.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 31",
+    "source_title": "Multiple Choice Question 31",
+    "answer": [],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Metacognition is best defined as",
+    "options": {
+      "A": "Thinking critically about academic content",
+      "B": "Awareness and regulation of one’s own thinking and learning",
+      "C": "Memorizing information efficiently",
+      "D": "Monitoring other students' performance"
+    },
+    "_source_file": "q31.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 32",
+    "source_title": "Multiple Choice Question 32",
+    "answer": [],
+    "answer_count_note": "Choose 1 answer",
+    "question": "A student studies extensively but keeps failing quizzes. From a metacognitive perspective, what is the most likely issue?",
+    "options": {
+      "A": "Lack of motivation",
+      "B": "Poor time management",
+      "C": "Ineffective study strategies not being evaluated",
+      "D": "Insufficient intelligence"
+    },
+    "_source_file": "q32.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 33",
+    "source_title": "Multiple Choice Question 33",
+    "answer": [],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Mark Twain compared idea generation to:",
+    "options": {
+      "A": "A journey",
+      "B": "A kaleidoscope",
+      "C": "A puzzle",
+      "D": "A dream-making machine"
+    },
+    "_source_file": "q33.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 34",
+    "source_title": "Multiple Choice Question 34",
+    "answer": [],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which behavior most strongly limits creative thinking?",
+    "options": {
+      "A": "Questioning assumptions",
+      "B": "Fear of making mistakes",
+      "C": "Generating multiple solutions",
+      "D": "Seeking alternative perspectives"
+    },
+    "_source_file": "q34.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "CAU 35",
+    "source_title": "Multiple Choice Question 35",
+    "answer": [],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Tracking ideas enhances creativity because it:",
+    "options": {
+      "A": "Eliminates Imagination",
+      "B": "Preserves inspiration",
+      "C": "Avoids reflection and conclusion",
+      "D": "Reduces novelty"
+    },
+    "_source_file": "q35.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q36",
+    "source_title": "Multiple Choice Question 36",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "According to the chapter, creativity is:",
+    "options": {
+      "A": "A talent only some people are born with",
+      "B": "Limited to artistic disciplines",
+      "C": "A skill that can be developed and practiced",
+      "D": "Incompatible with analytical thinking"
+    },
+    "_source_file": "q36.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q37",
+    "source_title": "Multiple Choice Question 37",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is the main purpose of self-directed learning in online education?",
+    "options": {
+      "A": "To reduce instructor workload",
+      "B": "To help students take control of their learning",
+      "C": "To eliminate group work",
+      "D": "To replace assessments with self-study activities"
+    },
+    "_source_file": "q37.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q38",
+    "source_title": "Multiple Choice Question 38",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which Bloom's level requires learners to break information into parts?",
+    "options": {
+      "A": "Understand",
+      "B": "Apply",
+      "C": "Analyze",
+      "D": "Remember"
+    },
+    "_source_file": "q38.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q39",
+    "source_title": "Multiple Choice Question 39",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What is the key advantage of short, regular study sessions?",
+    "options": {
+      "A": "Less effort is required",
+      "B": "Information is memorized faster",
+      "C": "Focus and retention are improved",
+      "D": "Assignments become easier and more motivational"
+    },
+    "_source_file": "q39.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q40",
+    "source_title": "Multiple Choice Question 40",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which type of memory is primarily responsible for temporarily holding information while processing it?",
+    "options": {
+      "A": "Long-term memory",
+      "B": "Sensory memory",
+      "C": "Working memory",
+      "D": "Episodic memory"
+    },
+    "_source_file": "q40.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q41",
+    "source_title": "Multiple Choice Question 41",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What Is encoding in memory?",
+    "options": {
+      "A": "Forgetting information",
+      "B": "Converting information for storage in memory",
+      "C": "Repeating words and image",
+      "D": "Skipping details"
+    },
+    "_source_file": "q41.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q42",
+    "source_title": "Multiple Choice Question 42",
+    "answer": [
+      "C"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "What Is the primary benefit of reviewing graded tests?",
+    "options": {
+      "A": "Improving GPA immediately",
+      "B": "Identifying grading errors",
+      "C": "Strengthening understanding and memory",
+      "D": "Reducing study time and have more fun If practicing with friends"
+    },
+    "_source_file": "q42.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q43",
+    "source_title": "Multiple Choice Question 43",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "According to the International Society of Academic Integrity (2021), academic integrity is best defined as:",
+    "options": {
+      "A": "Compliance with university assessment rules only",
+      "B": "A promise to uphold honesty, fairness, respect, responsibility, and courage",
+      "C": "The ability to avoid plagiarism through software tools and institutional policies",
+      "D": "A system of penalties designed to discourage cheating and misconduct"
+    },
+    "_source_file": "q43.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q44",
+    "source_title": "Multiple Choice Question 44",
+    "answer": [
+      "D"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Why are Al detection tools controversial in academic settings?",
+    "options": {
+      "A": "They could replace teachers in learning any knowledge",
+      "B": "They are difficult to install",
+      "C": "They are rarely used productively",
+      "D": "They may produce inaccurate results and false accusations"
+    },
+    "_source_file": "q44.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q45",
+    "source_title": "Multiple Choice Question 45",
+    "answer": [
+      "A"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Which institutional response best aligns with the ethical approach advocated in the text?",
+    "options": {
+      "A": "Developing clear Al usage policies and promoting transparency",
+      "B": "Banning all Al tools immediately because Al will destroy students' independent thinking",
+      "C": "Ignoring Al-related misconduct",
+      "D": "Replacing Instructors with AI graders"
+    },
+    "_source_file": "q45.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q46",
+    "source_title": "Multiple Choice Question 46",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Why are universities described as being “in the process” of developing Al policies?",
+    "options": {
+      "A": "Al adoption is declining",
+      "B": "Al is developing faster than ethical guidelines can be established",
+      "C": "Faculty resistance has ended and Al become a popular tool accepted everywhere",
+      "D": "Students no longer use Al"
+    },
+    "_source_file": "q46.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q47",
+    "source_title": "Multiple Choice Question 47",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Critical thinkers should:",
+    "options": {
+      "A": "Accept everything",
+      "B": "Question everything",
+      "C": "Avoid research",
+      "D": "Being smart in all situations"
+    },
+    "_source_file": "q47.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q48",
+    "source_title": "Multiple Choice Question 48",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Falling to validate sources results in:",
+    "options": {
+      "A": "Strong arguments",
+      "B": "Weak reasoning",
+      "C": "Clear thinking",
+      "D": "Improved logic"
+    },
+    "_source_file": "q48.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q49",
+    "source_title": "Multiple Choice Question 49",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Recognizing personal bias Is part of:",
+    "options": {
+      "A": "Problem-solving",
+      "B": "Critical thinking",
+      "C": "Information literacy",
+      "D": "Intuition"
+    },
+    "_source_file": "q49.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  },
+  {
+    "id": "q50",
+    "source_title": "Multiple Choice Question 50",
+    "answer": [
+      "B"
+    ],
+    "answer_count_note": "Choose 1 answer",
+    "question": "Revisiting a resolved Issue when conditions change is:",
+    "options": {
+      "A": "Weakness",
+      "B": "Critical awareness",
+      "C": "Confusion",
+      "D": "Creativity"
+    },
+    "_source_file": "q50.webp",
+    "ocr_confidence": "high",
+    "uncertain_parts": ""
+  }
+]
