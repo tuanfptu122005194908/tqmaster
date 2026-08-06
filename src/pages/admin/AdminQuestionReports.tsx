@@ -26,7 +26,7 @@ export default function AdminQuestionReports() {
       .from('question_reports')
       .select(`
         *,
-        question:questions(*, options:question_options(*)),
+        question:questions(*, options:question_options(*), exam:exams(title)),
         user:profiles(*),
         suggested_option:question_options(*)
       `)
@@ -145,8 +145,15 @@ export default function AdminQuestionReports() {
               <div key={group.question.id} style={{ background: '#ffffff', borderRadius: 24, border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                 {/* Question Info */}
                 <div style={{ padding: 24, borderBottom: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
-                    Câu hỏi
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      CÂU HỎI
+                    </div>
+                    {group.question.exam?.title && (
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#3b82f6', background: '#eff6ff', padding: '4px 12px', borderRadius: 20 }}>
+                        Đề thi: {group.question.exam.title}
+                      </div>
+                    )}
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 16, lineHeight: 1.5 }}>
                     {group.question.content}
