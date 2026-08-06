@@ -147,7 +147,7 @@ export default function AdminQuestionReports() {
                 <div style={{ padding: 24, borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      CÂU HỎI
+                      CÂU HỎI {group.question.order_num ? `SỐ ${group.question.order_num}` : ''}
                     </div>
                     {group.question.exam?.title && (
                       <div style={{ fontSize: 13, fontWeight: 700, color: '#3b82f6', background: '#eff6ff', padding: '4px 12px', borderRadius: 20 }}>
