@@ -33,6 +33,7 @@ import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminNews from "@/pages/admin/AdminNews";
+import AdminQuestionReports from "@/pages/admin/AdminQuestionReports";
 import { Loader2, Menu, X } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -238,6 +239,7 @@ function AppShell() {
       <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/news" element={<ProtectedRoute requireAdmin><AdminLayout><AdminNews /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/reports" element={<ProtectedRoute requireAdmin><AdminLayout><AdminQuestionReports /></AdminLayout></ProtectedRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

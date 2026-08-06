@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '@/lib/AppContext';
 import {
   LayoutDashboard, BookOpen, FileText, Library, Bell, Newspaper,
-  ShoppingBag, Tag, Users, Settings, Mountain
+  ShoppingBag, Tag, Users, Settings, Mountain, MessageSquareWarning
 } from 'lucide-react';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
 
@@ -12,6 +12,7 @@ const NAV = [
   { key: 'admin-subjects',      label: 'Môn học',     icon: BookOpen },
   { key: 'admin-exams',         label: 'Đề thi',      icon: FileText },
   { key: 'admin-theory',        label: 'Lý thuyết',   icon: Library },
+  { key: 'admin-reports',       label: 'Báo cáo lỗi', icon: MessageSquareWarning },
   { key: 'admin-announcements', label: 'Thông báo',   icon: Bell },
   { key: 'admin-news',          label: 'Tin tức',     icon: Newspaper },
   null, // divider

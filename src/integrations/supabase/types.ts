@@ -603,6 +603,58 @@ export type Database = {
           },
         ]
       }
+      question_reports: {
+        Row: {
+          id: string
+          question_id: string
+          user_id: string
+          suggested_option_id: string
+          note: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          question_id: string
+          user_id: string
+          suggested_option_id: string
+          note?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          question_id?: string
+          user_id?: string
+          suggested_option_id?: string
+          note?: string | null
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_reports_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_reports_suggested_option_id_fkey"
+            columns: ["suggested_option_id"]
+            isOneToOne: false
+            referencedRelation: "question_options"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       signup_otps: {
         Row: {
           attempts: number
