@@ -773,6 +773,7 @@ export default function ExamPage() {
             />
           </div>
         )}
+        {reportModal}
       </div>
     );
   }
