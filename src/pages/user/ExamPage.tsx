@@ -100,7 +100,12 @@ export default function ExamPage() {
   useEffect(() => {
     if (loading || !exam || questions.length === 0) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in some input (though there are no inputs here)
+      // Ignore if user is typing in some input or textarea
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
       if (e.code === 'Space' && examMode === 'flashcard') {
         e.preventDefault();
         setIsFlipped(prev => {
