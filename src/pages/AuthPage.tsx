@@ -346,7 +346,7 @@ export default function AuthPage() {
             </div>
 
             {/* Official GIS Button Container */}
-            <div id="googleButtonDivRegister" style={{ display: 'flex', justifyContent: 'center', width: '100%', minHeight: 48, width: '100%' }}></div>
+            <div id="googleButtonDivRegister" style={{ display: 'flex', justifyContent: 'center', minHeight: 48, width: '100%' }}></div>
           </div>
         ) : (
           /* ── LOGIN & FORGOT MODE: FORM ── */
