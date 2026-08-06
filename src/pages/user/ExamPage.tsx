@@ -1272,7 +1272,7 @@ export default function ExamPage() {
                   alt={`câu ${currentIndex + 1}`}
                   loading="eager"
                   decoding="sync"
-                  fetchpriority="high"
+                  fetchPriority="high"
                   style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
                 />
               </div>

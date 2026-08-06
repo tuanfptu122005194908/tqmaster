@@ -11,7 +11,7 @@ type Subject = Tables<'subjects'>;
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function HomePage() {
-  const { addToCart, removeFromCart, isInCart, isPurchased, setSelectedSubjectId, searchQuery, purchasedIds } = useApp();
+  const { addToCart, removeFromCart, isInCart, isPurchased, searchQuery, purchasedIds } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isMyCourses = location.pathname === '/my-courses';
