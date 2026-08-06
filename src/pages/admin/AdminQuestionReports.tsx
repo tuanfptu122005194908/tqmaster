@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useApp } from '@/lib/AppContext';
 import { Check, X, MessageSquareWarning, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -17,6 +18,7 @@ type QuestionReport = {
 };
 
 export default function AdminQuestionReports() {
+  const { refreshPendingReportsCount } = useApp();
   const [reports, setReports] = useState<QuestionReport[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,6 +80,7 @@ export default function AdminQuestionReports() {
 
       toast.success('Đã cập nhật đáp án và phê duyệt báo cáo!');
       loadReports();
+      refreshPendingReportsCount();
     } catch (error: any) {
       toast.error('Lỗi: ' + error.message);
     }
@@ -94,6 +97,7 @@ export default function AdminQuestionReports() {
 
       toast.success('Đã từ chối báo cáo.');
       loadReports();
+      refreshPendingReportsCount();
     } catch (error: any) {
       toast.error('Lỗi: ' + error.message);
     }
