@@ -25,7 +25,7 @@ const NAV = [
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function AdminSidebar() {
-  const { pendingOrdersCount } = useApp();
+  const { pendingOrdersCount, pendingReportsCount } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -88,7 +88,10 @@ export default function AdminSidebar() {
           const pathName = `/admin/${item.key.replace('admin-', '')}`;
           const active = location.pathname === pathName;
           const Icon   = item.icon;
-          const hasBadge = item.key === 'admin-orders' && pendingOrdersCount > 0;
+          const isOrdersBadge = item.key === 'admin-orders' && pendingOrdersCount > 0;
+          const isReportsBadge = item.key === 'admin-reports' && pendingReportsCount > 0;
+          const hasBadge = isOrdersBadge || isReportsBadge;
+          const badgeCount = isOrdersBadge ? pendingOrdersCount : pendingReportsCount;
 
           return (
             <button
@@ -138,7 +141,7 @@ export default function AdminSidebar() {
                   padding: '0 6px',
                   boxShadow: '0 2px 6px rgba(239, 68, 68, 0.35)',
                 }}>
-                  {pendingOrdersCount}
+                  {badgeCount}
                 </span>
               )}
             </button>

@@ -53,6 +53,8 @@ interface AppContextValue {
   // Admin Notifications
   pendingOrdersCount: number;
   refreshPendingOrdersCount: () => Promise<void>;
+  pendingReportsCount: number;
+  refreshPendingReportsCount: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -69,6 +71,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cart,          setCart]          = useState<CartItem[]>([]);
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
 
 
@@ -115,6 +118,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!error) setPendingOrdersCount(count ?? 0);
     } catch (e) {
       console.error('refreshPendingOrdersCount exception:', e);
+    }
+  }, []);
+
+  const refreshPendingReportsCount = useCallback(async () => {
+    try {
+      const { count, error } = await supabase
+        .from('question_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      
+      if (!error) setPendingReportsCount(count ?? 0);
+    } catch (e) {
+      console.error('refreshPendingReportsCount exception:', e);
     }
   }, []);
 
@@ -215,6 +231,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id);
             if (roleData?.some(r => r.role === 'admin')) {
               await refreshPendingOrdersCount();
+              await refreshPendingReportsCount();
             }
           }
         }
@@ -273,7 +290,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sessionVisibilityHandlerRef.current = null;
       }
     };
-  }, [loadProfileAndRole, refreshPurchased, refreshPendingOrdersCount, enforceSingleSession]);
+  }, [loadProfileAndRole, refreshPurchased, refreshPendingOrdersCount, refreshPendingReportsCount, enforceSingleSession]);
 
   // ── Real-time subscription for orders (admin badge) ─────
   // Separated from auth useEffect so it only depends on isAdmin
@@ -283,6 +300,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Fetch count immediately when becoming admin
     refreshPendingOrdersCount();
+    refreshPendingReportsCount();
 
     const ordersChannel = supabase
       .channel('admin-orders-realtime')
@@ -297,10 +315,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.log('admin-orders-realtime channel status:', status);
       });
 
+    const reportsChannel = supabase
+      .channel('admin-reports-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'question_reports' },
+        () => {
+          refreshPendingReportsCount();
+        }
+      )
+      .subscribe((status) => {
+        console.log('admin-reports-realtime channel status:', status);
+      });
+
     return () => {
       supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(reportsChannel);
     };
-  }, [isAdmin, refreshPendingOrdersCount]);
+  }, [isAdmin, refreshPendingOrdersCount, refreshPendingReportsCount]);
 
   // ── Cart helpers ─────────────────────────────────────────
   const addToCart = (s: Subject | string) => {
@@ -348,6 +380,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cart, addToCart, removeFromCart, clearCart, isInCart,
     purchasedIds, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
+    pendingReportsCount, refreshPendingReportsCount,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
