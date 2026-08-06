@@ -1027,6 +1027,7 @@ export default function ExamPage() {
             </button>
           </div>
         )}
+        {reportModal}
       </div>
     );
   }
