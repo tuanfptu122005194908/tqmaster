@@ -497,10 +497,14 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          is_banned: boolean
           phone: string | null
           student_code: string | null
           updated_at: string
@@ -508,10 +512,14 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          is_banned?: boolean
           phone?: string | null
           student_code?: string | null
           updated_at?: string
@@ -519,16 +527,28 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          is_banned?: boolean
           phone?: string | null
           student_code?: string | null
           updated_at?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_banned_by_fkey"
+            columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       question_options: {
         Row: {
@@ -558,6 +578,58 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_reports: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          question_id: string
+          status: string
+          suggested_option_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          question_id: string
+          status?: string
+          suggested_option_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          question_id?: string
+          status?: string
+          suggested_option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_reports_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_reports_suggested_option_id_fkey"
+            columns: ["suggested_option_id"]
+            isOneToOne: false
+            referencedRelation: "question_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -601,58 +673,6 @@ export type Database = {
             referencedRelation: "exams"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      question_reports: {
-        Row: {
-          id: string
-          question_id: string
-          user_id: string
-          suggested_option_id: string
-          note: string | null
-          status: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          question_id: string
-          user_id: string
-          suggested_option_id: string
-          note?: string | null
-          status?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          question_id?: string
-          user_id?: string
-          suggested_option_id?: string
-          note?: string | null
-          status?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "question_reports_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_reports_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "question_reports_suggested_option_id_fkey"
-            columns: ["suggested_option_id"]
-            isOneToOne: false
-            referencedRelation: "question_options"
-            referencedColumns: ["id"]
-          }
         ]
       }
       signup_otps: {
@@ -918,6 +938,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      get_request_ip: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
