@@ -337,6 +337,103 @@ export default function ExamPage() {
     }
   };
 
+  const reportModal = reportingQuestion ? (
+        <div 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(null); }}
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            background: 'rgba(15, 23, 42, 0.6)', 
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: 24
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{ 
+              background: '#ffffff', 
+              borderRadius: 24, 
+              width: '100%', 
+              maxWidth: 500, 
+              padding: 28, 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 20
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                  <MessageSquareWarning size={20} />
+                </div>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Báo cáo đáp án sai</h3>
+              </div>
+              <button onClick={() => setReportingQuestion(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 120, overflowY: 'auto' }}>
+              <strong style={{ color: '#0f172a' }}>Câu hỏi: </strong>
+              {reportingQuestion.content}
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Theo bạn, đáp án nào mới là đáp án đúng? *</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {reportingQuestion.options.map(opt => (
+                  <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 8, border: `1px solid ${reportOptionId === opt.id ? '#3b82f6' : '#e2e8f0'}`, background: reportOptionId === opt.id ? '#eff6ff' : 'white', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="suggestedOption" 
+                      value={opt.id} 
+                      checked={reportOptionId === opt.id}
+                      onChange={() => setReportOptionId(opt.id)}
+                      style={{ accentColor: '#3b82f6' }}
+                    />
+                    <span style={{ fontSize: 14, fontWeight: reportOptionId === opt.id ? 700 : 500, color: '#334155' }}>
+                      {opt.label}. {opt.content}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Ghi chú thêm (không bắt buộc)</label>
+              <textarea 
+                value={reportNote}
+                onChange={e => setReportNote(e.target.value)}
+                placeholder="Vui lòng cung cấp thêm giải thích hoặc lý do tại sao bạn cho rằng đáp án này đúng..."
+                style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, minHeight: 80, resize: 'vertical' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+              <button
+                onClick={() => setReportingQuestion(null)}
+                style={{ flex: 1, padding: '12px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#334155', cursor: 'pointer' }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={submitReport}
+                disabled={!reportOptionId || isSubmittingReport}
+                style={{ flex: 1, padding: '12px 16px', background: !reportOptionId ? '#94a3b8' : '#3b82f6', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, color: 'white', cursor: !reportOptionId ? 'not-allowed' : 'pointer' }}
+              >
+                {isSubmittingReport ? <Loader2 size={20} className="spinner" /> : 'Gửi báo cáo'}
+              </button>
+            </div>
+          </div>
+        </div>
+  ) : null;
+
   // ── Results screen (Modern design) ────────────────────────────
   if (submitted && examMode === 'exam') {
     const { correct, total, pct } = calcScore();
@@ -1625,103 +1722,7 @@ export default function ExamPage() {
         </div>
       )}
 
-      {/* ═══ REPORT MODAL ═══ */}
-      {reportingQuestion && (
-        <div 
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(null); }}
-          style={{ 
-            position: 'fixed', 
-            inset: 0, 
-            background: 'rgba(15, 23, 42, 0.6)', 
-            backdropFilter: 'blur(4px)',
-            zIndex: 9999, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: 24
-          }}
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            style={{ 
-              background: '#ffffff', 
-              borderRadius: 24, 
-              width: '100%', 
-              maxWidth: 500, 
-              padding: 28, 
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 20
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
-                  <MessageSquareWarning size={20} />
-                </div>
-                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Báo cáo đáp án sai</h3>
-              </div>
-              <button onClick={() => setReportingQuestion(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 120, overflowY: 'auto' }}>
-              <strong style={{ color: '#0f172a' }}>Câu hỏi: </strong>
-              {reportingQuestion.content}
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Theo bạn, đáp án nào mới là đáp án đúng? *</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {reportingQuestion.options.map(opt => (
-                  <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 8, border: `1px solid ${reportOptionId === opt.id ? '#3b82f6' : '#e2e8f0'}`, background: reportOptionId === opt.id ? '#eff6ff' : 'white', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="suggestedOption" 
-                      value={opt.id} 
-                      checked={reportOptionId === opt.id}
-                      onChange={() => setReportOptionId(opt.id)}
-                      style={{ accentColor: '#3b82f6' }}
-                    />
-                    <span style={{ fontSize: 14, fontWeight: reportOptionId === opt.id ? 700 : 500, color: '#334155' }}>
-                      {opt.label}. {opt.content}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Ghi chú thêm (không bắt buộc)</label>
-              <textarea 
-                value={reportNote}
-                onChange={e => setReportNote(e.target.value)}
-                placeholder="Vui lòng cung cấp thêm giải thích hoặc lý do tại sao bạn cho rằng đáp án này đúng..."
-                style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, minHeight: 80, resize: 'vertical' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
-              <button
-                onClick={() => setReportingQuestion(null)}
-                style={{ flex: 1, padding: '12px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#334155', cursor: 'pointer' }}
-              >
-                Hủy
-              </button>
-              <button
-                onClick={submitReport}
-                disabled={!reportOptionId || isSubmittingReport}
-                style={{ flex: 1, padding: '12px 16px', background: !reportOptionId ? '#94a3b8' : '#3b82f6', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, color: 'white', cursor: !reportOptionId ? 'not-allowed' : 'pointer' }}
-              >
-                {isSubmittingReport ? <Loader2 size={20} className="spinner" /> : 'Gửi báo cáo'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {reportModal}
     </div>
   );
 }
