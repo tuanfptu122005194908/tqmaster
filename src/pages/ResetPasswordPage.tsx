@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Loader2, Lock, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import logoAvatar from '@/assets/logo-avatar.png';
 
-export default function ResetPasswordPage({ onDone, forced = false }: { onDone: () => void; forced?: boolean }) {
+export default function ResetPasswordPage({ onDone = () => {}, forced = false }: { onDone?: () => void; forced?: boolean }) {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPass, setShowPass] = useState(false);
