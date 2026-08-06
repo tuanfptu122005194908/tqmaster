@@ -34,7 +34,7 @@ export default function AdminQuestionReports() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      toast.error('L?i t?i danh s�ch b�o c�o');
+      toast.error('Lỗi tải danh sách báo cáo');
       console.error(error);
     } else {
       setReports(data || []);
@@ -58,7 +58,7 @@ export default function AdminQuestionReports() {
   }, {} as Record<string, { question: any; reports: QuestionReport[] }>);
 
   const handleApprove = async (questionId: string, suggestedOptionId: string) => {
-    if (!window.confirm('Ch?p nh?n d? xu?t n�y? H? th?ng s? c?p nh?t d�p �n d�ng ngay l?p t?c.')) return;
+    if (!window.confirm('Chấp nhận đề xuất này? Hệ thống sẽ cập nhật đáp án đúng ngay lập tức.')) return;
     try {
       await supabase
         .from('question_options')
@@ -76,15 +76,15 @@ export default function AdminQuestionReports() {
         .eq('question_id', questionId)
         .eq('status', 'pending'); 
 
-      toast.success('�� c?p nh?t d�p �n v� ph� duy?t b�o c�o!');
+      toast.success('Đã cập nhật đáp án và phê duyệt báo cáo!');
       loadReports();
     } catch (error: any) {
-      toast.error('L?i: ' + error.message);
+      toast.error('Lỗi: ' + error.message);
     }
   };
 
   const handleRejectAll = async (questionId: string) => {
-    if (!window.confirm('T? ch?i t?t c? b�o c�o cho c�u h?i n�y?')) return;
+    if (!window.confirm('Từ chối tất cả báo cáo cho câu hỏi này?')) return;
     try {
       await supabase
         .from('question_reports')
@@ -92,10 +92,10 @@ export default function AdminQuestionReports() {
         .eq('question_id', questionId)
         .eq('status', 'pending');
 
-      toast.success('�� t? ch?i b�o c�o.');
+      toast.success('Đã từ chối báo cáo.');
       loadReports();
     } catch (error: any) {
-      toast.error('L?i: ' + error.message);
+      toast.error('Lỗi: ' + error.message);
     }
   };
 
@@ -114,14 +114,14 @@ export default function AdminQuestionReports() {
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 10, letterSpacing: '-0.03em' }}>
           <MessageSquareWarning size={32} style={{ color: '#f59e0b' }} />
-          B�o c�o l?i c�u h?i
+          Báo cáo lỗi câu hỏi
         </h1>
-        <p style={{ color: '#64748b', margin: 0, fontSize: 15 }}>Qu?n l� c�c d? xu?t s?a d�p �n t? h?c vi�n</p>
+        <p style={{ color: '#64748b', margin: 0, fontSize: 15 }}>Quản lý các đề xuất sửa đáp án từ học viên</p>
       </div>
 
       {groups.length === 0 ? (
         <div style={{ background: '#ffffff', padding: 40, borderRadius: 20, textAlign: 'center', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <p style={{ color: '#94a3b8', fontSize: 16, fontWeight: 600, margin: 0 }}>Kh�ng c� b�o c�o l?i n�o dang ch? x? l�.</p>
+          <p style={{ color: '#94a3b8', fontSize: 16, fontWeight: 600, margin: 0 }}>Không có báo cáo lỗi nào đang chờ xử lý.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -136,7 +136,7 @@ export default function AdminQuestionReports() {
                 }
                 suggestionCounts[r.suggested_option.id].count++;
                 if (r.note && r.note.trim()) {
-                  suggestionCounts[r.suggested_option.id].notes.push(`${r.user?.full_name || r.user?.username || 'H?c vi�n'}: ${r.note}`);
+                  suggestionCounts[r.suggested_option.id].notes.push(`${r.user?.full_name || r.user?.username || 'Học viên'}: ${r.note}`);
                 }
               }
             });
@@ -146,7 +146,7 @@ export default function AdminQuestionReports() {
                 {/* Question Info */}
                 <div style={{ padding: 24, borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.05em' }}>
-                    C�u h?i
+                    Câu hỏi
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 16, lineHeight: 1.5 }}>
                     {group.question.content}
@@ -156,30 +156,30 @@ export default function AdminQuestionReports() {
                   )}
                   
                   <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: 16 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: '#10b981', marginBottom: 8, letterSpacing: '0.05em' }}>��P �N ��NG HI?N T?I</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#10b981', marginBottom: 8, letterSpacing: '0.05em' }}>ĐÁP ÁN ĐÚNG HIỆN TẠI</div>
                     {currentCorrectOpts.length > 0 ? (
                       currentCorrectOpts.map((o: any) => (
                         <div key={o.id} style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{o.label}. {o.content}</div>
                       ))
                     ) : (
-                      <div style={{ fontSize: 15, color: '#ef4444', fontWeight: 600 }}>Chua c� d�p �n d�ng</div>
+                      <div style={{ fontSize: 15, color: '#ef4444', fontWeight: 600 }}>Chưa có đáp án đúng</div>
                     )}
                   </div>
                 </div>
 
                 {/* Suggestions */}
                 <div style={{ padding: 24 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 16, letterSpacing: '0.02em' }}>C�C �? XU?T S?A:</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 16, letterSpacing: '0.02em' }}>CÁC ĐỀ XUẤT SỬA:</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {Object.values(suggestionCounts).map((sugg) => (
                       <div key={sugg.option.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, padding: 20, background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 16 }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                             <div style={{ fontSize: 16, fontWeight: 800, color: '#d97706' }}>
-                              �? xu?t {sugg.option.label}. {sugg.option.content}
+                              Đề xuất {sugg.option.label}. {sugg.option.content}
                             </div>
                             <span style={{ fontSize: 12, fontWeight: 800, color: '#ea580c', background: '#ffedd5', padding: '4px 10px', borderRadius: 20 }}>
-                              {sugg.count} B�o c�o
+                              {sugg.count} Báo cáo
                             </span>
                           </div>
                           
@@ -204,7 +204,7 @@ export default function AdminQuestionReports() {
                             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                           }}
                         >
-                          <Check size={18} /> Ch?p nh?n s?a
+                          <Check size={18} /> Chấp nhận sửa
                         </button>
                       </div>
                     ))}
@@ -223,7 +223,7 @@ export default function AdminQuestionReports() {
                       transition: 'all 0.2s'
                     }}
                   >
-                    <X size={18} /> B? qua t?t c?
+                    <X size={18} /> Bỏ qua tất cả
                   </button>
                 </div>
               </div>
