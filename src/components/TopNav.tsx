@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X, ShieldCheck } from 'lucide-react';
-import logoAvatar from '@/assets/logo-avatar.png';
-
+import { Logo } from './Logo';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function TopNav() {
@@ -61,13 +60,8 @@ export default function TopNav() {
             transition: 'transform 0.15s ease',
           }}
         >
-          <div style={{
-            width: 36, height: 36, borderRadius: '50%',
-            overflow: 'hidden', border: '1.5px solid #e2e8f0',
-            background: '#ffffff', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)',
-          }}>
-            <img src={logoAvatar} alt="TQMaster" width={36} height={36} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
+          <Logo style={{ width: 36, height: 36, boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)', borderRadius: 10 }} />
+
           <span style={{ fontWeight: 900, fontSize: '1.2rem', letterSpacing: '-0.03em', color: '#0f172a' }}>TQMaster</span>
         </button>
 

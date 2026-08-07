@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Loader2, Lock, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
-import logoAvatar from '@/assets/logo-avatar.png';
+import { Logo } from '@/components/Logo';
 
 export default function ResetPasswordPage({ onDone = () => {}, forced = false }: { onDone?: () => void; forced?: boolean }) {
   const [password, setPassword] = useState('');
@@ -35,9 +35,7 @@ export default function ResetPasswordPage({ onDone = () => {}, forced = false }:
 
       <div className="w-full max-w-[440px] relative z-10 animate-slide-up">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-md ring-2 ring-white/60">
-            <img src={logoAvatar} alt="TQMaster" className="w-full h-full object-cover" />
-          </div>
+          <Logo className="w-11 h-11 rounded-2xl shadow-md ring-2 ring-white/60" />
           <span className="text-xl font-extrabold tracking-tight">TQMaster</span>
         </div>
 

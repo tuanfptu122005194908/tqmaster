@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Eye, EyeOff, Loader2, Mail, Lock, User, CheckCircle, AlertCircle, Sparkles, ArrowRight
 } from 'lucide-react';
-import logoAvatar from '@/assets/logo-avatar.png';
+import { Logo } from '@/components/Logo';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
 import { toast } from 'sonner';
 import { parseFunctionError } from '@/lib/utils';
@@ -239,13 +239,7 @@ export default function AuthPage() {
         gap: 14,
         zIndex: 10,
       }}>
-        <div style={{
-          width: 50, height: 50, borderRadius: 16, overflow: 'hidden',
-          boxShadow: '0 10px 25px rgba(59, 130, 246, 0.25)',
-          border: '2.5px solid #ffffff', background: '#ffffff'
-        }}>
-          <img src={logoAvatar} alt="TQMaster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
+        <Logo style={{ width: 50, height: 50, borderRadius: 16, boxShadow: '0 10px 25px rgba(59, 130, 246, 0.25)', border: '2.5px solid #ffffff' }} />
         <div>
           <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
             TQMaster
