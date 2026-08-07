@@ -58,6 +58,74 @@ Hệ thống được thiết kế theo kiến trúc Module hóa với 10 phân 
 
 ---
 
+## 🏗️ Kiến trúc Hệ thống & Database (Architecture & ERD)
+
+### 1. Sơ đồ Kiến trúc (Architecture Diagram)
+
+```mermaid
+graph TD
+    Client[Client Browser] -->|HTTP / WebSocket| Vite[React + Vite Frontend]
+    Vite -->|Supabase Client API| Supabase[Supabase BaaS]
+    
+    subgraph Frontend [Frontend Architecture]
+        Router[React Router DOM] --> Pages
+        Pages --> ReactQuery[TanStack Query]
+        Pages --> Context[React Context]
+        Pages --> UI[Shadcn UI & Tailwind]
+    end
+    
+    subgraph Backend [Supabase Architecture]
+        Auth[Supabase Auth - Email OTP]
+        DB[(PostgreSQL & RLS)]
+        Realtime[Supabase Channels]
+        Storage[Supabase Storage]
+        EdgeFunc[Edge Functions]
+        
+        Auth --> DB
+        DB --> Realtime
+        EdgeFunc --> DB
+    end
+```
+
+### 2. Sơ đồ Thực thể Liên kết (ERD)
+
+```mermaid
+erDiagram
+    PROFILES ||--o{ USER_ROLES : has
+    PROFILES ||--o{ USER_SUBJECTS : accesses
+    PROFILES ||--o{ ORDERS : places
+    PROFILES ||--o{ EXAM_ATTEMPTS : takes
+    
+    SUBJECTS ||--o{ USER_SUBJECTS : "enrolled in"
+    SUBJECTS ||--o{ THEORY_SUBJECTS : contains
+    SUBJECTS ||--o{ EXAM_SUBJECTS : contains
+    
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDER_ITEMS }|--|| SUBJECTS : buys
+    
+    THEORIES ||--o{ THEORY_SUBJECTS : "belongs to"
+    EXAMS ||--o{ EXAM_SUBJECTS : "belongs to"
+    
+    EXAMS ||--o{ QUESTIONS : has
+    QUESTIONS ||--o{ QUESTION_OPTIONS : has
+    
+    EXAM_ATTEMPTS ||--o{ ATTEMPT_ANSWERS : contains
+    ATTEMPT_ANSWERS }|--|| QUESTIONS : answers
+    
+    NEWS_POSTS ||--o{ NEWS_COMMENTS : has
+    PROFILES ||--o{ NEWS_COMMENTS : writes
+```
+
+### 3. Bảo mật và Phân quyền (RBAC)
+
+Hệ thống được thiết kế với cơ chế Role-Based Access Control (RBAC) chặt chẽ ở nhiều lớp (Multi-layer Security):
+
+- **Frontend (UI Level):** Sử dụng `React Context` và `Protected Routes` để điều hướng và giới hạn hiển thị các module quản trị (Admin Dashboard, CMS) tùy thuộc vào `app_role` của người dùng.
+- **Backend (Database Level):** Triển khai toàn diện **Supabase Row Level Security (RLS)**. Các bảng dữ liệu được cấu hình Policy nghiêm ngặt (Ví dụ: Chỉ Admin mới có quyền `INSERT/UPDATE/DELETE` dữ liệu môn học, đề thi; User chỉ có quyền `SELECT` các khóa học mình đã mua).
+- **Xử lý tác vụ (Edge Functions):** Xác thực JWT Token server-side cho các tác vụ quan trọng như duyệt đơn hàng, tạo thanh toán.
+
+---
+
 ## 🏗️ Phương pháp Phát triển: SDD (Spec-Driven Development)
 
 Dự án này là minh chứng thực tế cho việc áp dụng phương pháp **Spec-Driven & Agent-Driven Development**.
