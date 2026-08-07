@@ -30,7 +30,26 @@ export default function AdminOrders() {
     setLoading(false);
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { 
+    fetch(); 
+    
+    // Đăng ký nhận thông báo realtime khi có đơn hàng mới/cập nhật
+    const channel = supabase
+      .channel('admin-orders-page-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          // Lấy lại danh sách mỗi khi có thay đổi (thêm, sửa, xoá)
+          fetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const filtered = orders.filter(o => {
     const q = search.toLowerCase();

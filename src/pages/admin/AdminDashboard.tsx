@@ -93,15 +93,33 @@ export default function AdminDashboard() {
             .select('*, subjects(name)')
             .in('order_id', approvedIds);
           const allItems = (itemsData ?? []) as any[];
-          setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
+          if (mounted) setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
         }
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
+
     load();
+
+    const channel = supabase
+      .channel('admin-dashboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          // Lấy lại danh sách và thống kê mỗi khi có đơn hàng mới
+          load();
+        }
+      )
+      .subscribe();
+
+    return () => { 
+      mounted = false; 
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const approvedOrders = useMemo(() => orders.filter(o => o.status === 'approved'), [orders]);

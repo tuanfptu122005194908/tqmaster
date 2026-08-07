@@ -344,7 +344,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
-        () => { refreshPendingOrdersCount(); }
+        (payload) => { 
+          refreshPendingOrdersCount();
+          // Nếu có đơn hàng mới (INSERT), hiển thị toast thông báo cho Admin
+          if (payload.eventType === 'INSERT') {
+            const newOrder = payload.new as any;
+            toast.success(
+              `📦 Đơn hàng mới từ ${newOrder.full_name || newOrder.email || 'khách hàng'}!`,
+              { duration: 6000 }
+            );
+          }
+        }
       )
       .subscribe();
 
