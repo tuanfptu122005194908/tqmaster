@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User yêu cầu tính năng Live Chat trực tiếp. Admin có thể xem, trả lời, và xoá tin nhắn thủ công. Khi admin xoá, tin nhắn sẽ bị xoá hẳn khỏi hệ thống (cả admin và user đều không nhìn thấy nữa). Không có tính năng tự động xoá sau 24h.
+**Input**: User yêu cầu tính năng Live Chat trực tiếp. Admin có thể xem, trả lời, và xoá tin nhắn thủ công. Hỗ trợ gửi tin nhắn chứa hình ảnh đính kèm. Khi admin xoá, tin nhắn sẽ bị xoá hẳn khỏi hệ thống. Không có tính năng tự động xoá sau 24h.
 
 ---
 
@@ -58,7 +58,23 @@ Là một **admin**, tôi muốn có khả năng xoá bất kỳ tin nhắn nào
 
 1. **Given** admin đang xem một conversation, **When** admin click nút "Xoá" trên một tin nhắn bất kỳ, **Then** tin nhắn đó bị xoá vĩnh viễn khỏi database.
 2. **Given** tin nhắn vừa bị xoá, **When** user đang mở cửa sổ chat, **Then** tin nhắn đó biến mất khỏi màn hình của user ngay lập tức (via Supabase Realtime DELETE event).
-3. **Given** hệ thống lưu trữ tin nhắn, **When** admin xoá tin nhắn, **Then** không có bản ghi nào bị giữ lại (hard delete), hoàn toàn không thể khôi phục.
+3. **Given** hệ thống lưu trữ tin nhắn, **When** admin xoá tin nhắn, **Then** không có bản ghi nào bị giữ lại (hard delete), hoàn toàn không thể khôi phục. Hình ảnh đính kèm (nếu có) trên Supabase Storage cũng sẽ bị xóa theo.
+
+---
+
+### User Story 4 - Gửi hình ảnh trong cửa sổ Chat (Priority: P2)
+
+Là một **user hoặc admin**, tôi muốn có thể đính kèm và gửi hình ảnh trong cửa sổ chat, để mô tả vấn đề hoặc hướng dẫn một cách trực quan hơn.
+
+**Why this priority**: Hình ảnh giúp giải quyết vấn đề hỗ trợ khách hàng nhanh hơn nhiều so với chỉ dùng văn bản.
+
+**Independent Test**: Nhấn nút đính kèm ảnh → chọn ảnh → gửi → ảnh hiển thị trong tin nhắn và người kia nhận được ảnh.
+
+**Acceptance Scenarios**:
+
+1. **Given** đang ở giao diện chat, **When** click vào icon đính kèm ảnh, **Then** hệ thống mở hộp thoại chọn file ảnh (png, jpg, jpeg, webp) giới hạn dung lượng (vd 5MB).
+2. **Given** đã chọn ảnh, **When** nhấn gửi, **Then** ảnh được upload lên Supabase Storage và lưu URL vào database kèm theo tin nhắn.
+3. **Given** tin nhắn có chứa ảnh, **When** hiển thị trong cửa sổ chat, **Then** ảnh được render trực tiếp trong bong bóng chat với kích thước vừa phải, có thể click để xem to (nếu cần).
 
 ---
 
@@ -88,6 +104,7 @@ Là một **admin**, tôi muốn có khả năng xoá bất kỳ tin nhắn nào
 - **FR-008**: Admin PHẢI có trang `/admin/chat` liệt kê tất cả conversations, sắp xếp theo `last_message_at` giảm dần, phân biệt rõ trạng thái đã đọc / chưa đọc.
 - **FR-009**: Hệ thống PHẢI sử dụng Supabase Realtime để đẩy tin nhắn mới tức thì (không cần refresh).
 - **FR-010**: Tin nhắn PHẢI được giới hạn tối đa 2000 ký tự, validate cả ở frontend và DB constraint.
+- **FR-011**: Hệ thống PHẢI cho phép đính kèm ảnh (png, jpg, webp) dung lượng tối đa 5MB. Ảnh phải được upload lên Supabase Storage bucket `chat-images`.
 
 ### Non-Functional Requirements
 
@@ -99,7 +116,7 @@ Là một **admin**, tôi muốn có khả năng xoá bất kỳ tin nhắn nào
 ### Key Entities
 
 - **conversations**: `id` (uuid PK), `user_id` (uuid → profiles, NOT NULL), `created_at` (timestamptz), `last_message_at` (timestamptz), `status` (text: `open` | `closed`, default `open`).
-- **chat_messages**: `id` (uuid PK), `conversation_id` (uuid → conversations, NOT NULL), `sender_id` (uuid → profiles, NOT NULL), `sender_role` (text: `user` | `admin`), `content` (text, max 2000 chars), `is_read` (boolean, default `false`), `created_at` (timestamptz).
+- **chat_messages**: `id` (uuid PK), `conversation_id` (uuid → conversations, NOT NULL), `sender_id` (uuid → profiles, NOT NULL), `sender_role` (text: `user` | `admin`), `content` (text, max 2000 chars, nullable if image present), `image_url` (text, nullable), `is_read` (boolean, default `false`), `created_at` (timestamptz).
 
 ---
 
@@ -121,4 +138,4 @@ Là một **admin**, tôi muốn có khả năng xoá bất kỳ tin nhắn nào
 - "Admin đã đọc" = khi admin click vào conversation trong `/admin/chat` — không cần scroll qua từng tin nhắn.
 - Floating chat widget chỉ hiển thị cho **user thông thường** (role `user`), không hiển thị cho admin.
 - Responsive/mobile UI nằm trong scope — chat widget hoạt động tốt trên mobile.
-- Không có tính năng typing indicator, emoji reactions, hay file attachment trong v1 này.
+- Cho phép đính kèm ảnh, nhưng không hỗ trợ các định dạng file khác (pdf, docx) hay tính năng typing indicator, emoji reactions trong v1 này.

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Send, Loader2, WifiOff } from 'lucide-react';
 import ChatMessageBubble from './ChatMessage';
 import type { ChatMessage } from '@/hooks/useChat';
+import { supabase } from '@/integrations/supabase/client';
 
 const MAX_CHARS = 2000;
 
@@ -12,7 +13,7 @@ interface ChatWindowProps {
   currentUserId: string;
   currentUserRole: 'user' | 'admin';
   conversationId: string | null;
-  onSend: (content: string, conversationId: string) => Promise<boolean>;
+  onSend: (content: string, conversationId: string, imageUrl?: string) => Promise<boolean>;
   onMarkAsRead?: (conversationId: string) => void;
   onDelete?: (messageId: string) => Promise<void>;
   placeholder?: string;
@@ -31,8 +32,11 @@ export default function ChatWindow({
   placeholder = 'Nhập tin nhắn...',
 }: ChatWindowProps) {
   const [input, setInput] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll xuống cuối khi có tin mới
   useEffect(() => {
@@ -54,9 +58,53 @@ export default function ChatWindow({
   }, [conversationId, messages.length, onMarkAsRead]);
 
   const handleSend = async () => {
-    if (!conversationId || !input.trim() || sending || input.length > MAX_CHARS) return;
-    const ok = await onSend(input, conversationId);
-    if (ok) setInput('');
+    if (!conversationId || sending || isUploading || input.length > MAX_CHARS) return;
+    if (!input.trim() && !imageFile) return; // Không có gì để gửi
+
+    let imageUrl = '';
+    if (imageFile) {
+      setIsUploading(true);
+      const ext = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      
+      const { data, error } = await supabase.storage
+        .from('chat-images')
+        .upload(fileName, imageFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Upload error:', error);
+        alert('Lỗi tải ảnh lên: ' + error.message);
+        setIsUploading(false);
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-images')
+        .getPublicUrl(fileName);
+        
+      imageUrl = publicUrl;
+      setIsUploading(false);
+    }
+
+    const ok = await onSend(input, conversationId, imageUrl);
+    if (ok) {
+      setInput('');
+      setImageFile(null);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Vui lòng chọn ảnh nhỏ hơn 5MB');
+        return;
+      }
+      setImageFile(file);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -152,12 +200,55 @@ export default function ChatWindow({
         borderTop: '1px solid #e2e8f0',
         padding: '12px 14px',
         background: '#ffffff',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
       }}>
+        {/* Image Preview */}
+        {imageFile && (
+          <div style={{ position: 'relative', alignSelf: 'flex-start', marginBottom: 4 }}>
+            <img 
+              src={URL.createObjectURL(imageFile)} 
+              alt="Preview" 
+              style={{ height: 60, borderRadius: 8, border: '1px solid #e2e8f0', objectFit: 'cover' }} 
+            />
+            <button 
+              onClick={() => setImageFile(null)}
+              style={{
+                position: 'absolute', top: -6, right: -6,
+                background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%',
+                width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', fontSize: 12, fontWeight: 'bold'
+              }}
+            >×</button>
+          </div>
+        )}
+
         <div style={{
           display: 'flex',
           gap: 10,
           alignItems: 'flex-end',
         }}>
+          {/* File Input & Upload Button */}
+          <input 
+            type="file" 
+            accept="image/png, image/jpeg, image/webp" 
+            hidden 
+            ref={fileInputRef}
+            onChange={handleFileChange}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Đính kèm ảnh"
+            style={{
+              width: 44, height: 44, borderRadius: '50%', border: 'none',
+              background: '#f1f5f9', color: '#64748b', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          </button>
+
           <div style={{ flex: 1, position: 'relative' }}>
             <textarea
               ref={inputRef}
@@ -211,29 +302,29 @@ export default function ChatWindow({
           {/* Send button */}
           <button
             onClick={handleSend}
-            disabled={!input.trim() || sending || isOverLimit}
+            disabled={(!input.trim() && !imageFile) || sending || isUploading || isOverLimit}
             title="Gửi (Enter)"
             style={{
               width: 44,
               height: 44,
               borderRadius: '50%',
               border: 'none',
-              background: !input.trim() || sending || isOverLimit
+              background: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit
                 ? '#e2e8f0'
                 : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              color: !input.trim() || sending || isOverLimit ? '#94a3b8' : '#ffffff',
-              cursor: !input.trim() || sending || isOverLimit ? 'not-allowed' : 'pointer',
+              color: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit ? '#94a3b8' : '#ffffff',
+              cursor: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
               transition: 'all 0.15s ease',
-              boxShadow: !input.trim() || sending || isOverLimit
+              boxShadow: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit
                 ? 'none'
                 : '0 4px 12px rgba(59, 130, 246, 0.4)',
             }}
           >
-            {sending ? (
+            {sending || isUploading ? (
               <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
             ) : (
               <Send size={18} />

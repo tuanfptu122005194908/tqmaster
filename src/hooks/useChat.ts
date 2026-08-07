@@ -101,9 +101,10 @@ export function useChat({ userId, isAdmin, conversationId }: UseChatOptions) {
   }, [isAdmin]);
 
   // ── Gửi tin nhắn ─────────────────────────────────────────
-  const sendMessage = useCallback(async (content: string, convId: string) => {
+  const sendMessage = useCallback(async (content: string, convId: string, imageUrl?: string) => {
     const trimmed = content.trim();
-    if (!trimmed || trimmed.length > 2000) return false;
+    // Bắt buộc phải có text HOẶC có hình ảnh
+    if ((!trimmed && !imageUrl) || trimmed.length > 2000) return false;
 
     setSending(true);
     const senderRole = isAdmin ? 'admin' : 'user';
@@ -114,7 +115,8 @@ export function useChat({ userId, isAdmin, conversationId }: UseChatOptions) {
         conversation_id: convId,
         sender_id: userId,
         sender_role: senderRole,
-        content: trimmed,
+        content: trimmed || null,
+        image_url: imageUrl || null,
         is_read: false,
       })
       .select()

@@ -221,7 +221,7 @@ export default function AdminChat() {
   }, []);
 
   // ── Gửi tin nhắn ─────────────────────────────────────────
-  const handleSend = useCallback(async (content: string, convId: string): Promise<boolean> => {
+  const handleSend = useCallback(async (content: string, convId: string, imageUrl?: string): Promise<boolean> => {
     if (!profile) return false;
     setSending(true);
 
@@ -231,7 +231,8 @@ export default function AdminChat() {
         conversation_id: convId,
         sender_id: profile.id,
         sender_role: 'admin',
-        content: content.trim(),
+        content: content.trim() || null,
+        image_url: imageUrl || null,
         is_read: false,
       })
       .select()
@@ -260,6 +261,17 @@ export default function AdminChat() {
     const confirm = window.confirm('Bạn có chắc chắn muốn xoá tin nhắn này không? Hành động này không thể hoàn tác.');
     if (!confirm) return;
 
+    // 1. Tìm xem tin nhắn có chứa ảnh không để xoá file trong Storage trước
+    const targetMsg = messages.find(m => m.id === messageId);
+    if (targetMsg?.image_url) {
+      // Lấy tên file từ URL (đoạn sau cùng)
+      const fileName = targetMsg.image_url.split('/').pop();
+      if (fileName) {
+        await supabase.storage.from('chat-images').remove([fileName]);
+      }
+    }
+
+    // 2. Xoá bản ghi trong Database
     const { error } = await supabase
       .from('chat_messages')
       .delete()
@@ -273,13 +285,31 @@ export default function AdminChat() {
       setMessages(prev => prev.filter(m => m.id !== messageId));
       toast.success('Đã xoá tin nhắn');
     }
-  }, []);
+  }, [messages]);
 
   // ── Xoá đoạn chat ────────────────────────────────────────
   const handleDeleteConversation = useCallback(async (convId: string) => {
-    const confirm = window.confirm('Bạn có chắc chắn muốn xoá TOÀN BỘ đoạn chat này không? Tất cả tin nhắn sẽ bị xoá vĩnh viễn.');
+    const confirm = window.confirm('Xoá toàn bộ cuộc hội thoại này? Tất cả tin nhắn và ảnh sẽ bị xoá vĩnh viễn.');
     if (!confirm) return;
 
+    // 1. Tìm và xoá tất cả ảnh đính kèm trong cuộc hội thoại này
+    const { data: messagesWithImages } = await supabase
+      .from('chat_messages')
+      .select('image_url')
+      .eq('conversation_id', convId)
+      .not('image_url', 'is', null);
+
+    if (messagesWithImages && messagesWithImages.length > 0) {
+      const fileNames = messagesWithImages
+        .map(m => m.image_url?.split('/').pop())
+        .filter(Boolean) as string[];
+        
+      if (fileNames.length > 0) {
+        await supabase.storage.from('chat-images').remove(fileNames);
+      }
+    }
+
+    // 2. Xoá cuộc hội thoại (các tin nhắn sẽ bị xoá cascade theo)
     const { error } = await supabase
       .from('conversations')
       .delete()

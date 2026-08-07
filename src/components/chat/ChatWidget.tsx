@@ -47,8 +47,8 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
     setIsMinimized(true);
   };
 
-  const handleSend = useCallback(async (content: string, convId: string) => {
-    return sendMessage(content, convId);
+  const handleSend = useCallback(async (content: string, convId: string, imageUrl?: string) => {
+    return sendMessage(content, convId, imageUrl);
   }, [sendMessage]);
 
   const handleMarkAsRead = useCallback((convId: string) => {

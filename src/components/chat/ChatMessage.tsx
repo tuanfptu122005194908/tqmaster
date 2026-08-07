@@ -111,9 +111,27 @@ export default function ChatMessageBubble({ message, isOwnMessage, onDelete }: C
                 : '0 1px 3px rgba(0,0,0,0.06)',
               wordBreak: 'break-word',
               whiteSpace: 'pre-wrap',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
             }}
           >
-            {message.content}
+            {message.image_url && (
+              <img 
+                src={message.image_url} 
+                alt="Đính kèm" 
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: 200,
+                  borderRadius: 8,
+                  cursor: 'zoom-in',
+                  objectFit: 'contain',
+                  backgroundColor: 'rgba(0,0,0,0.05)'
+                }}
+                onClick={() => window.open(message.image_url!, '_blank')}
+              />
+            )}
+            {message.content && <span>{message.content}</span>}
           </div>
 
           {/* Timestamp + Read indicator */}
