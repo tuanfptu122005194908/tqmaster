@@ -34,8 +34,9 @@ export default function AdminOrders() {
     fetch(); 
     
     // Đăng ký nhận thông báo realtime khi có đơn hàng mới/cập nhật
+    const channelId = `admin-orders-page-realtime-${Date.now()}`;
     const channel = supabase
-      .channel('admin-orders-page-realtime')
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },

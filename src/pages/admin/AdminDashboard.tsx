@@ -62,6 +62,8 @@ export default function AdminDashboard() {
   const [topTimeRange, setTopTimeRange] = useState<'week' | 'month' | 'year'>('week');
 
   useEffect(() => {
+    let isMounted = true;
+
     const load = async () => {
       try {
         const [usersRes, subjectsRes, examsRes, questionsRes, ordersRes] = await Promise.all([
@@ -93,19 +95,21 @@ export default function AdminDashboard() {
             .select('*, subjects(name)')
             .in('order_id', approvedIds);
           const allItems = (itemsData ?? []) as any[];
-          if (mounted) setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
+          if (isMounted) setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
         }
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
-        if (mounted) setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     load();
 
+    // Use a unique channel name to prevent HMR/StrictMode errors
+    const channelId = `admin-dashboard-realtime-${Date.now()}`;
     const channel = supabase
-      .channel('admin-dashboard-realtime')
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
@@ -117,7 +121,7 @@ export default function AdminDashboard() {
       .subscribe();
 
     return () => { 
-      mounted = false; 
+      isMounted = false; 
       supabase.removeChannel(channel);
     };
   }, []);

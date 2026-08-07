@@ -111,7 +111,6 @@ export default function SubjectDetailPage() {
               alt={subject.name} 
               loading="eager"
               decoding="async"
-              fetchPriority="high"
               style={{ 
                 width: '100%', 
                 height: '100%', 
