@@ -13,7 +13,7 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box'
 };
 
-const KEYS = ['bank_name', 'bank_account', 'bank_owner', 'bank_content', 'bank_qr_url', 'contact_info', 'site_name'] as const;
+const KEYS = ['bank_name', 'bank_account', 'bank_owner', 'bank_content', 'bank_qr_url', 'contact_info', 'site_name', 'facebook_url', 'youtube_url'] as const;
 type SettingKey = typeof KEYS[number];
 
 export default function AdminSettings() {
@@ -99,6 +99,16 @@ export default function AdminSettings() {
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Thông tin liên hệ & Hỗ trợ</label>
           <textarea style={{ ...inputStyle, height: 80, resize: 'vertical' }} value={settings['contact_info'] ?? ''} onChange={e => set('contact_info', e.target.value)} placeholder="Email hỗ trợ, Số điện thoại, Link Zalo..." />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Link Facebook (Fanpage/Admin)</label>
+            <input id="facebook-url-input" style={inputStyle} value={settings['facebook_url'] ?? ''} onChange={e => set('facebook_url', e.target.value)} placeholder="https://facebook.com/..." />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Link YouTube</label>
+            <input id="youtube-url-input" style={inputStyle} value={settings['youtube_url'] ?? ''} onChange={e => set('youtube_url', e.target.value)} placeholder="https://youtube.com/..." />
+          </div>
         </div>
       </Section>
 

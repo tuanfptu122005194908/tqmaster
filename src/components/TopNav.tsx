@@ -5,7 +5,7 @@ import { Logo } from './Logo';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function TopNav() {
-  const { profile, isAdmin, cart, signOut, authLoading, searchQuery, setSearchQuery } = useApp();
+  const { profile, isAdmin, cart, signOut, authLoading, searchQuery, setSearchQuery, siteSettings } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -123,12 +123,16 @@ export default function TopNav() {
                 background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16,
                 boxShadow: '0 12px 30px -4px rgba(15, 23, 42, 0.12)', padding: 6, zIndex: 100, animation: 'slideUp 0.15s ease'
               }}>
-                <a href="https://www.facebook.com/tuanvaquan" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, color: '#0f172a', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
-                  <Facebook size={18} color="#1877F2" /> Facebook
-                </a>
-                <a href="https://www.youtube.com/@tuanvaquanfptu" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, color: '#0f172a', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
-                  <Youtube size={18} color="#FF0000" /> YouTube
-                </a>
+                {siteSettings?.['facebook_url'] && (
+                  <a href={siteSettings['facebook_url']} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, color: '#0f172a', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+                    <Facebook size={18} color="#1877F2" /> Facebook
+                  </a>
+                )}
+                {siteSettings?.['youtube_url'] && (
+                  <a href={siteSettings['youtube_url']} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, color: '#0f172a', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, transition: 'background 0.15s' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+                    <Youtube size={18} color="#FF0000" /> YouTube
+                  </a>
+                )}
               </div>
             )}
           </div>

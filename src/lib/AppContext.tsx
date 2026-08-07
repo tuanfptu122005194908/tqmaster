@@ -55,6 +55,10 @@ interface AppContextValue {
   refreshPendingOrdersCount: () => Promise<void>;
   pendingReportsCount: number;
   refreshPendingReportsCount: () => Promise<void>;
+
+  // Site Settings
+  siteSettings: Record<string, string>;
+  refreshSiteSettings: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -73,6 +77,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+
+  // ── Load site settings ──────────────────────────────────
+  const refreshSiteSettings = useCallback(async () => {
+    try {
+      const { data } = await supabase.from('system_settings').select('key, value');
+      const map: Record<string, string> = {};
+      (data ?? []).forEach(r => { map[r.key] = r.value ?? ''; });
+      setSiteSettings(map);
+    } catch (e) {
+      console.error('refreshSiteSettings exception:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshSiteSettings();
+  }, [refreshSiteSettings]);
 
 
   // ── Load profile + role ──────────────────────────────────
@@ -381,6 +402,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     purchasedIds, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
+    siteSettings, refreshSiteSettings,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

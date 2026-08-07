@@ -46,7 +46,7 @@ function getCurrentDeviceInfo() {
 import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
-  const { profile, purchasedIds, signOut } = useApp();
+  const { profile, purchasedIds, signOut, siteSettings } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [orders,   setOrders]   = useState<Order[]>([]);
@@ -767,7 +767,7 @@ export default function ProfilePage() {
                   Gửi mã đơn hoặc bill chuyển khoản qua Facebook Admin TQMaster để được xác nhận và cấp quyền truy cập môn học.
                 </p>
                 <a
-                  href="https://www.facebook.com/tuanvaquan"
+                  href={siteSettings?.['facebook_url'] || "https://www.facebook.com/tuanvaquan"}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
