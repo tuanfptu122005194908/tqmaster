@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '@/lib/AppContext';
 import {
   LayoutDashboard, BookOpen, FileText, Library, Bell, Newspaper,
-  ShoppingBag, Tag, Users, Settings, Mountain, MessageSquareWarning, HardDriveDownload
+  ShoppingBag, Tag, Users, Settings, Mountain, MessageSquareWarning, HardDriveDownload, MessageCircle
 } from 'lucide-react';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
 
@@ -13,6 +13,7 @@ const NAV = [
   { key: 'admin-exams',         label: 'Đề thi',      icon: FileText },
   { key: 'admin-theory',        label: 'Lý thuyết',   icon: Library },
   { key: 'admin-reports',       label: 'Báo cáo lỗi', icon: MessageSquareWarning },
+  { key: 'admin-chat',          label: 'Chat Support', icon: MessageCircle },
   { key: 'admin-announcements', label: 'Thông báo',   icon: Bell },
   { key: 'admin-news',          label: 'Tin tức',     icon: Newspaper },
   null, // divider
@@ -26,7 +27,7 @@ const NAV = [
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function AdminSidebar() {
-  const { pendingOrdersCount, pendingReportsCount } = useApp();
+  const { pendingOrdersCount, pendingReportsCount, unreadChatCount } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -91,8 +92,9 @@ export default function AdminSidebar() {
           const Icon   = item.icon;
           const isOrdersBadge = item.key === 'admin-orders' && pendingOrdersCount > 0;
           const isReportsBadge = item.key === 'admin-reports' && pendingReportsCount > 0;
-          const hasBadge = isOrdersBadge || isReportsBadge;
-          const badgeCount = isOrdersBadge ? pendingOrdersCount : pendingReportsCount;
+          const isChatBadge = item.key === 'admin-chat' && unreadChatCount > 0;
+          const hasBadge = isOrdersBadge || isReportsBadge || isChatBadge;
+          const badgeCount = isOrdersBadge ? pendingOrdersCount : isReportsBadge ? pendingReportsCount : unreadChatCount;
 
           return (
             <button

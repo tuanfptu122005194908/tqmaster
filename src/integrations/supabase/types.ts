@@ -35,6 +35,118 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_cleanup_logs: {
+        Row: {
+          id: string
+          conversation_id: string
+          user_id: string
+          deleted_count: number
+          cleaned_at: string
+          notified: boolean
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          user_id: string
+          deleted_count?: number
+          cleaned_at?: string
+          notified?: boolean
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          user_id?: string
+          deleted_count?: number
+          cleaned_at?: string
+          notified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_cleanup_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          sender_id: string
+          sender_role: string
+          content: string
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          sender_id: string
+          sender_role: string
+          content: string
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          sender_id?: string
+          sender_role?: string
+          content?: string
+          is_read?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          id: string
+          user_id: string
+          status: string
+          last_message_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          status?: string
+          last_message_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          status?: string
+          last_message_at?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           content: string | null

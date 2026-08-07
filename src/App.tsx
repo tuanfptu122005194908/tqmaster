@@ -35,6 +35,8 @@ import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminNews from "@/pages/admin/AdminNews";
 import AdminQuestionReports from "@/pages/admin/AdminQuestionReports";
 import AdminBackup from "@/pages/admin/AdminBackup";
+import AdminChat from "@/pages/admin/AdminChat";
+import ChatWidget from "@/components/chat/ChatWidget";
 import { Loader2, Menu, X } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -68,6 +70,7 @@ function UserLayout({ children }: { children: React.ReactNode }) {
       <main style={{ flex: 1 }}>{children}</main>
       <MobileNav />
       {!isAdmin && <AnnouncementPopup />}
+      <ChatWidget />
     </div>
   );
 }
@@ -242,6 +245,7 @@ function AppShell() {
       <Route path="/admin/news" element={<ProtectedRoute requireAdmin><AdminLayout><AdminNews /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute requireAdmin><AdminLayout><AdminQuestionReports /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/backup" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBackup /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminLayout><AdminChat /></AdminLayout></ProtectedRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

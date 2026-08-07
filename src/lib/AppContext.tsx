@@ -55,6 +55,8 @@ interface AppContextValue {
   refreshPendingOrdersCount: () => Promise<void>;
   pendingReportsCount: number;
   refreshPendingReportsCount: () => Promise<void>;
+  unreadChatCount: number;
+  refreshUnreadChatCount: () => Promise<void>;
 
   // Site Settings
   siteSettings: Record<string, string>;
@@ -76,6 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
@@ -152,6 +155,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!error) setPendingReportsCount(count ?? 0);
     } catch (e) {
       console.error('refreshPendingReportsCount exception:', e);
+    }
+  }, []);
+
+  const refreshUnreadChatCount = useCallback(async () => {
+    try {
+      const { count, error } = await supabase
+        .from('chat_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('sender_role', 'user')
+        .eq('is_read', false);
+      
+      if (!error) setUnreadChatCount(count ?? 0);
+    } catch (e) {
+      console.error('refreshUnreadChatCount exception:', e);
     }
   }, []);
 
@@ -313,47 +330,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [loadProfileAndRole, refreshPurchased, refreshPendingOrdersCount, refreshPendingReportsCount, enforceSingleSession]);
 
-  // ── Real-time subscription for orders (admin badge) ─────
-  // Separated from auth useEffect so it only depends on isAdmin
-  // and doesn't cause the auth listener to be torn down & re-created.
+  // ── Real-time subscription for orders/reports/chat (admin badge) ─────
   useEffect(() => {
     if (!isAdmin) return;
 
-    // Fetch count immediately when becoming admin
+    // Fetch counts immediately when becoming admin
     refreshPendingOrdersCount();
     refreshPendingReportsCount();
+    refreshUnreadChatCount();
 
     const ordersChannel = supabase
       .channel('admin-orders-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
-        () => {
-          refreshPendingOrdersCount();
-        }
+        () => { refreshPendingOrdersCount(); }
       )
-      .subscribe((status) => {
-
-      });
+      .subscribe();
 
     const reportsChannel = supabase
       .channel('admin-reports-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'question_reports' },
-        () => {
-          refreshPendingReportsCount();
-        }
+        () => { refreshPendingReportsCount(); }
       )
-      .subscribe((status) => {
+      .subscribe();
 
-      });
+    const chatChannel = supabase
+      .channel('admin-chat-unread-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_messages' },
+        () => { refreshUnreadChatCount(); }
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(reportsChannel);
+      supabase.removeChannel(chatChannel);
     };
-  }, [isAdmin, refreshPendingOrdersCount, refreshPendingReportsCount]);
+  }, [isAdmin, refreshPendingOrdersCount, refreshPendingReportsCount, refreshUnreadChatCount]);
 
   // ── Cart helpers ─────────────────────────────────────────
   const addToCart = (s: Subject | string) => {
@@ -402,6 +420,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     purchasedIds, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
+    unreadChatCount, refreshUnreadChatCount,
     siteSettings, refreshSiteSettings,
   };
 
