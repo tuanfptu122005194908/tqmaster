@@ -173,7 +173,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       )
       .subscribe((status) => {
-        console.log('active-session channel status:', status);
+
       });
     sessionChannelRef.current = ch;
 
@@ -312,7 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       )
       .subscribe((status) => {
-        console.log('admin-orders-realtime channel status:', status);
+
       });
 
     const reportsChannel = supabase
@@ -325,7 +325,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       )
       .subscribe((status) => {
-        console.log('admin-reports-realtime channel status:', status);
+
       });
 
     return () => {

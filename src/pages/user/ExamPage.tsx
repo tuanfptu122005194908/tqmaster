@@ -1207,7 +1207,7 @@ export default function ExamPage() {
                    const isCorrect = cls === 'correct';
                    const isIncorrect = cls === 'incorrect';
 
-                   let bgColor = 'white';
+                   const bgColor = 'white';
                    let borderColor = '#e2e8f0';
                    let circleBorder = '#cbd5e1';
                    let circleBg = 'white';
@@ -1395,7 +1395,7 @@ export default function ExamPage() {
 
               let bgColor = 'white';
               let borderColor = '#ccc'; // Darker border for better definition
-              let textColor = '#000'; // Darker text
+              const textColor = '#000'; // Darker text
               let labelBg = '#e0e0e0';
               let labelColor = '#333';
 
