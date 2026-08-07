@@ -25,8 +25,11 @@ export default function AdminOrders() {
   const [loadingItems, setLoadingItems] = useState(false);
 
   const fetch = async () => {
-    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-    setOrders(data ?? []);
+    const { data } = await supabase
+      .from('orders')
+      .select('*, order_items(subjects(name, id))')
+      .order('created_at', { ascending: false });
+    setOrders(data as any ?? []);
     setLoading(false);
   };
 
@@ -54,7 +57,18 @@ export default function AdminOrders() {
 
   const filtered = orders.filter(o => {
     const q = search.toLowerCase();
-    const matchQ = !q || o.id.toLowerCase().includes(q) || o.full_name.toLowerCase().includes(q) || o.email.toLowerCase().includes(q);
+    
+    const matchSubject = (o as any).order_items?.some((item: any) => 
+      item.subjects?.name?.toLowerCase().includes(q) || 
+      item.subjects?.id?.toLowerCase().includes(q)
+    );
+
+    const matchQ = !q || 
+      o.id.toLowerCase().includes(q) || 
+      o.full_name?.toLowerCase().includes(q) || 
+      o.email?.toLowerCase().includes(q) ||
+      matchSubject;
+      
     const matchS = filterStatus === 'all' || o.status === filterStatus;
     return matchQ && matchS;
   });
