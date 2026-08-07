@@ -509,13 +509,13 @@ export default function AdminDashboard() {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 {/* Donut Chart */}
-                <div style={{ width: 145, height: 145, position: 'relative', flexShrink: 0 }}>
+                <div style={{ width: 170, height: 170, position: 'relative', flexShrink: 0 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={topSellingSubjectsByRange}
                         cx="50%" cy="50%"
-                        innerRadius={46} outerRadius={66}
+                        innerRadius={56} outerRadius={80}
                         paddingAngle={4}
                         dataKey="revenue"
                       >
@@ -539,11 +539,11 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Legend list with elegant pill containers */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7, overflow: 'hidden' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden' }}>
                   {topSellingSubjectsByRange.map((item, idx) => (
                     <div key={idx} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      fontSize: 12, background: '#f8fafc', padding: '6px 10px', borderRadius: 10,
+                      fontSize: 12.5, background: '#f8fafc', padding: '10px 14px', borderRadius: 12,
                       border: '1px solid #f1f5f9'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>

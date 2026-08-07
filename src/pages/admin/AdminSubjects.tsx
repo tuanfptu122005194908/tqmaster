@@ -6,7 +6,7 @@ import { Plus, Pencil, Trash2, Copy, ToggleLeft, ToggleRight, X, Check, Loader2,
 import { useApp } from '@/lib/AppContext';
 import FileUploader from '@/components/FileUploader';
 
-type Subject = Tables<'subjects'>;
+type Subject = Tables<'subjects'> & { salesCount?: number; revenue?: number };
 
 const emptyForm = () => ({
   name: '', semester: 1, price: 79000, description: '', thumbnail_url: '', is_active: true,
@@ -28,15 +28,49 @@ export default function AdminSubjects() {
   const [editing,  setEditing]  = useState<string | null>(null);
   const [form,     setForm]     = useState(emptyForm());
   const [filterSem, setFilterSem] = useState<number | 'all'>('all');
+  const [sortBy, setSortBy] = useState<'default' | 'revenue_desc' | 'revenue_asc'>('default');
 
   const fetch = async () => {
-    const { data } = await supabase.from('subjects').select('*').order('semester').order('sort_order');
-    setSubjects(data ?? []);
+    const { data: subjectsData } = await supabase.from('subjects').select('*').order('semester').order('sort_order');
+    
+    // Fetch order items to calculate statistics
+    const { data: orderItemsData } = await supabase
+      .from('order_items')
+      .select('subject_id, price, orders!inner(status)')
+      .eq('orders.status', 'approved');
+
+    const statsMap: Record<string, { salesCount: number; revenue: number }> = {};
+    if (orderItemsData) {
+      orderItemsData.forEach((item: any) => {
+        if (!statsMap[item.subject_id]) {
+          statsMap[item.subject_id] = { salesCount: 0, revenue: 0 };
+        }
+        statsMap[item.subject_id].salesCount += 1;
+        statsMap[item.subject_id].revenue += Number(item.price);
+      });
+    }
+
+    const subjectsWithStats = (subjectsData ?? []).map(s => ({
+      ...s,
+      salesCount: statsMap[s.id]?.salesCount || 0,
+      revenue: statsMap[s.id]?.revenue || 0,
+    }));
+
+    setSubjects(subjectsWithStats);
     setLoading(false);
   };
   useEffect(() => { fetch(); }, []);
 
   const filtered = filterSem === 'all' ? subjects : subjects.filter(s => s.semester === filterSem);
+
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    if (sortBy === 'revenue_desc') {
+      return (b.revenue || 0) - (a.revenue || 0);
+    } else if (sortBy === 'revenue_asc') {
+      return (a.revenue || 0) - (b.revenue || 0);
+    }
+    return 0; // Mặc định
+  });
 
   const activeCount = subjects.filter(s => s.is_active).length;
   const hiddenCount = subjects.filter(s => !s.is_active).length;
@@ -223,9 +257,10 @@ export default function AdminSubjects() {
         </div>
       </div>
 
-      {/* Semester Filter Pills */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button
+      {/* Semester Filter Pills & Sorting */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
           onClick={() => setFilterSem('all')}
           style={{
             padding: '7px 16px', borderRadius: 12, border: filterSem === 'all' ? '1.5px solid #3b82f6' : '1px solid #e2e8f0',
@@ -254,11 +289,30 @@ export default function AdminSubjects() {
             </button>
           );
         })}
+        </div>
+        
+        {/* Sort Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>Sắp xếp:</span>
+          <select 
+            value={sortBy} 
+            onChange={e => setSortBy(e.target.value as any)}
+            style={{
+              padding: '7px 14px', borderRadius: 12, border: '1px solid #e2e8f0',
+              background: '#ffffff', color: '#0f172a', fontSize: 13, fontWeight: 700,
+              outline: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+            }}
+          >
+            <option value="default">Mặc định (Kỳ học)</option>
+            <option value="revenue_desc">Doanh thu cao nhất</option>
+            <option value="revenue_asc">Doanh thu thấp nhất</option>
+          </select>
+        </div>
       </div>
 
       {/* ── DESKTOP TABLE VIEW (With overflowX auto wrapper) ── */}
       <div className="hidden-mobile" style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', overflow: 'hidden' }}>
-        {filtered.length === 0 ? (
+        {sortedFiltered.length === 0 ? (
           <div style={{ padding: 48, textAlign: 'center', color: '#94a3b8', fontSize: 14, fontWeight: 600 }}>Chưa có môn học nào</div>
         ) : (
           <div style={{ overflowX: 'auto', width: '100%' }}>
@@ -268,12 +322,13 @@ export default function AdminSubjects() {
                   <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>Môn học</th>
                   <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>Kỳ học</th>
                   <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>Học phí</th>
+                  <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>Thống kê</th>
                   <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em' }}>Trạng thái</th>
                   <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.05em', textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(s => {
+                {sortedFiltered.map(s => {
                   const color = subjectColor(s.name);
                   return (
                     <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s ease' }}>
@@ -295,6 +350,12 @@ export default function AdminSubjects() {
                       </td>
                       <td style={{ padding: '16px 20px', fontWeight: 800, color: '#2563eb', fontSize: 14 }}>
                         {formatPrice(s.price)}
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{s.salesCount} <span style={{ color: '#64748b', fontWeight: 500 }}>lượt bán</span></span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: '#10b981' }}>{formatPrice(s.revenue || 0)}</span>
+                        </div>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <button onClick={() => toggle(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -321,12 +382,12 @@ export default function AdminSubjects() {
 
       {/* ── MOBILE CARDS VIEW (For screens < 768px) ── */}
       <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 14 }}>
-        {filtered.length === 0 ? (
+        {sortedFiltered.length === 0 ? (
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 32, textAlign: 'center', color: '#94a3b8', fontSize: 13.5 }}>
             Chưa có môn học nào
           </div>
         ) : (
-          filtered.map(s => {
+          sortedFiltered.map(s => {
             const color = subjectColor(s.name);
             return (
               <div key={s.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
@@ -344,6 +405,17 @@ export default function AdminSubjects() {
                 </div>
 
                 {s.description && <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.4 }}>{s.description}</p>}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: 12, marginBottom: 12, border: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Lượt bán</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{s.salesCount}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Doanh thu</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#10b981' }}>{formatPrice(s.revenue || 0)}</span>
+                  </div>
+                </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid #f1f5f9' }}>
                   <button onClick={() => toggle(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
