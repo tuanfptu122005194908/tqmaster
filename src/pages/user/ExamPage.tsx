@@ -884,14 +884,14 @@ export default function ExamPage() {
                      </div>
                   )}
                   {q.content?.trim() && (
-                    <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
                       {q.content}
                     </div>
                   )}
                   {q.options.some(o => o.content?.trim()) && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 24 }}>
                       {q.options.map(opt => (
-                        <div key={opt.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px', color: '#334155', fontWeight: 600, fontSize: 16, textAlign: 'left' }}>
+                        <div key={opt.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px', color: '#334155', fontWeight: 600, fontSize: 16, textAlign: 'left', whiteSpace: 'pre-wrap' }}>
                           <span style={{ fontWeight: 800, marginRight: 8, color: '#0f172a' }}>{opt.label}.</span>
                           {opt.content}
                         </div>
@@ -924,13 +924,13 @@ export default function ExamPage() {
                      </div>
                   )}
                   {q.content?.trim() && (
-                    <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
                       {q.content}
                     </div>
                   )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 24 }}>
                     {correctOpts.map(opt => (
-                      <div key={opt.label} style={{ background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: 12, padding: '16px', color: '#15803d', fontWeight: 700, fontSize: 16 }}>
+                      <div key={opt.label} style={{ background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: 12, padding: '16px', color: '#15803d', fontWeight: 700, fontSize: 16, whiteSpace: 'pre-wrap' }}>
                         {opt.label}. {opt.content}
                       </div>
                     ))}
@@ -1194,7 +1194,7 @@ export default function ExamPage() {
                
                {/* Question text */}
                {!!currentQ.content?.trim() && (
-                 <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', lineHeight: 1.6, marginBottom: 40, fontFamily: '"Merriweather", "Lora", serif' }}>
+                 <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', lineHeight: 1.6, marginBottom: 40, fontFamily: '"Merriweather", "Lora", serif', whiteSpace: 'pre-wrap' }}>
                    {currentQ.content}
                  </div>
                )}
@@ -1255,7 +1255,7 @@ export default function ExamPage() {
                          {circleBg !== 'white' && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />}
                        </div>
                        
-                       <div style={{ fontSize: 16, fontWeight: 500, color: textColor, lineHeight: 1.5 }}>
+                       <div style={{ fontSize: 16, fontWeight: 500, color: textColor, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                          {opt.content}
                        </div>
 
@@ -1358,7 +1358,7 @@ export default function ExamPage() {
                 {currentQ.options.some(opt => !!opt.content?.trim()) && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {currentQ.options.map((opt) => opt.content?.trim() ? (
-                      <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000' }}>
+                      <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000', whiteSpace: 'pre-wrap' }}>
                         {opt.label}. {opt.content}
                       </div>
                     ) : null)}
