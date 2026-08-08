@@ -3,6 +3,7 @@ import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, formatDate } from '@/lib/mockData';
+import { sortExams } from '@/lib/utils';
 import {
   ArrowLeft, ShoppingCart, CheckCircle, Clock,
   BookOpen, Bell, FileText, ExternalLink,
@@ -41,7 +42,8 @@ export default function SubjectDetailPage() {
         supabase.from('announcements').select('*').eq('subject_id', selectedSubjectId).order('created_at', { ascending: false }),
       ]);
       setSubject(subjRes.data);
-      setExams((examRes.data ?? []).map((r: any) => r.exams).filter(Boolean));
+      const examsData = (examRes.data ?? []).map((r: any) => r.exams).filter(Boolean);
+      setExams(sortExams(examsData));
       setTheories((theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean));
       setAnnouncements(annRes.data ?? []);
       setLoading(false);

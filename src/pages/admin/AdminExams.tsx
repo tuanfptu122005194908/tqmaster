@@ -3,6 +3,7 @@ import mammoth from 'mammoth';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
+import { sortExams } from '@/lib/utils';
 import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -102,7 +103,8 @@ export default function AdminExams() {
       .from('exams')
       .select('*, exam_subjects(subject_id, subjects(id, name, semester))')
       .order('created_at', { ascending: false });
-    setExams((data as any) ?? []);
+    const formattedData = (data as any) ?? [];
+    setExams(sortExams(formattedData));
     setLoading(false);
   };
 
@@ -675,7 +677,28 @@ export default function AdminExams() {
                             }}
                           />
                         </div>
-                        <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>{q.content ?? (q.image_url ? '' : '[Trống]')}</span>
+                        {!q.image_url ? (
+                          <textarea
+                            defaultValue={q.content || ''}
+                            onBlur={async e => {
+                              const val = e.target.value;
+                              if (val !== (q.content || '')) {
+                                await supabase.from('questions').update({ content: val }).eq('id', q.id);
+                                setQuestions(prev => prev.map(pq => pq.id === q.id ? { ...pq, content: val } : pq));
+                              }
+                            }}
+                            placeholder="Nội dung câu hỏi..."
+                            style={{
+                              width: '100%', minHeight: 60, resize: 'vertical',
+                              fontSize: 14, color: '#0f172a', fontWeight: 600,
+                              border: '1px dashed #cbd5e1', background: '#fcfcfc',
+                              padding: '8px 12px', borderRadius: 8, outline: 'none',
+                              fontFamily: 'inherit', marginTop: 4
+                            }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>[Câu hình ảnh]</span>
+                        )}
                       </div>
                       <button style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={15} /></button>
                     </div>
@@ -686,7 +709,7 @@ export default function AdminExams() {
 
                     {/* Clean & Fast Answer Switcher Buttons */}
                     {opts.length > 0 && (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginTop: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10, marginTop: 10 }}>
                         {opts.map(o => (
                           <div
                             key={o.id || o.label}
@@ -714,13 +737,41 @@ export default function AdminExams() {
                               }}>
                                 {o.label}
                               </span>
-                              <span style={{
-                                fontSize: 13, fontWeight: o.is_correct ? 800 : 600,
-                                color: o.is_correct ? '#15803d' : '#0f172a',
-                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                              }}>
-                                {o.content || `Đáp án ${o.label}`}
-                              </span>
+                              <textarea
+                                defaultValue={o.content || ''}
+                                onClick={e => e.stopPropagation()}
+                                onBlur={async e => {
+                                  const val = e.target.value;
+                                  if (val !== (o.content || '')) {
+                                    await supabase.from('question_options').update({ content: val }).eq('id', o.id);
+                                    setQuestions(prev => prev.map(pq => pq.id === q.id ? {
+                                      ...pq,
+                                      options: pq.options.map(po => po.id === o.id ? { ...po, content: val } : po)
+                                    } : pq));
+                                  }
+                                }}
+                                placeholder={`Đáp án ${o.label}...`}
+                                style={{
+                                  fontSize: 13, fontWeight: o.is_correct ? 800 : 600,
+                                  color: o.is_correct ? '#15803d' : '#0f172a',
+                                  flex: 1, minWidth: 0, minHeight: 44, background: 'transparent',
+                                  border: '1px dashed transparent', resize: 'vertical',
+                                  borderBottomColor: '#cbd5e1', outline: 'none',
+                                  padding: '8px 4px', fontFamily: 'inherit',
+                                  lineHeight: 1.4
+                                }}
+                                onFocus={e => {
+                                  e.target.style.border = '1px dashed #3b82f6';
+                                  e.target.style.background = '#ffffff';
+                                  e.target.style.borderRadius = '6px';
+                                }}
+                                onBlurCapture={e => {
+                                  e.target.style.border = '1px dashed transparent';
+                                  e.target.style.borderBottomColor = '#cbd5e1';
+                                  e.target.style.background = 'transparent';
+                                  e.target.style.borderRadius = '0px';
+                                }}
+                              />
                             </div>
 
                             {o.is_correct ? (
