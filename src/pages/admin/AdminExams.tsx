@@ -4,8 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
 import { sortExams } from '@/lib/utils';
-import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText, Upload } from 'lucide-react';
+import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText, Upload, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { RichContent } from '@/components/exam/RichContent';
+import { parseHtmlToQuestions, type ParsedQuestion } from '@/lib/wordParser';
+import { batchUploadImages } from '@/lib/imageUpload';
 
 type Exam    = Tables<'exams'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
@@ -97,6 +100,12 @@ export default function AdminExams() {
 
   const [wordUploading, setWordUploading] = useState(false);
   const wordInputRef = useRef<HTMLInputElement>(null);
+
+  // Rich text import state
+  const [importTab, setImportTab] = useState<'word' | 'text'>('word');
+  const [parsedPreview, setParsedPreview] = useState<ParsedQuestion[] | null>(null);
+  const [importPhase, setImportPhase] = useState('');
+  const [showTextPreview, setShowTextPreview] = useState(false);
 
   const fetchExams = async () => {
     const { data } = await supabase
@@ -215,24 +224,135 @@ export default function AdminExams() {
       return;
     }
     setWordUploading(true);
+    setParsedPreview(null);
+    setImportPhase('Đang đọc file Word...');
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      const text = result.value.trim();
-      if (!text) {
+      // convertToHtml preserves embedded images as base64 data URLs
+      const result = await mammoth.convertToHtml({
+        arrayBuffer,
+      } as any);
+      const html = result.value.trim();
+      if (!html) {
         toast.error('File Word rỗng hoặc không đọc được nội dung.');
         setWordUploading(false);
+        setImportPhase('');
         return;
       }
-      setImportText(text);
-      toast.success(`Đã đọc file Word thành công! Kiểm tra nội dung rồi nhấn "Nhập câu hỏi".`);
+      setImportPhase('Đang nhận diện câu hỏi...');
+      const parsed = parseHtmlToQuestions(html);
+      if (parsed.length === 0) {
+        toast.error('Không nhận diện được câu hỏi nào. Hãy kiểm tra định dạng file (Câu 1: / A. / B. ...)');
+        setWordUploading(false);
+        setImportPhase('');
+        return;
+      }
+      setParsedPreview(parsed);
+      const imgCount = parsed.reduce((acc, q) => {
+        let n = q.imageDataUrl ? 1 : 0;
+        n += q.extraImageDataUrls.length;
+        n += q.options.filter(o => o.imageDataUrl).length;
+        return acc + n;
+      }, 0);
+      toast.success(`Nhận diện được ${parsed.length} câu hỏi${imgCount > 0 ? ` và ${imgCount} hình ảnh` : ''}. Xác nhận để nhập.`);
     } catch (err) {
       console.error('mammoth error:', err);
       toast.error('Không đọc được file Word. Hãy thử lại với file .docx khác.');
     } finally {
       setWordUploading(false);
+      setImportPhase('');
       if (wordInputRef.current) wordInputRef.current.value = '';
     }
+  };
+
+  const importFromParsed = async (parsed: ParsedQuestion[]) => {
+    if (!selExam) return;
+    setImporting(true);
+    let startNum = questions.length + 1;
+
+    // Collect all images that need uploading
+    type UploadItem = { dataUrl: string; examId: string; pathSuffix: string };
+    const uploadItems: UploadItem[] = [];
+    // Map: pathSuffix -> which field it belongs to
+    const uploadMap: { qIdx: number; field: 'question' | 'extra' | 'option'; optIdx?: number }[] = [];
+
+    parsed.forEach((q, qi) => {
+      if (q.imageDataUrl) {
+        uploadItems.push({ dataUrl: q.imageDataUrl, examId: selExam.id, pathSuffix: `${startNum + qi}_0` });
+        uploadMap.push({ qIdx: qi, field: 'question' });
+      }
+      q.extraImageDataUrls.forEach((url, xi) => {
+        uploadItems.push({ dataUrl: url, examId: selExam.id, pathSuffix: `${startNum + qi}_extra${xi}` });
+        uploadMap.push({ qIdx: qi, field: 'extra' });
+      });
+      q.options.forEach((opt, oi) => {
+        if (opt.imageDataUrl) {
+          uploadItems.push({ dataUrl: opt.imageDataUrl, examId: selExam.id, pathSuffix: `${startNum + qi}_opt${oi}` });
+          uploadMap.push({ qIdx: qi, field: 'option', optIdx: oi });
+        }
+      });
+    });
+
+    // Phase 1: upload images
+    const uploadedUrls: (string | null)[] = [];
+    if (uploadItems.length > 0) {
+      setImportPhase(`Đang upload ảnh 0/${uploadItems.length}...`);
+      const results = await batchUploadImages(uploadItems, (done, total) => {
+        setImportPhase(`Đang upload ảnh ${done}/${total}...`);
+      });
+      uploadedUrls.push(...results);
+    }
+
+    // Map uploaded URLs back to parsed questions
+    const questionImages: (string | undefined)[] = parsed.map(() => undefined);
+    const questionExtraImages: string[][] = parsed.map(() => []);
+    const optionImages: (string | undefined)[][] = parsed.map(q => q.options.map(() => undefined));
+
+    uploadedUrls.forEach((url, idx) => {
+      if (!url) return;
+      const { qIdx, field, optIdx } = uploadMap[idx];
+      if (field === 'question') questionImages[qIdx] = url;
+      else if (field === 'extra') questionExtraImages[qIdx].push(url);
+      else if (field === 'option' && optIdx !== undefined) optionImages[qIdx][optIdx] = url;
+    });
+
+    // Phase 2: insert to DB
+    for (let qi = 0; qi < parsed.length; qi++) {
+      const p = parsed[qi];
+      setImportPhase(`Đang lưu câu hỏi ${qi + 1}/${parsed.length}...`);
+
+      const imageUrl = questionImages[qi] || null;
+      const extraImgs = questionExtraImages[qi];
+
+      const { data: q } = await supabase.from('questions').insert({
+        exam_id: selExam.id,
+        order_num: startNum++,
+        content: p.content || null,
+        type: imageUrl ? 'image' : 'text',
+        image_url: imageUrl,
+        extra_images: extraImgs.length > 0 ? extraImgs : [],
+        chapter_name: p.chapterName || 'Tổng hợp',
+      } as any).select().single();
+
+      if (q && p.options.length > 0) {
+        await supabase.from('question_options').insert(
+          p.options.map((o, oi) => ({
+            question_id: q.id,
+            label: o.label,
+            content: o.content,
+            is_correct: p.correctAnswers.includes(o.label),
+            image_url: optionImages[qi][oi] || null,
+          }) as any)
+        );
+      }
+    }
+
+    setImportCount(parsed.length);
+    setParsedPreview(null);
+    await fetchQuestions(selExam.id);
+    setImporting(false);
+    setImportPhase('');
+    setTimeout(() => setImportCount(0), 3000);
   };
 
   const importQuestions = async () => {
@@ -538,62 +658,155 @@ export default function AdminExams() {
               );
             })()}
 
-            {/* Import section */}
+            {/* Import section — tabbed */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-              <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Nhập câu hỏi hàng loạt</h3>
-              <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
-                Định dạng: <code>Câu 1: &lt;nội dung&gt;</code> → <code>A. &lt;lựa chọn&gt;</code> → cuối dòng <code>Đáp án: 1A 2BC</code>
-              </p>
-              {/* Word file upload */}
-              <input
-                ref={wordInputRef}
-                type="file"
-                accept=".docx"
-                style={{ display: 'none' }}
-                onChange={e => e.target.files?.[0] && handleWordUpload(e.target.files[0])}
-              />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '10px 14px', background: '#f0fdf4', border: '1px dashed #86efac', borderRadius: 14 }}>
-                <button
-                  onClick={() => wordInputRef.current?.click()}
-                  disabled={wordUploading}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '8px 16px', background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)',
-                    color: '#ffffff', border: 'none', borderRadius: 10,
-                    fontSize: 13, fontWeight: 800, cursor: wordUploading ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)', flexShrink: 0,
-                    opacity: wordUploading ? 0.7 : 1,
-                  }}
-                >
-                  {wordUploading
-                    ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Đang đọc...</>
-                    : <><Upload size={14} /> Tải file Word (.docx)</>}
-                </button>
+              <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 12px 0' }}>Nhập câu hỏi hàng loạt</h3>
+
+              {/* Tabs */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+                {(['word', 'text'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => { setImportTab(tab); setParsedPreview(null); }}
+                    style={{
+                      padding: '7px 16px', borderRadius: 10, fontWeight: 800, fontSize: 12.5, cursor: 'pointer', border: 'none',
+                      background: importTab === tab ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : '#f1f5f9',
+                      color: importTab === tab ? '#ffffff' : '#475569',
+                      boxShadow: importTab === tab ? '0 4px 12px rgba(37,99,235,0.3)' : 'none',
+                    }}
+                  >
+                    {tab === 'word' ? '📄 File Word (.docx)' : '📝 Nhập Text'}
+                  </button>
+                ))}
+              </div>
+
+              {importTab === 'word' && (
                 <div>
-                  <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Tải file Word để nhập nhanh</p>
-                  <p style={{ margin: 0, fontSize: 11.5, color: '#4ade80' }}>Hỗ trợ định dạng: Cau 1: ... / A. ... / B. ... / C. ... / D. ...</p>
+                  <input
+                    ref={wordInputRef}
+                    type="file"
+                    accept=".docx"
+                    style={{ display: 'none' }}
+                    onChange={e => e.target.files?.[0] && handleWordUpload(e.target.files[0])}
+                  />
+
+                  {/* Upload button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '12px 16px', background: '#f0fdf4', border: '1px dashed #86efac', borderRadius: 14 }}>
+                    <button
+                      onClick={() => { setParsedPreview(null); wordInputRef.current?.click(); }}
+                      disabled={wordUploading || importing}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '9px 18px', background: 'linear-gradient(135deg, #22c55e 0%, #15803d 100%)',
+                        color: '#ffffff', border: 'none', borderRadius: 10,
+                        fontSize: 13, fontWeight: 800, cursor: (wordUploading || importing) ? 'not-allowed' : 'pointer',
+                        boxShadow: '0 4px 12px rgba(21, 128, 61, 0.3)', flexShrink: 0,
+                        opacity: (wordUploading || importing) ? 0.7 : 1,
+                      }}
+                    >
+                      {wordUploading
+                        ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {importPhase || 'Đang đọc...'}</>
+                        : <><Upload size={14} /> Tải file Word (.docx)</>}
+                    </button>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Hỗ trợ hình ảnh nhúng + công thức LaTeX</p>
+                      <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', marginTop: 2 }}>Định dạng: Câu 1: ... / A. ... / B. ... / C. ... / D. ...</p>
+                    </div>
+                  </div>
+
+                  {/* Phase indicator during import */}
+                  {importing && importPhase && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#eff6ff', borderRadius: 10, marginBottom: 12, fontSize: 13, color: '#2563eb', fontWeight: 700 }}>
+                      <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                      {importPhase}
+                    </div>
+                  )}
+
+                  {/* Preview panel after parse */}
+                  {parsedPreview && !importing && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: 16, marginBottom: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <div>
+                          <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>✅ Nhận diện được {parsedPreview.length} câu hỏi</span>
+                          <span style={{ fontSize: 12, color: '#64748b', marginLeft: 10 }}>
+                            {parsedPreview.filter(q => q.imageDataUrl || q.extraImageDataUrls.length > 0).length} câu có ảnh ·
+                            {parsedPreview.filter(q => q.options.some(o => o.imageDataUrl)).length} options có ảnh
+                          </span>
+                        </div>
+                        <button onClick={() => setParsedPreview(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}><X size={16} /></button>
+                      </div>
+                      {/* Summary list — first 5 questions */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 140, overflowY: 'auto' }}>
+                        {parsedPreview.slice(0, 8).map((q, i) => (
+                          <div key={i} style={{ fontSize: 12, color: '#475569', display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <span style={{ background: '#dbeafe', color: '#2563eb', borderRadius: 6, padding: '1px 7px', fontWeight: 800, flexShrink: 0 }}>Câu {q.orderNum}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{q.content || '(Câu hình ảnh)'}</span>
+                            {(q.imageDataUrl || q.extraImageDataUrls.length > 0) && <span title="Có ảnh" style={{ color: '#7c3aed' }}>🖼</span>}
+                            <span style={{ color: '#64748b', flexShrink: 0 }}>{q.options.length} opt</span>
+                          </div>
+                        ))}
+                        {parsedPreview.length > 8 && <div style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center' }}>... và {parsedPreview.length - 8} câu nữa</div>}
+                      </div>
+                      <button
+                        onClick={() => importFromParsed(parsedPreview)}
+                        style={{
+                          width: '100%', marginTop: 12, padding: '11px 0',
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                          color: '#ffffff', border: 'none', borderRadius: 12,
+                          fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        }}
+                      >
+                        <Check size={15} /> Nhập {parsedPreview.length} câu hỏi vào đề thi
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <textarea
-                style={{ ...inputStyle, height: 130, resize: 'vertical', fontFamily: 'monospace', fontSize: 12.5 }}
-                value={importText}
-                onChange={e => setImportText(e.target.value)}
-                placeholder={'Câu 1: Câu hỏi đây\nA. Lựa chọn A\nB. Lựa chọn B\nC. Lựa chọn C\nD. Lựa chọn D\n\nĐáp án: 1A'}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-                {importCount > 0 && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 800 }}>✓ Đã nhập {importCount} câu</span>}
-                <button
-                  style={{
-                    marginLeft: 'auto', padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                    color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', display: 'flex', alignItems: 'center', gap: 6
-                  }}
-                  onClick={importQuestions} disabled={importing || !importText.trim()}
-                >
-                  {importing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}
-                  {importing ? 'Đang nhập...' : 'Nhập câu hỏi'}
-                </button>
-              </div>
+              )}
+
+              {importTab === 'text' && (
+                <div>
+                  <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 10 }}>
+                    Định dạng: <code>Câu 1: &lt;nội dung&gt;</code> → <code>A. &lt;lựa chọn&gt;</code> → cuối dòng <code>Đáp án: 1A 2BC</code>.<br />
+                    Hỗ trợ LaTeX: <code>$x^2$</code> (inline), <code>$$\int$$</code> (block).
+                  </p>
+                  <div style={{ position: 'relative' }}>
+                    <textarea
+                      style={{ ...inputStyle, height: 130, resize: 'vertical', fontFamily: 'monospace', fontSize: 12.5, paddingRight: 44 }}
+                      value={importText}
+                      onChange={e => setImportText(e.target.value)}
+                      placeholder={'Câu 1: Câu hỏi đây\nA. Lựa chọn A\nB. Lựa chọn B\nC. Lựa chọn C\nD. Lựa chọn D\n\nĐáp án: 1A'}
+                    />
+                    <button
+                      title={showTextPreview ? 'Tắt preview' : 'Xem preview LaTeX'}
+                      onClick={() => setShowTextPreview(v => !v)}
+                      style={{ position: 'absolute', top: 8, right: 8, border: 'none', background: '#f1f5f9', borderRadius: 8, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569' }}
+                    >
+                      {showTextPreview ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {showTextPreview && importText.trim() && (
+                    <div style={{ marginTop: 10, padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 13.5, lineHeight: 1.7, maxHeight: 250, overflowY: 'auto' }}>
+                      <RichContent content={importText} />
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                    {importCount > 0 && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 800 }}>✓ Đã nhập {importCount} câu</span>}
+                    <button
+                      style={{
+                        marginLeft: 'auto', padding: '10px 18px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', display: 'flex', alignItems: 'center', gap: 6
+                      }}
+                      onClick={importQuestions} disabled={importing || !importText.trim()}
+                    >
+                      {importing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />}
+                      {importing ? 'Đang nhập...' : 'Nhập câu hỏi'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Upload images as questions */}
@@ -677,35 +890,43 @@ export default function AdminExams() {
                             }}
                           />
                         </div>
-                        {!q.image_url ? (
-                          <textarea
-                            defaultValue={q.content || ''}
-                            onBlur={async e => {
-                              const val = e.target.value;
-                              if (val !== (q.content || '')) {
-                                await supabase.from('questions').update({ content: val }).eq('id', q.id);
-                                setQuestions(prev => prev.map(pq => pq.id === q.id ? { ...pq, content: val } : pq));
-                              }
-                            }}
-                            placeholder="Nội dung câu hỏi..."
-                            style={{
-                              width: '100%', minHeight: 60, resize: 'vertical',
-                              fontSize: 14, color: '#0f172a', fontWeight: 600,
-                              border: '1px dashed #cbd5e1', background: '#fcfcfc',
-                              padding: '8px 12px', borderRadius: 8, outline: 'none',
-                              fontFamily: 'inherit', marginTop: 4
-                            }}
-                          />
-                        ) : (
-                          <span style={{ fontSize: 14, color: '#0f172a', fontWeight: 600 }}>[Câu hình ảnh]</span>
+                        {/* Content (always show — not either/or) */}
+                        <textarea
+                          defaultValue={q.content || ''}
+                          onBlur={async e => {
+                            const val = e.target.value;
+                            if (val !== (q.content || '')) {
+                              await supabase.from('questions').update({ content: val }).eq('id', q.id);
+                              setQuestions(prev => prev.map(pq => pq.id === q.id ? { ...pq, content: val } : pq));
+                            }
+                          }}
+                          placeholder="Nội dung câu hỏi..."
+                          style={{
+                            width: '100%', minHeight: Math.max(60, (q.content?.split('\n').length || 1) * 22 + 20), resize: 'vertical',
+                            fontSize: 14, color: '#0f172a', fontWeight: 600,
+                            border: '1px dashed #cbd5e1', background: '#fcfcfc',
+                            padding: '8px 12px', borderRadius: 8, outline: 'none',
+                            fontFamily: 'inherit', marginTop: 4
+                          }}
+                        />
+                        {/* LaTeX preview of content */}
+                        {q.content && /\$|\\\(|\\\[/.test(q.content) && (
+                          <div style={{ marginTop: 4, padding: '6px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, fontSize: 13 }}>
+                            <span style={{ fontSize: 10.5, color: '#92400e', fontWeight: 700 }}>Preview: </span>
+                            <RichContent content={q.content} />
+                          </div>
                         )}
                       </div>
                       <button style={{ border: 'none', background: '#fff1f2', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer', flexShrink: 0 }} onClick={() => deleteQuestion(q.id)}><Trash2 size={15} /></button>
                     </div>
 
+                    {/* Question image(s) — always shown when present */}
                     {q.image_url && (
-                      <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 340, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: opts.length > 0 ? 12 : 0 }} />
+                      <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 380, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: 8, display: 'block' }} />
                     )}
+                    {((q as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
+                      <img key={xi} src={url} alt={`Câu ${i + 1} ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 12, border: '1px solid #e2e8f0', marginBottom: 6, display: 'block' }} />
+                    ))}
 
                     {/* Clean & Fast Answer Switcher Buttons */}
                     {opts.length > 0 && (
@@ -737,41 +958,58 @@ export default function AdminExams() {
                               }}>
                                 {o.label}
                               </span>
-                              <textarea
-                                defaultValue={o.content || ''}
-                                onClick={e => e.stopPropagation()}
-                                onBlur={async e => {
-                                  const val = e.target.value;
-                                  if (val !== (o.content || '')) {
-                                    await supabase.from('question_options').update({ content: val }).eq('id', o.id);
-                                    setQuestions(prev => prev.map(pq => pq.id === q.id ? {
-                                      ...pq,
-                                      options: pq.options.map(po => po.id === o.id ? { ...po, content: val } : po)
-                                    } : pq));
-                                  }
-                                }}
-                                placeholder={`Đáp án ${o.label}...`}
-                                style={{
-                                  fontSize: 13, fontWeight: o.is_correct ? 800 : 600,
-                                  color: o.is_correct ? '#15803d' : '#0f172a',
-                                  flex: 1, minWidth: 0, minHeight: 44, background: 'transparent',
-                                  border: '1px dashed transparent', resize: 'vertical',
-                                  borderBottomColor: '#cbd5e1', outline: 'none',
-                                  padding: '8px 4px', fontFamily: 'inherit',
-                                  lineHeight: 1.4
-                                }}
-                                onFocus={e => {
-                                  e.target.style.border = '1px dashed #3b82f6';
-                                  e.target.style.background = '#ffffff';
-                                  e.target.style.borderRadius = '6px';
-                                }}
-                                onBlurCapture={e => {
-                                  e.target.style.border = '1px dashed transparent';
-                                  e.target.style.borderBottomColor = '#cbd5e1';
-                                  e.target.style.background = 'transparent';
-                                  e.target.style.borderRadius = '0px';
-                                }}
-                              />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <textarea
+                                  defaultValue={o.content || ''}
+                                  onClick={e => e.stopPropagation()}
+                                  onBlur={async e => {
+                                    const val = e.target.value;
+                                    if (val !== (o.content || '')) {
+                                      await supabase.from('question_options').update({ content: val }).eq('id', o.id);
+                                      setQuestions(prev => prev.map(pq => pq.id === q.id ? {
+                                        ...pq,
+                                        options: pq.options.map(po => po.id === o.id ? { ...po, content: val } : po)
+                                      } : pq));
+                                    }
+                                  }}
+                                  placeholder={`Đáp án ${o.label}...`}
+                                  style={{
+                                    fontSize: 13, fontWeight: o.is_correct ? 800 : 600,
+                                    color: o.is_correct ? '#15803d' : '#0f172a',
+                                    width: '100%', minHeight: Math.max(36, (o.content?.split('\n').length || 1) * 20 + 16), background: 'transparent',
+                                    border: '1px dashed transparent', resize: 'vertical',
+                                    borderBottomColor: '#cbd5e1', outline: 'none',
+                                    padding: '6px 4px', fontFamily: 'inherit',
+                                    lineHeight: 1.4, display: 'block',
+                                  }}
+                                  onFocus={e => {
+                                    e.target.style.border = '1px dashed #3b82f6';
+                                    e.target.style.background = '#ffffff';
+                                    e.target.style.borderRadius = '6px';
+                                  }}
+                                  onBlurCapture={e => {
+                                    e.target.style.border = '1px dashed transparent';
+                                    e.target.style.borderBottomColor = '#cbd5e1';
+                                    e.target.style.background = 'transparent';
+                                    e.target.style.borderRadius = '0px';
+                                  }}
+                                />
+                                {/* Option image (from Word import) */}
+                                {(o as any).image_url && (
+                                  <img
+                                    src={(o as any).image_url}
+                                    alt={`Option ${o.label}`}
+                                    style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 8, border: '1px solid #e2e8f0', marginTop: 4, display: 'block' }}
+                                    onClick={e => e.stopPropagation()}
+                                  />
+                                )}
+                                {/* LaTeX preview for option */}
+                                {o.content && /\$|\\\(|\\\[/.test(o.content) && (
+                                  <div style={{ marginTop: 3, padding: '4px 8px', background: '#fffbeb', borderRadius: 6, fontSize: 12 }} onClick={e => e.stopPropagation()}>
+                                    <RichContent content={o.content} />
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
                             {o.is_correct ? (

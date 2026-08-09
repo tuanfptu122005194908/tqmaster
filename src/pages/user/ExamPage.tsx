@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Flag, RotateCcw, Loader2, BarChart3, AlertTriangle, MousePointerClick, ZoomIn, MessageSquareWarning } from 'lucide-react';
 import { playSound } from '@/lib/sound';
+import { RichContent } from '@/components/exam/RichContent';
 
 type Exam    = Tables<'exams'>;
 type Question = Tables<'questions'> & { options: Array<Tables<'question_options'>> };
@@ -1192,12 +1193,27 @@ export default function ExamPage() {
                  </span>
                </div>
                
-               {/* Question text */}
+               {/* Question text + images — always shown together */}
                {!!currentQ.content?.trim() && (
-                 <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a', lineHeight: 1.6, marginBottom: 40, fontFamily: '"Merriweather", "Lora", serif', whiteSpace: 'pre-wrap' }}>
-                   {currentQ.content}
+                 <div style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', lineHeight: 1.6, marginBottom: currentQ.image_url ? 24 : 40 }}>
+                   <RichContent content={currentQ.content} />
                  </div>
                )}
+               {/* Question image (always shown when present, alongside text) */}
+               {currentQ.image_url && (
+                 <div
+                   style={{ marginBottom: 32, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', cursor: 'zoom-in', display: 'inline-block', maxWidth: '100%' }}
+                   onClick={() => setPreviewImage(currentQ.image_url)}
+                 >
+                   <img src={currentQ.image_url} alt={`Câu ${currentIndex + 1}`} style={{ maxWidth: '100%', maxHeight: '55vh', objectFit: 'contain', display: 'block' }} />
+                 </div>
+               )}
+               {/* Extra images */}
+               {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
+                 <div key={xi} style={{ marginBottom: 12, cursor: 'zoom-in', display: 'inline-block', maxWidth: '100%' }} onClick={() => setPreviewImage(url)}>
+                   <img src={url} alt={`ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: '40vh', objectFit: 'contain', borderRadius: 8, border: '1px solid #e2e8f0', display: 'block' }} />
+                 </div>
+               ))}
 
                {/* Options list */}
                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1255,9 +1271,12 @@ export default function ExamPage() {
                          {circleBg !== 'white' && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />}
                        </div>
                        
-                       <div style={{ fontSize: 16, fontWeight: 500, color: textColor, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-                         {opt.content}
-                       </div>
+                        <div style={{ fontSize: 16, fontWeight: 500, color: textColor, lineHeight: 1.5, flex: 1 }}>
+                          <RichContent content={opt.content || ''} />
+                          {(opt as any).image_url && (
+                            <img src={(opt as any).image_url} alt={`opt ${opt.label}`} style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 6, marginTop: 6, display: 'block' }} />
+                          )}
+                        </div>
 
                        {(isCorrect || (examMode === 'practice' && isCorrect)) && (
                          <CheckCircle size={20} style={{ color: '#22c55e', marginLeft: 'auto' }} />
@@ -1334,8 +1353,8 @@ export default function ExamPage() {
             </div>
           ) : (
             <>
-              {/* Main Question Split View */}
-              <div className="exam-q-split">
+          {/* Main Question Area — always show content then image(s) */}
+          <div className="exam-q-split">
             {/* Text Side */}
             {(!!currentQ.content?.trim() || currentQ.options.some(opt => !!opt.content?.trim())) && (
               <div className="exam-q-text" style={{ 
@@ -1347,10 +1366,9 @@ export default function ExamPage() {
                     fontWeight: 500, 
                     color: '#000', 
                     lineHeight: '1.6', 
-                    whiteSpace: 'pre-wrap',
                     marginBottom: '16px'
                   }}>
-                    {currentQ.content}
+                    <RichContent content={currentQ.content} />
                   </div>
                 )}
                 
@@ -1358,8 +1376,11 @@ export default function ExamPage() {
                 {currentQ.options.some(opt => !!opt.content?.trim()) && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {currentQ.options.map((opt) => opt.content?.trim() ? (
-                      <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000', whiteSpace: 'pre-wrap' }}>
-                        {opt.label}. {opt.content}
+                      <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000' }}>
+                        <span style={{ fontWeight: 800 }}>{opt.label}.</span> <RichContent content={opt.content} />
+                        {(opt as any).image_url && (
+                          <img src={(opt as any).image_url} alt={`opt ${opt.label}`} style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 6, marginTop: 4, display: 'block' }} />
+                        )}
                       </div>
                     ) : null)}
                   </div>
@@ -1378,9 +1399,13 @@ export default function ExamPage() {
                   alt={`câu ${currentIndex + 1}`}
                   loading="eager"
                   decoding="sync"
-                  fetchPriority="high"
+                  fetchpriority="high"
                   style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
                 />
+                {/* Extra images below main */}
+                {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
+                  <img key={xi} src={url} alt={`ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain', marginTop: 8, borderRadius: 6 }} onClick={(e) => { e.stopPropagation(); setPreviewImage(url); }} />
+                ))}
               </div>
             )}
           </div>
