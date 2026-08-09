@@ -1389,22 +1389,21 @@ export default function ExamPage() {
             )}
 
             {/* Image Side */}
-            {currentQ.image_url && (
-              <div 
-                className="exam-q-image"
-                onClick={() => setPreviewImage(currentQ.image_url)}
-              >
-                <img
-                  src={currentQ.image_url}
-                  alt={`câu ${currentIndex + 1}`}
-                  loading="eager"
-                  decoding="sync"
-                  fetchpriority="high"
-                  style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }}
-                />
+            {(currentQ.image_url || (((currentQ as any).extra_images as string[] | undefined)?.length ?? 0) > 0) && (
+              <div className="exam-q-image">
+                {currentQ.image_url && (
+                  <img
+                    src={currentQ.image_url}
+                    alt={`câu ${currentIndex + 1}`}
+                    loading="eager"
+                    decoding="sync"
+                    style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', cursor: 'zoom-in' }}
+                    onClick={() => setPreviewImage(currentQ.image_url)}
+                  />
+                )}
                 {/* Extra images below main */}
                 {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
-                  <img key={xi} src={url} alt={`ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain', marginTop: 8, borderRadius: 6 }} onClick={(e) => { e.stopPropagation(); setPreviewImage(url); }} />
+                  <img key={xi} src={url} alt={`ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain', marginTop: 8, borderRadius: 6, cursor: 'zoom-in' }} onClick={() => setPreviewImage(url)} />
                 ))}
               </div>
             )}

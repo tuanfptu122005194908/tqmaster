@@ -219,51 +219,71 @@ export default function AdminExams() {
   };
 
   const handleWordUpload = async (file: File) => {
-    if (!file.name.endsWith('.docx')) {
-      toast.error('Chỉ hỗ trợ file .docx. Hãy lưu file Word dưới dạng .docx rồi thử lại.');
+    const isTxt = file.name.endsWith('.txt');
+    const isDocx = file.name.endsWith('.docx');
+    if (!isDocx && !isTxt) {
+      toast.error('Chỉ hỗ trợ file .docx hoặc .txt. Hãy lưu file đúng định dạng rồi thử lại.');
       return;
     }
     setWordUploading(true);
     setParsedPreview(null);
-    setImportPhase('Đang đọc file Word...');
+    setImportPhase(isTxt ? 'Đang đọc file .txt...' : 'Đang đọc file Word...');
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      // convertToHtml preserves embedded images as base64 data URLs
-      const result = await mammoth.convertToHtml({
-        arrayBuffer,
-      } as any);
-      const html = result.value.trim();
-      if (!html) {
-        toast.error('File Word rỗng hoặc không đọc được nội dung.');
-        setWordUploading(false);
-        setImportPhase('');
-        return;
+      if (isTxt) {
+        // Read as plain text then use existing parseQuestions
+        const text = await file.text();
+        setImportPhase('Đang nhận diện câu hỏi...');
+        const simpleQ = parseQuestions(text);
+        if (simpleQ.length === 0) {
+          toast.error('Không nhận diện được câu hỏi nào. Hãy kiểm tra định dạng (Câu 1: / A. / B. ...)');
+          return;
+        }
+        // Convert to ParsedQuestion format (no images for txt)
+        const parsed: ParsedQuestion[] = simpleQ.map((q, i) => ({
+          orderNum: i + 1,
+          content: q.content,
+          chapterName: q.chapter_name,
+          imageDataUrl: null,
+          extraImageDataUrls: [],
+          options: q.options.map(o => ({ label: o.label, content: o.content, imageDataUrl: null })),
+          correctAnswers: q.correctAnswers,
+        }));
+        setParsedPreview(parsed);
+        toast.success(`Nhận diện được ${parsed.length} câu hỏi từ file .txt. Xác nhận để nhập.`);
+      } else {
+        const arrayBuffer = await file.arrayBuffer();
+        // convertToHtml preserves embedded images as base64 data URLs
+        const result = await mammoth.convertToHtml({ arrayBuffer } as any);
+        const html = result.value.trim();
+        if (!html) {
+          toast.error('File Word rỗng hoặc không đọc được nội dung.');
+          return;
+        }
+        setImportPhase('Đang nhận diện câu hỏi...');
+        const parsed = parseHtmlToQuestions(html);
+        if (parsed.length === 0) {
+          toast.error('Không nhận diện được câu hỏi nào. Hãy kiểm tra định dạng file (Câu 1: / A. / B. ...)');
+          return;
+        }
+        setParsedPreview(parsed);
+        const imgCount = parsed.reduce((acc, q) => {
+          let n = q.imageDataUrl ? 1 : 0;
+          n += q.extraImageDataUrls.length;
+          n += q.options.filter(o => o.imageDataUrl).length;
+          return acc + n;
+        }, 0);
+        toast.success(`Nhận diện được ${parsed.length} câu hỏi${imgCount > 0 ? ` và ${imgCount} hình ảnh` : ''}. Xác nhận để nhập.`);
       }
-      setImportPhase('Đang nhận diện câu hỏi...');
-      const parsed = parseHtmlToQuestions(html);
-      if (parsed.length === 0) {
-        toast.error('Không nhận diện được câu hỏi nào. Hãy kiểm tra định dạng file (Câu 1: / A. / B. ...)');
-        setWordUploading(false);
-        setImportPhase('');
-        return;
-      }
-      setParsedPreview(parsed);
-      const imgCount = parsed.reduce((acc, q) => {
-        let n = q.imageDataUrl ? 1 : 0;
-        n += q.extraImageDataUrls.length;
-        n += q.options.filter(o => o.imageDataUrl).length;
-        return acc + n;
-      }, 0);
-      toast.success(`Nhận diện được ${parsed.length} câu hỏi${imgCount > 0 ? ` và ${imgCount} hình ảnh` : ''}. Xác nhận để nhập.`);
     } catch (err) {
-      console.error('mammoth error:', err);
-      toast.error('Không đọc được file Word. Hãy thử lại với file .docx khác.');
+      console.error('upload error:', err);
+      toast.error('Không đọc được file. Hãy thử lại.');
     } finally {
       setWordUploading(false);
       setImportPhase('');
       if (wordInputRef.current) wordInputRef.current.value = '';
     }
   };
+
 
   const importFromParsed = async (parsed: ParsedQuestion[]) => {
     if (!selExam) return;
@@ -685,7 +705,7 @@ export default function AdminExams() {
                   <input
                     ref={wordInputRef}
                     type="file"
-                    accept=".docx"
+                    accept=".docx,.txt"
                     style={{ display: 'none' }}
                     onChange={e => e.target.files?.[0] && handleWordUpload(e.target.files[0])}
                   />
@@ -706,11 +726,11 @@ export default function AdminExams() {
                     >
                       {wordUploading
                         ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {importPhase || 'Đang đọc...'}</>
-                        : <><Upload size={14} /> Tải file Word (.docx)</>}
+                        : <><Upload size={14} /> Tải file Word / TXT</>}
                     </button>
                     <div>
-                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Hỗ trợ hình ảnh nhúng + công thức LaTeX</p>
-                      <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', marginTop: 2 }}>Định dạng: Câu 1: ... / A. ... / B. ... / C. ... / D. ...</p>
+                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Hỗ trợ file Word (.docx) và Text (.txt)</p>
+                      <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', marginTop: 2 }}>Định dạng: Câu 1: ... / A. ... / B. ... / C. ... / D. ... | Word: hỗ trợ ảnh + LaTeX</p>
                     </div>
                   </div>
 
