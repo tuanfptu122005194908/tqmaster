@@ -144,7 +144,7 @@ export default function TopNav() {
               onClick={() => window.dispatchEvent(new Event('open-chat-widget'))}
               style={{
                 border: 'none',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                background: 'linear-gradient(135deg, #16a34a 0%, #146c43 100%)',
                 color: '#ffffff',
                 padding: '6px 14px',
                 borderRadius: 999,
@@ -154,7 +154,7 @@ export default function TopNav() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
                 transition: 'all 0.15s',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}

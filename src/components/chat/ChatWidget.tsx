@@ -111,7 +111,7 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
         >
           {/* Header */}
           <div style={{
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            background: 'linear-gradient(135deg, #16a34a 0%, #146c43 100%)',
             padding: '14px 16px',
             display: 'flex',
             alignItems: 'center',
@@ -251,14 +251,14 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
           border: 'none',
           background: isOpen && !isMinimized
             ? '#64748b'
-            : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            : 'linear-gradient(135deg, #16a34a 0%, #146c43 100%)',
           color: '#ffffff',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1001,
-          boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
+          boxShadow: '0 6px 20px rgba(22, 163, 74, 0.4)',
           transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
           animation: (!isOpen || isMinimized) ? 'ripple 2s infinite' : 'none',
         }}
@@ -330,9 +330,9 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
           }
         }
         @keyframes ripple {
-          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4), 0 6px 20px rgba(59, 130, 246, 0.4); }
-          70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0), 0 6px 20px rgba(59, 130, 246, 0.4); }
-          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0), 0 6px 20px rgba(59, 130, 246, 0.4); }
+          0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4), 0 6px 20px rgba(22, 163, 74, 0.4); }
+          70% { box-shadow: 0 0 0 15px rgba(22, 163, 74, 0), 0 6px 20px rgba(22, 163, 74, 0.4); }
+          100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0), 0 6px 20px rgba(22, 163, 74, 0.4); }
         }
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
