@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, X, ChevronDown, Headphones } from 'lucide-react';
+import { MessageCircle, X, ChevronDown, Headphones, Maximize2, Minimize2 } from 'lucide-react';
 import { useApp } from '@/lib/AppContext';
 import { useChat } from '@/hooks/useChat';
 import ChatWindow from './ChatWindow';
@@ -29,6 +29,21 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
     isAdmin: false,
   });
 
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  useEffect(() => {
+    const handleOpenWidget = () => {
+      setIsOpen(true);
+      setIsMinimized(false);
+      setIsMaximized(true);
+      if (conversation?.id) {
+        setUnreadCount(0);
+      }
+    };
+    window.addEventListener('open-chat-widget', handleOpenWidget);
+    return () => window.removeEventListener('open-chat-widget', handleOpenWidget);
+  }, [setIsOpen, setIsMinimized, conversation?.id, setUnreadCount]);
+
   const handleOpen = () => {
     setIsOpen(true);
     setIsMinimized(false);
@@ -41,6 +56,7 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
   const handleClose = () => {
     setIsOpen(false);
     setIsMinimized(false);
+    setIsMaximized(false);
   };
 
   const handleMinimize = () => {
@@ -63,19 +79,34 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
         <div
           style={{
             position: 'fixed',
-            bottom: 88,
-            right: 24,
-            width: 370,
-            height: 520,
+            ...(isMaximized
+              ? {
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '90vw',
+                  maxWidth: 800,
+                  height: '85vh',
+                  maxHeight: 900,
+                  borderRadius: 24,
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2), 0 4px 24px rgba(59, 130, 246, 0.15)',
+                  animation: 'chatZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }
+              : {
+                  bottom: 88,
+                  right: 24,
+                  width: 380,
+                  height: 600,
+                  borderRadius: 24,
+                  boxShadow: '0 12px 48px rgba(0, 0, 0, 0.15), 0 4px 24px rgba(59, 130, 246, 0.15)',
+                  animation: 'chatSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }),
             background: '#ffffff',
-            borderRadius: 20,
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.18), 0 4px 20px rgba(59, 130, 246, 0.12)',
             display: 'flex',
             flexDirection: 'column',
             zIndex: 1000,
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            animation: 'chatSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
           {/* Header */}
@@ -119,10 +150,32 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
             </div>
 
             <div style={{ display: 'flex', gap: 6 }}>
+              {/* Maximize */}
+              <button
+                onClick={() => setIsMaximized(!isMaximized)}
+                title={isMaximized ? 'Thu nhỏ' : 'Phóng to'}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: 'rgba(255,255,255,0.15)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+              >
+                {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
               {/* Minimize */}
               <button
                 onClick={handleMinimize}
-                title="Thu nhỏ"
+                title="Ẩn"
                 style={{
                   width: 28,
                   height: 28,
@@ -198,15 +251,16 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
           border: 'none',
           background: isOpen && !isMinimized
             ? '#64748b'
-            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
           color: '#ffffff',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1001,
-          boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
+          boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
           transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          animation: (!isOpen || isMinimized) ? 'ripple 2s infinite' : 'none',
         }}
         onMouseEnter={(e) => { 
           e.currentTarget.style.transform = 'scale(1.1)'; 
@@ -264,6 +318,21 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
             opacity: 1;
             transform: translateY(0) scale(1);
           }
+        }
+        @keyframes chatZoomIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -40%) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
+        @keyframes ripple {
+          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4), 0 6px 20px rgba(59, 130, 246, 0.4); }
+          70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0), 0 6px 20px rgba(59, 130, 246, 0.4); }
+          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0), 0 6px 20px rgba(59, 130, 246, 0.4); }
         }
         @keyframes pulse {
           0%, 100% { transform: scale(1); }

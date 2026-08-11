@@ -93,7 +93,12 @@ export default function AdminChat() {
       })
     );
 
-    setConversations(enriched);
+    // Lọc bỏ những cuộc trò chuyện chưa có tin nhắn nào
+    const activeConversations = enriched.filter(
+      conv => conv.lastMessage !== null || conv.unreadCount > 0
+    );
+
+    setConversations(activeConversations);
     setLoading(false);
   }, []);
 

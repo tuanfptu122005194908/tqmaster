@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Send, Loader2, WifiOff } from 'lucide-react';
+import { Send, Loader2, WifiOff, ImagePlus } from 'lucide-react';
 import ChatMessageBubble from './ChatMessage';
 import type { ChatMessage } from '@/hooks/useChat';
 import { supabase } from '@/integrations/supabase/client';
@@ -155,7 +155,11 @@ export default function ChatWindow({
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      background: '#fafbff',
+      backgroundColor: '#f4f7fc',
+      backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), url(/chat-bg-field.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
     }}>
       {/* Message List */}
       <div style={{
@@ -241,12 +245,15 @@ export default function ChatWindow({
             onClick={() => fileInputRef.current?.click()}
             title="Đính kèm ảnh"
             style={{
-              width: 44, height: 44, borderRadius: '50%', border: 'none',
-              background: '#f1f5f9', color: '#64748b', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              width: 40, height: 40, borderRadius: '50%', border: 'none',
+              background: 'transparent', color: '#3b82f6', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              transition: 'background 0.2s',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#eff6ff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <ImagePlus size={22} />
           </button>
 
           <div style={{ flex: 1, position: 'relative' }}>
@@ -260,16 +267,16 @@ export default function ChatWindow({
               maxLength={MAX_CHARS + 10}
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: 14,
-                border: `1.5px solid ${isOverLimit ? '#ef4444' : '#e2e8f0'}`,
+                padding: '10px 16px',
+                borderRadius: 20,
+                border: `1px solid ${isOverLimit ? '#ef4444' : '#e2e8f0'}`,
                 fontSize: 14,
                 lineHeight: 1.5,
                 resize: 'none',
                 outline: 'none',
                 fontFamily: "'Inter', -apple-system, sans-serif",
                 color: '#1e293b',
-                background: '#f8fafc',
+                background: '#f1f5f9',
                 transition: 'border-color 0.15s ease',
                 boxSizing: 'border-box',
               }}
@@ -305,12 +312,12 @@ export default function ChatWindow({
             disabled={(!input.trim() && !imageFile) || sending || isUploading || isOverLimit}
             title="Gửi (Enter)"
             style={{
-              width: 44,
-              height: 44,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
               border: 'none',
               background: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit
-                ? '#e2e8f0'
+                ? 'transparent'
                 : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
               color: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit ? '#94a3b8' : '#ffffff',
               cursor: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit ? 'not-allowed' : 'pointer',
@@ -318,7 +325,7 @@ export default function ChatWindow({
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              transition: 'all 0.15s ease',
+              transition: 'all 0.2s ease',
               boxShadow: (!input.trim() && !imageFile) || sending || isUploading || isOverLimit
                 ? 'none'
                 : '0 4px 12px rgba(59, 130, 246, 0.4)',

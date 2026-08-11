@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/lib/AppContext';
-import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X, ShieldCheck } from 'lucide-react';
+import { BookOpen, ShoppingCart, User, LayoutDashboard, LogOut, ChevronDown, Search, Facebook, Youtube, Newspaper, X, ShieldCheck, MessageCircle } from 'lucide-react';
 import { Logo } from './Logo';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -136,6 +136,33 @@ export default function TopNav() {
               </div>
             )}
           </div>
+          </div>
+          
+          {/* Nhắn tin Admin */}
+          {!isAdmin && (
+            <button
+              onClick={() => window.dispatchEvent(new Event('open-chat-widget'))}
+              style={{
+                border: 'none',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                padding: '6px 14px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+              <MessageCircle size={15} /> Nhắn tin Admin
+            </button>
+          )}
         </div>
       </div>
 
