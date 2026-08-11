@@ -136,7 +136,6 @@ export default function TopNav() {
               </div>
             )}
           </div>
-          </div>
           
           {/* Nhắn tin Admin */}
           {!isAdmin && (
