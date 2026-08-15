@@ -22,8 +22,9 @@ Tính năng áp dụng cho **trang Admin** (`/admin/backup`), chỉ dành cho ng
 |-----|--------------------|--------------------------------|--------|--------|
 | 1   | `subjects`         | Danh sách môn học              | ✅     | ✅     |
 | 2   | `exams`            | Danh sách đề thi               | ✅     | ✅     |
-| 3   | `questions`        | Ngân hàng câu hỏi              | ✅     | ✅     |
-| 4   | `question_options` | Các phương án trả lời          | ✅     | ✅     |
+| 3   | `exam_subjects`    | Mapping đề thi và môn học      | ✅     | ✅     |
+| 4   | `questions`        | Ngân hàng câu hỏi              | ✅     | ✅     |
+| 5   | `question_options` | Các phương án trả lời          | ✅     | ✅     |
 | 5   | `theories`         | Tài liệu lý thuyết             | ✅     | ✅     |
 | 6   | `profiles`         | Thông tin học viên             | ✅     | ❌     |
 | 7   | `orders`           | Danh sách đơn hàng             | ✅     | ❌     |
@@ -54,6 +55,13 @@ Tính năng áp dụng cho **trang Admin** (`/admin/backup`), chỉ dành cho ng
 1. **Given** Admin đã tích chọn các bảng muốn export, **When** nhấn "Xuất đã chọn", **Then** hệ thống chỉ export các bảng được chọn vào file Excel.
 2. **Given** Admin chưa chọn bảng nào, **When** nhấn "Xuất đã chọn", **Then** nút bị disabled và hiển thị tooltip "Vui lòng chọn ít nhất 1 bảng".
 
+### Story 3 - Export Câu hỏi Readable (Dạng đọc được) — P1
+> *Là Admin, tôi muốn xuất dữ liệu câu hỏi của từng đề thi thành định dạng Excel đọc được cho con người (có đầy đủ đáp án A, B, C, D trên cùng 1 hàng, đáp án đúng tô màu) thay vì raw data.*
+
+**Acceptance Scenarios:**
+1. **Given** Admin nhấn "Xuất câu hỏi theo môn", **When** file Excel tải xong, **Then** file có sheet tổng quan và các sheet tương ứng với từng đề thi (1 sheet / 1 đề).
+2. **Given** file Excel được mở, **When** xem nội dung, **Then** mỗi câu hỏi nằm trên 1 hàng, các lựa chọn A, B, C, D nằm thành các cột, và lựa chọn đúng được tô nền màu xanh lá.
+
 ### Story 3 - Import dữ liệu từ Excel (Restore) — P1
 > *Là Admin, tôi muốn upload file Excel backup lên để khôi phục hoặc import hàng loạt dữ liệu (môn học, câu hỏi...), thay thế việc nhập tay.*
 
@@ -76,9 +84,10 @@ Tính năng áp dụng cho **trang Admin** (`/admin/backup`), chỉ dành cho ng
 - **FR-001**: Hệ thống PHẢI sử dụng thư viện `xlsx` (SheetJS) để tạo và đọc file Excel. Không dùng CSV (thiếu hỗ trợ Unicode/Tiếng Việt).
 - **FR-002**: Hệ thống PHẢI xử lý batch khi import (chunk 100 rows/request) để tránh timeout Supabase.
 - **FR-003**: Tất cả thao tác Import/Export PHẢI được bảo vệ bởi RLS policy Admin-only.
-- **FR-004**: File export PHẢI có header row theo đúng tên cột database (snake_case).
-- **FR-005**: Import PHẢI dùng chiến lược `upsert` (thêm mới hoặc cập nhật nếu `id` đã tồn tại), không xóa dữ liệu cũ.
-- **FR-006**: Sau khi import thành công, PHẢI invalidate TanStack Query cache liên quan.
+- **FR-004**: File export PHẢI có header row theo đúng tên cột database (snake_case) (Trừ trường hợp Export Câu hỏi Readable).
+- **FR-005**: Import PHẢI dùng chiến lược `upsert`. Cột conflict phải được thiết lập đúng với cấu trúc DB (VD: `exam_subjects` dùng composite PK `exam_id, subject_id`).
+- **FR-006**: Quá trình Import PHẢI tuân thủ thứ tự Foreign Key Constraints (Ví dụ: `subjects` -> `exams` -> `exam_subjects` -> `questions` -> `question_options`).
+- **FR-007**: Sau khi import thành công, PHẢI invalidate TanStack Query cache liên quan.
 
 ---
 
