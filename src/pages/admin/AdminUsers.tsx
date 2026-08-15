@@ -166,6 +166,7 @@ export default function AdminUsers() {
             username: addForm.username.trim(),
             full_name: addForm.fullName.trim(),
             student_code: addForm.studentCode.trim(),
+            created_by_admin: true,
           }
         }
       });
