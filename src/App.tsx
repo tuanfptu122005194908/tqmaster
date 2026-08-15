@@ -36,6 +36,7 @@ import AdminNews from "@/pages/admin/AdminNews";
 import AdminQuestionReports from "@/pages/admin/AdminQuestionReports";
 import AdminBackup from "@/pages/admin/AdminBackup";
 import AdminChat from "@/pages/admin/AdminChat";
+import AdminExamStats from "@/pages/admin/AdminExamStats";
 import ChatWidget from "@/components/chat/ChatWidget";
 import { Loader2, Menu, X } from "lucide-react";
 
@@ -246,6 +247,7 @@ function AppShell() {
       <Route path="/admin/reports" element={<ProtectedRoute requireAdmin><AdminLayout><AdminQuestionReports /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/backup" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBackup /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminLayout><AdminChat /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/exam-stats" element={<ProtectedRoute requireAdmin><AdminLayout><AdminExamStats /></AdminLayout></ProtectedRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
