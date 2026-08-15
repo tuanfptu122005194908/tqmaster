@@ -118,7 +118,33 @@ export default function AdminChat() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages' },
-        () => { loadConversations(); }
+        (payload) => {
+          const newMsg = payload.new as Tables<'chat_messages'>;
+          setConversations(prev => {
+            const exists = prev.some(c => c.id === newMsg.conversation_id);
+            if (!exists) {
+              // Only reload if we don't have this conversation
+              loadConversations();
+              return prev;
+            }
+            const updated = prev.map(c => {
+              if (c.id === newMsg.conversation_id) {
+                // If the message is from user, and admin is NOT currently viewing this chat, increment unread
+                // (If admin IS viewing, the specific conversation subscription will auto-read it and reset count)
+                const isUnread = newMsg.sender_role === 'user' && !newMsg.is_read;
+                return {
+                  ...c,
+                  lastMessage: newMsg.content || (newMsg.image_url ? 'Hình ảnh' : ''),
+                  last_message_at: newMsg.created_at,
+                  unreadCount: isUnread ? c.unreadCount + 1 : c.unreadCount
+                };
+              }
+              return c;
+            });
+            updated.sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime());
+            return updated;
+          });
+        }
       )
       .subscribe();
 
@@ -197,6 +223,11 @@ export default function AdminChat() {
               .from('chat_messages')
               .update({ is_read: true })
               .eq('id', newMsg.id);
+              
+            setConversations(prevConvs => 
+              prevConvs.map(c => c.id === convId ? { ...c, unreadCount: 0 } : c)
+            );
+            refreshUnreadChatCount();
           }
         }
       )
