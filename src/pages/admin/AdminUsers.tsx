@@ -43,21 +43,51 @@ export default function AdminUsers() {
   const [subjectUserModal, setSubjectUserModal] = useState<UserRow | null>(null);
   const [subjSearch, setSubjSearch] = useState('');
 
+  // Tải toàn bộ dữ liệu, vượt qua giới hạn 1000 dòng mặc định của API
+  const fetchAll = async <T,>(table: string, columns: string): Promise<T[]> => {
+    const PAGE = 1000;
+    let from = 0;
+    const all: T[] = [];
+    for (;;) {
+      const { data, error } = await (supabase.from(table as any) as any)
+        .select(columns)
+        .range(from, from + PAGE - 1);
+      if (error) { console.error(`fetchAll ${table} error:`, error); break; }
+      const chunk = (data ?? []) as T[];
+      all.push(...chunk);
+      if (chunk.length < PAGE) break;
+      from += PAGE;
+    }
+    return all;
+  };
+
   const fetch = async () => {
     try {
-      const [profilesRes, rolesRes, subjectsRes, userSubjectsRes] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('user_roles').select('*'),
+      const [profilesData, roles, subjectsRes, usub] = await Promise.all([
+        fetchAll<any>('profiles', '*'),
+        fetchAll<any>('user_roles', '*'),
         supabase.from('subjects').select('id, name, semester').order('semester'),
-        supabase.from('user_subjects').select('user_id, subject_id'),
+        fetchAll<any>('user_subjects', 'user_id, subject_id'),
       ]);
-      const roles   = rolesRes.data ?? [];
-      const usub    = userSubjectsRes.data ?? [];
-      const profiles = (profilesRes.data ?? []).map(p => ({
-        ...p,
-        roles:      roles.filter(r => r.user_id === p.id).map(r => r.role),
-        subjectIds: usub.filter(s => s.user_id === p.id).map(s => s.subject_id),
-      }));
+      const bySubject = new Map<string, string[]>();
+      usub.forEach(s => {
+        const arr = bySubject.get(s.user_id) ?? [];
+        arr.push(s.subject_id);
+        bySubject.set(s.user_id, arr);
+      });
+      const byRole = new Map<string, string[]>();
+      roles.forEach(r => {
+        const arr = byRole.get(r.user_id) ?? [];
+        arr.push(r.role);
+        byRole.set(r.user_id, arr);
+      });
+      const profiles = profilesData
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .map(p => ({
+          ...p,
+          roles:      byRole.get(p.id) ?? [],
+          subjectIds: bySubject.get(p.id) ?? [],
+        }));
       setRows(profiles);
       setSubjects(subjectsRes.data ?? []);
     } catch (err) {
@@ -66,6 +96,7 @@ export default function AdminUsers() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => { fetch(); }, []);
 
