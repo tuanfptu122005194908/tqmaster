@@ -293,7 +293,7 @@ export async function exportToExcel(
                   const zipPath = `media/${schema.name}/${parsed.bucket}/${parsed.path}`;
                   zip.file(zipPath, blob);
                   // Replace in HTML
-                  htmlContent = htmlContent.replaceAll(url, zipPath);
+                  htmlContent = htmlContent.split(url).join(zipPath);
                 }
               }
             }
@@ -560,7 +560,7 @@ export async function importFromZip(
             for (const match of mediaMatches) {
               const mediaPath = match[1];
               if (mediaUrlMap.has(mediaPath)) {
-                htmlContent = htmlContent.replaceAll(mediaPath, mediaUrlMap.get(mediaPath)!);
+                htmlContent = htmlContent.split(mediaPath).join(mediaUrlMap.get(mediaPath)!);
               }
             }
             val = htmlContent;
