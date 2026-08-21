@@ -35,121 +35,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_cleanup_logs: {
-        Row: {
-          id: string
-          conversation_id: string
-          user_id: string
-          deleted_count: number
-          cleaned_at: string
-          notified: boolean
-        }
-        Insert: {
-          id?: string
-          conversation_id: string
-          user_id: string
-          deleted_count?: number
-          cleaned_at?: string
-          notified?: boolean
-        }
-        Update: {
-          id?: string
-          conversation_id?: string
-          user_id?: string
-          deleted_count?: number
-          cleaned_at?: string
-          notified?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_cleanup_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_messages: {
-        Row: {
-          id: string
-          conversation_id: string
-          sender_id: string
-          sender_role: string
-          content: string | null
-          image_url: string | null
-          is_read: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          conversation_id: string
-          sender_id: string
-          sender_role: string
-          content?: string | null
-          image_url?: string | null
-          is_read?: boolean
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          conversation_id?: string
-          sender_id?: string
-          sender_role?: string
-          content?: string | null
-          image_url?: string | null
-          is_read?: boolean
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversations: {
-        Row: {
-          id: string
-          user_id: string
-          status: string
-          last_message_at: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          status?: string
-          last_message_at?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          status?: string
-          last_message_at?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       announcements: {
         Row: {
           content: string | null
@@ -233,6 +118,121 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_cleanup_logs: {
+        Row: {
+          cleaned_at: string
+          conversation_id: string
+          deleted_count: number
+          id: string
+          notified: boolean
+          user_id: string
+        }
+        Insert: {
+          cleaned_at?: string
+          conversation_id: string
+          deleted_count?: number
+          id?: string
+          notified?: boolean
+          user_id: string
+        }
+        Update: {
+          cleaned_at?: string
+          conversation_id?: string
+          deleted_count?: number
+          id?: string
+          notified?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_cleanup_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_read: boolean
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          sender_id: string
+          sender_role: string
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -669,6 +669,7 @@ export type Database = {
         Row: {
           content: string | null
           id: string
+          image_url: string | null
           is_correct: boolean
           label: string
           question_id: string
@@ -676,6 +677,7 @@ export type Database = {
         Insert: {
           content?: string | null
           id?: string
+          image_url?: string | null
           is_correct?: boolean
           label: string
           question_id: string
@@ -683,6 +685,7 @@ export type Database = {
         Update: {
           content?: string | null
           id?: string
+          image_url?: string | null
           is_correct?: boolean
           label?: string
           question_id?: string
@@ -755,6 +758,7 @@ export type Database = {
           content: string | null
           created_at: string
           exam_id: string
+          extra_images: string[] | null
           id: string
           image_url: string | null
           order_num: number
@@ -765,6 +769,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           exam_id: string
+          extra_images?: string[] | null
           id?: string
           image_url?: string | null
           order_num: number
@@ -775,6 +780,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           exam_id?: string
+          extra_images?: string[] | null
           id?: string
           image_url?: string | null
           order_num?: number
