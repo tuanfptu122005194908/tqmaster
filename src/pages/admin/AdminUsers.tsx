@@ -139,10 +139,15 @@ export default function AdminUsers() {
 
   const toggleSubject = async (userId: string, subjectId: string, hasIt: boolean) => {
     if (hasIt) {
-      await supabase.from('user_subjects').delete().eq('user_id', userId).eq('subject_id', subjectId);
+      const { error } = await supabase.from('user_subjects').delete().eq('user_id', userId).eq('subject_id', subjectId);
+      if (error) { alert('Không thể gỡ quyền: ' + error.message); return; }
     } else {
-      await supabase.from('user_subjects').insert({ user_id: userId, subject_id: subjectId, granted_by: 'admin' });
+      const { error } = await supabase
+        .from('user_subjects')
+        .upsert({ user_id: userId, subject_id: subjectId, granted_by: 'admin' }, { onConflict: 'user_id,subject_id' });
+      if (error) { alert('Không thể cấp quyền: ' + error.message); return; }
     }
+
     // Update local state for responsiveness
     setRows(prev => prev.map(u => {
       if (u.id === userId) {
