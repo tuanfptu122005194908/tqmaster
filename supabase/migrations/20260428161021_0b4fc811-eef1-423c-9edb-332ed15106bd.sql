@@ -597,5 +597,5 @@ CREATE POLICY "users_view_own_bill" ON storage.objects
 
 -- Admin: toàn quyền upload/sửa/xoá tất cả bucket
 CREATE POLICY "admins_manage_all_storage" ON storage.objects
-  FOR ALL USING (public.has_role(auth.uid(), 'admin'))
-  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+  FOR ALL USING (public.has_role(auth.uid(), 'admin'::public.app_role))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));

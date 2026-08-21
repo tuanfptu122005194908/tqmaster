@@ -616,7 +616,7 @@ CREATE POLICY "news_images_admin_delete" ON storage.objects FOR DELETE USING (bu
 CREATE POLICY "users_upload_chat_images" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'chat-images');
 CREATE POLICY "users_delete_chat_images" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'chat-images' AND auth.uid() = owner);
 
-CREATE POLICY "admins_manage_all_storage" ON storage.objects FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "admins_manage_all_storage" ON storage.objects FOR ALL USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 -- =========================================
 -- REALTIME
