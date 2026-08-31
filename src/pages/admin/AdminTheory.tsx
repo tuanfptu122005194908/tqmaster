@@ -308,15 +308,26 @@ export default function AdminTheory() {
               >
                 <div>
                   {/* Top Bar: Icon Type & Action Buttons */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <div style={{
-                      padding: '6px 14px', borderRadius: 16, background: badgeBg, color: badgeColor,
-                      border: `1px solid ${badgeBorder}`, fontSize: 12, fontWeight: 800,
-                      display: 'inline-flex', alignItems: 'center', gap: 6
-                    }}>
-                      <TypeIcon type={t.type} />
-                      {t.type === 'file' ? 'File tài liệu' : t.type === 'link' ? 'Liên kết' : 'Hình ảnh'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 8 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      <div style={{
+                        padding: '6px 14px', borderRadius: 16, background: badgeBg, color: badgeColor,
+                        border: `1px solid ${badgeBorder}`, fontSize: 12, fontWeight: 800,
+                        display: 'inline-flex', alignItems: 'center', gap: 6
+                      }}>
+                        <TypeIcon type={t.type} />
+                        {t.type === 'file' ? 'File tài liệu' : t.type === 'link' ? 'Liên kết' : 'Hình ảnh'}
+                      </div>
+                      <div style={{
+                        padding: '6px 14px', borderRadius: 16, fontSize: 12, fontWeight: 800,
+                        background: getCat(t) === 'pe' ? '#fff7ed' : '#f1f5f9',
+                        color: getCat(t) === 'pe' ? '#c2410c' : '#475569',
+                        border: `1px solid ${getCat(t) === 'pe' ? '#fed7aa' : '#e2e8f0'}`,
+                      }}>
+                        {CAT_LABEL[getCat(t)]}
+                      </div>
                     </div>
+
 
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
