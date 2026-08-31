@@ -427,6 +427,28 @@ export default function AdminTheory() {
               </div>
 
               <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Danh mục *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {(['theory', 'pe'] as Category[]).map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, category: c }))}
+                      style={{
+                        padding: '10px 8px', borderRadius: 12,
+                        border: form.category === c ? '2px solid #2563eb' : '1.5px solid #cbd5e1',
+                        background: form.category === c ? '#eff6ff' : '#ffffff',
+                        color: form.category === c ? '#2563eb' : '#475569',
+                        fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+                      }}
+                    >
+                      {CAT_LABEL[c]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Loại tài liệu</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                   {TYPE_OPTS.map(opt => (
