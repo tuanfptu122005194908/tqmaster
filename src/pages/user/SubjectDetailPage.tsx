@@ -70,9 +70,72 @@ export default function SubjectDetailPage() {
     return <Download size={15} />;
   };
 
+  const theoryDocs = theories.filter(t => ((t as any).category ?? 'theory') !== 'pe');
+  const peDocs     = theories.filter(t => ((t as any).category ?? 'theory') === 'pe');
+
+  const renderDocs = (list: Theory[], lockedText: string, emptyText: string) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      {!purchased && (
+        <div className="empty-state">
+          <BookOpen size={40} />
+          <p>{lockedText}</p>
+        </div>
+      )}
+      {purchased && list.length === 0 && (
+        <div className="empty-state">
+          <BookOpen size={40} />
+          <p>{emptyText}</p>
+        </div>
+      )}
+      {purchased && list.map(item => (
+        <div
+          key={item.id}
+          className="panel"
+          style={{ padding: 'var(--space-4) var(--space-5)', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}
+        >
+          <div style={{
+            width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+            background: 'hsl(var(--primary-muted))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'hsl(var(--primary))',
+          }}>
+            <TypeIcon type={item.type} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontWeight: 'var(--fw-semibold)', fontSize: 'var(--text-base)',
+              marginBottom: item.description ? 2 : 0,
+              lineHeight: 'var(--lh-snug)',
+            }}>
+              {item.title}
+            </div>
+            {item.description && (
+              <div style={{ fontSize: 'var(--text-sm)', color: 'hsl(var(--muted-fg))', lineHeight: 'var(--lh-base)' }}>
+                {item.description}
+              </div>
+            )}
+          </div>
+          <a
+            href={item.type === 'link' || !item.file_name
+              ? item.url
+              : `${item.url}${item.url.includes('?') ? '&' : '?'}download=${encodeURIComponent(item.file_name)}`}
+            target="_blank"
+            rel="noreferrer"
+            download={item.type !== 'link' ? (item.file_name || undefined) : undefined}
+            className="btn-primary"
+            style={{ textDecoration: 'none', flexShrink: 0 }}
+          >
+            {item.type === 'link' ? <><ExternalLink size={14} /> Mở link</> : <><Download size={14} /> Tải về</>}
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+
   const TABS: { key: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
     { key: 'exams',         label: 'Đề thi',    icon: <FileText size={14} />,   count: purchased ? exams.length : undefined },
-    { key: 'theory',        label: 'Lý thuyết', icon: <BookOpen size={14} />,   count: purchased ? theories.length : undefined },
+    { key: 'theory',        label: 'Lý thuyết', icon: <BookOpen size={14} />,   count: purchased ? theoryDocs.length : undefined },
+    { key: 'pe',            label: 'Tài liệu PE / Video', icon: <Layers size={14} />, count: purchased ? peDocs.length : undefined },
     { key: 'announcements', label: 'Thông báo', icon: <Bell size={14} />,       count: announcements.length },
   ];
 
