@@ -29,6 +29,8 @@ const TypeIcon = ({ type }: { type: string }) => {
   return <FileText size={16} />;
 };
 
+type Category = 'theory' | 'pe';
+
 type FormState = {
   id?: string;
   title: string;
@@ -36,13 +38,21 @@ type FormState = {
   type: Theory['type'];
   url: string;
   file_name: string;
+  category: Category;
   subject_ids: string[];
 };
 
 const EMPTY_FORM: FormState = {
   title: '', description: '', type: 'file',
-  url: '', file_name: '', subject_ids: [],
+  url: '', file_name: '', category: 'theory', subject_ids: [],
 };
+
+const CAT_LABEL: Record<Category, string> = {
+  theory: 'Lý thuyết',
+  pe: 'Tài liệu PE / Video',
+};
+
+const getCat = (t: any): Category => (t?.category === 'pe' ? 'pe' : 'theory');
 
 export default function AdminTheory() {
   const { profile } = useApp();
@@ -52,6 +62,7 @@ export default function AdminTheory() {
   const [saving,      setSaving]      = useState(false);
   const [showForm,    setShowForm]    = useState(false);
   const [filterSubj,  setFilterSubj]  = useState<string>('all');
+  const [filterCat,   setFilterCat]   = useState<'all' | Category>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
