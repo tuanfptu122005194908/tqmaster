@@ -18,7 +18,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const TYPE_OPTS: Array<{ value: Theory['type']; label: string; icon: React.ReactNode }> = [
-  { value: 'file',  label: 'File PDF/Doc', icon: <FileText size={15} /> },
+  { value: 'file',  label: 'File / Video', icon: <FileText size={15} /> },
   { value: 'link',  label: 'Link ngoài',   icon: <LinkIcon size={15} /> },
   { value: 'image', label: 'Hình ảnh',     icon: <ImageIcon size={15} /> },
 ];
@@ -29,6 +29,8 @@ const TypeIcon = ({ type }: { type: string }) => {
   return <FileText size={16} />;
 };
 
+type Category = 'theory' | 'pe';
+
 type FormState = {
   id?: string;
   title: string;
@@ -36,13 +38,21 @@ type FormState = {
   type: Theory['type'];
   url: string;
   file_name: string;
+  category: Category;
   subject_ids: string[];
 };
 
 const EMPTY_FORM: FormState = {
   title: '', description: '', type: 'file',
-  url: '', file_name: '', subject_ids: [],
+  url: '', file_name: '', category: 'theory', subject_ids: [],
 };
+
+const CAT_LABEL: Record<Category, string> = {
+  theory: 'Lý thuyết',
+  pe: 'Tài liệu PE / Video',
+};
+
+const getCat = (t: any): Category => (t?.category === 'pe' ? 'pe' : 'theory');
 
 export default function AdminTheory() {
   const { profile } = useApp();
@@ -52,6 +62,7 @@ export default function AdminTheory() {
   const [saving,      setSaving]      = useState(false);
   const [showForm,    setShowForm]    = useState(false);
   const [filterSubj,  setFilterSubj]  = useState<string>('all');
+  const [filterCat,   setFilterCat]   = useState<'all' | Category>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
@@ -75,12 +86,16 @@ export default function AdminTheory() {
 
   const filtered = theories.filter(t => {
     const matchSubj = filterSubj === 'all' || getSubjectIds(t).includes(filterSubj);
+    const matchCat  = filterCat === 'all' || getCat(t) === filterCat;
     const q = searchQuery.toLowerCase();
     const matchQ = !q || t.title.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q);
-    return matchSubj && matchQ;
+    return matchSubj && matchCat && matchQ;
   });
 
-  const openCreate = () => { setForm(EMPTY_FORM); setShowForm(true); };
+  const openCreate = () => {
+    setForm({ ...EMPTY_FORM, category: filterCat === 'all' ? 'theory' : filterCat });
+    setShowForm(true);
+  };
   const openEdit = (t: any) => {
     setForm({
       id: t.id,
@@ -89,6 +104,7 @@ export default function AdminTheory() {
       type: t.type,
       url: t.url,
       file_name: t.file_name ?? '',
+      category: getCat(t),
       subject_ids: getSubjectIds(t),
     });
     setShowForm(true);
@@ -114,14 +130,16 @@ export default function AdminTheory() {
       const { error } = await supabase.from('theories').update({
         title: form.title, description: form.description || null,
         type: form.type, url: form.url, file_name: form.file_name || null,
-      }).eq('id', theoryId);
+        category: form.category,
+      } as any).eq('id', theoryId);
       if (error) { toast.error('Lỗi cập nhật: ' + error.message); setSaving(false); return; }
     } else {
       const { data, error } = await supabase.from('theories').insert({
         title: form.title, description: form.description || null,
         type: form.type, url: form.url, file_name: form.file_name || null,
+        category: form.category,
         created_by: profile?.id,
-      }).select().single();
+      } as any).select().single();
 
       if (error || !data) { toast.error('Lỗi tạo mới: ' + (error?.message ?? '')); setSaving(false); return; }
       theoryId = data.id;
@@ -178,6 +196,33 @@ export default function AdminTheory() {
         >
           <Plus size={18} /> Thêm tài liệu
         </button>
+      </div>
+
+      {/* Category Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+        {([
+          { key: 'all' as const,    label: 'Tất cả' },
+          { key: 'theory' as const, label: CAT_LABEL.theory },
+          { key: 'pe' as const,     label: CAT_LABEL.pe },
+        ]).map(c => {
+          const count = c.key === 'all' ? theories.length : theories.filter(t => getCat(t) === c.key).length;
+          const active = filterCat === c.key;
+          return (
+            <button
+              key={c.key}
+              onClick={() => setFilterCat(c.key)}
+              style={{
+                padding: '10px 20px', borderRadius: 14, cursor: 'pointer',
+                border: active ? '2px solid #1d4ed8' : '1.5px solid #cbd5e1',
+                background: active ? '#eff6ff' : '#ffffff',
+                color: active ? '#1d4ed8' : '#475569',
+                fontSize: 13.5, fontWeight: 800,
+              }}
+            >
+              {c.label} ({count})
+            </button>
+          );
+        })}
       </div>
 
       {/* Filter Tabs & Search Controls */}
@@ -263,15 +308,26 @@ export default function AdminTheory() {
               >
                 <div>
                   {/* Top Bar: Icon Type & Action Buttons */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <div style={{
-                      padding: '6px 14px', borderRadius: 16, background: badgeBg, color: badgeColor,
-                      border: `1px solid ${badgeBorder}`, fontSize: 12, fontWeight: 800,
-                      display: 'inline-flex', alignItems: 'center', gap: 6
-                    }}>
-                      <TypeIcon type={t.type} />
-                      {t.type === 'file' ? 'File tài liệu' : t.type === 'link' ? 'Liên kết' : 'Hình ảnh'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 8 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      <div style={{
+                        padding: '6px 14px', borderRadius: 16, background: badgeBg, color: badgeColor,
+                        border: `1px solid ${badgeBorder}`, fontSize: 12, fontWeight: 800,
+                        display: 'inline-flex', alignItems: 'center', gap: 6
+                      }}>
+                        <TypeIcon type={t.type} />
+                        {t.type === 'file' ? 'File tài liệu' : t.type === 'link' ? 'Liên kết' : 'Hình ảnh'}
+                      </div>
+                      <div style={{
+                        padding: '6px 14px', borderRadius: 16, fontSize: 12, fontWeight: 800,
+                        background: getCat(t) === 'pe' ? '#fff7ed' : '#f1f5f9',
+                        color: getCat(t) === 'pe' ? '#c2410c' : '#475569',
+                        border: `1px solid ${getCat(t) === 'pe' ? '#fed7aa' : '#e2e8f0'}`,
+                      }}>
+                        {CAT_LABEL[getCat(t)]}
+                      </div>
                     </div>
+
 
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
@@ -371,6 +427,28 @@ export default function AdminTheory() {
               </div>
 
               <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Danh mục *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {(['theory', 'pe'] as Category[]).map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, category: c }))}
+                      style={{
+                        padding: '10px 8px', borderRadius: 12,
+                        border: form.category === c ? '2px solid #2563eb' : '1.5px solid #cbd5e1',
+                        background: form.category === c ? '#eff6ff' : '#ffffff',
+                        color: form.category === c ? '#2563eb' : '#475569',
+                        fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+                      }}
+                    >
+                      {CAT_LABEL[c]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Loại tài liệu</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                   {TYPE_OPTS.map(opt => (
@@ -393,13 +471,14 @@ export default function AdminTheory() {
 
               {form.type === 'file' ? (
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>File tài liệu (PDF/Doc/Zip)</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>File tài liệu (mọi định dạng: PDF, Word, Excel, PPT, Zip, Video...)</label>
                   <FileUploader
                     bucket="theory-files"
                     value={form.url}
                     onChange={(url) => setForm(p => ({ ...p, url }))}
                     onFileNameChange={(name) => setForm(p => ({ ...p, file_name: name || p.file_name }))}
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
+                    accept="*/*"
+                    maxSizeMB={50}
                     preview="file"
                     label="Tải file tài liệu"
                   />

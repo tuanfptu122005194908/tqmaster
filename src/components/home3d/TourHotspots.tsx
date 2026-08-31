@@ -99,7 +99,7 @@ function HotspotItem({
           }}
           onPointerOver={() => setHovered(true)}
           onPointerOut={() => setHovered(false)}
-          style={{ cursor: 'pointer' }}
+          
         >
           <circleGeometry args={[0.45, 32]} />
           <meshBasicMaterial
