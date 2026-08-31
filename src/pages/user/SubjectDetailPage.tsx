@@ -450,63 +450,17 @@ export default function SubjectDetailPage() {
         )}
 
         {/* Theory */}
-        {activeTab === 'theory' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {!purchased && (
-              <div className="empty-state">
-                <BookOpen size={40} />
-                <p>Mua môn học để xem tài liệu lý thuyết</p>
-              </div>
-            )}
-            {purchased && theories.length === 0 && (
-              <div className="empty-state">
-                <BookOpen size={40} />
-                <p>Chưa có tài liệu nào</p>
-              </div>
-            )}
-            {purchased && theories.map(item => (
-              <div
-                key={item.id}
-                className="panel"
-                style={{ padding: 'var(--space-4) var(--space-5)', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}
-              >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                  background: 'hsl(var(--primary-muted))',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'hsl(var(--primary))',
-                }}>
-                  <TypeIcon type={item.type} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontWeight: 'var(--fw-semibold)', fontSize: 'var(--text-base)',
-                    marginBottom: item.description ? 2 : 0,
-                    lineHeight: 'var(--lh-snug)',
-                  }}>
-                    {item.title}
-                  </div>
-                  {item.description && (
-                    <div style={{ fontSize: 'var(--text-sm)', color: 'hsl(var(--muted-fg))', lineHeight: 'var(--lh-base)' }}>
-                      {item.description}
-                    </div>
-                  )}
-                </div>
-                <a
-                  href={item.type === 'link' || !item.file_name
-                    ? item.url
-                    : `${item.url}${item.url.includes('?') ? '&' : '?'}download=${encodeURIComponent(item.file_name)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  download={item.type !== 'link' ? (item.file_name || undefined) : undefined}
-                  className="btn-primary"
-                  style={{ textDecoration: 'none', flexShrink: 0 }}
-                >
-                  {item.type === 'link' ? <><ExternalLink size={14} /> Mở link</> : <><Download size={14} /> Tải về</>}
-                </a>
-              </div>
-            ))}
-          </div>
+        {activeTab === 'theory' && renderDocs(
+          theoryDocs,
+          'Mua môn học để xem tài liệu lý thuyết',
+          'Chưa có tài liệu nào',
+        )}
+
+        {/* PE materials / Video */}
+        {activeTab === 'pe' && renderDocs(
+          peDocs,
+          'Mua môn học để xem tài liệu PE / Video',
+          'Chưa có tài liệu PE / Video nào',
         )}
 
         {/* Announcements */}
