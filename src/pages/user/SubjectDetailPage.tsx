@@ -14,7 +14,7 @@ type Subject       = Tables<'subjects'>;
 type Exam          = Tables<'exams'>;
 type Theory        = Tables<'theories'>;
 type Announcement  = Tables<'announcements'>;
-type Tab = 'exams' | 'theory' | 'announcements';
+type Tab = 'exams' | 'theory' | 'pe' | 'announcements';
 
 import { useParams, useNavigate } from 'react-router-dom';
 
