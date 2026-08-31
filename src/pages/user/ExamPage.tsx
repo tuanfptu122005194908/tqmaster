@@ -2,11 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
-import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Flag, RotateCcw, Loader2, BarChart3, AlertTriangle, MousePointerClick, ZoomIn, MessageSquareWarning } from 'lucide-react';
+import { 
+  X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Flag, 
+  RotateCcw, Loader2, BarChart3, AlertTriangle, MousePointerClick, 
+  ZoomIn, MessageSquareWarning, ZoomOut, Maximize2, Minimize2, MessageSquare 
+} from 'lucide-react';
 import { playSound } from '@/lib/sound';
 import { RichContent } from '@/components/exam/RichContent';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 
-type Exam    = Tables<'exams'>;
+type Exam = Tables<'exams'>;
 type Question = Tables<'questions'> & { options: Array<Tables<'question_options'>> };
 
 function formatTime(seconds: number): string {
@@ -15,7 +20,25 @@ function formatTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+function formatRelativeTime(dateString?: string | null): string {
+  if (!dateString) return 'tuần trước';
+  const now = new Date();
+  const past = new Date(dateString);
+  const diffMs = Math.max(0, now.getTime() - past.getTime());
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+  const diffWeek = Math.floor(diffDay / 7);
+  const diffMonth = Math.floor(diffDay / 30);
+
+  if (diffMonth > 0) return `${diffMonth} tháng trước`;
+  if (diffWeek > 0) return `${diffWeek} tuần trước`;
+  if (diffDay > 0) return `${diffDay} ngày trước`;
+  if (diffHour > 0) return `${diffHour} giờ trước`;
+  if (diffMin > 0) return `${diffMin} phút trước`;
+  return 'vừa xong';
+}
 
 export default function ExamPage() {
   const { id: selectedExamId } = useParams();
@@ -38,25 +61,129 @@ export default function ExamPage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
+  // Viewer Controls State for Text Exams
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // In-Place Zoom & Drag-to-Pan for Image Exams
+  const [imageZoom, setImageZoom] = useState(100);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const dragStartPosRef = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+  const didDragRef = useRef(false);
+
+  const handleImageMouseDown = (e: React.MouseEvent) => {
+    didDragRef.current = false;
+    if (imageZoom <= 100) return;
+    const container = imageContainerRef.current;
+    if (!container) return;
+    setIsDraggingImage(true);
+    dragStartPosRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: container.scrollLeft,
+      scrollTop: container.scrollTop,
+    };
+  };
+
+  const handleImageMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingImage) return;
+    const container = imageContainerRef.current;
+    if (!container) return;
+    const dx = e.clientX - dragStartPosRef.current.x;
+    const dy = e.clientY - dragStartPosRef.current.y;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      didDragRef.current = true;
+    }
+    container.scrollLeft = dragStartPosRef.current.scrollLeft - dx;
+    container.scrollTop = dragStartPosRef.current.scrollTop - dy;
+  };
+
+  const handleImageMouseUp = () => {
+    setIsDraggingImage(false);
+  };
+
   // Report State
   const [reportingQuestion, setReportingQuestion] = useState<Question | null>(null);
   const [reportNote, setReportNote] = useState('');
-  const [reportOptionId, setReportOptionId] = useState('');
+  const [reportOptionIds, setReportOptionIds] = useState<string[]>([]);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  // Reset states when question changes
+  useEffect(() => {
+    setIsFlipped(false);
+    setImageZoom(100);
+    setIsDraggingImage(false);
+    didDragRef.current = false;
+    if (imageContainerRef.current) {
+      imageContainerRef.current.scrollLeft = 0;
+      imageContainerRef.current.scrollTop = 0;
+    }
+    setReportOptionIds([]);
+    setReportNote('');
+  }, [currentIndex]);
+
+  // Flashcard keyboard shortcuts
+  useEffect(() => {
+    if (examMode !== 'flashcard') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (['INPUT', 'TEXTAREA'].includes(activeEl?.tagName || '')) return;
+
+      if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
+          activeEl.blur();
+        }
+        setIsFlipped(prev => !prev);
+        playSound.flip();
+      } else if (e.code === 'ArrowLeft' || e.key === 'ArrowLeft' || e.keyCode === 37) {
+        e.preventDefault();
+        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
+          activeEl.blur();
+        }
+        setCurrentIndex(i => Math.max(0, i - 1));
+      } else if (e.code === 'ArrowRight' || e.key === 'ArrowRight' || e.keyCode === 39) {
+        e.preventDefault();
+        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
+          activeEl.blur();
+        }
+        setCurrentIndex(i => Math.min(questions.length - 1, i + 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [examMode, questions.length]);
 
   // Load exam + questions + options
   useEffect(() => {
     if (!selectedExamId) return;
     const load = async () => {
-      const [examRes, questionsRes] = await Promise.all([
-        supabase.from('exams').select('*').eq('id', selectedExamId).single(),
-        supabase.from('questions')
-          .select('*, question_options(*)')
-          .eq('exam_id', selectedExamId)
-          .order('order_num'),
-      ]);
-      const e = examRes.data;
-      setExam(e ?? null);
+      let examData = null;
+      try {
+        const { data, error } = await supabase
+          .from('exams')
+          .select('*, exam_subjects(subject_id, subjects(*)), profiles:created_by(*)')
+          .eq('id', selectedExamId)
+          .single();
+        if (!error && data) {
+          examData = data;
+        } else {
+          const fallback = await supabase.from('exams').select('*').eq('id', selectedExamId).single();
+          examData = fallback.data;
+        }
+      } catch (e) {
+        const fallback = await supabase.from('exams').select('*').eq('id', selectedExamId).single();
+        examData = fallback.data;
+      }
+
+      const questionsRes = await supabase.from('questions')
+        .select('*, question_options(*)')
+        .eq('exam_id', selectedExamId)
+        .order('order_num');
+
+      setExam(examData ?? null);
       const qs: Question[] = (questionsRes.data ?? []).map((q: any) => ({
         ...q,
         options: q.question_options ?? [],
@@ -65,7 +192,7 @@ export default function ExamPage() {
       qs.forEach(q => { q.options.sort((a, b) => a.label.localeCompare(b.label)); });
       setQuestions(qs);
       
-      let initialTimeLeft = e ? e.duration_min * 60 : 0;
+      let initialTimeLeft = examData ? examData.duration_min * 60 : 0;
       const draftStr = localStorage.getItem(`exam_draft_${selectedExamId}_${examMode}`);
       if (draftStr) {
         try {
@@ -76,11 +203,11 @@ export default function ExamPage() {
         } catch (err) {}
       }
 
-      if (e) setTimeLeft(initialTimeLeft);
+      if (examData) setTimeLeft(initialTimeLeft);
       setLoading(false);
     };
     load();
-  }, [selectedExamId]);
+  }, [selectedExamId, examMode]);
 
   // Preload ALL question images on load — instant prev/next
   useEffect(() => {
@@ -96,6 +223,27 @@ export default function ExamPage() {
     });
     return () => { imgs.forEach(i => { i.src = ''; }); };
   }, [questions]);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    }
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -192,6 +340,13 @@ export default function ExamPage() {
 
   const currentAnswers = answers[currentQ.id] ?? [];
   const answeredCount  = Object.values(answers).filter(a => a.length > 0).length;
+
+  // Determine if this is a text-based exam
+  const isTextExam = questions.length > 0 && (
+    questions.filter(q => q.image_url).length < questions.length / 2 ||
+    questions.some(q => q.options.some(o => o.content?.trim())) ||
+    questions.every(q => !q.image_url)
+  );
 
   const toggleAnswer = (label: string) => {
     if (submitted) return;
@@ -322,20 +477,26 @@ export default function ExamPage() {
   };
 
   const submitReport = async () => {
-    if (!reportingQuestion || !reportOptionId || !profile) return;
+    const targetQ = isTextExam ? currentQ : reportingQuestion;
+    if (!targetQ || reportOptionIds.length === 0 || !profile) {
+      if (!profile) alert('Vui lòng đăng nhập để gửi báo cáo.');
+      else if (reportOptionIds.length === 0) alert('Vui lòng chọn ít nhất một đáp án bạn cho là đúng.');
+      return;
+    }
     setIsSubmittingReport(true);
     try {
-      const { error } = await supabase.from('question_reports').insert({
-        question_id: reportingQuestion.id,
+      const rows = reportOptionIds.map(optId => ({
+        question_id: targetQ.id,
         user_id: profile.id,
-        suggested_option_id: reportOptionId,
-        note: reportNote,
-      });
+        suggested_option_id: optId,
+        note: reportNote || null,
+      }));
+      const { error } = await supabase.from('question_reports').insert(rows);
       if (error) throw error;
       alert('Cảm ơn bạn đã báo cáo. Chúng tôi sẽ kiểm tra và cập nhật sớm nhất!');
       setReportingQuestion(null);
       setReportNote('');
-      setReportOptionId('');
+      setReportOptionIds([]);
     } catch (err: any) {
       alert('Có lỗi xảy ra khi gửi báo cáo: ' + err.message);
     } finally {
@@ -344,102 +505,297 @@ export default function ExamPage() {
   };
 
   const reportModal = reportingQuestion ? (
-        <div 
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(null); }}
-          style={{ 
-            position: 'fixed', 
-            inset: 0, 
-            background: 'rgba(15, 23, 42, 0.6)', 
-            backdropFilter: 'blur(4px)',
-            zIndex: 9999, 
+    <div 
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(null); }}
+      style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        background: 'rgba(15, 23, 42, 0.6)', 
+        backdropFilter: 'blur(4px)',
+        zIndex: 9999, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        padding: 24
+      }}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        style={{ 
+          background: '#ffffff', 
+          borderRadius: 24, 
+          width: '100%', 
+          maxWidth: 500, 
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          padding: 28, 
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+              <MessageSquareWarning size={20} />
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Báo cáo đáp án sai</h3>
+          </div>
+          <button onClick={() => setReportingQuestion(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 120, overflowY: 'auto' }}>
+          <strong style={{ color: '#0f172a' }}>Câu hỏi: </strong>
+          {reportingQuestion.content}
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+            Theo bạn, đáp án nào mới là đáp án đúng? (Có thể chọn nhiều) *
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {reportingQuestion.options.map(opt => {
+              const isAlreadyCorrect = opt.is_correct;
+              const isChecked = reportOptionIds.includes(opt.id);
+
+              return (
+                <div 
+                  key={opt.id} 
+                  onClick={() => {
+                    setReportOptionIds(prev => prev.includes(opt.id) ? prev.filter(x => x !== opt.id) : [...prev, opt.id]);
+                  }}
+                  style={{ 
+                    display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 8, 
+                    border: `1px solid ${isChecked ? '#3b82f6' : isAlreadyCorrect ? '#a7f3d0' : '#e2e8f0'}`, 
+                    background: isChecked ? '#eff6ff' : isAlreadyCorrect ? '#f0fdf4' : 'white', 
+                    cursor: 'pointer',
+                    userSelect: 'none'
+                  }}
+                >
+                  <div style={{ width: 20, height: 20, borderRadius: 4, border: `1.5px solid ${isChecked ? '#3b82f6' : '#cbd5e1'}`, background: isChecked ? '#3b82f6' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {isChecked && <CheckCircle size={14} color="white" />}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: isChecked ? 700 : 500, color: isChecked ? '#1e40af' : '#334155', flex: 1 }}>
+                    {opt.label}. {opt.content}
+                  </span>
+                  {isAlreadyCorrect && (
+                    <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 4 }}>
+                      Hiện tại: Đúng
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Ghi chú thêm (không bắt buộc)</label>
+          <textarea 
+            value={reportNote}
+            onChange={e => setReportNote(e.target.value)}
+            placeholder="Vui lòng cung cấp thêm giải thích hoặc lý do tại sao bạn cho rằng đáp án này đúng..."
+            style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, minHeight: 80, resize: 'vertical' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+          <button
+            onClick={() => setReportingQuestion(null)}
+            style={{ flex: 1, padding: '12px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#334155', cursor: 'pointer' }}
+          >
+            Hủy
+          </button>
+          <button
+            onClick={submitReport}
+            disabled={reportOptionIds.length === 0 || isSubmittingReport}
+            style={{ flex: 1, padding: '12px 16px', background: reportOptionIds.length === 0 ? '#94a3b8' : '#3b82f6', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, color: 'white', cursor: reportOptionIds.length === 0 ? 'not-allowed' : 'pointer' }}
+          >
+            {isSubmittingReport ? <Loader2 size={20} className="spinner" /> : `Gửi báo cáo ${reportOptionIds.length > 0 ? `(${reportOptionIds.length})` : ''}`}
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const submitConfirmModal = showSubmitConfirm ? (
+    <div 
+      style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        background: 'rgba(15, 23, 42, 0.6)', 
+        backdropFilter: 'blur(4px)',
+        zIndex: 9999, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        padding: 24
+      }}
+      onClick={() => setShowSubmitConfirm(false)}
+    >
+      <div 
+        style={{ 
+          background: '#ffffff', 
+          borderRadius: 24, 
+          width: '100%', 
+          maxWidth: 460, 
+          padding: 28, 
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header / Title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ 
+            width: 48, 
+            height: 48, 
+            borderRadius: 14, 
+            background: (questions.length - answeredCount) > 0 ? '#fff7ed' : '#edf5ff', 
+            border: `1px solid ${(questions.length - answeredCount) > 0 ? '#ffedd5' : '#dbeafe'}`,
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            padding: 24
-          }}
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            style={{ 
-              background: '#ffffff', 
-              borderRadius: 24, 
-              width: '100%', 
-              maxWidth: 500, 
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              padding: 28, 
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 20
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
-                  <MessageSquareWarning size={20} />
-                </div>
-                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Báo cáo đáp án sai</h3>
-              </div>
-              <button onClick={() => setReportingQuestion(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 120, overflowY: 'auto' }}>
-              <strong style={{ color: '#0f172a' }}>Câu hỏi: </strong>
-              {reportingQuestion.content}
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Theo bạn, đáp án nào mới là đáp án đúng? *</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {reportingQuestion.options.map(opt => (
-                  <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 8, border: `1px solid ${reportOptionId === opt.id ? '#3b82f6' : '#e2e8f0'}`, background: reportOptionId === opt.id ? '#eff6ff' : 'white', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="suggestedOption" 
-                      value={opt.id} 
-                      checked={reportOptionId === opt.id}
-                      onChange={() => setReportOptionId(opt.id)}
-                      style={{ accentColor: '#3b82f6' }}
-                    />
-                    <span style={{ fontSize: 14, fontWeight: reportOptionId === opt.id ? 700 : 500, color: '#334155' }}>
-                      {opt.label}. {opt.content}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>Ghi chú thêm (không bắt buộc)</label>
-              <textarea 
-                value={reportNote}
-                onChange={e => setReportNote(e.target.value)}
-                placeholder="Vui lòng cung cấp thêm giải thích hoặc lý do tại sao bạn cho rằng đáp án này đúng..."
-                style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, minHeight: 80, resize: 'vertical' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
-              <button
-                onClick={() => setReportingQuestion(null)}
-                style={{ flex: 1, padding: '12px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#334155', cursor: 'pointer' }}
-              >
-                Hủy
-              </button>
-              <button
-                onClick={submitReport}
-                disabled={!reportOptionId || isSubmittingReport}
-                style={{ flex: 1, padding: '12px 16px', background: !reportOptionId ? '#94a3b8' : '#3b82f6', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, color: 'white', cursor: !reportOptionId ? 'not-allowed' : 'pointer' }}
-              >
-                {isSubmittingReport ? <Loader2 size={20} className="spinner" /> : 'Gửi báo cáo'}
-              </button>
-            </div>
+            color: (questions.length - answeredCount) > 0 ? '#d97706' : '#3b82f6',
+            flexShrink: 0
+          }}>
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              Xác nhận nộp bài thi
+            </h3>
+            <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+              Bạn có chắc chắn muốn kết thúc bài thi thử ngay bây giờ?
+            </p>
           </div>
         </div>
+
+        {/* Stats Summary */}
+        <div style={{ background: '#f8fafc', borderRadius: 16, border: '1px solid #e2e8f0', padding: 14, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          <div style={{ textAlign: 'center', padding: '8px 4px', background: 'white', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Đã làm</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a' }}>{answeredCount}</div>
+          </div>
+          <div style={{ textAlign: 'center', padding: '8px 4px', background: (questions.length - answeredCount) > 0 ? '#fef2f2' : 'white', borderRadius: 10, border: `1px solid ${(questions.length - answeredCount) > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: (questions.length - answeredCount) > 0 ? '#e11d48' : '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Chưa làm</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: (questions.length - answeredCount) > 0 ? '#e11d48' : '#64748b' }}>{questions.length - answeredCount}</div>
+          </div>
+          <div style={{ textAlign: 'center', padding: '8px 4px', background: flagged.size > 0 ? '#fffbeb' : 'white', borderRadius: 10, border: `1px solid ${flagged.size > 0 ? '#fde68a' : '#e2e8f0'}` }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: flagged.size > 0 ? '#b45309' : '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Đánh dấu</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: flagged.size > 0 ? '#b45309' : '#64748b' }}>{flagged.size}</div>
+          </div>
+        </div>
+
+        {(questions.length - answeredCount) > 0 && (
+          <div style={{ fontSize: 12, color: '#c2410c', background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 10, padding: '10px 12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={16} style={{ flexShrink: 0, color: '#ea580c' }} />
+            <span>Bạn vẫn còn <strong>{questions.length - answeredCount}</strong> câu chưa làm.</span>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+          <button
+            onClick={() => setShowSubmitConfirm(false)}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              background: 'white',
+              border: '1px solid #cbd5e1',
+              borderRadius: 12,
+              fontSize: 14,
+              fontWeight: 800,
+              color: '#334155',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Tiếp tục làm bài
+          </button>
+          <button
+            onClick={() => {
+              setShowSubmitConfirm(false);
+              handleSubmit();
+            }}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 14,
+              fontWeight: 800,
+              color: '#ffffff',
+              cursor: 'pointer',
+              boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
+              transition: 'all 0.2s'
+            }}
+          >
+            Nộp bài ngay
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const previewImageModal = previewImage ? (
+    <div 
+      onClick={() => setPreviewImage(null)}
+      style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        background: 'rgba(0,0,0,0.85)', 
+        zIndex: 9999, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        padding: 40,
+        cursor: 'zoom-out'
+      }}
+    >
+      <button 
+        onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
+        style={{ position: 'absolute', top: 20, right: 20, background: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
+      >
+        <X size={24} />
+      </button>
+      <button 
+        onClick={(e) => { e.stopPropagation(); setCurrentIndex(i => Math.max(0, i - 1)); }}
+        disabled={currentIndex === 0}
+        style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: currentIndex === 0 ? 'rgba(255,255,255,0.5)' : 'white', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentIndex === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
+      >
+        <ChevronLeft size={30} />
+      </button>
+      <img 
+        src={previewImage} 
+        alt="Preview" 
+        style={{ 
+          maxWidth: '90%', 
+          maxHeight: '90%', 
+          objectFit: 'contain', 
+          borderRadius: 8,
+          boxShadow: '0 0 40px rgba(0,0,0,0.5)',
+          transform: 'scale(1)',
+          transition: 'transform 0.3s ease'
+        }} 
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button 
+        onClick={(e) => { e.stopPropagation(); setCurrentIndex(i => Math.min(questions.length - 1, i + 1)); }}
+        disabled={currentIndex === questions.length - 1}
+        style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', background: currentIndex === questions.length - 1 ? 'rgba(255,255,255,0.5)' : 'white', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentIndex === questions.length - 1 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
+      >
+        <ChevronRight size={30} />
+      </button>
+    </div>
   ) : null;
 
   // ── Results screen (Modern design) ────────────────────────────
@@ -745,42 +1101,7 @@ export default function ExamPage() {
           </div>
         </div>
 
-        {/* ═══ IMAGE PREVIEW MODAL (for Results) ═══ */}
-        {previewImage && (
-          <div 
-            onClick={() => setPreviewImage(null)}
-            style={{ 
-              position: 'fixed', 
-              inset: 0, 
-              background: 'rgba(0,0,0,0.85)', 
-              zIndex: 9999, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              padding: 40,
-              cursor: 'zoom-out'
-            }}
-          >
-            <button 
-              onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
-              style={{ position: 'absolute', top: 20, right: 20, background: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
-            >
-              <X size={24} />
-            </button>
-            <img 
-              src={previewImage} 
-              alt="Preview" 
-              style={{ 
-                maxWidth: '100%', 
-                maxHeight: '100%', 
-                objectFit: 'contain', 
-                borderRadius: 8,
-                boxShadow: '0 0 40px rgba(0,0,0,0.5)'
-              }} 
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-        )}
+        {previewImageModal}
         {reportModal}
       </div>
     );
@@ -804,243 +1125,734 @@ export default function ExamPage() {
     return '';
   };
 
-  // ── Main exam UI (Modern 2-column layout) ──────────────────────
-  
+  // ── Flashcard UI ─────────────────────────────────────────────
   if (examMode === 'flashcard') {
     const q = questions[currentIndex];
+    const isImageQ = Boolean(q?.image_url);
     const correctOpts = q.options.filter(o => o.is_correct);
+    const progressPercent = ((currentIndex + 1) / questions.length) * 100;
+    const cardMaxWidth = isImageQ ? 1400 : 820;
+    const headerMaxWidth = isImageQ ? 1400 : 960;
+
     return (
-      <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'white', borderBottom: '1px solid #e2e8f0' }}>
-          <button 
-            onClick={() => navigate(-1)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: 14, color: '#0f172a' }}
-          >
-            <ChevronLeft size={20} /> Quay lại
-          </button>
-          <div style={{ fontWeight: 800, fontSize: 12, letterSpacing: '0.05em', color: '#64748b' }}>
-            STUDY <span style={{ margin: '0 8px' }}>|</span> EXAMS
+      <div style={{ minHeight: '100vh', background: '#f4f7fc', display: 'flex', flexDirection: 'column', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        {/* Top Sticky Header */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 50, background: '#ffffff', borderBottom: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+          {/* Progress Bar (Green Success Gradient) */}
+          <div style={{ height: 3, width: '100%', background: '#e2e8f0' }}>
+            <div style={{ height: '100%', width: `${progressPercent}%`, background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', transition: 'width 0.3s ease' }} />
+          </div>
+          
+          <div style={{ maxWidth: headerMaxWidth, margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, transition: 'max-width 0.25s ease' }}>
+            <button 
+              tabIndex={-1}
+              onClick={(e) => { e.currentTarget.blur(); navigate(-1); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 14px', borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: 13, color: '#334155', transition: 'all 0.15s' }}
+            >
+              <ChevronLeft size={16} /> Quay lại
+            </button>
+            
+            <div style={{ textAlign: 'center', flex: 1, padding: '0 12px' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {exam.title}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', marginTop: 1 }}>
+                CHẾ ĐỘ THẺ GHI NHỚ (FLASHCARD)
+              </div>
+            </div>
+            
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#047857', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: 20, flexShrink: 0 }}>
+              {currentIndex + 1} / {questions.length}
+            </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', position: 'relative' }}>
-          {/* Title & Progress */}
-          <div style={{ width: '100%', maxWidth: 1400, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24, borderBottom: '2px solid #e2e8f0', paddingBottom: 12 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: 0 }}>{exam.title}</h2>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b' }}>
-              {currentIndex + 1} / {questions.length} CÂU
-            </div>
-          </div>
-
-          {/* Flashcard Area */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '0 24px', gap: 40 }}>
-            {/* Left Nav */}
-            <button 
-              onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-              disabled={currentIndex === 0}
-              style={{
-                width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: currentIndex === 0 ? '#f8fafc' : 'white', 
-                color: currentIndex === 0 ? '#cbd5e1' : '#0f172a',
-                border: '1px solid #e2e8f0', cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
-                boxShadow: currentIndex === 0 ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
-                transition: 'all 0.2s', flexShrink: 0
-              }}
-            >
-              <ChevronLeft size={28} />
-            </button>
-
-            {/* Flashcard */}
-            <div 
-              onClick={() => { setIsFlipped(!isFlipped); playSound.flip(); }}
-              style={{ 
-                width: '100%', maxWidth: 1400, minHeight: 400, 
-                background: 'white', borderRadius: 24, 
-                boxShadow: '0 10px 40px rgba(0,0,0,0.05)',
-                display: 'flex', flexDirection: 'column',
-                padding: '24px', cursor: 'pointer',
-                border: '1px solid #f1f5f9',
-                transition: 'transform 0.3s ease',
-              }}
-            >
+        {/* Main Content Area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', maxWidth: cardMaxWidth, width: '100%', margin: '0 auto', transition: 'max-width 0.25s ease' }}>
+          
+          {/* Flashcard Card Container */}
+          <div 
+            onClick={() => { setIsFlipped(!isFlipped); playSound.flip(); }}
+            style={{ 
+              width: '100%', 
+              minHeight: isImageQ ? 560 : 400,
+              background: '#ffffff', 
+              borderRadius: 24, 
+              border: `1.5px solid ${isFlipped ? '#86efac' : '#e2e8f0'}`,
+              boxShadow: isFlipped ? '0 16px 40px -8px rgba(22, 163, 74, 0.12)' : '0 16px 40px -8px rgba(15, 23, 42, 0.05)',
+              display: 'flex', 
+              flexDirection: 'column',
+              padding: isImageQ ? '24px 32px' : '28px 24px', 
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+              userSelect: 'none'
+            }}
+          >
+            {/* Top Badge Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               {!isFlipped ? (
-                // Front: Question
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', gap: 24, flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em' }}>CÂU HỎI</div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: '0.02em' }}>
+                  <span>CÂU HỎI {currentIndex + 1}</span>
+                </div>
+              ) : (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
+                  <CheckCircle size={14} /> <span>ĐÁP ÁN ĐÚNG</span>
+                </div>
+              )}
+
+              <div style={{ fontSize: 12, fontWeight: 600, color: isFlipped ? '#16a34a' : '#64748b', display: 'flex', alignItems: 'center', gap: 5, background: isFlipped ? '#f0fdf4' : '#f8fafc', padding: '4px 10px', borderRadius: 8, border: `1px solid ${isFlipped ? '#dcfce7' : '#e2e8f0'}` }}>
+                <RotateCcw size={13} />
+                <span>{isFlipped ? 'Mặt sau (Đáp án)' : 'Mặt trước (Câu hỏi)'}</span>
+              </div>
+            </div>
+
+            {/* Question / Answer Content */}
+            {!isFlipped ? (
+              // FRONT SIDE: Question & Options
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                <div>
                   {q.image_url && (
-                     <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-                       <img 
-                         src={q.image_url} 
-                         alt="Question" 
-                         onClick={(e) => { e.stopPropagation(); setPreviewImage(q.image_url); }}
-                         style={{ width: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: 8, cursor: 'zoom-in' }} 
-                       />
-                       <div 
-                         style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(15, 23, 42, 0.6)', color: 'white', padding: 8, borderRadius: 8, pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600 }}
-                       >
-                         <ZoomIn size={16} /> Phóng to
-                       </div>
-                     </div>
-                  )}
-                  {q.content?.trim() && (
-                    <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
-                      {q.content}
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                      <img 
+                        src={q.image_url} 
+                        alt="Question" 
+                        onClick={(e) => { e.stopPropagation(); setPreviewImage(q.image_url); }}
+                        style={{ maxWidth: '100%', maxHeight: '74vh', objectFit: 'contain', borderRadius: 14, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }} 
+                      />
                     </div>
                   )}
+
+                  {q.content?.trim() && (
+                    <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', lineHeight: 1.6, marginBottom: 16 }}>
+                      <RichContent content={q.content} />
+                    </div>
+                  )}
+
                   {q.options.some(o => o.content?.trim()) && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 24 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {q.options.map(opt => (
-                        <div key={opt.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px', color: '#334155', fontWeight: 600, fontSize: 16, textAlign: 'left', whiteSpace: 'pre-wrap' }}>
-                          <span style={{ fontWeight: 800, marginRight: 8, color: '#0f172a' }}>{opt.label}.</span>
-                          {opt.content}
+                        <div 
+                          key={opt.label} 
+                          style={{ 
+                            background: '#ffffff', 
+                            border: '1px solid #e2e8f0', 
+                            borderRadius: 12, 
+                            padding: '10px 14px', 
+                            color: '#334155', 
+                            fontWeight: 500, 
+                            fontSize: 14, 
+                            lineHeight: 1.5,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 10,
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, color: '#059669', flexShrink: 0 }}>{opt.label}.</span>
+                          <span style={{ flex: 1 }}><RichContent content={opt.content} /></span>
                         </div>
                       ))}
                     </div>
                   )}
-                  
-                  <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: '#94a3b8', opacity: 0.8, paddingTop: 40 }}>
-                    <MousePointerClick size={24} style={{ opacity: 0.5 }} />
-                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>CLICK VÀO THẺ ĐỂ LẬT MẶT SAU</span>
-                  </div>
                 </div>
-              ) : (
-                // Back: Answer
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', gap: 24, flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#22c55e', letterSpacing: '0.1em' }}>ĐÁP ÁN ĐÚNG</div>
+
+                {/* Flip Hint */}
+                <div style={{ marginTop: 24, paddingTop: 14, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#94a3b8', fontSize: 12, fontWeight: 600 }}>
+                  <MousePointerClick size={15} />
+                  <span>Click vào thẻ hoặc bấm phím Space để lật xem đáp án</span>
+                </div>
+              </div>
+            ) : (
+              // BACK SIDE: Correct Answer Highlight
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                <div>
                   {q.image_url && (
-                     <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-                       <img 
-                         src={q.image_url} 
-                         alt="Question" 
-                         onClick={(e) => { e.stopPropagation(); setPreviewImage(q.image_url); }}
-                         style={{ width: '100%', maxHeight: '75vh', objectFit: 'contain', borderRadius: 8, cursor: 'zoom-in' }} 
-                       />
-                       <div 
-                         style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(15, 23, 42, 0.6)', color: 'white', padding: 8, borderRadius: 8, pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600 }}
-                       >
-                         <ZoomIn size={16} /> Phóng to
-                       </div>
-                     </div>
-                  )}
-                  {q.content?.trim() && (
-                    <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>
-                      {q.content}
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                      <img 
+                        src={q.image_url} 
+                        alt="Question" 
+                        onClick={(e) => { e.stopPropagation(); setPreviewImage(q.image_url); }}
+                        style={{ maxWidth: '100%', maxHeight: '74vh', objectFit: 'contain', borderRadius: 14, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }} 
+                      />
                     </div>
                   )}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 24 }}>
+
+                  {q.content?.trim() && (
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#475569', lineHeight: 1.5, marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f1f5f9' }}>
+                      <RichContent content={q.content} />
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {correctOpts.map(opt => (
-                      <div key={opt.label} style={{ background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: 12, padding: '16px', color: '#15803d', fontWeight: 700, fontSize: 16, whiteSpace: 'pre-wrap' }}>
-                        {opt.label}. {opt.content}
+                      <div 
+                        key={opt.label} 
+                        style={{ 
+                          background: '#f0fdf4', 
+                          border: '1.5px solid #86efac', 
+                          borderRadius: 14, 
+                          padding: '12px 16px', 
+                          color: '#15803d', 
+                          fontWeight: 600, 
+                          fontSize: 14.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
+                          boxShadow: '0 2px 8px rgba(34, 197, 94, 0.08)'
+                        }}
+                      >
+                        <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#16a34a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <CheckCircle size={14} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontWeight: 800, marginRight: 6 }}>{opt.label}.</span>
+                          <RichContent content={opt.content} />
+                        </div>
                       </div>
                     ))}
+
                     {correctOpts.length === 0 && (
-                       <div style={{ color: '#ef4444', fontWeight: 600 }}>Chưa có đáp án đúng được thiết lập.</div>
+                      <div style={{ color: '#ef4444', fontWeight: 600, padding: 14, background: '#fef2f2', borderRadius: 12, border: '1px solid #fecdd3', fontSize: 14 }}>
+                        Chưa có đáp án đúng được thiết lập.
+                      </div>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Right Nav */}
+                {/* Return Hint */}
+                <div style={{ marginTop: 24, paddingTop: 14, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#16a34a', fontSize: 12, fontWeight: 600 }}>
+                  <RotateCcw size={15} />
+                  <span>Click vào thẻ để lật lại câu hỏi</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Control Bar Below Card */}
+          <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 18 }}>
+            {/* Prev Button */}
             <button 
-              onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))}
-              disabled={currentIndex === questions.length - 1}
+              tabIndex={-1}
+              onClick={(e) => { e.currentTarget.blur(); setCurrentIndex(i => Math.max(0, i - 1)); }}
+              disabled={currentIndex === 0}
               style={{
-                width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: currentIndex === questions.length - 1 ? '#f8fafc' : 'white', 
-                color: currentIndex === questions.length - 1 ? '#cbd5e1' : '#0f172a',
-                border: '1px solid #e2e8f0', cursor: currentIndex === questions.length - 1 ? 'not-allowed' : 'pointer',
-                boxShadow: currentIndex === questions.length - 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
-                transition: 'all 0.2s', flexShrink: 0
+                flex: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '12px 16px',
+                background: currentIndex === 0 ? '#f1f5f9' : '#ffffff',
+                color: currentIndex === 0 ? '#94a3b8' : '#0f172a',
+                border: '1px solid #e2e8f0',
+                borderRadius: 14,
+                fontWeight: 700,
+                fontSize: 13.5,
+                cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
+                boxShadow: currentIndex === 0 ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                transition: 'all 0.15s'
               }}
             >
-              <ChevronRight size={28} />
+              <ChevronLeft size={18} /> Câu trước
+            </button>
+
+            {/* Flip Button (Center CTA) */}
+            <button 
+              tabIndex={-1}
+              onClick={(e) => { e.currentTarget.blur(); setIsFlipped(!isFlipped); playSound.flip(); }}
+              style={{
+                flex: 1.4,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '12px 20px',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 14,
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(16, 185, 129, 0.35)',
+                transition: 'all 0.2s'
+              }}
+            >
+              <RotateCcw size={16} />
+              <span>{isFlipped ? 'Xem lại câu hỏi' : 'Lật xem đáp án'}</span>
+            </button>
+
+            {/* Next Button */}
+            <button 
+              tabIndex={-1}
+              onClick={(e) => { e.currentTarget.blur(); setCurrentIndex(i => Math.min(questions.length - 1, i + 1)); }}
+              disabled={currentIndex === questions.length - 1}
+              style={{
+                flex: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '12px 16px',
+                background: currentIndex === questions.length - 1 ? '#f1f5f9' : '#ffffff',
+                color: currentIndex === questions.length - 1 ? '#94a3b8' : '#0f172a',
+                border: '1px solid #e2e8f0',
+                borderRadius: 14,
+                fontWeight: 700,
+                fontSize: 13.5,
+                cursor: currentIndex === questions.length - 1 ? 'not-allowed' : 'pointer',
+                boxShadow: currentIndex === questions.length - 1 ? 'none' : '0 2px 8px rgba(0,0,0,0.03)',
+                transition: 'all 0.15s'
+              }}
+            >
+              Câu sau <ChevronRight size={18} />
             </button>
           </div>
 
-          {/* Tips */}
-          <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-            <div style={{ color: '#64748b', fontSize: 13, fontWeight: 600 }}>
-              💡 Mẹo: Bấm phím <kbd style={{ padding: '2px 6px', background: '#e2e8f0', borderRadius: 4, margin: '0 4px', fontFamily: 'inherit' }}>Space</kbd> hoặc click vào thẻ để lật, dùng phím mũi tên <kbd style={{ padding: '2px 6px', background: '#e2e8f0', borderRadius: 4, margin: '0 4px', fontFamily: 'inherit' }}>←</kbd> <kbd style={{ padding: '2px 6px', background: '#e2e8f0', borderRadius: 4, margin: '0 4px', fontFamily: 'inherit' }}>→</kbd> để chuyển câu.
+          {/* Bottom Footer Info & Report */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16, padding: '0 4px' }}>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>
+              💡 Phím tắt: <kbd style={{ padding: '2px 6px', background: '#e2e8f0', borderRadius: 4, margin: '0 2px', fontFamily: 'inherit', fontWeight: 700 }}>Space</kbd> lật thẻ, <kbd style={{ padding: '2px 6px', background: '#e2e8f0', borderRadius: 4, margin: '0 2px', fontFamily: 'inherit', fontWeight: 700 }}>←</kbd> <kbd style={{ padding: '2px 6px', background: '#e2e8f0', borderRadius: 4, margin: '0 2px', fontFamily: 'inherit', fontWeight: 700 }}>→</kbd> chuyển câu
             </div>
             
-            {/* Report Button */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, background: '#fffbeb', padding: 16, borderRadius: 12, border: '1px solid #fde68a', maxWidth: 600, textAlign: 'center' }}>
-              <div style={{ fontSize: 13, color: '#92400e', lineHeight: 1.5 }}>
-                Trong quá trình nhập liệu đáp án có thể xảy ra sai sót. Nếu bạn thấy đáp án chưa chính xác, có thể phản hồi lại với chúng tôi.
-              </div>
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(q); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8,
-                  padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
-                }}
-              >
-                <MessageSquareWarning size={16} /> Báo cáo lỗi
-              </button>
-            </div>
+            <button
+              tabIndex={-1}
+              onClick={(e) => { e.currentTarget.blur(); e.preventDefault(); e.stopPropagation(); setReportingQuestion(q); }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', borderRadius: 10,
+                padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}
+            >
+              <MessageSquareWarning size={14} /> Báo lỗi câu này
+            </button>
           </div>
+
         </div>
 
-        {/* ═══ IMAGE PREVIEW MODAL ═══ */}
-        {previewImage && (
-          <div 
-            onClick={() => setPreviewImage(null)}
-            style={{ 
-              position: 'fixed', 
-              inset: 0, 
-              background: 'rgba(0,0,0,0.85)', 
-              zIndex: 9999, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              padding: 40,
-              cursor: 'zoom-out'
-            }}
-          >
-            <button 
-              onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
-              style={{ position: 'absolute', top: 20, right: 20, background: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
-            >
-              <X size={24} />
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); setCurrentIndex(i => Math.max(0, i - 1)); }}
-              disabled={currentIndex === 0}
-              style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: currentIndex === 0 ? 'rgba(255,255,255,0.5)' : 'white', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentIndex === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
-            >
-              <ChevronLeft size={30} />
-            </button>
-            <img 
-              src={previewImage} 
-              alt="Preview" 
-              style={{ 
-                maxWidth: '90%', 
-                maxHeight: '90%', 
-                objectFit: 'contain', 
-                borderRadius: 8,
-                boxShadow: '0 0 40px rgba(0,0,0,0.5)'
-              }} 
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button 
-              onClick={(e) => { e.stopPropagation(); setCurrentIndex(i => Math.min(questions.length - 1, i + 1)); }}
-              disabled={currentIndex === questions.length - 1}
-              style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', background: currentIndex === questions.length - 1 ? 'rgba(255,255,255,0.5)' : 'white', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentIndex === questions.length - 1 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
-            >
-              <ChevronRight size={30} />
-            </button>
-          </div>
-        )}
+        {previewImageModal}
         {reportModal}
       </div>
     );
   }
 
+  // ── DEDICATED TEXT EXAM UI (Matching modern viewer design) ────
+  if (isTextExam) {
+    const examMeta = (() => {
+      const title = exam?.title || '';
+      const subj = (exam as any)?.exam_subjects?.[0]?.subjects;
+      const parts = title.split('_');
+      const code = parts[0] || subj?.name || '';
+      const sem = parts.find((p: string) => /^(SP|FA|SU|SE|WS)\d+/i.test(p)) || (subj?.semester ? `SP${subj.semester}` : 'SP26');
+      const type = parts.find((p: string) => /^(FE|PE|PT|QUIZ|FINAL|TEST)/i.test(p)) || 'FE';
+      const name = subj?.name ? `${code ? code + ' — ' : ''}${subj.name}` : code ? `${code} — Chuyên ngành` : title;
+      return { code, sem, type, name };
+    })();
+
+    const creator = (exam as any)?.profiles;
+    const creatorName = creator?.full_name || creator?.username || 'Admin Test';
+    const creatorAvatar = creator?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+    const timeAgo = formatRelativeTime(exam?.created_at);
+
+    return (
+      <div className={`text-gray-800 font-sans ${isFullscreen ? 'fixed inset-0 w-screen h-screen z-50 p-0 m-0 bg-white flex flex-col overflow-hidden' : 'bg-gray-100 min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 md:p-6'}`}>
+        {/* BEGIN: MainContainer */}
+        <div 
+          className={`bg-white flex flex-col overflow-hidden relative ${
+            isFullscreen 
+              ? 'w-full h-full max-w-none rounded-none border-none shadow-none' 
+              : 'rounded-lg shadow-lg w-full max-w-6xl lg:max-w-7xl xl:max-w-[1480px] h-[calc(100vh-48px)] md:h-[660px] lg:h-[700px] max-h-[750px] border border-gray-200'
+          }`} 
+          data-purpose="exam-interface-container"
+        >
+          
+          {/* Top Close Button */}
+          <button 
+            onClick={() => {
+              if (isFullscreen) {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+              }
+              navigate(-1);
+            }}
+            aria-label="Đóng"
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 cursor-pointer z-50 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          {/* Main Content Area: Split into Left (Exam) and Right (Sidebar) */}
+          <div className="flex-1 flex overflow-hidden">
+            
+            {/* BEGIN: LeftExamArea */}
+            <main className="flex-1 flex flex-col relative bg-white overflow-hidden" data-purpose="exam-content-area">
+              {/* Navigation Arrows */}
+              <button 
+                aria-label="Previous Page"
+                disabled={currentIndex === 0}
+                onClick={() => {
+                  if (currentIndex > 0) {
+                    setCurrentIndex(i => i - 1);
+                    playSound.click();
+                  }
+                }}
+                className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 bg-gray-300 hover:bg-gray-400 disabled:opacity-30 disabled:hover:bg-gray-300 text-white rounded-full p-2 z-10 transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+              
+              <button 
+                aria-label="Next Page"
+                disabled={currentIndex === questions.length - 1}
+                onClick={() => {
+                  if (currentIndex < questions.length - 1) {
+                    setCurrentIndex(i => i + 1);
+                    playSound.click();
+                  }
+                }}
+                className="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 bg-gray-300 hover:bg-gray-400 disabled:opacity-30 disabled:hover:bg-gray-300 text-white rounded-full p-2 z-10 transition-colors shadow-sm cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
+              </button>
+
+              {/* Exam Content Container */}
+              <div 
+                className="flex-1 overflow-y-auto px-8 py-6 sm:px-12 sm:py-8 md:px-20 md:py-8"
+                style={{ 
+                  transform: zoomLevel !== 100 ? `scale(${zoomLevel / 100})` : undefined, 
+                  transformOrigin: 'top left',
+                  width: zoomLevel !== 100 ? `${(100 / zoomLevel) * 100}%` : '100%'
+                }}
+              >
+                <div className="max-w-4xl">
+                  {/* Header Info */}
+                  <header className="mb-6 md:mb-8">
+                    <h1 className="text-2xl md:text-3xl font-semibold mb-3 text-gray-900 leading-tight">{exam.title}</h1>
+                    <div className="bg-gray-50 border-l-2 border-blue-600 px-3.5 py-2.5 text-xs sm:text-sm text-gray-600 rounded-r-md">
+                      Môn: <span className="font-medium text-gray-800">{examMeta.name}</span> · Kỳ: <span className="font-medium text-gray-800">{examMeta.sem}</span> · Loại: <span className="font-medium text-gray-800">{examMeta.type}</span> · {questions.length} câu
+                    </div>
+                  </header>
+
+                  {/* Question Section */}
+                  <section>
+                    <div className="flex items-center gap-2 mb-4 sm:mb-5">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">Trang {currentIndex + 1}/{questions.length}</h2>
+                      <span className="text-gray-400 font-bold">#</span>
+                    </div>
+
+                    <div className="text-sm sm:text-base leading-relaxed mb-5 sm:mb-6 text-gray-800">
+                      <p>
+                        <span className="font-bold text-gray-900">Câu {currentIndex + 1}. </span>
+                        <RichContent content={currentQ.content || ''} />
+                      </p>
+                      {currentQ.image_url && (
+                        <div 
+                          className="mt-3 rounded-lg overflow-hidden border border-gray-200 inline-block max-w-full cursor-zoom-in"
+                          onClick={() => setPreviewImage(currentQ.image_url)}
+                        >
+                          <img src={currentQ.image_url} alt={`Câu ${currentIndex + 1}`} className="max-h-[45vh] object-contain rounded" />
+                        </div>
+                      )}
+                      {((currentQ as any).extra_images as string[] | undefined)?.map((url, xi) => (
+                        <div 
+                          key={xi} 
+                          className="mt-2 rounded-lg overflow-hidden border border-gray-200 inline-block max-w-full cursor-zoom-in"
+                          onClick={() => setPreviewImage(url)}
+                        >
+                          <img src={url} alt={`Ảnh ${xi + 1}`} className="max-h-[35vh] object-contain rounded" />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Options (Reading Mode) */}
+                    <div className="space-y-3 sm:space-y-3.5 text-sm sm:text-base text-gray-800">
+                      {currentQ.options.map(opt => (
+                        <div key={opt.label} className="leading-relaxed flex items-start gap-2.5 py-0.5">
+                          <span className="font-bold text-gray-900 shrink-0">{opt.label}.</span>
+                          <div className="flex-1">
+                            <RichContent content={opt.content || ''} />
+                            {(opt as any).image_url && (
+                              <img src={(opt as any).image_url} alt={`opt ${opt.label}`} className="max-h-24 rounded mt-1.5 block" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </main>
+            {/* END: LeftExamArea */}
+
+            {/* BEGIN: RightSidebarArea */}
+            <aside className="w-72 md:w-84 lg:w-88 border-l border-gray-200 bg-white flex flex-col flex-shrink-0 overflow-hidden" data-purpose="sidebar-controls">
+              {/* Sidebar Header */}
+              <div className="p-3.5 sm:p-4 border-b border-gray-100 shrink-0">
+                <h3 className="font-semibold text-base sm:text-lg text-gray-900 truncate" title={exam.title}>{exam.title}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Bộ đề gồm {questions.length} {questions.every(q => !q.image_url) ? 'câu' : 'ảnh'}</p>
+                <div className="flex items-center justify-between mt-3 sm:mt-3.5">
+                  <div className="flex items-center gap-2">
+                    <img 
+                      alt="Admin Avatar" 
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-200 object-cover" 
+                      src={creatorAvatar} 
+                    />
+                    <span className="font-medium text-xs sm:text-sm text-gray-800">{creatorName}</span>
+                    <span className="text-[11px] sm:text-xs text-gray-400">{timeAgo}</span>
+                  </div>
+                  {(submitted || examMode === 'practice') && (
+                    <div className="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 sm:py-1 rounded flex items-center gap-1 font-medium">
+                      <MessageSquare className="h-3 w-3" />
+                      <span>1</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Sidebar Body: Mode Dependent */}
+              {examMode === 'exam' && !submitted ? (
+                /* ─── Taking Exam Mode: Multi-Select Answer Selection & Question Map ─── */
+                <>
+                  <div className="flex-1 overflow-y-auto p-3.5 sm:p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-xs sm:text-sm text-gray-900">
+                        Chọn đáp án của bạn:
+                      </h4>
+                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                        Câu {currentIndex + 1}/{questions.length}
+                      </span>
+                    </div>
+
+                    {/* Options Selection Cards - Checkbox style supporting multi-select */}
+                    <div className="space-y-2.5 mb-4">
+                      {currentQ.options.map(opt => {
+                        const isChecked = currentAnswers.includes(opt.label);
+                        return (
+                          <div 
+                            key={opt.label}
+                            onClick={() => toggleAnswer(opt.label)}
+                            className={`flex items-center p-2.5 sm:p-3 border rounded-lg cursor-pointer transition-all select-none ${
+                              isChecked 
+                                ? 'border-blue-500 bg-blue-50/80 text-blue-950 font-semibold shadow-xs' 
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded flex items-center justify-center mr-2.5 shrink-0 border transition-all ${
+                              isChecked ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 bg-white'
+                            }`}>
+                              {isChecked && (
+                                <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-xs sm:text-sm">
+                              <span className="font-bold mr-1">{opt.label}.</span> {opt.content || ''}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Action Row: Flag button + Progress count */}
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <button
+                        onClick={() => {
+                          setFlagged(prev => {
+                            const next = new Set(prev);
+                            if (next.has(currentIndex)) next.delete(currentIndex);
+                            else next.add(currentIndex);
+                            return next;
+                          });
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                          flagged.has(currentIndex)
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                        }`}
+                      >
+                        <Flag className="w-3.5 h-3.5" />
+                        <span>{flagged.has(currentIndex) ? 'Đã đánh dấu' : 'Đánh dấu câu hỏi'}</span>
+                      </button>
+                      <span className="text-xs text-gray-500 font-medium">
+                        Đã làm: <b className="text-gray-900 font-bold">{answeredCount}</b>/{questions.length}
+                      </span>
+                    </div>
+
+                    {/* Question Navigation Map */}
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Danh sách câu hỏi</span>
+                        <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Đã làm</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Đánh dấu</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-6 sm:grid-cols-7 gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-gray-50 rounded-lg border border-gray-200">
+                        {questions.map((q, idx) => {
+                          const isDone = (answers[q.id] ?? []).length > 0;
+                          const isCur = idx === currentIndex;
+                          const isFlag = flagged.has(idx);
+
+                          let btnStyle = 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100';
+                          if (isCur) btnStyle = 'bg-blue-600 text-white border-blue-600 font-bold shadow-xs';
+                          else if (isFlag) btnStyle = 'bg-amber-100 text-amber-900 border-amber-300 font-semibold';
+                          else if (isDone) btnStyle = 'bg-emerald-100 text-emerald-900 border-emerald-300 font-medium';
+
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => setCurrentIndex(idx)}
+                              className={`h-7 text-xs rounded border flex items-center justify-center transition-colors cursor-pointer ${btnStyle}`}
+                              title={`Câu ${idx + 1}`}
+                            >
+                              {idx + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Submit Button */}
+                  <div className="p-3.5 sm:p-4 border-t border-gray-100 bg-gray-50 shrink-0">
+                    <button
+                      onClick={() => setShowSubmitConfirm(true)}
+                      className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>NỘP BÀI THI</span>
+                      <span className="bg-emerald-800/40 px-2 py-0.5 rounded text-xs">({answeredCount}/{questions.length})</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* ─── Review / Practice Mode: Report Error Section ─── */
+                <>
+                  <div className="flex-1 overflow-y-auto p-3.5 sm:p-4">
+                    <h4 className="font-semibold text-xs sm:text-sm mb-3 sm:mb-4 text-gray-900">
+                      Theo bạn, đáp án nào mới là đáp án đúng? (Có thể chọn nhiều) <span className="text-red-600">*</span>
+                    </h4>
+                    <div className="space-y-2.5 mb-4 sm:mb-6">
+                      {currentQ.options.map(opt => {
+                        const isAlreadyCorrect = opt.is_correct;
+                        const isChecked = reportOptionIds.includes(opt.id);
+
+                        return (
+                          <div 
+                            key={opt.label}
+                            onClick={() => {
+                              setReportOptionIds(prev => 
+                                prev.includes(opt.id) ? prev.filter(x => x !== opt.id) : [...prev, opt.id]
+                              );
+                            }}
+                            className={`flex items-center p-2.5 sm:p-3 border rounded-lg cursor-pointer transition-all select-none ${
+                              isChecked 
+                                ? 'border-blue-500 bg-blue-50/80 text-blue-950 font-semibold shadow-xs' 
+                                : isAlreadyCorrect
+                                  ? 'border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50 text-gray-800'
+                                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded flex items-center justify-center mr-2.5 shrink-0 border transition-all ${
+                              isChecked ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 bg-white'
+                            }`}>
+                              {isChecked && (
+                                <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium flex-1">
+                              <span className="font-bold mr-1">{opt.label}.</span> {opt.content || ''}
+                            </span>
+                            {isAlreadyCorrect && (
+                              <span className="ml-2 text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                                Hiện tại: Đúng
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Comment Input Box for Reporting */}
+                  <div className="p-3.5 sm:p-4 border-t border-gray-100 bg-gray-50 shrink-0">
+                    <div className="mb-3">
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1.5 text-gray-800">Ghi chú thêm (không bắt buộc)</h4>
+                      <textarea 
+                        value={reportNote}
+                        onChange={e => setReportNote(e.target.value)}
+                        className="w-full text-xs sm:text-sm border border-gray-300 rounded-lg p-2.5 focus:ring-blue-400 focus:border-blue-400 resize-none outline-none h-20 bg-white" 
+                        placeholder="Vui lòng cung cấp thêm giải thích hoặc lý do tại sao bạn cho rằng đáp án này đúng..."
+                      />
+                    </div>
+                    <div className="flex gap-2.5">
+                      <button 
+                        onClick={() => { setReportNote(''); setReportOptionIds([]); }}
+                        className="flex-1 py-2 border border-gray-300 rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-100 transition-colors bg-white text-gray-700 cursor-pointer"
+                      >
+                        Hủy
+                      </button>
+                      <button 
+                        onClick={submitReport}
+                        disabled={reportOptionIds.length === 0 || isSubmittingReport}
+                        className={`flex-1 py-2 rounded-lg font-semibold text-xs sm:text-sm text-white transition-colors flex items-center justify-center gap-1.5 ${
+                          reportOptionIds.length === 0 || isSubmittingReport 
+                            ? 'bg-gray-400 cursor-not-allowed' 
+                            : 'bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm'
+                        }`}
+                      >
+                        {isSubmittingReport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : `Gửi báo cáo ${reportOptionIds.length > 0 ? `(${reportOptionIds.length})` : ''}`}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </aside>
+            {/* END: RightSidebarArea */}
+          </div>
+
+          {/* BEGIN: BottomToolbar */}
+          <footer className="bg-black text-white px-4 py-2 flex items-center justify-between text-xs sm:text-sm flex-shrink-0" data-purpose="bottom-viewer-controls">
+            <div className="flex items-center gap-4 text-gray-200 font-medium">
+              <span>{currentIndex + 1}/{questions.length}</span>
+              {examMode === 'exam' && !submitted && (
+                <span className={`flex items-center gap-1.5 font-bold ${isTimeLow ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {formatTime(timeLeft)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <button 
+                aria-label="Zoom Out" 
+                onClick={() => setZoomLevel(z => Math.max(70, z - 10))}
+                className="hover:text-gray-300 text-gray-300 transition-colors cursor-pointer"
+                title="Thu nhỏ"
+              >
+                <ZoomOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+              <span className="font-medium w-10 sm:w-12 text-center text-gray-200 text-xs sm:text-sm">{zoomLevel}%</span>
+              <button 
+                aria-label="Zoom In" 
+                onClick={() => setZoomLevel(z => Math.min(150, z + 10))}
+                className="hover:text-gray-300 text-gray-300 transition-colors cursor-pointer"
+                title="Phóng to"
+              >
+                <ZoomIn className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+              <button 
+                aria-label="Fullscreen" 
+                onClick={toggleFullscreen}
+                className="hover:text-gray-300 text-gray-300 ml-1 sm:ml-2 transition-colors cursor-pointer"
+                title="Toàn màn hình"
+              >
+                {isFullscreen ? <Minimize2 className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" />}
+              </button>
+            </div>
+          </footer>
+          {/* END: BottomToolbar */}
+        </div>
+
+        {submitConfirmModal}
+        {previewImageModal}
+      </div>
+    );
+  }
+
+  // ── DEFAULT IMAGE EXAM UI (2-column layout preserved) ─────────
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f5f5f7' }}>
       {/* ═══ HEADER ═══ */}
@@ -1063,7 +1875,7 @@ export default function ExamPage() {
             </div>
           </div>
 
-          {/* Navigation Buttons Moved to Top */}
+          {/* Navigation Buttons */}
           <div className="exam-header-center" style={{ display: !currentQ.image_url ? 'none' : 'flex' }}>
             <button
               className="touch-target"
@@ -1099,7 +1911,7 @@ export default function ExamPage() {
               <span className="hide-on-mobile">Câu sau</span> <ChevronRight size={18} />
             </button>
             
-            {/* Flag Button Moved Here */}
+            {/* Flag Button */}
             {examMode === 'exam' && !submitted && (
               <button
                 className="touch-target"
@@ -1158,7 +1970,7 @@ export default function ExamPage() {
         </div>
       </div>
 
-      {/* ═══ PROGRESS BAR (THANH MÁU) ═══ */}
+      {/* ═══ PROGRESS BAR ═══ */}
       <div style={{ 
         width: '100%', 
         height: 14, 
@@ -1179,181 +1991,9 @@ export default function ExamPage() {
 
       {/* ═══ MAIN CONTENT (2 COLUMNS) ═══ */}
       <div className="exam-main-layout">
-        {/* LEFT COLUMN - Question & Answers (Scrollable) */}
+        {/* LEFT COLUMN - Question & Answers */}
         <div className="exam-main-content">
-          {!currentQ.image_url ? (
-            <div style={{ padding: '32px 40px', maxWidth: 900, margin: '0 auto', width: '100%' }}>
-               {/* Badges */}
-               <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-                 <span style={{ background: '#0f172a', color: 'white', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
-                   CÂU HỎI {currentIndex + 1} / {questions.length}
-                 </span>
-                 <span style={{ background: '#f1f5f9', color: '#475569', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, border: '1px solid #e2e8f0' }}>
-                   MỨC ĐỘ: {(currentQ as any).difficulty || 'Trung bình'}
-                 </span>
-               </div>
-               
-               {/* Question text + images — always shown together */}
-               {!!currentQ.content?.trim() && (
-                 <div style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', lineHeight: 1.6, marginBottom: currentQ.image_url ? 24 : 40 }}>
-                   <RichContent content={currentQ.content} />
-                 </div>
-               )}
-               {/* Question image (always shown when present, alongside text) */}
-               {currentQ.image_url && (
-                 <div
-                   style={{ marginBottom: 32, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', cursor: 'zoom-in', display: 'inline-block', maxWidth: '100%' }}
-                   onClick={() => setPreviewImage(currentQ.image_url)}
-                 >
-                   <img src={currentQ.image_url} alt={`Câu ${currentIndex + 1}`} style={{ maxWidth: '100%', maxHeight: '55vh', objectFit: 'contain', display: 'block' }} />
-                 </div>
-               )}
-               {/* Extra images */}
-               {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
-                 <div key={xi} style={{ marginBottom: 12, cursor: 'zoom-in', display: 'inline-block', maxWidth: '100%' }} onClick={() => setPreviewImage(url)}>
-                   <img src={url} alt={`ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: '40vh', objectFit: 'contain', borderRadius: 8, border: '1px solid #e2e8f0', display: 'block' }} />
-                 </div>
-               ))}
-
-               {/* Options list */}
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                 {currentQ.options.map(opt => {
-                   const cls = getOptionCls(opt.label);
-                   const isSelected = cls === 'selected' || cls === 'correct' || cls === 'incorrect';
-                   const isCorrect = cls === 'correct';
-                   const isIncorrect = cls === 'incorrect';
-
-                   const bgColor = 'white';
-                   let borderColor = '#e2e8f0';
-                   let circleBorder = '#cbd5e1';
-                   let circleBg = 'white';
-                   let textColor = '#475569';
-
-                   if (isSelected) {
-                     borderColor = '#0f172a';
-                     circleBorder = '#0f172a';
-                     circleBg = '#0f172a';
-                     textColor = '#0f172a';
-                   }
-
-                   if (isCorrect) {
-                     borderColor = '#22c55e';
-                     circleBorder = '#22c55e';
-                     circleBg = '#22c55e';
-                   } else if (isIncorrect) {
-                     borderColor = '#ef4444';
-                     circleBorder = '#ef4444';
-                     circleBg = '#ef4444';
-                   }
-
-                   return (
-                     <div 
-                       key={opt.label}
-                       onClick={() => { if (examMode === 'exam' && !submitted) toggleAnswer(opt.label); }}
-                       style={{
-                         display: 'flex', alignItems: 'center', gap: 16,
-                         padding: '16px 20px',
-                         background: bgColor,
-                         border: `1px solid ${borderColor}`,
-                         borderRadius: 8,
-                         cursor: examMode === 'exam' && !submitted ? 'pointer' : 'default',
-                         transition: 'all 0.2s ease',
-                         boxShadow: isSelected ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'
-                       }}
-                     >
-                       <div style={{
-                         width: 20, height: 20, borderRadius: '50%',
-                         border: `2px solid ${circleBorder}`,
-                         background: circleBg,
-                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                         flexShrink: 0
-                       }}>
-                         {circleBg !== 'white' && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />}
-                       </div>
-                       
-                        <div style={{ fontSize: 16, fontWeight: 500, color: textColor, lineHeight: 1.5, flex: 1 }}>
-                          <RichContent content={opt.content || ''} />
-                          {(opt as any).image_url && (
-                            <img src={(opt as any).image_url} alt={`opt ${opt.label}`} style={{ maxWidth: '100%', maxHeight: 140, borderRadius: 6, marginTop: 6, display: 'block' }} />
-                          )}
-                        </div>
-
-                       {(isCorrect || (examMode === 'practice' && isCorrect)) && (
-                         <CheckCircle size={20} style={{ color: '#22c55e', marginLeft: 'auto' }} />
-                       )}
-                       {isIncorrect && (
-                         <XCircle size={20} style={{ color: '#ef4444', marginLeft: 'auto' }} />
-                       )}
-                     </div>
-                   );
-                 })}
-               </div>
-               
-               {/* Report Section for Exam/Practice */}
-               <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12, background: '#fffbeb', padding: 16, borderRadius: 12, border: '1px solid #fde68a' }}>
-                 <div style={{ fontSize: 13, color: '#92400e', lineHeight: 1.5 }}>
-                   Trong quá trình nhập liệu đáp án có thể xảy ra sai sót. Nếu bạn thấy đáp án chưa chính xác, có thể phản hồi lại với chúng tôi.
-                 </div>
-                 <button
-                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(currentQ); }}
-                   style={{
-                     alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
-                     background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8,
-                     padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                     boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
-                   }}
-                 >
-                   <MessageSquareWarning size={16} /> Báo cáo lỗi
-                 </button>
-               </div>
-               
-               {/* Bottom Navigation Buttons */}
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 48, paddingTop: 24, borderTop: '1px solid #e2e8f0' }}>
-                 <button 
-                   disabled={currentIndex === 0}
-                   onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-                   style={{
-                     display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-                     background: 'white', border: '1px solid #e2e8f0', borderRadius: 8,
-                     fontSize: 14, fontWeight: 700, color: currentIndex === 0 ? '#cbd5e1' : '#0f172a',
-                     cursor: currentIndex === 0 ? 'not-allowed' : 'pointer'
-                   }}
-                 >
-                   <ChevronLeft size={18} /> QUAY LẠI
-                 </button>
-
-                 <div style={{ display: 'flex', gap: 16 }}>
-                   <button 
-                     disabled={currentIndex === questions.length - 1}
-                     onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))}
-                     style={{
-                       display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-                       background: currentIndex === questions.length - 1 ? '#f1f5f9' : '#0f172a', 
-                       border: 'none', borderRadius: 8,
-                       fontSize: 14, fontWeight: 700, color: currentIndex === questions.length - 1 ? '#cbd5e1' : 'white',
-                       cursor: currentIndex === questions.length - 1 ? 'not-allowed' : 'pointer'
-                     }}
-                   >
-                     CÂU TIẾP THEO <ChevronRight size={18} />
-                   </button>
-                   
-                   {examMode === 'exam' && !submitted && (
-                     <button 
-                       onClick={() => setShowSubmitConfirm(true)}
-                       style={{
-                         padding: '10px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: 8,
-                         fontSize: 14, fontWeight: 800, cursor: 'pointer'
-                       }}
-                     >
-                       NỘP BÀI
-                     </button>
-                   )}
-                 </div>
-               </div>
-            </div>
-          ) : (
-            <>
-          {/* Main Question Area — always show content then image(s) */}
+          {/* Main Question Area */}
           <div className="exam-q-split">
             {/* Text Side */}
             {(!!currentQ.content?.trim() || currentQ.options.some(opt => !!opt.content?.trim())) && (
@@ -1372,7 +2012,7 @@ export default function ExamPage() {
                   </div>
                 )}
                 
-                {/* Detailed Options Rendered Here */}
+                {/* Detailed Options */}
                 {currentQ.options.some(opt => !!opt.content?.trim()) && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {currentQ.options.map((opt) => opt.content?.trim() ? (
@@ -1388,22 +2028,172 @@ export default function ExamPage() {
               </div>
             )}
 
-            {/* Image Side */}
+            {/* Image Side with In-Place Zoom & Drag-to-Pan Controls */}
             {(currentQ.image_url || (((currentQ as any).extra_images as string[] | undefined)?.length ?? 0) > 0) && (
-              <div className="exam-q-image">
+              <div 
+                ref={imageContainerRef}
+                className="exam-q-image"
+                onMouseDown={handleImageMouseDown}
+                onMouseMove={handleImageMouseMove}
+                onMouseUp={handleImageMouseUp}
+                onMouseLeave={handleImageMouseUp}
+                style={{
+                  position: 'relative',
+                  overflow: 'auto',
+                  maxHeight: '62vh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: imageZoom > 100 ? 'flex-start' : 'center',
+                  justifyContent: imageZoom > 100 ? 'flex-start' : 'center',
+                  padding: '16px',
+                  background: '#ffffff',
+                  cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'default',
+                  userSelect: 'none'
+                }}
+              >
+                {/* Floating In-Place Zoom Bar */}
+                <div 
+                  style={{ 
+                    position: 'sticky', 
+                    top: 0, 
+                    right: 0,
+                    zIndex: 20, 
+                    alignSelf: 'flex-end', 
+                    marginBottom: 8,
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 4, 
+                    background: 'rgba(255, 255, 255, 0.95)', 
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid #cbd5e1', 
+                    borderRadius: 20, 
+                    padding: '3px 8px', 
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' 
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {imageZoom > 100 && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 12, marginRight: 4 }}>
+                      Kéo rê để xem góc
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setImageZoom(z => Math.max(80, z - 20))}
+                    disabled={imageZoom <= 80}
+                    style={{
+                      background: 'none', border: 'none', cursor: imageZoom <= 80 ? 'not-allowed' : 'pointer',
+                      padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: imageZoom <= 80 ? '#cbd5e1' : '#475569'
+                    }}
+                    title="Thu nhỏ (-20%)"
+                  >
+                    <ZoomOut size={16} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setImageZoom(100)}
+                    style={{
+                      background: imageZoom !== 100 ? '#eff6ff' : 'none',
+                      border: 'none', cursor: 'pointer',
+                      padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 800,
+                      color: imageZoom !== 100 ? '#2563eb' : '#334155'
+                    }}
+                    title="Đặt lại 100%"
+                  >
+                    {imageZoom}%
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setImageZoom(z => Math.min(300, z + 20))}
+                    disabled={imageZoom >= 300}
+                    style={{
+                      background: 'none', border: 'none', cursor: imageZoom >= 300 ? 'not-allowed' : 'pointer',
+                      padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: imageZoom >= 300 ? '#cbd5e1' : '#475569'
+                    }}
+                    title="Phóng to (+20%)"
+                  >
+                    <ZoomIn size={16} />
+                  </button>
+
+                  {imageZoom !== 100 && (
+                    <button
+                      type="button"
+                      onClick={() => setImageZoom(100)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#64748b', borderLeft: '1px solid #e2e8f0', marginLeft: 2
+                      }}
+                      title="Khôi phục 100%"
+                    >
+                      <RotateCcw size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Main Image */}
                 {currentQ.image_url && (
                   <img
                     src={currentQ.image_url}
                     alt={`câu ${currentIndex + 1}`}
                     loading="eager"
                     decoding="sync"
-                    style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', cursor: 'zoom-in' }}
-                    onClick={() => setPreviewImage(currentQ.image_url)}
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    style={{ 
+                      width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
+                      maxWidth: imageZoom > 100 ? 'none' : '100%', 
+                      maxHeight: imageZoom > 100 ? 'none' : '58vh', 
+                      objectFit: 'contain', 
+                      cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                      borderRadius: 6,
+                      alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
+                      transition: isDraggingImage ? 'none' : 'width 0.15s ease-out',
+                      boxShadow: imageZoom > 100 ? '0 4px 16px rgba(0,0,0,0.06)' : 'none'
+                    }}
+                    onClick={(e) => {
+                      if (didDragRef.current) {
+                        e.stopPropagation();
+                        return;
+                      }
+                      setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
+                    }}
+                    title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
                   />
                 )}
                 {/* Extra images below main */}
                 {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
-                  <img key={xi} src={url} alt={`ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain', marginTop: 8, borderRadius: 6, cursor: 'zoom-in' }} onClick={() => setPreviewImage(url)} />
+                  <img 
+                    key={xi} 
+                    src={url} 
+                    alt={`ảnh ${xi + 1}`} 
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    style={{ 
+                      width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
+                      maxWidth: imageZoom > 100 ? 'none' : '100%', 
+                      maxHeight: imageZoom > 100 ? 'none' : '30vh', 
+                      objectFit: 'contain', 
+                      marginTop: 12, 
+                      borderRadius: 6, 
+                      alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
+                      cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                      transition: isDraggingImage ? 'none' : 'width 0.15s ease-out'
+                    }} 
+                    onClick={(e) => {
+                      if (didDragRef.current) {
+                        e.stopPropagation();
+                        return;
+                      }
+                      setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
+                    }} 
+                    title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
+                  />
                 ))}
               </div>
             )}
@@ -1418,8 +2208,7 @@ export default function ExamPage() {
               const isIncorrect = cls === 'incorrect';
 
               let bgColor = 'white';
-              let borderColor = '#ccc'; // Darker border for better definition
-              const textColor = '#000'; // Darker text
+              let borderColor = '#ccc';
               let labelBg = '#e0e0e0';
               let labelColor = '#333';
 
@@ -1487,9 +2276,6 @@ export default function ExamPage() {
               );
             })}
           </div>
-          </>
-          )}
-
         </div>
 
         {/* RIGHT COLUMN - Fixed Width Sidebar */}
@@ -1554,7 +2340,7 @@ export default function ExamPage() {
             </div>
           </div>
 
-          {/* Legend (Highlighted) */}
+          {/* Legend */}
           <div style={{ margin: 12, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chú thích</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1575,187 +2361,10 @@ export default function ExamPage() {
         </div>
       </div>
 
-      {/* REMOVED STICKY BOTTOM NAVIGATION */}
-      
-      {/* ═══ CONFIRM SUBMIT MODAL ═══ */}
-      {showSubmitConfirm && (
-        <div 
-          style={{ 
-            position: 'fixed', 
-            inset: 0, 
-            background: 'rgba(15, 23, 42, 0.6)', 
-            backdropFilter: 'blur(4px)',
-            zIndex: 9999, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: 24
-          }}
-          onClick={() => setShowSubmitConfirm(false)}
-        >
-          <div 
-            style={{ 
-              background: '#ffffff', 
-              borderRadius: 24, 
-              width: '100%', 
-              maxWidth: 460, 
-              padding: 28, 
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 20
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header / Title */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ 
-                width: 48, 
-                height: 48, 
-                borderRadius: 14, 
-                background: (questions.length - answeredCount) > 0 ? '#fff7ed' : '#edf5ff', 
-                border: `1px solid ${(questions.length - answeredCount) > 0 ? '#ffedd5' : '#dbeafe'}`,
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                color: (questions.length - answeredCount) > 0 ? '#d97706' : '#3b82f6',
-                flexShrink: 0
-              }}>
-                <AlertTriangle size={24} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-                  Xác nhận nộp bài thi
-                </h3>
-                <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0', lineHeight: 1.4 }}>
-                  Bạn có chắc chắn muốn kết thúc bài thi thử ngay bây giờ?
-                </p>
-              </div>
-            </div>
-
-            {/* Stats Summary */}
-            <div style={{ background: '#f8fafc', borderRadius: 16, border: '1px solid #e2e8f0', padding: 14, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-              <div style={{ textAlign: 'center', padding: '8px 4px', background: 'white', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Đã làm</div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a' }}>{answeredCount}</div>
-              </div>
-              <div style={{ textAlign: 'center', padding: '8px 4px', background: (questions.length - answeredCount) > 0 ? '#fef2f2' : 'white', borderRadius: 10, border: `1px solid ${(questions.length - answeredCount) > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: (questions.length - answeredCount) > 0 ? '#e11d48' : '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Chưa làm</div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: (questions.length - answeredCount) > 0 ? '#e11d48' : '#64748b' }}>{questions.length - answeredCount}</div>
-              </div>
-              <div style={{ textAlign: 'center', padding: '8px 4px', background: flagged.size > 0 ? '#fffbeb' : 'white', borderRadius: 10, border: `1px solid ${flagged.size > 0 ? '#fde68a' : '#e2e8f0'}` }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: flagged.size > 0 ? '#b45309' : '#64748b', textTransform: 'uppercase', marginBottom: 2 }}>Đánh dấu</div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: flagged.size > 0 ? '#b45309' : '#64748b' }}>{flagged.size}</div>
-              </div>
-            </div>
-
-            {(questions.length - answeredCount) > 0 && (
-              <div style={{ fontSize: 12, color: '#c2410c', background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 10, padding: '10px 12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <AlertTriangle size={16} style={{ flexShrink: 0, color: '#ea580c' }} />
-                <span>Bạn vẫn còn <strong>{questions.length - answeredCount}</strong> câu chưa làm.</span>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
-              <button
-                onClick={() => setShowSubmitConfirm(false)}
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  background: 'white',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: 12,
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: '#334155',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Tiếp tục làm bài
-              </button>
-              <button
-                onClick={() => {
-                  setShowSubmitConfirm(false);
-                  handleSubmit();
-                }}
-                style={{
-                  flex: 1,
-                  padding: '12px 16px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                  border: 'none',
-                  borderRadius: 12,
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
-                  transition: 'all 0.2s'
-                }}
-              >
-                Nộp bài ngay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ IMAGE PREVIEW MODAL ═══ */}
-      {previewImage && (
-        <div 
-          onClick={() => setPreviewImage(null)}
-          style={{ 
-            position: 'fixed', 
-            inset: 0, 
-            background: 'rgba(0,0,0,0.85)', 
-            zIndex: 9999, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: 40,
-            cursor: 'zoom-out'
-          }}
-        >
-          <button 
-            onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
-            style={{ position: 'absolute', top: 20, right: 20, background: 'white', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
-          >
-            <X size={24} />
-          </button>
-          <button 
-            onClick={(e) => { e.stopPropagation(); setCurrentIndex(i => Math.max(0, i - 1)); }}
-            disabled={currentIndex === 0}
-            style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', background: currentIndex === 0 ? 'rgba(255,255,255,0.5)' : 'white', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentIndex === 0 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
-          >
-            <ChevronLeft size={30} />
-          </button>
-          <img 
-            src={previewImage} 
-            alt="Preview" 
-            style={{ 
-              maxWidth: '90%', 
-              maxHeight: '90%', 
-              objectFit: 'contain', 
-              borderRadius: 8,
-              boxShadow: '0 0 40px rgba(0,0,0,0.5)',
-              transform: 'scale(1)',
-              transition: 'transform 0.3s ease'
-            }} 
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button 
-            onClick={(e) => { e.stopPropagation(); setCurrentIndex(i => Math.min(questions.length - 1, i + 1)); }}
-            disabled={currentIndex === questions.length - 1}
-            style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', background: currentIndex === questions.length - 1 ? 'rgba(255,255,255,0.5)' : 'white', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentIndex === questions.length - 1 ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000 }}
-          >
-            <ChevronRight size={30} />
-          </button>
-        </div>
-      )}
-
+      {submitConfirmModal}
+      {previewImageModal}
       {reportModal}
     </div>
   );
 }
+

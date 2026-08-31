@@ -59,8 +59,8 @@ export default function AdminQuestionReports() {
     return acc;
   }, {} as Record<string, { question: any; reports: QuestionReport[] }>);
 
-  const handleApprove = async (questionId: string, suggestedOptionId: string) => {
-    if (!window.confirm('Chấp nhận đề xuất này? Hệ thống sẽ cập nhật đáp án đúng ngay lập tức.')) return;
+  const handleApprove = async (questionId: string, suggestedOptionIds: string[]) => {
+    if (!window.confirm('Chấp nhận đề xuất này? Hệ thống sẽ cập nhật bộ đáp án đúng ngay lập tức.')) return;
     try {
       await supabase
         .from('question_options')
@@ -70,7 +70,7 @@ export default function AdminQuestionReports() {
       await supabase
         .from('question_options')
         .update({ is_correct: true })
-        .eq('id', suggestedOptionId);
+        .in('id', suggestedOptionIds);
 
       await supabase
         .from('question_reports')
@@ -78,7 +78,7 @@ export default function AdminQuestionReports() {
         .eq('question_id', questionId)
         .eq('status', 'pending'); 
 
-      toast.success('Đã cập nhật đáp án và phê duyệt báo cáo!');
+      toast.success('Đã cập nhật bộ đáp án đúng và phê duyệt báo cáo!');
       loadReports();
       refreshPendingReportsCount();
     } catch (error: any) {
@@ -132,18 +132,60 @@ export default function AdminQuestionReports() {
           {groups.map((group) => {
             const currentCorrectOpts = group.question?.options?.filter((o: any) => o.is_correct) || [];
             
-            const suggestionCounts: Record<string, { option: any, count: number, notes: string[] }> = {};
+            // Group reports by user submission session, then combine into proposal sets
+            const userSubmissions: Record<string, { user: any, note: string | null, created_at: string, options: any[] }> = {};
             group.reports.forEach(r => {
               if (r.suggested_option) {
-                if (!suggestionCounts[r.suggested_option.id]) {
-                  suggestionCounts[r.suggested_option.id] = { option: r.suggested_option, count: 0, notes: [] };
+                const sessionKey = `${r.user_id}_${(r.created_at || '').substring(0, 16)}_${r.note || ''}`;
+                if (!userSubmissions[sessionKey]) {
+                  userSubmissions[sessionKey] = {
+                    user: r.user,
+                    note: r.note,
+                    created_at: r.created_at,
+                    options: [],
+                  };
                 }
-                suggestionCounts[r.suggested_option.id].count++;
-                if (r.note && r.note.trim()) {
-                  suggestionCounts[r.suggested_option.id].notes.push(`${r.user?.full_name || r.user?.username || 'Học viên'}: ${r.note}`);
+                if (!userSubmissions[sessionKey].options.some(o => o.id === r.suggested_option.id)) {
+                  userSubmissions[sessionKey].options.push(r.suggested_option);
                 }
               }
             });
+
+            type Proposal = {
+              key: string;
+              labels: string[];
+              options: any[];
+              optionIds: string[];
+              userReports: { user: any; note: string | null; created_at: string }[];
+              count: number;
+            };
+
+            const proposalMap: Record<string, Proposal> = {};
+            Object.values(userSubmissions).forEach(sub => {
+              sub.options.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+              const optionIds = sub.options.map(o => o.id);
+              const labels = sub.options.map(o => o.label);
+              const comboKey = optionIds.join(',');
+
+              if (!proposalMap[comboKey]) {
+                proposalMap[comboKey] = {
+                  key: comboKey,
+                  labels,
+                  options: sub.options,
+                  optionIds,
+                  userReports: [],
+                  count: 0,
+                };
+              }
+              proposalMap[comboKey].count++;
+              proposalMap[comboKey].userReports.push({
+                user: sub.user,
+                note: sub.note,
+                created_at: sub.created_at,
+              });
+            });
+
+            const proposals = Object.values(proposalMap);
 
             return (
               <div key={group.question.id} style={{ background: '#ffffff', borderRadius: 24, border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
@@ -170,7 +212,9 @@ export default function AdminQuestionReports() {
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#10b981', marginBottom: 8, letterSpacing: '0.05em' }}>ĐÁP ÁN ĐÚNG HIỆN TẠI</div>
                     {currentCorrectOpts.length > 0 ? (
                       currentCorrectOpts.map((o: any) => (
-                        <div key={o.id} style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{o.label}. {o.content}</div>
+                        <div key={o.id} style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+                          <span style={{ color: '#10b981' }}>{o.label}.</span> {o.content}
+                        </div>
                       ))
                     ) : (
                       <div style={{ fontSize: 15, color: '#ef4444', fontWeight: 600 }}>Chưa có đáp án đúng</div>
@@ -182,30 +226,40 @@ export default function AdminQuestionReports() {
                 <div style={{ padding: 24 }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 16, letterSpacing: '0.02em' }}>CÁC ĐỀ XUẤT SỬA:</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {Object.values(suggestionCounts).map((sugg) => (
-                      <div key={sugg.option.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, padding: 20, background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 16 }}>
+                    {proposals.map((prop) => (
+                      <div key={prop.key} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, padding: 20, background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 16 }}>
                         <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                             <div style={{ fontSize: 16, fontWeight: 800, color: '#d97706' }}>
-                              Đề xuất {sugg.option.label}. {sugg.option.content}
+                              Đề xuất đáp án: {prop.labels.join(', ')}
                             </div>
                             <span style={{ fontSize: 12, fontWeight: 800, color: '#ea580c', background: '#ffedd5', padding: '4px 10px', borderRadius: 20 }}>
-                              {sugg.count} Báo cáo
+                              {prop.count} Báo cáo
                             </span>
                           </div>
+
+                          {/* List of proposed options */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                            {prop.options.map((opt: any) => (
+                              <div key={opt.id} style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', background: 'white', padding: '8px 12px', borderRadius: 8, border: '1px solid #fed7aa' }}>
+                                <strong style={{ color: '#d97706' }}>{opt.label}.</strong> {opt.content}
+                              </div>
+                            ))}
+                          </div>
                           
-                          {sugg.notes.length > 0 && (
-                            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              {sugg.notes.map((n, i) => (
-                                <div key={i} style={{ fontSize: 14, color: '#475569', background: 'white', padding: '10px 14px', borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                                  {n}
+                          {/* Notes */}
+                          {prop.userReports.some(r => r.note && r.note.trim()) && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {prop.userReports.filter(r => r.note && r.note.trim()).map((r, i) => (
+                                <div key={i} style={{ fontSize: 13, color: '#475569', background: 'white', padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                                  <strong style={{ color: '#0f172a' }}>{r.user?.full_name || r.user?.username || 'Học viên'}:</strong> {r.note}
                                 </div>
                               ))}
                             </div>
                           )}
                         </div>
                         <button
-                          onClick={() => handleApprove(group.question.id, sugg.option.id)}
+                          onClick={() => handleApprove(group.question.id, prop.optionIds)}
                           style={{
                             flexShrink: 0,
                             display: 'flex', alignItems: 'center', gap: 6,
@@ -245,3 +299,4 @@ export default function AdminQuestionReports() {
     </div>
   );
 }
+
