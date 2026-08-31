@@ -1,16 +1,16 @@
 # Graph Report - smart-curate-learn-main  (2026-08-31)
 
 ## Corpus Check
-- 282 files · ~540,277 words
+- 289 files · ~857,759 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2457 nodes · 3073 edges · 252 communities (160 shown, 92 thin omitted)
+- 2496 nodes · 3120 edges · 259 communities (163 shown, 96 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9d956ac0`
+- Built from commit: `b1811829`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -98,7 +98,7 @@
 - @radix-ui/react-popover
 - @radix-ui/react-progress
 - @radix-ui/react-radio-group
-- HeroScene.tsx
+- home3d/index.ts
 - @radix-ui/react-select
 - @radix-ui/react-separator
 - @radix-ui/react-slider
@@ -126,7 +126,7 @@
 - @testing-library/react
 - @types/node
 - Prompt: Complete UI Redesign for EduHub - Professional & Modern
-- typescript
+- FptCampusScene.tsx
 - typescript-eslint
 - vite
 - @vitejs/plugin-react-swc
@@ -200,7 +200,7 @@
 - Update Coding Agent Context
 - Gemini Agent Instructions
 - clsx
-- eslint
+- HeroSection.tsx
 - eslint-plugin-react-refresh
 - file-saver
 - jszip
@@ -229,6 +229,13 @@
 - 08-user-exam-system/tasks.md
 - 09-user-ecommerce/tasks.md
 - 10-user-news/tasks.md
+- FptPanoViewer.tsx
+- CampusGround.tsx
+- CenterFocalPoint.tsx
+- TourHotspots.tsx
+- tailwindcss
+- @types/react-dom
+- vitest
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 228 edges
@@ -257,7 +264,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (252 total, 92 thin omitted)
+## Communities (259 total, 96 thin omitted)
 
 ### Community 0 - "sidebar.tsx"
 Cohesion: 0.07
@@ -341,7 +348,7 @@ Nodes (10): Logo(), TopNav(), parseFunctionError(), AuthPage(), Mode, Window, Re
 
 ### Community 20 - "devDependencies"
 Cohesion: 0.18
-Nodes (11): autoprefixer, devDependencies, autoprefixer, tailwindcss, @tailwindcss/typography, @types/react-dom, vitest, tailwindcss (+3 more)
+Nodes (11): autoprefixer, eslint, devDependencies, autoprefixer, eslint, sharp, @tailwindcss/typography, typescript (+3 more)
 
 ### Community 21 - "**<mark>Executable Specification</mark>**"
 Cohesion: 0.03
@@ -467,10 +474,6 @@ Nodes (29): **1.1 Từ Waterfall đến Agile: Nửa Thế Kỷ Cô Đặc**, **
 Cohesion: 0.07
 Nodes (26): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 Only) (+18 more)
 
-### Community 84 - "HeroScene.tsx"
-Cohesion: 0.10
-Nodes (15): CenterFocalPoint(), CenterFocalPointProps, FloatingBooks(), FloatingBooksProps, FloatingParticles(), FloatingParticlesProps, HeroSceneProps, SceneContentProps (+7 more)
-
 ### Community 88 - "Key Design Improvements"
 Cohesion: 0.07
 Nodes (26): 1. **Hero Section with Current Semester Focus**, 2. **Quick Stats Dashboard**, 3. **Improved Semester Filter**, 4. **Enhanced Empty States**, 5. **Redesigned Subject Cards**, 6. **Color & Typography Strategy**, 7. **Mobile Responsive Improvements**, 8. **Accessibility & UX Enhancements** (+18 more)
@@ -482,6 +485,10 @@ Nodes (25): 1. Initialize Analysis Context, 2. Load Artifacts (Progressive Discl
 ### Community 111 - "Prompt: Complete UI Redesign for EduHub - Professional & Modern"
 Cohesion: 0.08
 Nodes (25): 1. Modern Design System, 1. Navigation System (TopNav.tsx), 2. Color Palette Strategy, 2. Homepage Redesign (HomePage.tsx), 3. Layout System (App.tsx), 3. Typography System, 4. Interactive Elements, 5. Advanced Visual Features (+17 more)
+
+### Community 112 - "FptCampusScene.tsx"
+Cohesion: 0.14
+Nodes (12): AlphaBuilding(), AlphaBuildingProps, CampusSky(), CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps, Waypoint (+4 more)
 
 ### Community 116 - "AdminChat.tsx"
 Cohesion: 0.14
@@ -747,22 +754,34 @@ Nodes (3): Behavior, Execution, Update Coding Agent Context
 Cohesion: 0.50
 Nodes (3): Behavior, Execution, Update Coding Agent Context
 
+### Community 205 - "HeroSection.tsx"
+Cohesion: 0.20
+Nodes (9): FptPanoViewer(), HeroSceneProps, FPT_CAMPUSES, HeroScene, HeroSection(), HeroSectionProps, POPULAR_FPT_SUBJECTS, STATS (+1 more)
+
+### Community 252 - "FptPanoViewer.tsx"
+Cohesion: 0.25
+Nodes (4): FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId
+
+### Community 255 - "TourHotspots.tsx"
+Cohesion: 0.40
+Nodes (3): HOTSPOTS, TourHotspots(), TourHotspotsProps
+
 ## Knowledge Gaps
-- **1533 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `$schema`, `style`, `rsc` (+1528 more)
+- **1546 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `$schema`, `style`, `rsc` (+1541 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **92 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **96 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `**LỜI MỞ ĐẦU**` connect `**LỜI MỞ ĐẦU**` to `**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**`, `**<mark>SDD Workflow</mark>**`, `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**`, `**<mark>AI Agent Thực Sự Là Gì?</mark>**`, `**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**`, `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**`, `**<mark>Phân Tích Phê Bình về SDD</mark>**`, `**<mark>Multi-Agent & Orchestration</mark>**`, `**<mark>Hybrid Framework</mark>**`, `**<mark>Templates, Checklists & Quick References</mark>**`, `**<mark>Các Tiêu Chuẩn Mở</mark>**`, `**<mark>Executable Specification</mark>**`, `**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**`, `**<mark>Specification Patterns Nâng Cao</mark>**`, `**<mark>Agent-Driven Workflow</mark>**`?**
-  _High betweenness centrality (0.083) - this node is a cross-community bridge._
+  _High betweenness centrality (0.075) - this node is a cross-community bridge._
 - **Why does `cn()` connect `cn` to `drawer.tsx`, `form.tsx`, `sidebar.tsx`, `navigation-menu.tsx`, `sheet.tsx`, `hooks/use-toast.ts`, `toggle-group.tsx`, `alert.tsx`, `utils.ts`, `pagination.tsx`, `command.tsx`, `carousel.tsx`, `context-menu.tsx`, `chart.tsx`, `table.tsx`, `breadcrumb.tsx`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `**<mark>Các Tiêu Chuẩn Mở</mark>**` connect `**<mark>Các Tiêu Chuẩn Mở</mark>**` to `**LỜI MỞ ĐẦU**`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `update-agent-context.sh script`, `git-common.sh script`, `$schema` to the rest of the system?**
-  _1533 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1546 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidebar.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.07057057057057058 - nodes in this community are weakly interconnected._
 - **Should `App.tsx` be split into smaller, more focused modules?**

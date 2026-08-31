@@ -1,7 +1,7 @@
 # Graph Report - smart-curate-learn-main  (2026-08-31)
 
 ## Corpus Check
-- 282 files · ~540,230 words
+- 282 files · ~540,277 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

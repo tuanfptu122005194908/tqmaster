@@ -82,6 +82,110 @@
       "source_location": "L29"
     },
     {
+      "id": "src_components_home3d_alphabuilding_alphabuildingprops",
+      "label": "AlphaBuildingProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "alphabuildingprops",
+      "source_file": "src/components/home3d/AlphaBuilding.tsx",
+      "source_location": "L5"
+    },
+    {
+      "id": "src_components_home3d_campussky_campusskyprops",
+      "label": "CampusSkyProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "campusskyprops",
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_home3d_campussky_timeofday",
+      "label": "TimeOfDay",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "timeofday",
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene_fptcampussceneprops",
+      "label": "FptCampusSceneProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "fptcampussceneprops",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L111"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene_scenecontentprops",
+      "label": "SceneContentProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "scenecontentprops",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L40"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene_waypoint",
+      "label": "Waypoint",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "waypoint",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_components_home3d_fptsign3d_fptsign3dprops",
+      "label": "FptSign3DProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "fptsign3dprops",
+      "source_file": "src/components/home3d/FptSign3D.tsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "src_components_home3d_tourhotspots_hotspotdata",
+      "label": "HotspotData",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "hotspotdata",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L7"
+    },
+    {
       "id": "src_components_chat_chatmessage_chatmessagebubbleprops",
       "label": "ChatMessageBubbleProps",
       "_callable": true,
@@ -574,6 +678,97 @@
       "norm_label": "newspost",
       "source_file": "src/pages/user/NewsPage.tsx",
       "source_location": "L6"
+    },
+    {
+      "id": "src_components_home3d_heroscene_herosceneprops",
+      "label": "HeroSceneProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "herosceneprops",
+      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "src_components_home_herosection_herosectionprops",
+      "label": "HeroSectionProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "herosectionprops",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L58"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_fptpanoviewerprops",
+      "label": "FptPanoViewerProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "fptpanoviewerprops",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L361"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_panosceneconfig",
+      "label": "PanoSceneConfig",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "panosceneconfig",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L23"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_panosceneid",
+      "label": "PanoSceneId",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "panosceneid",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L21"
+    },
+    {
+      "id": "src_components_home3d_centerfocalpoint_centerfocalpointprops",
+      "label": "CenterFocalPointProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 254,
+      "community_name": "CenterFocalPoint.tsx",
+      "file_type": "code",
+      "norm_label": "centerfocalpointprops",
+      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "src_components_home3d_tourhotspots_tourhotspotsprops",
+      "label": "TourHotspotsProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 255,
+      "community_name": "TourHotspots.tsx",
+      "file_type": "code",
+      "norm_label": "tourhotspotsprops",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L51"
     },
     {
       "id": "src_pages_admin_adminorders_order",
@@ -1525,26 +1720,13 @@
       "source_location": "L13"
     },
     {
-      "id": "src_components_home3d_centerfocalpoint_centerfocalpointprops",
-      "label": "CenterFocalPointProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "centerfocalpointprops",
-      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
-      "source_location": "L6"
-    },
-    {
       "id": "src_components_home3d_floatingbooks_floatingbooksprops",
       "label": "FloatingBooksProps",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "floatingbooksprops",
       "source_file": "src/components/home3d/FloatingBooks.tsx",
@@ -1557,50 +1739,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "floatingparticlesprops",
       "source_file": "src/components/home3d/FloatingParticles.tsx",
       "source_location": "L5"
-    },
-    {
-      "id": "src_components_home3d_heroscene_herosceneprops",
-      "label": "HeroSceneProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "herosceneprops",
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L52"
-    },
-    {
-      "id": "src_components_home3d_heroscene_scenecontentprops",
-      "label": "SceneContentProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "scenecontentprops",
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_home_herosection_herosectionprops",
-      "label": "HeroSectionProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "herosectionprops",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L30"
     },
     {
       "id": "src_components_ui_sidebar_usesidebar",
@@ -1757,6 +1900,78 @@
       "norm_label": "paginationprevious()",
       "source_file": "src/components/ui/pagination.tsx",
       "source_location": "L49"
+    },
+    {
+      "id": "src_components_home3d_alphabuilding_alphabuilding",
+      "label": "AlphaBuilding()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "alphabuilding()",
+      "source_file": "src/components/home3d/AlphaBuilding.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_home3d_campussky_campussky",
+      "label": "CampusSky()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "campussky()",
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_components_home3d_campussky_floatingclouds",
+      "label": "FloatingClouds()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "floatingclouds()",
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L126"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene_fptcampusscene",
+      "label": "FptCampusScene()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "fptcampusscene()",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L117"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene_scenecontent",
+      "label": "SceneContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "scenecontent()",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L49"
+    },
+    {
+      "id": "src_components_home3d_fptsign3d_fptsign3d",
+      "label": "FptSign3D()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "fptsign3d()",
+      "source_file": "src/components/home3d/FptSign3D.tsx",
+      "source_location": "L11"
     },
     {
       "id": "src_components_chat_chatmessage_chatmessagebubble",
@@ -2479,6 +2694,54 @@
       "source_location": "L9"
     },
     {
+      "id": "src_components_home3d_fptpanoviewer_fptpanoviewer",
+      "label": "FptPanoViewer()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "fptpanoviewer()",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L367"
+    },
+    {
+      "id": "src_components_home3d_heroscene_heroscene",
+      "label": "HeroScene()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "heroscene()",
+      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_home_herosection_herosection",
+      "label": "HeroSection()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "herosection()",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L62"
+    },
+    {
+      "id": "src_components_home_herosection_useismobile",
+      "label": "useIsMobile()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "useismobile()",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L47"
+    },
+    {
       "id": "src_components_ui_context_menu_contextmenushortcut",
       "label": "ContextMenuShortcut()",
       "_callable": true,
@@ -2489,6 +2752,150 @@
       "norm_label": "contextmenushortcut()",
       "source_file": "src/components/ui/context-menu.tsx",
       "source_location": "L157"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_cameracontroller",
+      "label": "CameraController()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "cameracontroller()",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L331"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_panocube",
+      "label": "PanoCube()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "panocube()",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L161"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_panohotspot",
+      "label": "PanoHotspot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "panohotspot()",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L207"
+    },
+    {
+      "id": "src_components_home3d_campusground_basketballcourt",
+      "label": "BasketballCourt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 253,
+      "community_name": "CampusGround.tsx",
+      "file_type": "code",
+      "norm_label": "basketballcourt()",
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L148"
+    },
+    {
+      "id": "src_components_home3d_campusground_campusground",
+      "label": "CampusGround()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 253,
+      "community_name": "CampusGround.tsx",
+      "file_type": "code",
+      "norm_label": "campusground()",
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "src_components_home3d_campusground_canopytreeitem",
+      "label": "CanopyTreeItem()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 253,
+      "community_name": "CampusGround.tsx",
+      "file_type": "code",
+      "norm_label": "canopytreeitem()",
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L124"
+    },
+    {
+      "id": "src_components_home3d_campusground_palmtreeitem",
+      "label": "PalmTreeItem()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 253,
+      "community_name": "CampusGround.tsx",
+      "file_type": "code",
+      "norm_label": "palmtreeitem()",
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L92"
+    },
+    {
+      "id": "src_components_home3d_centerfocalpoint_centerfocalpoint",
+      "label": "CenterFocalPoint()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 254,
+      "community_name": "CenterFocalPoint.tsx",
+      "file_type": "code",
+      "norm_label": "centerfocalpoint()",
+      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_home3d_centerfocalpoint_floatinggems",
+      "label": "FloatingGems()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 254,
+      "community_name": "CenterFocalPoint.tsx",
+      "file_type": "code",
+      "norm_label": "floatinggems()",
+      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
+      "source_location": "L104"
+    },
+    {
+      "id": "src_components_home3d_centerfocalpoint_gemitem",
+      "label": "GemItem()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 254,
+      "community_name": "CenterFocalPoint.tsx",
+      "file_type": "code",
+      "norm_label": "gemitem()",
+      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
+      "source_location": "L123"
+    },
+    {
+      "id": "src_components_home3d_tourhotspots_hotspotitem",
+      "label": "HotspotItem()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 255,
+      "community_name": "TourHotspots.tsx",
+      "file_type": "code",
+      "norm_label": "hotspotitem()",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L71"
+    },
+    {
+      "id": "src_components_home3d_tourhotspots_tourhotspots",
+      "label": "TourHotspots()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 255,
+      "community_name": "TourHotspots.tsx",
+      "file_type": "code",
+      "norm_label": "tourhotspots()",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L56"
     },
     {
       "id": "supabase_functions_signup_with_otp_index_escapehtml",
@@ -3523,48 +3930,12 @@
       "source_location": "L25"
     },
     {
-      "id": "src_components_home3d_centerfocalpoint_centerfocalpoint",
-      "label": "CenterFocalPoint()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "centerfocalpoint()",
-      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_home3d_centerfocalpoint_floatinggems",
-      "label": "FloatingGems()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "floatinggems()",
-      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
-      "source_location": "L104"
-    },
-    {
-      "id": "src_components_home3d_centerfocalpoint_gemitem",
-      "label": "GemItem()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "gemitem()",
-      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
-      "source_location": "L123"
-    },
-    {
       "id": "src_components_home3d_floatingbooks_book",
       "label": "Book()",
       "_callable": true,
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "book()",
       "source_file": "src/components/home3d/FloatingBooks.tsx",
@@ -3576,7 +3947,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "floatingbooks()",
       "source_file": "src/components/home3d/FloatingBooks.tsx",
@@ -3588,35 +3959,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "floatingparticles()",
       "source_file": "src/components/home3d/FloatingParticles.tsx",
       "source_location": "L10"
-    },
-    {
-      "id": "src_components_home3d_heroscene_heroscene",
-      "label": "HeroScene()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "heroscene()",
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L57"
-    },
-    {
-      "id": "src_components_home3d_heroscene_scenecontent",
-      "label": "SceneContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "scenecontent()",
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L14"
     },
     {
       "id": "src_components_home3d_orbitalrings_orbitalrings",
@@ -3624,35 +3971,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "orbitalrings()",
       "source_file": "src/components/home3d/OrbitalRings.tsx",
       "source_location": "L6"
-    },
-    {
-      "id": "src_components_home_herosection_herosection",
-      "label": "HeroSection()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "herosection()",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L34"
-    },
-    {
-      "id": "src_components_home_herosection_useismobile",
-      "label": "useIsMobile()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "useismobile()",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L19"
     },
     {
       "id": "tool_vi\u1ebft_l\u1ea1i_\u0111\u1ec1_extract_build_docx",
@@ -5506,26 +5829,59 @@
       "source_location": "L312"
     },
     {
-      "id": "package_devdependencies_typescript",
-      "label": "typescript",
+      "id": "src_components_home3d_alphabuilding",
+      "label": "AlphaBuilding.tsx",
       "_origin": "ast",
       "community": 112,
-      "community_name": "typescript",
+      "community_name": "FptCampusScene.tsx",
       "file_type": "code",
-      "norm_label": "typescript",
-      "source_file": "package.json",
-      "source_location": "L101"
+      "norm_label": "alphabuilding.tsx",
+      "source_file": "src/components/home3d/AlphaBuilding.tsx",
+      "source_location": "L1"
     },
     {
-      "id": "typescript",
-      "label": "typescript",
+      "id": "src_components_home3d_campussky",
+      "label": "CampusSky.tsx",
       "_origin": "ast",
       "community": 112,
-      "community_name": "typescript",
-      "file_type": "concept",
-      "norm_label": "typescript",
-      "source_file": "package.json",
-      "source_location": "L101"
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "campussky.tsx",
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene",
+      "label": "FptCampusScene.tsx",
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "fptcampusscene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_fptcampusscene_waypoints",
+      "label": "WAYPOINTS",
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "waypoints",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_components_home3d_fptsign3d",
+      "label": "FptSign3D.tsx",
+      "_origin": "ast",
+      "community": 112,
+      "community_name": "FptCampusScene.tsx",
+      "file_type": "code",
+      "norm_label": "fptsign3d.tsx",
+      "source_file": "src/components/home3d/FptSign3D.tsx",
+      "source_location": "L1"
     },
     {
       "id": "package_devdependencies_typescript_eslint",
@@ -5536,7 +5892,7 @@
       "file_type": "code",
       "norm_label": "typescript-eslint",
       "source_file": "package.json",
-      "source_location": "L102"
+      "source_location": "L103"
     },
     {
       "id": "typescript_eslint",
@@ -5547,7 +5903,7 @@
       "file_type": "concept",
       "norm_label": "typescript-eslint",
       "source_file": "package.json",
-      "source_location": "L102"
+      "source_location": "L103"
     },
     {
       "id": "package_devdependencies_vite",
@@ -5558,7 +5914,7 @@
       "file_type": "code",
       "norm_label": "vite",
       "source_file": "package.json",
-      "source_location": "L103"
+      "source_location": "L104"
     },
     {
       "id": "vite",
@@ -5569,7 +5925,7 @@
       "file_type": "concept",
       "norm_label": "vite",
       "source_file": "package.json",
-      "source_location": "L103"
+      "source_location": "L104"
     },
     {
       "id": "package_devdependencies_vitejs_plugin_react_swc",
@@ -14944,13 +15300,24 @@
       "source_location": "L93"
     },
     {
-      "id": "package_devdependencies_tailwindcss",
-      "label": "tailwindcss",
+      "id": "package_devdependencies_eslint",
+      "label": "eslint",
       "_origin": "ast",
       "community": 20,
       "community_name": "devDependencies",
       "file_type": "code",
-      "norm_label": "tailwindcss",
+      "norm_label": "eslint",
+      "source_file": "package.json",
+      "source_location": "L94"
+    },
+    {
+      "id": "package_devdependencies_sharp",
+      "label": "sharp",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "devDependencies",
+      "file_type": "code",
+      "norm_label": "sharp",
       "source_file": "package.json",
       "source_location": "L100"
     },
@@ -14966,26 +15333,15 @@
       "source_location": "L85"
     },
     {
-      "id": "package_devdependencies_types_react_dom",
-      "label": "@types/react-dom",
+      "id": "package_devdependencies_typescript",
+      "label": "typescript",
       "_origin": "ast",
       "community": 20,
       "community_name": "devDependencies",
       "file_type": "code",
-      "norm_label": "@types/react-dom",
+      "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L91"
-    },
-    {
-      "id": "package_devdependencies_vitest",
-      "label": "vitest",
-      "_origin": "ast",
-      "community": 20,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "vitest",
-      "source_file": "package.json",
-      "source_location": "L104"
+      "source_location": "L102"
     },
     {
       "id": "autoprefixer",
@@ -14999,13 +15355,24 @@
       "source_location": "L93"
     },
     {
-      "id": "tailwindcss",
-      "label": "tailwindcss",
+      "id": "eslint",
+      "label": "eslint",
       "_origin": "ast",
       "community": 20,
       "community_name": "devDependencies",
       "file_type": "concept",
-      "norm_label": "tailwindcss",
+      "norm_label": "eslint",
+      "source_file": "package.json",
+      "source_location": "L94"
+    },
+    {
+      "id": "sharp",
+      "label": "sharp",
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "devDependencies",
+      "file_type": "concept",
+      "norm_label": "sharp",
       "source_file": "package.json",
       "source_location": "L100"
     },
@@ -15021,26 +15388,15 @@
       "source_location": "L85"
     },
     {
-      "id": "types_react_dom",
-      "label": "@types/react-dom",
+      "id": "typescript",
+      "label": "typescript",
       "_origin": "ast",
       "community": 20,
       "community_name": "devDependencies",
       "file_type": "concept",
-      "norm_label": "@types/react-dom",
+      "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L91"
-    },
-    {
-      "id": "vitest",
-      "label": "vitest",
-      "_origin": "ast",
-      "community": 20,
-      "community_name": "devDependencies",
-      "file_type": "concept",
-      "norm_label": "vitest",
-      "source_file": "package.json",
-      "source_location": "L104"
+      "source_location": "L102"
     },
     {
       "id": "agent",
@@ -15251,26 +15607,70 @@
       "source_location": "L52"
     },
     {
-      "id": "package_devdependencies_eslint",
-      "label": "eslint",
+      "id": "src_components_home3d_heroscene",
+      "label": "HeroScene.tsx",
       "_origin": "ast",
       "community": 205,
-      "community_name": "eslint",
+      "community_name": "HeroSection.tsx",
       "file_type": "code",
-      "norm_label": "eslint",
-      "source_file": "package.json",
-      "source_location": "L94"
+      "norm_label": "heroscene.tsx",
+      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_location": "L1"
     },
     {
-      "id": "eslint",
-      "label": "eslint",
+      "id": "src_components_home_herosection",
+      "label": "HeroSection.tsx",
       "_origin": "ast",
       "community": 205,
-      "community_name": "eslint",
-      "file_type": "concept",
-      "norm_label": "eslint",
-      "source_file": "package.json",
-      "source_location": "L94"
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "herosection.tsx",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home_herosection_fpt_campuses",
+      "label": "FPT_CAMPUSES",
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "fpt_campuses",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L28"
+    },
+    {
+      "id": "src_components_home_herosection_heroscene",
+      "label": "HeroScene",
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "heroscene",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_components_home_herosection_popular_fpt_subjects",
+      "label": "POPULAR_FPT_SUBJECTS",
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "popular_fpt_subjects",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L36"
+    },
+    {
+      "id": "src_components_home_herosection_stats",
+      "label": "STATS",
+      "_origin": "ast",
+      "community": 205,
+      "community_name": "HeroSection.tsx",
+      "file_type": "code",
+      "norm_label": "stats",
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L21"
     },
     {
       "id": "package_devdependencies_eslint_plugin_react_refresh",
@@ -18273,6 +18673,138 @@
       "norm_label": "cleanup-chat-messages/index.ts",
       "source_file": "supabase/functions/cleanup-chat-messages/index.ts",
       "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer",
+      "label": "FptPanoViewer.tsx",
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "fptpanoviewer.tsx",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_fptpanoviewer_pano_scenes",
+      "label": "PANO_SCENES",
+      "_origin": "ast",
+      "community": 252,
+      "community_name": "FptPanoViewer.tsx",
+      "file_type": "code",
+      "norm_label": "pano_scenes",
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L41"
+    },
+    {
+      "id": "src_components_home3d_campusground",
+      "label": "CampusGround.tsx",
+      "_origin": "ast",
+      "community": 253,
+      "community_name": "CampusGround.tsx",
+      "file_type": "code",
+      "norm_label": "campusground.tsx",
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_centerfocalpoint",
+      "label": "CenterFocalPoint.tsx",
+      "_origin": "ast",
+      "community": 254,
+      "community_name": "CenterFocalPoint.tsx",
+      "file_type": "code",
+      "norm_label": "centerfocalpoint.tsx",
+      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_tourhotspots",
+      "label": "TourHotspots.tsx",
+      "_origin": "ast",
+      "community": 255,
+      "community_name": "TourHotspots.tsx",
+      "file_type": "code",
+      "norm_label": "tourhotspots.tsx",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_home3d_tourhotspots_hotspots",
+      "label": "HOTSPOTS",
+      "_origin": "ast",
+      "community": 255,
+      "community_name": "TourHotspots.tsx",
+      "file_type": "code",
+      "norm_label": "hotspots",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L16"
+    },
+    {
+      "id": "package_devdependencies_tailwindcss",
+      "label": "tailwindcss",
+      "_origin": "ast",
+      "community": 256,
+      "community_name": "tailwindcss",
+      "file_type": "code",
+      "norm_label": "tailwindcss",
+      "source_file": "package.json",
+      "source_location": "L101"
+    },
+    {
+      "id": "tailwindcss",
+      "label": "tailwindcss",
+      "_origin": "ast",
+      "community": 256,
+      "community_name": "tailwindcss",
+      "file_type": "concept",
+      "norm_label": "tailwindcss",
+      "source_file": "package.json",
+      "source_location": "L101"
+    },
+    {
+      "id": "package_devdependencies_types_react_dom",
+      "label": "@types/react-dom",
+      "_origin": "ast",
+      "community": 257,
+      "community_name": "@types/react-dom",
+      "file_type": "code",
+      "norm_label": "@types/react-dom",
+      "source_file": "package.json",
+      "source_location": "L91"
+    },
+    {
+      "id": "types_react_dom",
+      "label": "@types/react-dom",
+      "_origin": "ast",
+      "community": 257,
+      "community_name": "@types/react-dom",
+      "file_type": "concept",
+      "norm_label": "@types/react-dom",
+      "source_file": "package.json",
+      "source_location": "L91"
+    },
+    {
+      "id": "package_devdependencies_vitest",
+      "label": "vitest",
+      "_origin": "ast",
+      "community": 258,
+      "community_name": "vitest",
+      "file_type": "code",
+      "norm_label": "vitest",
+      "source_file": "package.json",
+      "source_location": "L105"
+    },
+    {
+      "id": "vitest",
+      "label": "vitest",
+      "_origin": "ast",
+      "community": 258,
+      "community_name": "vitest",
+      "file_type": "concept",
+      "norm_label": "vitest",
+      "source_file": "package.json",
+      "source_location": "L105"
     },
     {
       "id": "spec_driven_agent_driven_development_2_10_1_2_pha_2_intent_communication_what_kh\u00f4ng_ph\u1ea3i_how",
@@ -28275,22 +28807,11 @@
       "source_location": "L33"
     },
     {
-      "id": "src_components_home3d_centerfocalpoint",
-      "label": "CenterFocalPoint.tsx",
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "centerfocalpoint.tsx",
-      "source_file": "src/components/home3d/CenterFocalPoint.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_components_home3d_floatingbooks",
       "label": "FloatingBooks.tsx",
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "floatingbooks.tsx",
       "source_file": "src/components/home3d/FloatingBooks.tsx",
@@ -28301,21 +28822,10 @@
       "label": "FloatingParticles.tsx",
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "floatingparticles.tsx",
       "source_file": "src/components/home3d/FloatingParticles.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_home3d_heroscene",
-      "label": "HeroScene.tsx",
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "heroscene.tsx",
-      "source_file": "src/components/home3d/HeroScene.tsx",
       "source_location": "L1"
     },
     {
@@ -28323,7 +28833,7 @@
       "label": "home3d/index.ts",
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "home3d/index.ts",
       "source_file": "src/components/home3d/index.ts",
@@ -28334,55 +28844,11 @@
       "label": "OrbitalRings.tsx",
       "_origin": "ast",
       "community": 84,
-      "community_name": "HeroScene.tsx",
+      "community_name": "home3d/index.ts",
       "file_type": "code",
       "norm_label": "orbitalrings.tsx",
       "source_file": "src/components/home3d/OrbitalRings.tsx",
       "source_location": "L1"
-    },
-    {
-      "id": "src_components_home_herosection",
-      "label": "HeroSection.tsx",
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "herosection.tsx",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_home_herosection_heroscene",
-      "label": "HeroScene",
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "heroscene",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L6"
-    },
-    {
-      "id": "src_components_home_herosection_stats",
-      "label": "STATS",
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "stats",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_home_herosection_universities",
-      "label": "UNIVERSITIES",
-      "_origin": "ast",
-      "community": 84,
-      "community_name": "HeroScene.tsx",
-      "file_type": "code",
-      "norm_label": "universities",
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L15"
     },
     {
       "id": "package_dependencies_radix_ui_react_select",
@@ -29545,7 +30011,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L36",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -33270,18 +33736,6 @@
     },
     {
       "source": "src_components_home3d_index",
-      "target": "src_components_home3d_floatingparticles",
-      "relation": "re_exports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "export",
-      "source_file": "src/components/home3d/index.ts",
-      "source_location": "L2",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_home3d_index",
       "target": "src_components_home3d_floatingbooks",
       "relation": "re_exports",
       "_origin": "ast",
@@ -33289,7 +33743,7 @@
       "confidence_score": 1.0,
       "context": "export",
       "source_file": "src/components/home3d/index.ts",
-      "source_location": "L3",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -33301,7 +33755,7 @@
       "confidence_score": 1.0,
       "context": "export",
       "source_file": "src/components/home3d/index.ts",
-      "source_location": "L4",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -33313,7 +33767,103 @@
       "confidence_score": 1.0,
       "context": "export",
       "source_file": "src/components/home3d/index.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_fptpanoviewer",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_fptcampusscene",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_alphabuilding",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_fptsign3d",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
       "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_campusground",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_campussky",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_tourhotspots",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_index",
+      "target": "src_components_home3d_floatingparticles",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "src/components/home3d/index.ts",
+      "source_location": "L9",
       "weight": 1.0
     },
     {
@@ -33365,6 +33915,30 @@
       "weight": 1.0
     },
     {
+      "source": "src_components_home3d_fptcampusscene_scenecontentprops",
+      "target": "src_components_home3d_campussky_timeofday",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene_scenecontentprops",
+      "target": "src_components_home3d_tourhotspots_hotspotdata",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
       "source": "src_components_home_herosection_heroscene",
       "target": "src_components_home3d_heroscene",
       "relation": "imports_from",
@@ -33374,7 +33948,7 @@
       "context": "import",
       "deferred": true,
       "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L6",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -34350,6 +34924,18 @@
       "weight": 1.0
     },
     {
+      "source": "package_devdependencies_sharp",
+      "target": "sharp",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "package.json",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
       "source": "package_devdependencies_tailwindcss",
       "target": "tailwindcss",
       "relation": "imports",
@@ -34358,7 +34944,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L100",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -34454,7 +35040,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L101",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -34466,7 +35052,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L102",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -34478,7 +35064,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L103",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -34502,7 +35088,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L104",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
@@ -35238,51 +35824,99 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_floatingparticles_floatingparticles",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_alphabuilding_alphabuilding",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
-      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
       "source_location": "L5",
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_floatingbooks_floatingbooks",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptsign3d_fptsign3d",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
-      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
       "source_location": "L6",
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_orbitalrings_orbitalrings",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_campusground_campusground",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
-      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
       "source_location": "L7",
       "weight": 1.0
     },
     {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_campussky_campussky",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_campussky_timeofday",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_tourhotspots_hotspotdata",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_tourhotspots_tourhotspots",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
       "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_centerfocalpoint_centerfocalpoint",
+      "target": "src_components_home3d_fptpanoviewer_fptpanoviewer",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L8",
+      "source_location": "L2",
       "weight": 1.0
     },
     {
@@ -38180,51 +38814,75 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_floatingparticles",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_alphabuilding",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
-      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
       "source_location": "L5",
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_floatingbooks",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptsign3d",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
-      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
       "source_location": "L6",
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_orbitalrings",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_campusground",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
-      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
       "source_location": "L7",
       "weight": 1.0
     },
     {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_campussky",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_tourhotspots",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
       "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_centerfocalpoint",
+      "target": "src_components_home3d_fptpanoviewer",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L8",
+      "source_location": "L2",
       "weight": 1.0
     },
     {
@@ -43049,7 +43707,7 @@
     },
     {
       "source": "package_devdependencies",
-      "target": "package_devdependencies_tailwindcss",
+      "target": "package_devdependencies_sharp",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -43060,7 +43718,7 @@
     },
     {
       "source": "package_devdependencies",
-      "target": "package_devdependencies_typescript",
+      "target": "package_devdependencies_tailwindcss",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -43071,7 +43729,7 @@
     },
     {
       "source": "package_devdependencies",
-      "target": "package_devdependencies_typescript_eslint",
+      "target": "package_devdependencies_typescript",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -43082,7 +43740,7 @@
     },
     {
       "source": "package_devdependencies",
-      "target": "package_devdependencies_vite",
+      "target": "package_devdependencies_typescript_eslint",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -43093,13 +43751,24 @@
     },
     {
       "source": "package_devdependencies",
-      "target": "package_devdependencies_vitest",
+      "target": "package_devdependencies_vite",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
       "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "package_devdependencies",
+      "target": "package_devdependencies_vitest",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "package.json",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
@@ -57073,6 +57742,116 @@
       "weight": 1.0
     },
     {
+      "source": "src_components_home3d_alphabuilding",
+      "target": "src_components_home3d_alphabuilding_alphabuilding",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/AlphaBuilding.tsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_alphabuilding",
+      "target": "src_components_home3d_alphabuilding_alphabuildingprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/AlphaBuilding.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campusground",
+      "target": "src_components_home3d_campusground_canopytreeitem",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campusground",
+      "target": "src_components_home3d_campusground_basketballcourt",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campusground",
+      "target": "src_components_home3d_campusground_campusground",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campusground",
+      "target": "src_components_home3d_campusground_palmtreeitem",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusGround.tsx",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campussky",
+      "target": "src_components_home3d_campussky_campussky",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campussky",
+      "target": "src_components_home3d_campussky_floatingclouds",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campussky",
+      "target": "src_components_home3d_campussky_timeofday",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_campussky",
+      "target": "src_components_home3d_campussky_campusskyprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/CampusSky.tsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
       "source": "src_components_home3d_centerfocalpoint",
       "target": "src_components_home3d_centerfocalpoint_centerfocalpoint",
       "relation": "contains",
@@ -57172,36 +57951,179 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_heroscene_scenecontentprops",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptcampusscene_fptcampussceneprops",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L10",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_heroscene_scenecontent",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptcampusscene_fptcampusscene",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L14",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
-      "source": "src_components_home3d_heroscene",
-      "target": "src_components_home3d_heroscene_herosceneprops",
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptcampusscene_waypoint",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L52",
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptcampusscene_waypoints",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptcampusscene_scenecontentprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptcampusscene",
+      "target": "src_components_home3d_fptcampusscene_scenecontent",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptCampusScene.tsx",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_panocube",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_panohotspot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L207",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_panosceneid",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_panosceneconfig",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_cameracontroller",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_fptpanoviewerprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L361",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_fptpanoviewer",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L367",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptpanoviewer",
+      "target": "src_components_home3d_fptpanoviewer_pano_scenes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptPanoViewer.tsx",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptsign3d",
+      "target": "src_components_home3d_fptsign3d_fptsign3d",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptSign3D.tsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_fptsign3d",
+      "target": "src_components_home3d_fptsign3d_fptsign3dprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/FptSign3D.tsx",
+      "source_location": "L6",
       "weight": 1.0
     },
     {
@@ -57212,7 +58134,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/home3d/HeroScene.tsx",
-      "source_location": "L57",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_heroscene",
+      "target": "src_components_home3d_heroscene_herosceneprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/HeroScene.tsx",
+      "source_location": "L4",
       "weight": 1.0
     },
     {
@@ -57227,47 +58160,58 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_home_herosection",
-      "target": "src_components_home_herosection_universities",
+      "source": "src_components_home3d_tourhotspots",
+      "target": "src_components_home3d_tourhotspots_hotspots",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L15",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
-      "source": "src_components_home_herosection",
-      "target": "src_components_home_herosection_useismobile",
+      "source": "src_components_home3d_tourhotspots",
+      "target": "src_components_home3d_tourhotspots_tourhotspotsprops",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L19",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
-      "source": "src_components_home_herosection",
-      "target": "src_components_home_herosection_herosectionprops",
+      "source": "src_components_home3d_tourhotspots",
+      "target": "src_components_home3d_tourhotspots_tourhotspots",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L30",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
-      "source": "src_components_home_herosection",
-      "target": "src_components_home_herosection_herosection",
+      "source": "src_components_home3d_tourhotspots",
+      "target": "src_components_home3d_tourhotspots_hotspotdata",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L34",
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home3d_tourhotspots",
+      "target": "src_components_home3d_tourhotspots_hotspotitem",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home3d/TourHotspots.tsx",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -57278,7 +58222,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L6",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -57289,7 +58233,62 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/home/HeroSection.tsx",
-      "source_location": "L8",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home_herosection",
+      "target": "src_components_home_herosection_fpt_campuses",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home_herosection",
+      "target": "src_components_home_herosection_popular_fpt_subjects",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home_herosection",
+      "target": "src_components_home_herosection_useismobile",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home_herosection",
+      "target": "src_components_home_herosection_herosectionprops",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_home_herosection",
+      "target": "src_components_home_herosection_herosection",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/home/HeroSection.tsx",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -63885,5 +64884,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9d956ac0fcecbd23dcc02d8219de5439f9faa412"
+  "built_at_commit": "b181182942b440f78118a75f4626dfe76ed8c7e5"
 }

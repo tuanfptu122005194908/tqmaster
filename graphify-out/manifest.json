@@ -132,9 +132,9 @@
     "semantic_hash": "bc484741cdf3591af5da7d9f3da3a647"
   },
   "package.json": {
-    "mtime": 1786968452.5731857,
-    "seen": 1788157034.7992163,
-    "ast_hash": "68b4ffc76930d6e70af4cb4bca284992",
+    "mtime": 1788169220.8619068,
+    "seen": 1788170863.385876,
+    "ast_hash": "9f560709af66431abd794681a0157739",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -558,8 +558,8 @@
     "semantic_hash": ""
   },
   "src/pages/AuthPage.tsx": {
-    "mtime": 1786107430.6646848,
-    "seen": 1788157034.7995813,
+    "mtime": 1788170716.9829164,
+    "seen": 1788170863.4073937,
     "ast_hash": "159feabc5a0c6588d9fbb63e0d63b512",
     "semantic_hash": ""
   },
@@ -976,9 +976,9 @@
     "semantic_hash": ""
   },
   "src/components/home3d/HeroScene.tsx": {
-    "mtime": 1786968527.652445,
-    "seen": 1788157034.799289,
-    "ast_hash": "5a6b8d26eb19cdb1a9a9beb4dd8e8623",
+    "mtime": 1788168598.4477112,
+    "seen": 1788170863.3922663,
+    "ast_hash": "bc6a6a71ec90414cc1152922aa086a28",
     "semantic_hash": ""
   },
   "src/components/home3d/OrbitalRings.tsx": {
@@ -988,15 +988,15 @@
     "semantic_hash": ""
   },
   "src/components/home3d/index.ts": {
-    "mtime": 1786968537.3732643,
-    "seen": 1788157034.799296,
-    "ast_hash": "c786307d46246f3ae279d91bb3937ccb",
+    "mtime": 1788168606.3134377,
+    "seen": 1788170863.3925683,
+    "ast_hash": "ea19c5c5ce5090a915ff7c9499edf93a",
     "semantic_hash": ""
   },
   "src/components/home/HeroSection.tsx": {
-    "mtime": 1786969440.1883073,
-    "seen": 1788157034.7992995,
-    "ast_hash": "7097c39a9920952e61dc1c1af42d5d05",
+    "mtime": 1788169302.6916916,
+    "seen": 1788170863.3925712,
+    "ast_hash": "9411e1d248f011a0c3f2e4498697a254",
     "semantic_hash": ""
   },
   "src/hooks/useChat.ts": {
@@ -2029,6 +2029,174 @@
     "mtime": 1785869114.172375,
     "seen": 1788157034.8004649,
     "ast_hash": "56916c0f7e842b701f9aebfc9c82b0fa",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/AlphaBuilding.tsx": {
+    "mtime": 1788168227.6117828,
+    "seen": 1788170863.3912945,
+    "ast_hash": "ddf985dc855dff0ac97b306d21efeba6",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/CampusGround.tsx": {
+    "mtime": 1788168238.2135777,
+    "seen": 1788170863.3912985,
+    "ast_hash": "5dbb6efe029d4af5a3ae1cea223c02a0",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/CampusSky.tsx": {
+    "mtime": 1788168246.0060036,
+    "seen": 1788170863.3913014,
+    "ast_hash": "906bd73178f79ac641eb4832937ef8a4",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/FptCampusScene.tsx": {
+    "mtime": 1788168272.1168737,
+    "seen": 1788170863.3922553,
+    "ast_hash": "dc18ef9597710d4a06446c30ce188ada",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/FptPanoViewer.tsx": {
+    "mtime": 1788169291.086325,
+    "seen": 1788170863.3922598,
+    "ast_hash": "257dbf9729c25b4ad45b5f4e85898b80",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/FptSign3D.tsx": {
+    "mtime": 1788168217.0951242,
+    "seen": 1788170863.392263,
+    "ast_hash": "cfa90cb28d7d54b25fe9c6000a077115",
+    "semantic_hash": ""
+  },
+  "src/components/home3d/TourHotspots.tsx": {
+    "mtime": 1788168256.5209901,
+    "seen": 1788170863.3925648,
+    "ast_hash": "1857b8a22642af696790479fc54707a7",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_0.jpg": {
+    "mtime": 1788168547.5907938,
+    "seen": 1788170863.455077,
+    "ast_hash": "477094c9334c59f9306ea3c5a87ad7ed",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_gate_0.jpg": {
+    "mtime": 1788169233.997,
+    "seen": 1788170863.455081,
+    "ast_hash": "06bdd185e9a846614ade785679bb3d93",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_gate_1.jpg": {
+    "mtime": 1788169236.372,
+    "seen": 1788170863.4550838,
+    "ast_hash": "aa0ff0b0c0bd821dea82eb5c15e8ec36",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_gate_2.jpg": {
+    "mtime": 1788169239.005,
+    "seen": 1788170863.4550862,
+    "ast_hash": "3cd7cd3d9ddcda33d921943d5d19da38",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_gate_3.jpg": {
+    "mtime": 1788169241.395,
+    "seen": 1788170863.4550889,
+    "ast_hash": "5ea80895d793e5e05556f2260401bfd1",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_gate_4.jpg": {
+    "mtime": 1788169243.507,
+    "seen": 1788170863.4550908,
+    "ast_hash": "79a12e859d687af53b24e29fad65c7a3",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_gate_5.jpg": {
+    "mtime": 1788169246.542,
+    "seen": 1788170863.455094,
+    "ast_hash": "ed38c980719d9fcbd8aac5dc4bccbdd8",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_hall_0.jpg": {
+    "mtime": 1788169249.216,
+    "seen": 1788170863.4550972,
+    "ast_hash": "a19acaac8e3b7a9b21e40aa0cfc2ff9c",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_hall_1.jpg": {
+    "mtime": 1788169251.437,
+    "seen": 1788170863.4550993,
+    "ast_hash": "4bd0a0d8ee74a48c4213eb2a2cad3991",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_hall_2.jpg": {
+    "mtime": 1788169253.904,
+    "seen": 1788170863.4551013,
+    "ast_hash": "6daeef789c65b16cb55cc7a841dbd268",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_hall_3.jpg": {
+    "mtime": 1788169256.083,
+    "seen": 1788170863.455103,
+    "ast_hash": "6fadcea13abff52009ca982d93c18f99",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_hall_4.jpg": {
+    "mtime": 1788169258.215,
+    "seen": 1788170863.4551046,
+    "ast_hash": "c06e315cd2186c1e8f5a1760d04d135f",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_hall_5.jpg": {
+    "mtime": 1788169260.675,
+    "seen": 1788170863.4551067,
+    "ast_hash": "20f75f47e1b0653bc7c9c5d91ffd60a4",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/alpha_preview.jpg": {
+    "mtime": 1788168547.8928719,
+    "seen": 1788170863.4551091,
+    "ast_hash": "89de90c6537a1bbc4ddba6a798c052be",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/campus_sky_0.jpg": {
+    "mtime": 1788169262.965,
+    "seen": 1788170863.455111,
+    "ast_hash": "aec4472ca33c038243d225a7fa707524",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/campus_sky_1.jpg": {
+    "mtime": 1788169265.067,
+    "seen": 1788170863.4551127,
+    "ast_hash": "d9e46967e0bf7a53b7e5599c21233a38",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/campus_sky_2.jpg": {
+    "mtime": 1788169267.589,
+    "seen": 1788170863.4551148,
+    "ast_hash": "4d397a467c6a59c26259a78ea90347f8",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/campus_sky_3.jpg": {
+    "mtime": 1788169272.406,
+    "seen": 1788170863.4551165,
+    "ast_hash": "353395898669c2b8f150889a79e56125",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/campus_sky_4.jpg": {
+    "mtime": 1788169274.367,
+    "seen": 1788170863.4551184,
+    "ast_hash": "17678124cf8efa632e965da8273dfb9c",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/campus_sky_5.jpg": {
+    "mtime": 1788169277.347,
+    "seen": 1788170863.45512,
+    "ast_hash": "97098e768214ac835cb69d1f9f15cf3c",
+    "semantic_hash": ""
+  },
+  "public/fpt-tour/share.jpg": {
+    "mtime": 1788168547.1761289,
+    "seen": 1788170863.455122,
+    "ast_hash": "65e77c7bc55c3c119bd7fc959901674f",
     "semantic_hash": ""
   }
 }
