@@ -18,7 +18,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const TYPE_OPTS: Array<{ value: Theory['type']; label: string; icon: React.ReactNode }> = [
-  { value: 'file',  label: 'File PDF/Doc', icon: <FileText size={15} /> },
+  { value: 'file',  label: 'File / Video', icon: <FileText size={15} /> },
   { value: 'link',  label: 'Link ngoài',   icon: <LinkIcon size={15} /> },
   { value: 'image', label: 'Hình ảnh',     icon: <ImageIcon size={15} /> },
 ];
@@ -471,13 +471,13 @@ export default function AdminTheory() {
 
               {form.type === 'file' ? (
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>File tài liệu (PDF/Doc/Zip)</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>File tài liệu (mọi định dạng: PDF, Word, Excel, PPT, Zip, Video...)</label>
                   <FileUploader
                     bucket="theory-files"
                     value={form.url}
                     onChange={(url) => setForm(p => ({ ...p, url }))}
                     onFileNameChange={(name) => setForm(p => ({ ...p, file_name: name || p.file_name }))}
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
+                    accept="*/*"
                     preview="file"
                     label="Tải file tài liệu"
                   />
