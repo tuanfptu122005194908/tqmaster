@@ -198,6 +198,33 @@ export default function AdminTheory() {
         </button>
       </div>
 
+      {/* Category Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+        {([
+          { key: 'all' as const,    label: 'Tất cả' },
+          { key: 'theory' as const, label: CAT_LABEL.theory },
+          { key: 'pe' as const,     label: CAT_LABEL.pe },
+        ]).map(c => {
+          const count = c.key === 'all' ? theories.length : theories.filter(t => getCat(t) === c.key).length;
+          const active = filterCat === c.key;
+          return (
+            <button
+              key={c.key}
+              onClick={() => setFilterCat(c.key)}
+              style={{
+                padding: '10px 20px', borderRadius: 14, cursor: 'pointer',
+                border: active ? '2px solid #1d4ed8' : '1.5px solid #cbd5e1',
+                background: active ? '#eff6ff' : '#ffffff',
+                color: active ? '#1d4ed8' : '#475569',
+                fontSize: 13.5, fontWeight: 800,
+              }}
+            >
+              {c.label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       {/* Filter Tabs & Search Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         
