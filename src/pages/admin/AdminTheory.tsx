@@ -86,12 +86,16 @@ export default function AdminTheory() {
 
   const filtered = theories.filter(t => {
     const matchSubj = filterSubj === 'all' || getSubjectIds(t).includes(filterSubj);
+    const matchCat  = filterCat === 'all' || getCat(t) === filterCat;
     const q = searchQuery.toLowerCase();
     const matchQ = !q || t.title.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q);
-    return matchSubj && matchQ;
+    return matchSubj && matchCat && matchQ;
   });
 
-  const openCreate = () => { setForm(EMPTY_FORM); setShowForm(true); };
+  const openCreate = () => {
+    setForm({ ...EMPTY_FORM, category: filterCat === 'all' ? 'theory' : filterCat });
+    setShowForm(true);
+  };
   const openEdit = (t: any) => {
     setForm({
       id: t.id,
@@ -100,6 +104,7 @@ export default function AdminTheory() {
       type: t.type,
       url: t.url,
       file_name: t.file_name ?? '',
+      category: getCat(t),
       subject_ids: getSubjectIds(t),
     });
     setShowForm(true);
@@ -125,14 +130,16 @@ export default function AdminTheory() {
       const { error } = await supabase.from('theories').update({
         title: form.title, description: form.description || null,
         type: form.type, url: form.url, file_name: form.file_name || null,
-      }).eq('id', theoryId);
+        category: form.category,
+      } as any).eq('id', theoryId);
       if (error) { toast.error('Lỗi cập nhật: ' + error.message); setSaving(false); return; }
     } else {
       const { data, error } = await supabase.from('theories').insert({
         title: form.title, description: form.description || null,
         type: form.type, url: form.url, file_name: form.file_name || null,
+        category: form.category,
         created_by: profile?.id,
-      }).select().single();
+      } as any).select().single();
 
       if (error || !data) { toast.error('Lỗi tạo mới: ' + (error?.message ?? '')); setSaving(false); return; }
       theoryId = data.id;
