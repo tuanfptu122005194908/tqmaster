@@ -478,6 +478,7 @@ export default function AdminTheory() {
                     onChange={(url) => setForm(p => ({ ...p, url }))}
                     onFileNameChange={(name) => setForm(p => ({ ...p, file_name: name || p.file_name }))}
                     accept="*/*"
+                    maxSizeMB={50}
                     preview="file"
                     label="Tải file tài liệu"
                   />
