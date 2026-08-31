@@ -1,4 +1,11 @@
 export { default as HeroScene } from './HeroScene';
+export { default as FptPanoViewer } from './FptPanoViewer';
+export { default as FptCampusScene } from './FptCampusScene';
+export { default as AlphaBuilding } from './AlphaBuilding';
+export { default as FptSign3D } from './FptSign3D';
+export { default as CampusGround } from './CampusGround';
+export { default as CampusSky } from './CampusSky';
+export { default as TourHotspots } from './TourHotspots';
 export { default as FloatingParticles } from './FloatingParticles';
 export { default as FloatingBooks } from './FloatingBooks';
 export { default as OrbitalRings } from './OrbitalRings';
