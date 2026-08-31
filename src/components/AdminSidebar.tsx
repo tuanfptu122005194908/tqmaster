@@ -12,7 +12,7 @@ const NAV = [
   { key: 'admin-subjects',      label: 'Môn học',     icon: BookOpen },
   { key: 'admin-exams',         label: 'Đề thi',      icon: FileText },
   { key: 'admin-exam-stats',    label: 'Thống kê đáp án', icon: BarChart2 },
-  { key: 'admin-theory',        label: 'Lý thuyết',   icon: Library },
+  { key: 'admin-theory',        label: 'Lý thuyết & PE / Video', icon: Library },
   { key: 'admin-reports',       label: 'Báo cáo lỗi', icon: MessageSquareWarning },
   { key: 'admin-chat',          label: 'Chat Support', icon: MessageCircle },
   { key: 'admin-announcements', label: 'Thông báo',   icon: Bell },
