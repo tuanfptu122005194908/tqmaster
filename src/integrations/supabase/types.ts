@@ -913,6 +913,7 @@ export type Database = {
       }
       theories: {
         Row: {
+          category: string
           created_at: string
           created_by: string | null
           description: string | null
@@ -925,6 +926,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          category?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -937,6 +939,7 @@ export type Database = {
           url: string
         }
         Update: {
+          category?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
