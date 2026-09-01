@@ -128,9 +128,9 @@ export const TABLE_SCHEMAS: TableSchema[] = [
     importable: true,
     importOrder: 9,
     conflictColumns: 'id',
-    columns: ['id', 'code', 'discount_type', 'value', 'is_active', 'max_uses', 'used_count', 'expires_at', 'created_at'],
+    columns: ['id', 'code', 'discount_type', 'value', 'min_order_value', 'is_active', 'max_uses', 'used_count', 'expires_at', 'created_at'],
     requiredColumns: ['code', 'value'],
-    sampleRow: { code: 'SAVE20', discount_type: 'percent', value: 20, is_active: true, max_uses: 100 },
+    sampleRow: { code: 'SAVE20', discount_type: 'percent', value: 20, min_order_value: 200000, is_active: true, max_uses: 100, expires_at: '2026-12-31T23:59:59Z' },
   },
   // ── Nhóm Giao dịch (Chỉ Export, không Import) ────────
   {

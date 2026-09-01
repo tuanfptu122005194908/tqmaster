@@ -189,16 +189,17 @@ CREATE TABLE public.news_comments (
 -- 6. E-COMMERCE (ORDERS, CODES)
 -- =========================================
 CREATE TABLE public.discount_codes (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code          TEXT NOT NULL UNIQUE,
-  discount_type TEXT NOT NULL DEFAULT 'percent' CHECK (discount_type IN ('percent', 'fixed')),
-  value         NUMERIC(12,2) NOT NULL,
-  max_uses      INT,
-  used_count    INT NOT NULL DEFAULT 0,
-  expires_at    TIMESTAMPTZ,
-  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-  created_by    UUID REFERENCES public.profiles(id),
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code            TEXT NOT NULL UNIQUE,
+  discount_type   TEXT NOT NULL DEFAULT 'percent' CHECK (discount_type IN ('percent', 'fixed')),
+  value           NUMERIC(12,2) NOT NULL,
+  min_order_value NUMERIC(12,2) DEFAULT NULL,
+  max_uses        INT,
+  used_count      INT NOT NULL DEFAULT 0,
+  expires_at      TIMESTAMPTZ,
+  is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+  created_by      UUID REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE public.orders (

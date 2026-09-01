@@ -106,13 +106,16 @@ Deno.serve(async (req) => {
     if (couponCode) {
       const { data: c } = await admin
         .from('discount_codes')
-        .select('id, code, discount_type, value, max_uses, used_count, expires_at, is_active')
+        .select('id, code, discount_type, value, max_uses, used_count, expires_at, is_active, min_order_value')
         .eq('code', couponCode)
         .eq('is_active', true)
         .maybeSingle();
-      if (!c) return json({ error: 'Mã giảm giá không hợp lệ' }, 400);
-      if (c.max_uses != null && c.used_count >= c.max_uses) return json({ error: 'Mã đã hết lượt' }, 400);
-      if (c.expires_at && new Date(c.expires_at) < new Date()) return json({ error: 'Mã đã hết hạn' }, 400);
+      if (!c) return json({ error: 'Mã giảm giá không hợp lệ hoặc đã bị khóa' }, 400);
+      if (c.max_uses != null && c.used_count >= c.max_uses) return json({ error: 'Mã giảm giá đã hết lượt sử dụng' }, 400);
+      if (c.expires_at && new Date(c.expires_at) < new Date()) return json({ error: 'Mã giảm giá đã hết hạn sử dụng' }, 400);
+      if (c.min_order_value != null && originalAmount < Number(c.min_order_value)) {
+        return json({ error: `Đơn hàng tối thiểu ${Number(c.min_order_value).toLocaleString('vi-VN')}đ để áp dụng mã này` }, 400);
+      }
 
       const v = Number(c.value);
       if (c.discount_type === 'percent') {

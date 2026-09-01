@@ -82,20 +82,39 @@ export default function CartPage() {
 
   const subtotal = displayCart.reduce((sum, i) => sum + (Number(i?.price) || 0), 0);
   const discount = coupon
-    ? coupon.discount_type === 'percent'
-      ? Math.floor(subtotal * Number(coupon.value) / 100)
-      : Math.min(subtotal, Number(coupon.value))
+    ? (coupon.min_order_value && subtotal < Number(coupon.min_order_value))
+      ? 0
+      : coupon.discount_type === 'percent'
+        ? Math.floor(subtotal * Number(coupon.value) / 100)
+        : Math.min(subtotal, Number(coupon.value))
     : 0;
   const total = subtotal - discount;
+
+  // If subtotal falls below min_order_value, auto-remove coupon with notice
+  useEffect(() => {
+    if (coupon && coupon.min_order_value && subtotal < Number(coupon.min_order_value)) {
+      setCouponError(`Đơn hàng (${formatPrice(subtotal)}) không đủ điều kiện tối thiểu ${formatPrice(Number(coupon.min_order_value))} của mã ${coupon.code}`);
+      setCoupon(null);
+    }
+  }, [subtotal, coupon]);
 
   const applyCoupon = async () => {
     setCouponError('');
     if (!couponCode.trim()) return;
     const { data } = await supabase.from('discount_codes')
       .select('*').eq('code', couponCode.toUpperCase()).eq('is_active', true).single();
-    if (!data) { setCouponError('Mã không tồn tại hoặc đã hết hạn'); setCoupon(null); return; }
+    if (!data) { setCouponError('Mã không tồn tại hoặc đã bị khóa'); setCoupon(null); return; }
     if (data.max_uses && data.used_count >= data.max_uses) { setCouponError('Mã đã hết lượt sử dụng'); setCoupon(null); return; }
-    if (data.expires_at && new Date(data.expires_at) < new Date()) { setCouponError('Mã đã hết hạn'); setCoupon(null); return; }
+    if (data.expires_at && new Date(data.expires_at) < new Date()) { 
+      setCouponError(`Mã đã hết hạn sử dụng (${new Date(data.expires_at).toLocaleDateString('vi-VN')})`); 
+      setCoupon(null); 
+      return; 
+    }
+    if (data.min_order_value && subtotal < Number(data.min_order_value)) {
+      setCouponError(`Đơn hàng phải từ ${formatPrice(Number(data.min_order_value))} trở lên để sử dụng mã này (hiện tại: ${formatPrice(subtotal)})`);
+      setCoupon(null);
+      return;
+    }
     setCoupon(data);
   };
 
@@ -571,9 +590,26 @@ export default function CartPage() {
                 </div>
                 {couponError && <p style={{ fontSize: '0.75rem', color: 'hsl(var(--danger))', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}><X size={12} /> {couponError}</p>}
                 {coupon && (
-                  <p style={{ fontSize: '0.8125rem', color: 'hsl(var(--success))', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
-                    <CheckCircle2 size={14} /> Áp dụng thành công! Giảm {coupon.discount_type === 'percent' ? `${coupon.value}%` : formatPrice(Number(coupon.value))}
-                  </p>
+                  <div style={{
+                    marginTop: 8,
+                    padding: '8px 12px',
+                    background: 'hsl(var(--success-light, #dcfce7))',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                  }}>
+                    <p style={{ fontSize: '0.8125rem', color: '#15803d', margin: 0, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}>
+                      <CheckCircle2 size={15} /> Áp dụng thành công! Giảm {coupon.discount_type === 'percent' ? `${coupon.value}%` : formatPrice(Number(coupon.value))}
+                    </p>
+                    {(coupon.min_order_value || coupon.expires_at) && (
+                      <div style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 2 }}>
+                        {coupon.min_order_value ? <span>• Đơn tối thiểu: <strong>{formatPrice(Number(coupon.min_order_value))}</strong></span> : null}
+                        {coupon.expires_at ? <span>• Hạn dùng: <strong>{new Date(coupon.expires_at).toLocaleDateString('vi-VN')}</strong></span> : null}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
