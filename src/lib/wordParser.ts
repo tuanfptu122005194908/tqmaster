@@ -9,6 +9,8 @@
  *  - <img src="data:..."> inline images mapped to correct question/option
  */
 
+import { matchOptionLine } from './markdownExamParser';
+
 export interface ParsedOption {
   label: string;       // 'A' | 'B' | 'C' | 'D' | ...
   content: string;
@@ -100,8 +102,8 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
   }
 
   // --- Regex patterns ---
+  // Question marker regex
   const QUESTION_RE = /^(?:câu\s+|cau\s+)?(\d+)[.:)]\s*(.*)/i;
-  const OPTION_RE   = /^([A-Ha-h])[.)]\s*(.*)/;
   const ANSWER_RE   = /^(?:đáp án|answer)\s*[:.\s]\s*(.*)/i;
   const CHAPTER_RE  = /^(?:#+|\[)?\s*(chương\s+\S[^\]\n]*)/i;
 
@@ -136,21 +138,23 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
     }
   };
 
-  for (const line of lines) {
+  for (let lIdx = 0; lIdx < lines.length; lIdx++) {
+    const line = lines[lIdx];
     const { text, imgBefore } = line;
+    const trimmed = text.trim();
 
     // Skip answer lines
-    if (ANSWER_RE.test(text)) continue;
+    if (ANSWER_RE.test(trimmed)) continue;
 
     // Chapter marker
-    const chapM = CHAPTER_RE.exec(text);
-    if (chapM && !QUESTION_RE.test(text)) {
+    const chapM = CHAPTER_RE.exec(trimmed);
+    if (chapM && !QUESTION_RE.test(trimmed)) {
       currentChapter = chapM[1].replace(/\]$/, '').trim();
       continue;
     }
 
     // Question marker
-    const qM = QUESTION_RE.exec(text);
+    const qM = QUESTION_RE.exec(trimmed);
     if (qM) {
       pushCur();
       qNum++;
@@ -169,18 +173,33 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
     }
 
     // Option marker
-    const optM = OPTION_RE.exec(text);
-    if (optM && cur) {
+    const optMatch = matchOptionLine(trimmed);
+    let isOpt = false;
+    if (optMatch && cur) {
+      if (optMatch.isDefinite) {
+        isOpt = true;
+      } else if (inOption && ['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
+        isOpt = true;
+      } else if (optMatch.label === 'A') {
+        const subsequentHasB = lines.slice(lIdx + 1, lIdx + 15).some(sub => {
+          const sm = matchOptionLine(sub.text.trim());
+          return sm && sm.label === 'B';
+        });
+        if (subsequentHasB) isOpt = true;
+      }
+    }
+
+    if (isOpt && optMatch && cur) {
       // finalize previous option
       if (inOption && cur.options.length > 0) {
         cur.options[cur.options.length - 1].content =
           cur.options[cur.options.length - 1].content.trim();
       }
-      currentOptLabel = optM[1].toUpperCase();
+      currentOptLabel = optMatch.label;
       inOption = true;
       cur.options.push({
         label: currentOptLabel,
-        content: optM[2] || '',
+        content: optMatch.content || '',
         imageDataUrl: imgBefore,
       });
       continue;

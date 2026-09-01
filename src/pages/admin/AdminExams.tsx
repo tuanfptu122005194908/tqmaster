@@ -31,48 +31,13 @@ function parseQuestions(text: string): Array<{
   options: Array<{ label: string; content: string }>;
   correctAnswers: string[];
 }> {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const questions: ReturnType<typeof parseQuestions> = [];
-  let cur: (typeof questions)[0] | null = null;
-  let currentChapter = 'Tổng hợp';
-
-  const answerLine = lines.find(l => /^(đáp án|answer)[:\s]/i.test(l));
-  const answerMap: Record<number, string[]> = {};
-  if (answerLine) {
-    const tokens = answerLine.replace(/^(đáp án|answer)[:\s]*/i, '').trim().split(/\s+/);
-    tokens.forEach(tok => {
-      const m = tok.match(/^(\d+)([A-Za-z]+)$/);
-      if (m) answerMap[parseInt(m[1])] = m[2].toUpperCase().split('');
-    });
-  }
-
-  let qNum = 0;
-  for (const line of lines) {
-    if (/^(đáp án|answer)[:\s]/i.test(line)) continue;
-
-    const chapMatch = line.match(/^(?:#+|\[)?\s*(chương\s+\d+[^\]\n]*)/i);
-    if (chapMatch && !line.match(/^(?:câu\s+)?\d+[.:)]/i)) {
-      currentChapter = chapMatch[1].replace(/\]$/, '').trim();
-      continue;
-    }
-
-    const qMatch = line.match(/^(?:câu\s+)?(\d+)[.:)]\s*(.*)/i);
-    if (qMatch) {
-      if (cur) questions.push(cur);
-      qNum++;
-      cur = { content: qMatch[2] || '', chapter_name: currentChapter, options: [], correctAnswers: answerMap[qNum] ?? [] };
-      continue;
-    }
-    const optMatch = line.match(/^([A-Za-z])(?:[.)]+\s+(.*)|\s*$)/);
-    if (optMatch && cur) {
-      cur.options.push({ label: optMatch[1].toUpperCase(), content: optMatch[2] || '' });
-      continue;
-    }
-    if (cur && !cur.content) cur.content += '\n' + line;
-    else if (cur && cur.content) cur.content += '\n' + line;
-  }
-  if (cur) questions.push(cur);
-  return questions;
+  const parsed = parseMarkdownExam(text);
+  return parsed.questions.map(q => ({
+    content: q.content,
+    chapter_name: q.chapterName || 'Tổng hợp',
+    options: q.options.map(o => ({ label: o.label, content: o.content })),
+    correctAnswers: q.correctAnswers,
+  }));
 }
 
 export default function AdminExams() {

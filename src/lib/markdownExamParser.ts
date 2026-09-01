@@ -78,6 +78,51 @@ export function extractAnswerLabels(text: string): string[] {
 }
 
 /**
+ * Detect option markers in a line.
+ * Supports:
+ * - Bold/Italic with punctuation inside/outside: **A.**, **A)**, **A:**, **A**, *A.*, *A*, _A._, **A**.
+ * - Parentheses/Brackets: (A), [A], (A):, (A).
+ * - Plain letter with punctuation/dash: A., A), A:, A -, A–, A—
+ * - Bare letter: A (iii), A 2, A All values..., A
+ */
+export function matchOptionLine(trimmed: string): { label: string; content: string; isDefinite: boolean } | null {
+  if (!trimmed) return null;
+
+  // 1. Markdown bold/italic with punctuation inside or outside:
+  // e.g. **A.**, **A:**, **A)**, **A**, *A.*, *A*, _A._, **A**.
+  let m = trimmed.match(/^(?:\*{1,2}|_{1,2})([A-Ha-h])(?:[.):-](?:\*{1,2}|_{1,2})|(?:\*{1,2}|_{1,2})[.):-]|\*{1,2}|_{1,2})(?:\s+(.*)|\s*$)/);
+  if (m) {
+    return { label: m[1].toUpperCase(), content: (m[2] || '').trim(), isDefinite: true };
+  }
+
+  // 2. Parenthesized or bracketed:
+  // e.g. (A), [A], (A):, (A).
+  m = trimmed.match(/^(?:\(([A-Ha-h])\)|\[([A-Ha-h])\])[.):-]?(?:\s+(.*)|\s*$)/);
+  if (m) {
+    return { label: (m[1] || m[2]).toUpperCase(), content: (m[3] || '').trim(), isDefinite: true };
+  }
+
+  // 3. Plain letter with punctuation / dash:
+  // e.g. A., A), A:, A -
+  m = trimmed.match(/^([A-Ha-h])(?:\s*[-–—]|[.):])(?:\s+(.*)|\s*$)/);
+  if (m) {
+    return { label: m[1].toUpperCase(), content: (m[2] || '').trim(), isDefinite: true };
+  }
+
+  // 4. Bare letter without punctuation:
+  // e.g. A (iii), A 2, A All c values..., or just A on its own line
+  m = trimmed.match(/^([A-Ha-h])(?:\s+(.*)|\s*$)/);
+  if (m) {
+    return { label: m[1].toUpperCase(), content: (m[2] || '').trim(), isDefinite: false };
+  }
+
+  return null;
+}
+
+// Words that commonly start an English sentence with article 'A' or 'An' (e.g. "A ball is thrown")
+const englishArticleWords = /^(?:ball|car|particle|object|function|subset|set|matrix|vector|system|point|plane|line|curve|body|box|block|cylinder|circle|triangle|solid|wire|rod|person|man|woman|student|company|factory|bag|urn|die|coin|card|fair|random|real|constant|linear|continuous|differentiable|given|certain|sample|simple|single|standard|small|large|positive|negative|non-negative|non-zero|closed|open|bounded|finite|infinite|tree|graph|node|vertex|edge|table|row|column|sequence|series|polynomial|root|fraction|number|prime|rate|ratio|score|method|test|rule|formula|theorem|lemma|definition|problem|model|signal|field|force|mass|spring|pendulum|tank|pipe|current|voltage|circuit|charge|proton|electron|atom|molecule|gas|liquid|fluid|wave|beam|light|ray|sound)\b/i;
+
+/**
  * Parse a raw markdown string into structured exam data
  */
 export function parseMarkdownExam(
@@ -133,23 +178,6 @@ export function parseMarkdownExam(
     title = cleanFilename || 'Đề thi mới';
   }
 
-  const questions: ParsedExamQuestion[] = [];
-  let currentQuestion: {
-    orderNum: number;
-    chapterName: string;
-    contentLines: string[];
-    options: ParsedExamOption[];
-    correctAnswers: string[];
-  } | null = null;
-
-  let currentChapter = 'Tổng hợp';
-  let currentSection: 'question' | 'option' | 'answer' | 'explanation' = 'question';
-  let currentOption: {
-    label: string;
-    contentLines: string[];
-    isCorrect: boolean;
-  } | null = null;
-
   // Standalone global answer map if present (e.g. "Đáp án: 1A 2B 3CD" or table)
   const globalAnswerMap: Record<number, string[]> = {};
   for (const line of lines) {
@@ -165,60 +193,27 @@ export function parseMarkdownExam(
     }
   }
 
-  function finalizeOption() {
-    if (currentOption && currentQuestion) {
-      const content = currentOption.contentLines.join('\n').trim();
-      currentQuestion.options.push({
-        label: currentOption.label,
-        content,
-        isCorrect: currentOption.isCorrect,
-      });
-      currentOption = null;
-    }
-  }
-
-  function finalizeQuestion() {
-    if (currentQuestion) {
-      finalizeOption();
-      const content = currentQuestion.contentLines.join('\n').trim();
-
-      if (stripAnswers) {
-        currentQuestion.correctAnswers = [];
-      } else if (currentQuestion.correctAnswers.length === 0 && globalAnswerMap[currentQuestion.orderNum]) {
-        currentQuestion.correctAnswers = globalAnswerMap[currentQuestion.orderNum];
-      }
-
-      // Mark isCorrect on options
-      for (const opt of currentQuestion.options) {
-        opt.isCorrect = !stripAnswers && currentQuestion.correctAnswers.includes(opt.label);
-      }
-
-      questions.push({
-        orderNum: currentQuestion.orderNum,
-        content,
-        chapterName: currentQuestion.chapterName,
-        options: currentQuestion.options,
-        correctAnswers: stripAnswers ? [] : currentQuestion.correctAnswers,
-      });
-
-      currentQuestion = null;
-      currentSection = 'question';
-    }
-  }
-
-  // Regex for Option marker:
-  // Matches "A.", "**A.**", "A)", "**A)**", "A:", "**A:**", "(A)", "[A]", "*A.*", "_A._"
-  const optionRegex = /^(?:(?:\*{1,2}|_{1,2})?([A-Ha-h])(?:\*{1,2}|_{1,2})?[.):]|\(([A-Ha-h])\)|\[([A-Ha-h])\]|(?:\*{1,2}|_{1,2})([A-Ha-h])(?:\*{1,2}|_{1,2})[:.]?)\s+(.*)$/;
-
   // Regex for Answer line prefix:
   const ansPrefixRegex = /^(?:>\s*)?\*{0,2}(?:đáp án|dap an|answer|key)\*{0,2}[:\s-]*(.*)$/i;
 
   // Regex for Explanation header (locks answers to prevent overwrites):
   const explanationHeaderRegex = /^(?:>\s*)?\*{0,2}(?:giải thích|giai thich|explanation)\*{0,2}[:\s-]*(.*)$/i;
 
-  let lineIdx = firstQuestionLineIdx !== -1 ? firstQuestionLineIdx : 0;
-  for (; lineIdx < lines.length; lineIdx++) {
-    const line = lines[lineIdx];
+  // Split into raw question chunks
+  interface RawQuestionBlock {
+    orderNum: number;
+    chapterName: string;
+    headerText: string;
+    lines: string[];
+  }
+
+  const rawQuestions: RawQuestionBlock[] = [];
+  let currentRaw: RawQuestionBlock | null = null;
+  let currentChapter = 'Tổng hợp';
+
+  const startIdx = firstQuestionLineIdx !== -1 ? firstQuestionLineIdx : 0;
+  for (let i = startIdx; i < lines.length; i++) {
+    const line = lines[i];
     const trimmed = line.trim();
 
     // Check for chapter header
@@ -231,95 +226,161 @@ export function parseMarkdownExam(
     // Check for question header e.g. "**Câu 1.**", "Câu 1:", "### Câu 1."
     const qMatch = trimmed.match(/^(?:#{1,6}\s+)?\*{0,2}(?:câu|cau|question)\s*(\d+)[.:)\s-]\*{0,2}\s*(.*)/i);
     if (qMatch) {
-      finalizeQuestion();
-      const qNum = parseInt(qMatch[1], 10);
-      const initialContent = qMatch[2] ? qMatch[2].replace(/^\*{0,2}\.?\s*/, '').trim() : '';
-      currentQuestion = {
-        orderNum: qNum,
+      if (currentRaw) rawQuestions.push(currentRaw);
+      currentRaw = {
+        orderNum: parseInt(qMatch[1], 10),
         chapterName: currentChapter,
-        contentLines: initialContent ? [initialContent] : [],
-        options: [],
-        correctAnswers: [],
+        headerText: qMatch[2] ? qMatch[2].replace(/^\*{0,2}\.?\s*/, '').trim() : '',
+        lines: [],
       };
-      currentSection = 'question';
       continue;
     }
 
-    if (!currentQuestion) continue;
-
-    // Horizontal separator
-    if (/^[-*_]{3,}\s*$/.test(trimmed)) {
-      finalizeOption();
-      currentSection = 'question';
-      continue;
+    if (currentRaw) {
+      currentRaw.lines.push(line);
     }
+  }
+  if (currentRaw) rawQuestions.push(currentRaw);
 
-    // Check for explicit "Đáp án:" line
-    const ansMatch = trimmed.match(ansPrefixRegex);
-    if (ansMatch) {
-      finalizeOption();
-      currentSection = 'answer';
-      const rest = ansMatch[1].trim();
-      if (rest) {
-        const labels = extractAnswerLabels(rest);
-        if (labels.length > 0) {
-          currentQuestion.correctAnswers = labels;
-        }
+  const questions: ParsedExamQuestion[] = [];
+
+  for (const rq of rawQuestions) {
+    const qNum = rq.orderNum;
+    let contentLines = rq.headerText ? [rq.headerText] : [];
+    const optionsList: { label: string; content: string }[] = [];
+    let correctAnswers: string[] = [];
+    let curOpt: { label: string; contentLines: string[] } | null = null;
+    let currentSection: 'question' | 'option' | 'answer' | 'explanation' = 'question';
+
+    function flushOpt() {
+      if (curOpt) {
+        optionsList.push({
+          label: curOpt.label,
+          content: curOpt.contentLines.join('\n').trim(),
+        });
+        curOpt = null;
       }
-      continue;
     }
 
-    // Check for Explanation header (locks answers)
-    if (explanationHeaderRegex.test(trimmed)) {
-      finalizeOption();
-      currentSection = 'explanation';
-      continue;
-    }
+    for (let idx = 0; idx < rq.lines.length; idx++) {
+      const line = rq.lines[idx];
+      const trimmed = line.trim();
 
-    // If already in explanation section, skip processing lines as options or answers
-    if (currentSection === 'explanation') {
-      continue;
-    }
-
-    // Check for option marker
-    if (currentSection !== 'answer') {
-      const optMatch = trimmed.match(optionRegex);
-      if (optMatch) {
-        finalizeOption();
-        currentSection = 'option';
-        const label = (optMatch[1] || optMatch[2] || optMatch[3] || optMatch[4]).toUpperCase();
-        const optContent = optMatch[5] ? optMatch[5].trim() : '';
-        currentOption = {
-          label,
-          contentLines: optContent ? [optContent] : [],
-          isCorrect: false,
-        };
+      // Horizontal separator
+      if (/^[-*_]{3,}\s*$/.test(trimmed)) {
+        flushOpt();
+        currentSection = 'question';
         continue;
       }
-    }
 
-    // Accumulate lines based on active section
-    if (currentSection === 'option' && currentOption) {
-      currentOption.contentLines.push(line);
-    } else if (currentSection === 'question' && currentQuestion) {
-      currentQuestion.contentLines.push(line);
-    } else if (currentSection === 'answer' && currentQuestion) {
-      // If answer line didn't contain labels on same line, look for standalone list/bullet answers
-      if (currentQuestion.correctAnswers.length === 0) {
-        const listAnsMatch = trimmed.match(
-          /^(?:>\s*)?(?:-\s*)?(?:câu\s*\d+[:\s]*)?\*{0,2}([A-Ha-h](?:\s*[,&/+\s]\s*[A-Ha-h])*)\*{0,2}\s*$/i
-        );
-        if (listAnsMatch) {
-          const labels = extractAnswerLabels(listAnsMatch[1]);
-          if (labels.length > 0) {
-            currentQuestion.correctAnswers = labels;
+      // Check for explicit "Đáp án:" line
+      const ansMatch = trimmed.match(ansPrefixRegex);
+      if (ansMatch) {
+        flushOpt();
+        currentSection = 'answer';
+        const rest = ansMatch[1].trim();
+        if (rest) {
+          const labels = extractAnswerLabels(rest);
+          if (labels.length > 0) correctAnswers = labels;
+        }
+        continue;
+      }
+
+      // Check for Explanation header (locks answers)
+      if (explanationHeaderRegex.test(trimmed)) {
+        flushOpt();
+        currentSection = 'explanation';
+        continue;
+      }
+
+      // If already in explanation section, skip processing lines as options or answers
+      if (currentSection === 'explanation') {
+        continue;
+      }
+
+      if (currentSection === 'answer') {
+        if (correctAnswers.length === 0) {
+          const listAnsMatch = trimmed.match(
+            /^(?:>\s*)?(?:-\s*)?(?:câu\s*\d+[:\s]*)?\*{0,2}([A-Ha-h](?:\s*[,&/+\s]\s*[A-Ha-h])*)\*{0,2}\s*$/i
+          );
+          if (listAnsMatch) {
+            const labels = extractAnswerLabels(listAnsMatch[1]);
+            if (labels.length > 0) correctAnswers = labels;
+          }
+        }
+        continue;
+      }
+
+      // Check for option marker
+      const optMatch = matchOptionLine(trimmed);
+      let isValidOption = false;
+
+      if (optMatch) {
+        if (optMatch.isDefinite) {
+          isValidOption = true;
+        } else if (currentSection === 'option' && curOpt) {
+          // Inside option section already, any bare B-H is a subsequent option
+          if (['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
+            isValidOption = true;
+          }
+        } else if (optMatch.label === 'A') {
+          // Starting option A without punctuation
+          // Find subsequent candidate lines in this question
+          const subMatches = rq.lines
+            .slice(idx + 1)
+            .map(subL => matchOptionLine(subL.trim()))
+            .filter(Boolean);
+          const hasB = subMatches.some(m => m && m.label === 'B');
+          const hasC = subMatches.some(m => m && m.label === 'C');
+
+          if (hasB && hasC) {
+            // If both B and C follow, this is definitely the option list
+            isValidOption = true;
+          } else if (hasB && !englishArticleWords.test(optMatch.content)) {
+            // If only B follows (e.g. 2-choice question) and it doesn't look like an English article start
+            isValidOption = true;
           }
         }
       }
-    }
-  }
 
-  finalizeQuestion();
+      if (isValidOption && optMatch) {
+        flushOpt();
+        currentSection = 'option';
+        curOpt = {
+          label: optMatch.label,
+          contentLines: optMatch.content ? [optMatch.content] : [],
+        };
+      } else {
+        if (currentSection === 'option' && curOpt) {
+          curOpt.contentLines.push(line);
+        } else {
+          contentLines.push(line);
+        }
+      }
+    }
+
+    flushOpt();
+
+    if (stripAnswers) {
+      correctAnswers = [];
+    } else if (correctAnswers.length === 0 && globalAnswerMap[qNum]) {
+      correctAnswers = globalAnswerMap[qNum];
+    }
+
+    const finalOptions: ParsedExamOption[] = optionsList.map(o => ({
+      label: o.label,
+      content: o.content,
+      isCorrect: !stripAnswers && correctAnswers.includes(o.label),
+    }));
+
+    questions.push({
+      orderNum: qNum,
+      content: contentLines.join('\n').trim(),
+      chapterName: rq.chapterName,
+      options: finalOptions,
+      correctAnswers: stripAnswers ? [] : correctAnswers,
+    });
+  }
 
   // Normalize order numbers
   questions.forEach((q, idx) => {
