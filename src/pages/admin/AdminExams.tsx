@@ -4,10 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
 import { sortExams } from '@/lib/utils';
-import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText, Upload, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, Pencil, Search, AlertTriangle, FileText, Upload, Eye, EyeOff, FileArchive, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { RichContent } from '@/components/exam/RichContent';
 import { parseHtmlToQuestions, type ParsedQuestion } from '@/lib/wordParser';
+import { parseMarkdownExam } from '@/lib/markdownExamParser';
+import { BulkExamZipModal } from '@/components/admin/BulkExamZipModal';
 import { batchUploadImages } from '@/lib/imageUpload';
 
 type Exam    = Tables<'exams'>;
@@ -85,6 +87,7 @@ export default function AdminExams() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [showForm, setShowForm] = useState(false);
+  const [showZipModal, setShowZipModal] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', duration_min: 60, subject_ids: [] as string[], is_active: true });
 
   const [importText,  setImportText]  = useState('');
@@ -221,15 +224,36 @@ export default function AdminExams() {
   const handleWordUpload = async (file: File) => {
     const isTxt = file.name.endsWith('.txt');
     const isDocx = file.name.endsWith('.docx');
-    if (!isDocx && !isTxt) {
-      toast.error('Chỉ hỗ trợ file .docx hoặc .txt. Hãy lưu file đúng định dạng rồi thử lại.');
+    const isMd = file.name.endsWith('.md') || file.name.endsWith('.markdown');
+    if (!isDocx && !isTxt && !isMd) {
+      toast.error('Chỉ hỗ trợ file .docx, .txt hoặc .md. Hãy lưu file đúng định dạng rồi thử lại.');
       return;
     }
     setWordUploading(true);
     setParsedPreview(null);
-    setImportPhase(isTxt ? 'Đang đọc file .txt...' : 'Đang đọc file Word...');
+    setImportPhase(isMd ? 'Đang đọc file Markdown (.md)...' : isTxt ? 'Đang đọc file .txt...' : 'Đang đọc file Word...');
     try {
-      if (isTxt) {
+      if (isMd) {
+        const text = await file.text();
+        setImportPhase('Đang phân tích cấu trúc đề thi Markdown...');
+        const parsedExam = parseMarkdownExam(text, file.name);
+        if (parsedExam.questions.length === 0) {
+          toast.error('Không nhận diện được câu hỏi nào từ file Markdown.');
+          return;
+        }
+        const parsed: ParsedQuestion[] = parsedExam.questions.map(q => ({
+          orderNum: q.orderNum,
+          content: q.content,
+          chapterName: q.chapterName,
+          imageDataUrl: null,
+          extraImageDataUrls: [],
+          options: q.options.map(o => ({ label: o.label, content: o.content, imageDataUrl: null })),
+          correctAnswers: q.correctAnswers,
+        }));
+        setParsedPreview(parsed);
+        const ansCount = parsed.filter(q => q.correctAnswers.length > 0).length;
+        toast.success(`Nhận diện được ${parsed.length} câu hỏi (${ansCount} câu có đáp án) từ file Markdown.`);
+      } else if (isTxt) {
         // Read as plain text then use existing parseQuestions
         const text = await file.text();
         setImportPhase('Đang nhận diện câu hỏi...');
@@ -548,17 +572,31 @@ export default function AdminExams() {
             <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>Đề thi</h1>
             <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>{exams.length} đề thi hệ thống</p>
           </div>
-          <button
-            onClick={openCreate}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
-              border: 'none', borderRadius: 12, fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
-            }}
-          >
-            <Plus size={15} /> Tạo đề
-          </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <button
+              onClick={() => setShowZipModal(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '8px 12px',
+                background: '#eff6ff', color: '#2563eb',
+                border: '1px solid #dbeafe', borderRadius: 12, fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Tải hàng loạt đề thi từ file ZIP (.md)"
+            >
+              <FileArchive size={14} /> Nhập ZIP
+            </button>
+            <button
+              onClick={openCreate}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5, padding: '8px 12px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
+                border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+              }}
+            >
+              <Plus size={14} /> Tạo đề
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -644,9 +682,27 @@ export default function AdminExams() {
       {/* Right — question management */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#f4f7fc' }}>
         {!selExam ? (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', flexDirection: 'column', gap: 12 }}>
-            <HelpCircle size={48} style={{ color: '#cbd5e1' }} />
-            <p style={{ fontWeight: 600, fontSize: 14 }}>Chọn đề thi bên trái để quản lý câu hỏi</p>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', flexDirection: 'column', gap: 16, padding: 32, textAlign: 'center' }}>
+            <div style={{ width: 68, height: 68, borderRadius: 22, background: '#edf5ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+              <FileArchive size={34} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>Chọn đề thi bên trái để quản lý câu hỏi</h3>
+              <p style={{ fontSize: 13, color: '#64748b', margin: 0, maxWidth: 420 }}>
+                Hoặc sử dụng tính năng tải đề thi hàng loạt cho môn học từ file ZIP chứa các file Markdown (.md)
+              </p>
+            </div>
+            <button
+              onClick={() => setShowZipModal(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
+                border: 'none', borderRadius: 14, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)'
+              }}
+            >
+              <Sparkles size={16} /> Tải đề thi hàng loạt từ file ZIP
+            </button>
           </div>
         ) : (
           <div style={{ flex: 1, overflowY: 'auto', padding: 32 }}>
@@ -705,7 +761,7 @@ export default function AdminExams() {
                   <input
                     ref={wordInputRef}
                     type="file"
-                    accept=".docx,.txt"
+                    accept=".docx,.txt,.md,.markdown"
                     style={{ display: 'none' }}
                     onChange={e => e.target.files?.[0] && handleWordUpload(e.target.files[0])}
                   />
@@ -726,11 +782,11 @@ export default function AdminExams() {
                     >
                       {wordUploading
                         ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {importPhase || 'Đang đọc...'}</>
-                        : <><Upload size={14} /> Tải file Word / TXT</>}
+                        : <><Upload size={14} /> Tải file Word / MD / TXT</>}
                     </button>
                     <div>
-                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Hỗ trợ file Word (.docx) và Text (.txt)</p>
-                      <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', marginTop: 2 }}>Định dạng: Câu 1: ... / A. ... / B. ... / C. ... / D. ... | Word: hỗ trợ ảnh + LaTeX</p>
+                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#15803d' }}>Hỗ trợ file Word (.docx), Markdown (.md) và Text (.txt)</p>
+                      <p style={{ margin: 0, fontSize: 11.5, color: '#64748b', marginTop: 2 }}>Định dạng: Câu 1: ... / A. ... / B. ... / C. ... / D. ... | Hỗ trợ ảnh + LaTeX + code blocks</p>
                     </div>
                   </div>
 
@@ -1107,6 +1163,32 @@ export default function AdminExams() {
             </div>
           </div>
         </>
+      )}
+
+      {showZipModal && (
+        <BulkExamZipModal
+          isOpen={showZipModal}
+          onClose={() => setShowZipModal(false)}
+          subjects={subjects}
+          initialSubjectId={
+            selExam
+              ? (exams.find(e => e.id === selExam.id)?.exam_subjects?.[0]?.subject_id || '')
+              : undefined
+          }
+          onSuccess={async (createdExamIds) => {
+            await fetchExams();
+            if (createdExamIds && createdExamIds.length > 0) {
+              const { data: firstExam } = await supabase
+                .from('exams')
+                .select('*')
+                .eq('id', createdExamIds[0])
+                .single();
+              if (firstExam) {
+                selectExam(firstExam);
+              }
+            }
+          }}
+        />
       )}
 
       <style>{`
