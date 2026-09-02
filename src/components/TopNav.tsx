@@ -79,17 +79,19 @@ export default function TopNav() {
             Khóa học
           </button>
 
-          <button 
-            style={{
-              border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
-              fontSize: 14, fontWeight: 700,
-              color: location.pathname === '/landing' ? '#2563eb' : '#475569',
-              transition: 'color 0.15s'
-            }}
-            onClick={() => navigate('/landing')}
-          >
-            Landing Page
-          </button>
+          {!profile && (
+            <button 
+              style={{
+                border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
+                fontSize: 14, fontWeight: 700,
+                color: location.pathname === '/landing' ? '#2563eb' : '#475569',
+                transition: 'color 0.15s'
+              }}
+              onClick={() => navigate('/landing')}
+            >
+              Landing Page
+            </button>
+          )}
 
           {profile && !isAdmin && (
             <button 
