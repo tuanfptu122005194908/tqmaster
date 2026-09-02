@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
 import { Bell, X, Sparkles } from 'lucide-react';
+import { renderRichText } from '@/lib/richText';
 
 interface Announcement {
   id: string;
@@ -204,8 +205,8 @@ export default function AnnouncementPopup() {
             />
           )}
           {ann.content && (
-            <p style={{ fontSize: '0.9375rem', color: 'hsl(var(--muted-fg))', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
-              {ann.content}
+            <p style={{ fontSize: '0.9375rem', color: 'hsl(var(--muted-fg))', lineHeight: 1.65 }}>
+              {renderRichText(ann.content)}
             </p>
           )}
         </div>
