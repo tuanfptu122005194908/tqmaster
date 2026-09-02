@@ -554,7 +554,7 @@ export default function AdminChat() {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        maxWidth: 140,
+                        maxWidth: isMobile ? '50vw' : 140,
                       }}>
                         {displayName}
                       </span>
@@ -582,7 +582,7 @@ export default function AdminChat() {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        maxWidth: 160,
+                        maxWidth: isMobile ? '55vw' : 160,
                       }}>
                         {conv.lastMessage ?? 'Chưa có tin nhắn'}
                       </span>
