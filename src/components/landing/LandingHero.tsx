@@ -19,7 +19,7 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
   };
 
   return (
-    <section className="relative min-h-[calc(100vh-72px)] flex items-center bg-white overflow-hidden pt-8 pb-16 lg:py-20">
+    <section className="relative min-h-[calc(100vh-72px)] flex items-center bg-white overflow-hidden pt-8 pb-16 lg:py-20 font-barlow">
       {/* Background Tech Elements: Dot Grid & Soft Radial Gradients */}
       <div
         className="absolute inset-0 pointer-events-none opacity-40"
@@ -100,30 +100,26 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
 
             {/* Micro Trust Stats */}
             <div className="pt-6 border-t border-slate-200/80 grid grid-cols-3 gap-4 sm:gap-6">
-              <div>
-                <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  10,000+
-                </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
-                  Exam Questions
-                </div>
-              </div>
-              <div>
-                <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  50+
-                </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
-                  FPT Specialized Packs
-                </div>
-              </div>
-              <div>
-                <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  99.6%
-                </div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5">
-                  Pass Rate
-                </div>
-              </div>
+              {[
+                { value: '10,000+', label: 'Exam Questions' },
+                { value: '50+', label: 'FPT Specialized Packs' },
+                { value: '99.6%', label: 'Pass Rate' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                  className="group"
+                >
+                  <div className="font-bebas text-3xl sm:text-4xl text-slate-900 tracking-wide group-hover:text-blue-600 transition-colors duration-300">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs text-slate-500 font-medium mt-0.5">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
 
