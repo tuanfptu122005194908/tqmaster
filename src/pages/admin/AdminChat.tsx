@@ -149,14 +149,16 @@ export default function AdminChat() {
   // ── Tải tin nhắn khi chọn conversation ───────────────────
   const selectConversation = useCallback(async (convId: string) => {
     setSelectedConvId(convId);
+    setShowListMobile(false);
     setLoadingMessages(true);
 
-    // Load messages
+    // Chỉ tải 100 tin nhắn gần nhất → nhanh hơn nhiều
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (error) {
       console.error('Error loading messages:', error);
@@ -164,25 +166,23 @@ export default function AdminChat() {
       return;
     }
 
-    setMessages(data ?? []);
+    setMessages((data ?? []).slice().reverse());
+    setLoadingMessages(false);
 
-    // Mark user messages as read
-    await supabase
-      .from('chat_messages')
-      .update({ is_read: true })
-      .eq('conversation_id', convId)
-      .eq('sender_role', 'user')
-      .eq('is_read', false);
-
-    // Cập nhật local state unread count
+    // Cập nhật local state unread count (không chặn UI)
     setConversations(prev =>
       prev.map(c => c.id === convId ? { ...c, unreadCount: 0 } : c)
     );
 
-    // Cập nhật global sidebar badge ngay lập tức
-    refreshUnreadChatCount();
+    // Mark user messages as read chạy nền
+    void supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('conversation_id', convId)
+      .eq('sender_role', 'user')
+      .eq('is_read', false)
+      .then(() => { refreshUnreadChatCount(); });
 
-    setLoadingMessages(false);
 
     // Cleanup old channel
     if (channelRef.current) {
