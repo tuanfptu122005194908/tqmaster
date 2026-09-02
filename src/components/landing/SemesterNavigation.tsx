@@ -371,19 +371,26 @@ export default function SemesterNavigation() {
             transition={{ duration: 0.25 }}
           >
             {/* Active Semester Summary Header */}
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 shadow-2xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <div className="text-xs font-extrabold text-blue-600 uppercase tracking-wider mb-0.5">
-                  SEMESTER OVERVIEW
+            <div className="relative overflow-hidden rounded-3xl p-6 sm:p-7 mb-8 border border-blue-100 shadow-xl shadow-blue-600/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+              {/* Giant watermark number */}
+              <div className="pointer-events-none select-none absolute -right-3 -bottom-8 font-bebas text-[9rem] leading-none text-white/10">
+                {String(selectedSemester).padStart(2, '0')}
+              </div>
+              <div className="absolute inset-0 opacity-25 pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)', backgroundSize: '22px 22px' }}
+              />
+              <div className="relative">
+                <div className="text-[11px] font-extrabold text-cyan-300 uppercase tracking-[0.2em] mb-1">
+                  Semester Overview
                 </div>
-                <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                <h3 className="font-bebas text-3xl sm:text-4xl text-white tracking-wide leading-none">
                   {currentData.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                <p className="text-sm text-blue-100/90 mt-1.5 max-w-xl">
                   {currentData.subtitle}
                 </p>
               </div>
-              <span className="text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+              <span className="relative text-xs font-bold text-white bg-white/15 backdrop-blur border border-white/25 px-3.5 py-2 rounded-xl self-start sm:self-auto whitespace-nowrap">
                 {currentData.courses.length} Core Subjects
               </span>
             </div>
@@ -396,20 +403,22 @@ export default function SemesterNavigation() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: idx * 0.08 }}
-                  className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                  className="relative bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-2xl hover:shadow-blue-600/10 hover:border-blue-300 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group overflow-hidden"
                 >
+                  {/* hover gradient edge */}
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div>
                     {/* Card Top */}
                     <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-xs font-black tracking-wider group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <span className="font-bebas px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-base tracking-widest group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">
                         {course.code}
                       </span>
-                      <span className="text-xs text-slate-400 font-semibold">
+                      <span className="text-xs text-slate-400 font-semibold tabular">
                         {course.questionCount}+ Questions
                       </span>
                     </div>
 
-                    <h4 className="text-lg font-black text-slate-900 tracking-tight mb-2">
+                    <h4 className="text-lg font-extrabold text-slate-900 tracking-tight mb-2">
                       {course.name}
                     </h4>
 
@@ -441,7 +450,7 @@ export default function SemesterNavigation() {
                     className="w-full py-2.5 rounded-xl text-xs font-bold text-blue-700 bg-blue-50/70 border border-blue-200/80 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all flex items-center justify-center gap-1.5 cursor-pointer group-hover:shadow-md"
                   >
                     <span>Access Complete Pack</span>
-                    <ArrowRight size={14} />
+                    <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
                   </button>
                 </motion.div>
               ))}

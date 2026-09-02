@@ -50,7 +50,7 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
 
             {/* Main Headline */}
             <div className="space-y-2">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.08]">
+              <h1 className="font-bebas text-6xl sm:text-7xl lg:text-[6.5rem] text-slate-900 tracking-wide leading-[0.92]">
                 STOP SEARCHING.
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600">
