@@ -30,6 +30,23 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
   });
 
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Khoá scroll nền khi mở chat toàn màn hình trên mobile
+  useEffect(() => {
+    if (isMobile && isOpen && !isMinimized) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [isMobile, isOpen, isMinimized]);
+
 
   useEffect(() => {
     const handleOpenWidget = () => {
