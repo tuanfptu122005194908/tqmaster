@@ -178,8 +178,9 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 6 }}>
-              {/* Maximize */}
+            <div style={{ display: 'flex', gap: isMobile ? 8 : 6 }}>
+              {/* Maximize (chỉ desktop) */}
+              {!isMobile && (
               <button
                 onClick={() => setIsMaximized(!isMaximized)}
                 title={isMaximized ? 'Thu nhỏ' : 'Phóng to'}
@@ -201,6 +202,8 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
               >
                 {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
               </button>
+              )}
+
               {/* Minimize */}
               <button
                 onClick={handleMinimize}
