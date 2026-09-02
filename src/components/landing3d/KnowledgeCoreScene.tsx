@@ -95,7 +95,6 @@ function SubjectNode({
           e.stopPropagation();
           onClick(node);
         }}
-        cursor="pointer"
       >
         <sphereGeometry args={[0.16, 24, 24]} />
         <meshPhysicalMaterial

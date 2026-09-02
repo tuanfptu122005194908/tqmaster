@@ -272,7 +272,6 @@ function GraphNode({
           onHover(node.id);
         }}
         onPointerOut={() => onHover(null)}
-        cursor="pointer"
       >
         <sphereGeometry args={[nodeRadius, 32, 32]} />
         <meshPhysicalMaterial
