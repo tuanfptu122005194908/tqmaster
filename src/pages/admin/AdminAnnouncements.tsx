@@ -5,6 +5,7 @@ import { useApp } from '@/lib/AppContext';
 import { formatDate } from '@/lib/mockData';
 import { Plus, Trash2, Pencil, X, Bell, BellOff, Loader2, Filter, Clock, BarChart2, Tag } from 'lucide-react';
 import FileUploader from '@/components/FileUploader';
+import { renderRichText } from '@/lib/richText';
 
 type Announcement = Tables<'announcements'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name'>;
@@ -242,7 +243,7 @@ export default function AdminAnnouncements() {
 
                 {ann.content && (
                   <p style={{ fontSize: 14, color: '#475569', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                    {ann.content}
+                    {renderRichText(ann.content)}
                   </p>
                 )}
 
@@ -302,7 +303,10 @@ export default function AdminAnnouncements() {
 
               <div>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Nội dung chi tiết</label>
-                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={4} placeholder="Nhập nội dung chi tiết thông báo..." style={{ ...inputStyle, resize: 'vertical' }} />
+                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={6} placeholder="Nhập nội dung chi tiết thông báo..." style={{ ...inputStyle, resize: 'vertical' }} />
+                <p style={{ fontSize: 12, color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.5 }}>
+                  Hỗ trợ: <code style={{ background: '#f1f5f9', padding: '1px 6px', borderRadius: 6 }}>**in đậm**</code>, <code style={{ background: '#f1f5f9', padding: '1px 6px', borderRadius: 6 }}>__gạch chân__</code>, dán link (https://...) sẽ tự thành link bấm được, emoji và xuống dòng giữ nguyên.
+                </p>
               </div>
 
               <div>
