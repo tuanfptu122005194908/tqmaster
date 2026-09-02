@@ -376,24 +376,30 @@ export default function AdminChat() {
 
   const selectedConv = conversations.find(c => c.id === selectedConvId);
 
+  const listVisible = !isMobile || showListMobile;
+  const panelVisible = !isMobile || !showListMobile;
+
   return (
     <div style={{
       display: 'flex',
-      height: '100%',
+      height: isMobile ? 'calc(100dvh - 64px)' : '100%',
+      minHeight: 0,
       fontFamily: "'Inter', -apple-system, sans-serif",
       background: '#f4f7fc',
     }}>
       {/* Left: Conversation List */}
       <div style={{
-        width: 300,
-        minWidth: 300,
+        width: isMobile ? '100%' : 300,
+        minWidth: isMobile ? 0 : 300,
         flexShrink: 0,
         background: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
-        display: 'flex',
+        borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+        display: listVisible ? 'flex' : 'none',
         flexDirection: 'column',
         height: '100%',
+        minHeight: 0,
       }}>
+
         {/* Header */}
         <div style={{
           padding: '20px 16px 14px',
