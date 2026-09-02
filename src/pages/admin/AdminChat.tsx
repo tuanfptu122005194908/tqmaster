@@ -671,15 +671,16 @@ export default function AdminChat() {
                 {(selectedConv.profile?.full_name || selectedConv.profile?.username || 'U').charAt(0).toUpperCase()}
               </div>
 
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {selectedConv.profile?.full_name || selectedConv.profile?.username || 'Người dùng'}
                 </div>
-                <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CheckCheck size={12} style={{ color: '#10b981' }} />
-                  {selectedConv.profile?.email}
+                <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <CheckCheck size={12} style={{ color: '#10b981', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedConv.profile?.email}</span>
                 </div>
               </div>
+
 
               {/* Action Buttons */}
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
