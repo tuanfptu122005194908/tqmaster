@@ -44,63 +44,54 @@ export default function AdminChat() {
 
   // ── Tải danh sách conversations ────────────────────────────
   const loadConversations = useCallback(async () => {
-    const { data: convs, error } = await supabase
-      .from('conversations')
-      .select('*')
-      .order('last_message_at', { ascending: false });
+    // 1 truy vấn duy nhất thay vì N*3 truy vấn → nhanh hơn rất nhiều
+    const { data, error } = await (supabase as any).rpc('get_admin_conversations');
 
     if (error) {
       console.error('Error loading conversations:', error);
-      return;
-    }
-
-    if (!convs || convs.length === 0) {
-      setConversations([]);
       setLoading(false);
       return;
     }
 
-    // Tải profile và unread count cho từng conversation
-    const enriched = await Promise.all(
-      convs.map(async (conv) => {
-        const [profileRes, unreadRes, lastMsgRes] = await Promise.all([
-          supabase
-            .from('profiles')
-            .select('id, full_name, username, email, avatar_url')
-            .eq('id', conv.user_id)
-            .maybeSingle(),
-          supabase
-            .from('chat_messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conv.id)
-            .eq('sender_role', 'user')
-            .eq('is_read', false),
-          supabase
-            .from('chat_messages')
-            .select('content')
-            .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+    const rows = (data ?? []) as Array<{
+      id: string;
+      user_id: string;
+      status: string;
+      last_message_at: string;
+      created_at: string;
+      full_name: string | null;
+      username: string | null;
+      email: string | null;
+      avatar_url: string | null;
+      unread_count: number;
+      last_message: string | null;
+      last_message_image: string | null;
+    }>;
 
-        return {
-          ...conv,
-          profile: profileRes.data ?? null,
-          unreadCount: unreadRes.count ?? 0,
-          lastMessage: lastMsgRes.data?.content ?? null,
-        } as ConversationWithUser;
-      })
-    );
+    const enriched: ConversationWithUser[] = rows.map((r) => ({
+      id: r.id,
+      user_id: r.user_id,
+      status: r.status,
+      last_message_at: r.last_message_at,
+      created_at: r.created_at,
+      profile: {
+        id: r.user_id,
+        full_name: r.full_name,
+        username: r.username ?? '',
+        email: r.email ?? '',
+        avatar_url: r.avatar_url,
+      },
+      unreadCount: Number(r.unread_count) || 0,
+      lastMessage: r.last_message ?? (r.last_message_image ? 'Hình ảnh' : null),
+    })) as ConversationWithUser[];
 
     // Lọc bỏ những cuộc trò chuyện chưa có tin nhắn nào
-    const activeConversations = enriched.filter(
-      conv => conv.lastMessage !== null || conv.unreadCount > 0
+    setConversations(
+      enriched.filter(conv => conv.lastMessage !== null || conv.unreadCount > 0)
     );
-
-    setConversations(activeConversations);
     setLoading(false);
   }, []);
+
 
   useEffect(() => {
     loadConversations();
