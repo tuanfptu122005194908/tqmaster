@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
+import { Canvas } from '@/components/SafeCanvas';
 import { AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
 import * as THREE from 'three';
 import AlphaBuilding from './AlphaBuilding';

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useMemo, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Canvas } from '@/components/SafeCanvas';
 import { Html, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
