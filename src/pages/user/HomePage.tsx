@@ -7,6 +7,7 @@ import { optimizedImage } from '@/lib/imageOpt';
 import { ShoppingCart, BookOpen, Loader2, Check, Star, ArrowRight, Zap, Sparkles, Award, ShieldCheck, Flame, Layers, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeroSection from '@/components/home/HeroSection';
+import { SubjectGridSkeleton } from '@/components/Skeleton';
 
 type Subject = Tables<'subjects'>;
 
@@ -21,13 +22,37 @@ export default function HomePage() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let active = true;
+    const cacheKey = 'tqmaster_active_subjects_v1';
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as Subject[];
+        if (Array.isArray(parsed)) {
+          setSubjects(parsed);
+          setLoading(false);
+        }
+      } catch {
+        sessionStorage.removeItem(cacheKey);
+      }
+    }
+
+    // Hiện cache ngay, đồng thời lấy bản mới ở nền để lần mở sau luôn nhanh.
     supabase
       .from('subjects')
       .select('*')
       .eq('is_active', true)
       .order('semester')
       .order('sort_order')
-      .then(({ data }) => { setSubjects(data ?? []); setLoading(false); });
+      .then(({ data }) => {
+        if (!active) return;
+        const fresh = (data ?? []) as Subject[];
+        setSubjects(fresh);
+        setLoading(false);
+        sessionStorage.setItem(cacheKey, JSON.stringify(fresh));
+      });
+
+    return () => { active = false; };
   }, []);
 
   const filtered = useMemo(() => {
@@ -55,14 +80,7 @@ export default function HomePage() {
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-      <div style={{ textAlign: 'center' }}>
-        <Loader2 size={36} style={{ animation: 'spin 1s linear infinite', color: '#3b82f6', margin: '0 auto 16px auto' }} />
-        <p style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: 600 }}>Đang tải danh sách khóa học...</p>
-      </div>
-    </div>
-  );
+  if (loading) return <SubjectGridSkeleton count={8} />;
 
   return (
     <div
@@ -474,6 +492,9 @@ function CourseCard({
           <img
             src={optimizedImage(subject.thumbnail_url, 480)}
             alt={subject.name}
+            loading={idx < 4 ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={idx < 2 ? 'high' : 'auto'}
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease', transform: hov ? 'scale(1.05)' : 'scale(1)' }}
           />
         ) : (

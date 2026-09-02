@@ -3,59 +3,59 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppProvider, useApp } from "@/lib/AppContext";
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import TopNav from "@/components/TopNav";
 import AdminSidebar from "@/components/AdminSidebar";
 import MobileNav from "@/components/MobileNav";
-import AuthPage from "@/pages/AuthPage";
-import LandingPage from "@/pages/LandingPage";
-
-// User pages
-import HomePage from "@/pages/user/HomePage";
-import StudyHubPage from "@/pages/user/StudyHubPage";
-import CartPage from "@/pages/user/CartPage";
-import SubjectDetailPage from "@/pages/user/SubjectDetailPage";
-import ExamPage from "@/pages/user/ExamPage";
-import ProfilePage from "@/pages/user/ProfilePage";
-import NewsPage from "@/pages/user/NewsPage";
-import VerifyEmailPage from "@/pages/VerifyEmailPage";
-import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AnnouncementPopup from "@/components/AnnouncementPopup";
+const AuthPage = lazy(() => import("@/pages/AuthPage"));
+const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const HomePage = lazy(() => import("@/pages/user/HomePage"));
+const StudyHubPage = lazy(() => import("@/pages/user/StudyHubPage"));
+const CartPage = lazy(() => import("@/pages/user/CartPage"));
+const SubjectDetailPage = lazy(() => import("@/pages/user/SubjectDetailPage"));
+const ExamPage = lazy(() => import("@/pages/user/ExamPage"));
+const ProfilePage = lazy(() => import("@/pages/user/ProfilePage"));
+const NewsPage = lazy(() => import("@/pages/user/NewsPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
+const AdminSubjects = lazy(() => import("@/pages/admin/AdminSubjects"));
+const AdminExams = lazy(() => import("@/pages/admin/AdminExams"));
+const AdminTheory = lazy(() => import("@/pages/admin/AdminTheory"));
+const AdminAnnouncements = lazy(() => import("@/pages/admin/AdminAnnouncements"));
+const AdminOrders = lazy(() => import("@/pages/admin/AdminOrders"));
+const AdminCoupons = lazy(() => import("@/pages/admin/AdminCoupons"));
+const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
+const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
+const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
+const AdminQuestionReports = lazy(() => import("@/pages/admin/AdminQuestionReports"));
+const AdminBackup = lazy(() => import("@/pages/admin/AdminBackup"));
+const AdminChat = lazy(() => import("@/pages/admin/AdminChat"));
+const AdminExamStats = lazy(() => import("@/pages/admin/AdminExamStats"));
 
-// Admin pages
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminSubjects from "@/pages/admin/AdminSubjects";
-import AdminExams from "@/pages/admin/AdminExams";
-import AdminTheory from "@/pages/admin/AdminTheory";
-import AdminAnnouncements from "@/pages/admin/AdminAnnouncements";
-import AdminOrders from "@/pages/admin/AdminOrders";
-import AdminCoupons from "@/pages/admin/AdminCoupons";
-import AdminUsers from "@/pages/admin/AdminUsers";
-import AdminSettings from "@/pages/admin/AdminSettings";
-import AdminNews from "@/pages/admin/AdminNews";
-import AdminQuestionReports from "@/pages/admin/AdminQuestionReports";
-import AdminBackup from "@/pages/admin/AdminBackup";
-import AdminChat from "@/pages/admin/AdminChat";
-import AdminExamStats from "@/pages/admin/AdminExamStats";
 import ChatWidget from "@/components/chat/ChatWidget";
+import { BootScreen, PageSkeleton } from "@/components/Skeleton";
 import { Loader2, Menu, X } from "lucide-react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
   const { profile, isAdmin, authLoading } = useApp();
   const location = useLocation();
 
   if (authLoading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'hsl(var(--background))' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Loader2 size={36} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))', margin: '0 auto var(--space-3)' }} />
-          <p style={{ color: 'hsl(var(--muted-fg))', fontSize: '0.875rem' }}>Đang tải...</p>
-        </div>
-      </div>
-    );
+    return <BootScreen label="Đang tải…" />;
   }
 
   if (!profile) return <Navigate to="/auth" state={{ from: location }} replace />;
@@ -177,19 +177,12 @@ function AppShell() {
   const { profile, authLoading, emailVerified, userEmail, passwordRecovery, clearPasswordRecovery, mustChangePassword, clearMustChangePassword, signOut, refreshAuthUser } = useApp();
 
   if (authLoading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'hsl(var(--background))' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Loader2 size={36} style={{ animation: 'spin 1s linear infinite', color: 'hsl(var(--primary))', margin: '0 auto var(--space-3)' }} />
-          <p style={{ color: 'hsl(var(--muted-fg))', fontSize: '0.875rem' }}>Đang tải...</p>
-        </div>
-      </div>
-    );
+    return <BootScreen label="Đang tải…" />;
   }
 
   if (passwordRecovery) {
     return (
-      <ResetPasswordPage
+      <Suspense fallback={<BootScreen />}><ResetPasswordPage
         onDone={async () => {
           clearPasswordRecovery();
           await signOut();
@@ -197,27 +190,28 @@ function AppShell() {
             window.history.replaceState(null, '', window.location.pathname + window.location.search);
           }
         }}
-      />
+      /></Suspense>
     );
   }
 
   if (userEmail && !emailVerified) {
-    return <VerifyEmailPage email={userEmail} onVerified={refreshAuthUser} />;
+    return <Suspense fallback={<BootScreen />}><VerifyEmailPage email={userEmail} onVerified={refreshAuthUser} /></Suspense>;
   }
 
   if (userEmail && emailVerified && mustChangePassword) {
     return (
-      <ResetPasswordPage
+      <Suspense fallback={<BootScreen />}><ResetPasswordPage
         forced
         onDone={async () => {
           clearMustChangePassword();
           await refreshAuthUser();
         }}
-      />
+      /></Suspense>
     );
   }
 
   return (
+    <Suspense fallback={<PageSkeleton />}>
     <Routes>
       {/* Public Landing Route */}
       <Route path="/landing" element={<LandingPage />} />
@@ -255,6 +249,7 @@ function AppShell() {
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 

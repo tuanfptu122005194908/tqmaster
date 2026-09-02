@@ -1,0 +1,24 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoBg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="0.55" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="logoCap" x1="18" y1="17" x2="47" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="1" stop-color="#DBEAFE"/>
+    </linearGradient>
+    <linearGradient id="logoShine" x1="32" y1="0" x2="32" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity=".34"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="19" fill="url(#logoBg)"/>
+  <path d="M0 19C0 8.507 8.507 0 19 0h26c10.493 0 19 8.507 19 19v6C47 35 17 35 0 25v-6Z" fill="url(#logoShine)"/>
+  <rect x="1.25" y="1.25" width="61.5" height="61.5" rx="17.75" stroke="white" stroke-opacity=".28" stroke-width="2.5"/>
+  <path d="m32 17 18.5 8.35L32 33.7l-18.5-8.35L32 17Z" fill="url(#logoCap)"/>
+  <path d="M21.8 29.1v7.3c0 1.75 4.58 4.1 10.2 4.1s10.2-2.35 10.2-4.1v-7.3" stroke="white" stroke-opacity=".95" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M49.2 25.6v8.7" stroke="white" stroke-opacity=".95" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="49.2" cy="38.1" r="2.7" fill="#FDE68A"/>
+</svg>
