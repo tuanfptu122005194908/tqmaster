@@ -247,24 +247,43 @@ export default function SemesterNavigation() {
 
   const currentData = SEMESTER_DATA[selectedSemester] || SEMESTER_DATA[2];
 
+  const semesters = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
   return (
-    <section id="subjects" className="py-20 lg:py-28 bg-white border-b border-slate-200/80 relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="subjects"
+      className="py-20 lg:py-28 border-b border-slate-200/80 relative overflow-hidden font-barlow"
+      style={{
+        background:
+          'radial-gradient(1100px 420px at 50% -10%, rgba(37,99,235,0.07), transparent 65%), #ffffff',
+      }}
+    >
+      {/* subtle dot texture */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-30"
+        style={{
+          backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+        }}
+      />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header with Scroll Reveal */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-3xl mx-auto mb-10 space-y-3"
+          className="text-center max-w-3xl mx-auto mb-12 space-y-3"
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider">
             <Layers size={13} className="text-blue-600" />
             <span>Semester-Based Curriculum</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Choose your semester. Start instantly.
+          <h2 className="font-bebas text-5xl sm:text-6xl lg:text-7xl text-slate-900 leading-[0.95] tracking-wide">
+            Choose your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">semester.</span>
+            <br />
+            Start instantly.
           </h2>
 
           <p className="text-base text-slate-600 font-normal">
@@ -273,25 +292,74 @@ export default function SemesterNavigation() {
           </p>
         </motion.div>
 
-        {/* Horizontal Semester Timeline Bar */}
-        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((sem) => {
-            const isActive = selectedSemester === sem;
-            return (
-              <button
-                key={sem}
-                onClick={() => setSelectedSemester(sem)}
-                className={`px-4.5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 shrink-0 cursor-pointer border ${
-                  isActive
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25 scale-105'
-                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                KỲ {sem}
-              </button>
-            );
-          })}
-        </div>
+        {/* ── Semester Journey Timeline Rail ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-12"
+        >
+          <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-2">
+            <div className="relative flex items-start min-w-[720px] sm:min-w-0 pt-2 pb-1">
+              {/* Base rail */}
+              <div className="absolute left-0 right-0 top-[26px] h-[3px] rounded-full bg-slate-200" />
+              {/* Filled progress rail up to active station */}
+              <motion.div
+                className="absolute left-0 top-[26px] h-[3px] rounded-full bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 origin-left"
+                initial={false}
+                animate={{ width: `${((selectedSemester - 1) / 8) * 100}%` }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                style={{ boxShadow: '0 0 12px rgba(37,99,235,0.5)' }}
+              />
+
+              {semesters.map((sem) => {
+                const isActive = selectedSemester === sem;
+                const isPassed = sem < selectedSemester;
+                return (
+                  <div key={sem} className="relative flex-1 flex flex-col items-center">
+                    <button
+                      onClick={() => setSelectedSemester(sem)}
+                      aria-label={`Kỳ ${sem}`}
+                      className="group relative flex flex-col items-center cursor-pointer outline-none"
+                    >
+                      {/* Node */}
+                      <span
+                        className={`relative z-10 flex items-center justify-center rounded-full font-bebas transition-all duration-300 ${
+                          isActive
+                            ? 'w-14 h-14 text-2xl text-white bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/40 scale-110'
+                            : isPassed
+                            ? 'w-10 h-10 text-lg text-blue-600 bg-white border-2 border-blue-500 group-hover:bg-blue-50'
+                            : 'w-10 h-10 text-lg text-slate-400 bg-white border-2 border-slate-200 group-hover:border-blue-300 group-hover:text-blue-500'
+                        }`}
+                        style={isActive ? { animation: 'sem-node-pulse 2.2s ease-out infinite' } : undefined}
+                      >
+                        {isActive && (
+                          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 blur-md opacity-60 -z-10" />
+                        )}
+                        {String(sem).padStart(2, '0')}
+                      </span>
+                      {/* Label */}
+                      <span
+                        className={`mt-2 text-[11px] font-extrabold uppercase tracking-widest transition-colors duration-300 ${
+                          isActive ? 'text-blue-700' : isPassed ? 'text-blue-500' : 'text-slate-400 group-hover:text-slate-600'
+                        }`}
+                      >
+                        Kỳ {sem}
+                      </span>
+                      {/* Active underline indicator */}
+                      <span
+                        className={`mt-1 h-1 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-300 ${
+                          isActive ? 'w-8 opacity-100' : 'w-0 opacity-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
 
         {/* Active Semester Content with Stagger Animation */}
         <AnimatePresence mode="wait">
