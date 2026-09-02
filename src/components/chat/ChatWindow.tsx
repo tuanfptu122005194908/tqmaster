@@ -166,6 +166,8 @@ export default function ChatWindow({
         flex: 1,
         overflowY: 'auto',
         padding: '16px 12px',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
         display: 'flex',
         flexDirection: 'column',
       }}>
@@ -270,7 +272,7 @@ export default function ChatWindow({
                 padding: '10px 16px',
                 borderRadius: 20,
                 border: `1px solid ${isOverLimit ? '#ef4444' : '#e2e8f0'}`,
-                fontSize: 14,
+                fontSize: 16,
                 lineHeight: 1.5,
                 resize: 'none',
                 outline: 'none',
@@ -339,7 +341,7 @@ export default function ChatWindow({
           </button>
         </div>
 
-        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, textAlign: 'right' }}>
+        <div className="hidden md:block" style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, textAlign: 'right' }}>
           Enter để gửi • Shift+Enter xuống dòng
         </div>
       </div>

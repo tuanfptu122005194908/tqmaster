@@ -30,6 +30,23 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
   });
 
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Khoá scroll nền khi mở chat toàn màn hình trên mobile
+  useEffect(() => {
+    if (isMobile && isOpen && !isMinimized) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [isMobile, isOpen, isMinimized]);
+
 
   useEffect(() => {
     const handleOpenWidget = () => {
@@ -79,7 +96,16 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
         <div
           style={{
             position: 'fixed',
-            ...(isMaximized
+            ...(isMobile
+              ? {
+                  inset: 0,
+                  width: '100%',
+                  height: '100dvh',
+                  borderRadius: 0,
+                  boxShadow: 'none',
+                  animation: 'chatSlideUp 0.2s ease-out',
+                }
+              : isMaximized
               ? {
                   top: '50%',
                   left: '50%',
@@ -105,9 +131,12 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
             display: 'flex',
             flexDirection: 'column',
             zIndex: 1000,
-            border: '1px solid #e2e8f0',
+            border: isMobile ? 'none' : '1px solid #e2e8f0',
             overflow: 'hidden',
+            paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
+            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : undefined,
           }}
+
         >
           {/* Header */}
           <div style={{
@@ -149,8 +178,9 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 6 }}>
-              {/* Maximize */}
+            <div style={{ display: 'flex', gap: isMobile ? 8 : 6 }}>
+              {/* Maximize (chỉ desktop) */}
+              {!isMobile && (
               <button
                 onClick={() => setIsMaximized(!isMaximized)}
                 title={isMaximized ? 'Thu nhỏ' : 'Phóng to'}
@@ -172,13 +202,15 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
               >
                 {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
               </button>
+              )}
+
               {/* Minimize */}
               <button
                 onClick={handleMinimize}
                 title="Ẩn"
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: isMobile ? 36 : 28,
+                  height: isMobile ? 36 : 28,
                   borderRadius: '50%',
                   border: 'none',
                   background: 'rgba(255,255,255,0.15)',
@@ -199,8 +231,8 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
                 onClick={handleClose}
                 title="Đóng"
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: isMobile ? 36 : 28,
+                  height: isMobile ? 36 : 28,
                   borderRadius: '50%',
                   border: 'none',
                   background: 'rgba(255,255,255,0.15)',

@@ -56,19 +56,22 @@ export function useChat({ userId, isAdmin, conversationId }: UseChatOptions) {
 
   // ── Tải tin nhắn ─────────────────────────────────────────
   const loadMessages = useCallback(async (convId: string) => {
+    // Chỉ tải 100 tin gần nhất cho nhanh
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (error) {
       console.error('Error loading messages:', error);
       return;
     }
 
-    setMessages(data ?? []);
+    setMessages((data ?? []).slice().reverse());
   }, []);
+
 
   // ── Đánh dấu đã đọc khi mở chat ─────────────────────────
   const markAsRead = useCallback(async (convId: string) => {

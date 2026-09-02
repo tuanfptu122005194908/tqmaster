@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
 import type { Tables } from '@/integrations/supabase/types';
-import { MessageCircle, Loader2, Search, Users, Clock, CheckCheck, Trash2 } from 'lucide-react';
+import { MessageCircle, Loader2, Search, Users, Clock, CheckCheck, Trash2, ChevronLeft } from 'lucide-react';
 import ChatWindow from '@/components/chat/ChatWindow';
 import { toast } from 'sonner';
 
@@ -39,68 +39,68 @@ export default function AdminChat() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState('');
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [showListMobile, setShowListMobile] = useState(true);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const convChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+
   // ── Tải danh sách conversations ────────────────────────────
   const loadConversations = useCallback(async () => {
-    const { data: convs, error } = await supabase
-      .from('conversations')
-      .select('*')
-      .order('last_message_at', { ascending: false });
+    // 1 truy vấn duy nhất thay vì N*3 truy vấn → nhanh hơn rất nhiều
+    const { data, error } = await (supabase as any).rpc('get_admin_conversations');
 
     if (error) {
       console.error('Error loading conversations:', error);
-      return;
-    }
-
-    if (!convs || convs.length === 0) {
-      setConversations([]);
       setLoading(false);
       return;
     }
 
-    // Tải profile và unread count cho từng conversation
-    const enriched = await Promise.all(
-      convs.map(async (conv) => {
-        const [profileRes, unreadRes, lastMsgRes] = await Promise.all([
-          supabase
-            .from('profiles')
-            .select('id, full_name, username, email, avatar_url')
-            .eq('id', conv.user_id)
-            .maybeSingle(),
-          supabase
-            .from('chat_messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conv.id)
-            .eq('sender_role', 'user')
-            .eq('is_read', false),
-          supabase
-            .from('chat_messages')
-            .select('content')
-            .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+    const rows = (data ?? []) as Array<{
+      id: string;
+      user_id: string;
+      status: string;
+      last_message_at: string;
+      created_at: string;
+      full_name: string | null;
+      username: string | null;
+      email: string | null;
+      avatar_url: string | null;
+      unread_count: number;
+      last_message: string | null;
+      last_message_image: string | null;
+    }>;
 
-        return {
-          ...conv,
-          profile: profileRes.data ?? null,
-          unreadCount: unreadRes.count ?? 0,
-          lastMessage: lastMsgRes.data?.content ?? null,
-        } as ConversationWithUser;
-      })
-    );
+    const enriched: ConversationWithUser[] = rows.map((r) => ({
+      id: r.id,
+      user_id: r.user_id,
+      status: r.status,
+      last_message_at: r.last_message_at,
+      created_at: r.created_at,
+      profile: {
+        id: r.user_id,
+        full_name: r.full_name,
+        username: r.username ?? '',
+        email: r.email ?? '',
+        avatar_url: r.avatar_url,
+      },
+      unreadCount: Number(r.unread_count) || 0,
+      lastMessage: r.last_message ?? (r.last_message_image ? 'Hình ảnh' : null),
+    })) as ConversationWithUser[];
 
     // Lọc bỏ những cuộc trò chuyện chưa có tin nhắn nào
-    const activeConversations = enriched.filter(
-      conv => conv.lastMessage !== null || conv.unreadCount > 0
+    setConversations(
+      enriched.filter(conv => conv.lastMessage !== null || conv.unreadCount > 0)
     );
-
-    setConversations(activeConversations);
     setLoading(false);
   }, []);
+
 
   useEffect(() => {
     loadConversations();
@@ -158,14 +158,16 @@ export default function AdminChat() {
   // ── Tải tin nhắn khi chọn conversation ───────────────────
   const selectConversation = useCallback(async (convId: string) => {
     setSelectedConvId(convId);
+    setShowListMobile(false);
     setLoadingMessages(true);
 
-    // Load messages
+    // Chỉ tải 100 tin nhắn gần nhất → nhanh hơn nhiều
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (error) {
       console.error('Error loading messages:', error);
@@ -173,25 +175,23 @@ export default function AdminChat() {
       return;
     }
 
-    setMessages(data ?? []);
+    setMessages((data ?? []).slice().reverse());
+    setLoadingMessages(false);
 
-    // Mark user messages as read
-    await supabase
-      .from('chat_messages')
-      .update({ is_read: true })
-      .eq('conversation_id', convId)
-      .eq('sender_role', 'user')
-      .eq('is_read', false);
-
-    // Cập nhật local state unread count
+    // Cập nhật local state unread count (không chặn UI)
     setConversations(prev =>
       prev.map(c => c.id === convId ? { ...c, unreadCount: 0 } : c)
     );
 
-    // Cập nhật global sidebar badge ngay lập tức
-    refreshUnreadChatCount();
+    // Mark user messages as read chạy nền
+    void supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .eq('conversation_id', convId)
+      .eq('sender_role', 'user')
+      .eq('is_read', false)
+      .then(() => { refreshUnreadChatCount(); });
 
-    setLoadingMessages(false);
 
     // Cleanup old channel
     if (channelRef.current) {
@@ -376,24 +376,30 @@ export default function AdminChat() {
 
   const selectedConv = conversations.find(c => c.id === selectedConvId);
 
+  const listVisible = !isMobile || showListMobile;
+  const panelVisible = !isMobile || !showListMobile;
+
   return (
     <div style={{
       display: 'flex',
-      height: '100%',
+      height: isMobile ? 'calc(100dvh - 64px)' : '100%',
+      minHeight: 0,
       fontFamily: "'Inter', -apple-system, sans-serif",
       background: '#f4f7fc',
     }}>
       {/* Left: Conversation List */}
       <div style={{
-        width: 300,
-        minWidth: 300,
+        width: isMobile ? '100%' : 300,
+        minWidth: isMobile ? 0 : 300,
         flexShrink: 0,
         background: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
-        display: 'flex',
+        borderRight: isMobile ? 'none' : '1px solid #e2e8f0',
+        display: listVisible ? 'flex' : 'none',
         flexDirection: 'column',
         height: '100%',
+        minHeight: 0,
       }}>
+
         {/* Header */}
         <div style={{
           padding: '20px 16px 14px',
@@ -548,7 +554,7 @@ export default function AdminChat() {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        maxWidth: 140,
+                        maxWidth: isMobile ? '50vw' : 140,
                       }}>
                         {displayName}
                       </span>
@@ -576,7 +582,7 @@ export default function AdminChat() {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        maxWidth: 160,
+                        maxWidth: isMobile ? '55vw' : 160,
                       }}>
                         {conv.lastMessage ?? 'Chưa có tin nhắn'}
                       </span>
@@ -617,23 +623,38 @@ export default function AdminChat() {
       {/* Right: Chat Panel */}
       <div style={{
         flex: 1,
-        display: 'flex',
+        display: panelVisible ? 'flex' : 'none',
         flexDirection: 'column',
         background: '#ffffff',
         overflow: 'hidden',
+        minWidth: 0,
+        minHeight: 0,
       }}>
         {selectedConvId && selectedConv ? (
           <>
             {/* Conversation Header */}
             <div style={{
-              padding: '14px 20px',
+              padding: isMobile ? '10px 12px' : '14px 20px',
               borderBottom: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
-              gap: 12,
+              gap: isMobile ? 8 : 12,
               background: '#ffffff',
               flexShrink: 0,
             }}>
+              {isMobile && (
+                <button
+                  onClick={() => setShowListMobile(true)}
+                  aria-label="Quay lại danh sách"
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%', border: 'none',
+                    background: '#f1f5f9', color: '#0f172a', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              )}
               <div style={{
                 width: 40,
                 height: 40,
@@ -649,15 +670,17 @@ export default function AdminChat() {
               }}>
                 {(selectedConv.profile?.full_name || selectedConv.profile?.username || 'U').charAt(0).toUpperCase()}
               </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {selectedConv.profile?.full_name || selectedConv.profile?.username || 'Người dùng'}
                 </div>
-                <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <CheckCheck size={12} style={{ color: '#10b981' }} />
-                  {selectedConv.profile?.email}
+                <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <CheckCheck size={12} style={{ color: '#10b981', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedConv.profile?.email}</span>
                 </div>
               </div>
+
 
               {/* Action Buttons */}
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
