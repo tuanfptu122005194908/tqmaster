@@ -7,6 +7,7 @@ import { optimizedImage } from '@/lib/imageOpt';
 import { ShoppingCart, BookOpen, Loader2, Check, Star, ArrowRight, Zap, Sparkles, Award, ShieldCheck, Flame, Layers, Clock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeroSection from '@/components/home/HeroSection';
+import { SubjectGridSkeleton } from '@/components/Skeleton';
 
 type Subject = Tables<'subjects'>;
 
@@ -55,14 +56,7 @@ export default function HomePage() {
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-      <div style={{ textAlign: 'center' }}>
-        <Loader2 size={36} style={{ animation: 'spin 1s linear infinite', color: '#3b82f6', margin: '0 auto 16px auto' }} />
-        <p style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: 600 }}>Đang tải danh sách khóa học...</p>
-      </div>
-    </div>
-  );
+  if (loading) return <SubjectGridSkeleton count={8} />;
 
   return (
     <div
