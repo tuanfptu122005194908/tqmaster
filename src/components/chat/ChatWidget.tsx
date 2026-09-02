@@ -209,8 +209,8 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
                 onClick={handleMinimize}
                 title="Ẩn"
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: isMobile ? 36 : 28,
+                  height: isMobile ? 36 : 28,
                   borderRadius: '50%',
                   border: 'none',
                   background: 'rgba(255,255,255,0.15)',
@@ -231,8 +231,8 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
                 onClick={handleClose}
                 title="Đóng"
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: isMobile ? 36 : 28,
+                  height: isMobile ? 36 : 28,
                   borderRadius: '50%',
                   border: 'none',
                   background: 'rgba(255,255,255,0.15)',
