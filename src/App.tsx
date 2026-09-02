@@ -9,6 +9,7 @@ import TopNav from "@/components/TopNav";
 import AdminSidebar from "@/components/AdminSidebar";
 import MobileNav from "@/components/MobileNav";
 import AuthPage from "@/pages/AuthPage";
+import LandingPage from "@/pages/LandingPage";
 
 // User pages
 import HomePage from "@/pages/user/HomePage";
@@ -218,12 +219,14 @@ function AppShell() {
 
   return (
     <Routes>
+      {/* Public Landing Route */}
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/auth" element={!profile ? <AuthPage /> : <Navigate to="/" />} />
       <Route path="/verify-email" element={<VerifyEmailPage email={userEmail!} onVerified={refreshAuthUser} />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* User routes */}
-      <Route path="/" element={<ProtectedRoute><UserLayout><HomePage /></UserLayout></ProtectedRoute>} />
+      {/* User routes: Unauthenticated visitors on '/' see the LandingPage */}
+      <Route path="/" element={!profile ? <LandingPage /> : <ProtectedRoute><UserLayout><HomePage /></UserLayout></ProtectedRoute>} />
       <Route path="/my-courses" element={<ProtectedRoute><UserLayout><HomePage /></UserLayout></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><UserLayout><CartPage /></UserLayout></ProtectedRoute>} />
       <Route path="/subjects/:id" element={<ProtectedRoute><UserLayout><SubjectDetailPage /></UserLayout></ProtectedRoute>} />
