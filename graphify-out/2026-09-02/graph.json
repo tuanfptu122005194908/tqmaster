@@ -3635,7 +3635,7 @@
       "file_type": "code",
       "norm_label": "extractanswerlabels()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "src_lib_markdownexamparser_extractexamfromfile",
@@ -3647,7 +3647,7 @@
       "file_type": "code",
       "norm_label": "extractexamfromfile()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L444"
+      "source_location": "L490"
     },
     {
       "id": "src_lib_markdownexamparser_extractexamsfromzip",
@@ -3659,7 +3659,7 @@
       "file_type": "code",
       "norm_label": "extractexamsfromzip()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L409"
+      "source_location": "L455"
     },
     {
       "id": "src_lib_markdownexamparser_matchoptionline",
@@ -3671,7 +3671,7 @@
       "file_type": "code",
       "norm_label": "matchoptionline()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L88"
+      "source_location": "L132"
     },
     {
       "id": "src_lib_markdownexamparser_parsemarkdownexam",
@@ -3683,7 +3683,7 @@
       "file_type": "code",
       "norm_label": "parsemarkdownexam()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L128"
+      "source_location": "L172"
     },
     {
       "id": "src_lib_markdownexamparser_parsemarkdownexam_flushopt",
@@ -3695,7 +3695,7 @@
       "file_type": "code",
       "norm_label": "flushopt()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L255"
+      "source_location": "L299"
     },
     {
       "id": "src_lib_utils_sortexams",
@@ -33109,7 +33109,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L449",
+      "source_location": "L495",
       "weight": 1.0
     },
     {
@@ -33121,7 +33121,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L432",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -33133,7 +33133,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L283",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -33145,7 +33145,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L315",
+      "source_location": "L356",
       "weight": 1.0
     },
     {
@@ -34117,7 +34117,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L255",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -62389,13 +62389,13 @@
     },
     {
       "source": "src_lib_markdownexamparser",
-      "target": "src_lib_markdownexamparser_parsemarkdownexam",
+      "target": "src_lib_markdownexamparser_matchoptionline",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L128",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -62407,6 +62407,17 @@
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
       "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_markdownexamparser",
+      "target": "src_lib_markdownexamparser_parsemarkdownexam",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/markdownExamParser.ts",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -62433,17 +62444,6 @@
     },
     {
       "source": "src_lib_markdownexamparser",
-      "target": "src_lib_markdownexamparser_extractexamsfromzip",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L409",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_markdownexamparser",
       "target": "src_lib_markdownexamparser_markdownparseroptions",
       "relation": "contains",
       "_origin": "ast",
@@ -62455,13 +62455,24 @@
     },
     {
       "source": "src_lib_markdownexamparser",
+      "target": "src_lib_markdownexamparser_extractexamsfromzip",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/markdownExamParser.ts",
+      "source_location": "L455",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_markdownexamparser",
       "target": "src_lib_markdownexamparser_extractexamfromfile",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L444",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -62472,18 +62483,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L57",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_markdownexamparser",
-      "target": "src_lib_markdownexamparser_matchoptionline",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L88",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -65757,5 +65757,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ff4a44664f82027faf86275848a854490454cc73"
+  "built_at_commit": "67740ca70daf660505f3406300762dc030ff91fd"
 }

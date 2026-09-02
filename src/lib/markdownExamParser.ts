@@ -306,9 +306,32 @@ export function parseMarkdownExam(
       }
     }
 
+    let inCodeBlock = false;
+
     for (let idx = 0; idx < rq.lines.length; idx++) {
       const line = rq.lines[idx];
       const trimmed = line.trim();
+
+      // Track markdown code blocks
+      if (trimmed.startsWith('```')) {
+        inCodeBlock = !inCodeBlock;
+        if (currentSection === 'option' && curOpt) {
+          curOpt.contentLines.push(line);
+        } else {
+          contentLines.push(line);
+        }
+        continue;
+      }
+
+      // If inside code block, never treat as section delimiter, answer, or option
+      if (inCodeBlock) {
+        if (currentSection === 'option' && curOpt) {
+          curOpt.contentLines.push(line);
+        } else {
+          contentLines.push(line);
+        }
+        continue;
+      }
 
       // Horizontal separator
       if (/^[-*_]{3,}\s*$/.test(trimmed)) {

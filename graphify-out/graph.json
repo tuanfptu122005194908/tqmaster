@@ -3647,7 +3647,7 @@
       "file_type": "code",
       "norm_label": "extractexamfromfile()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L490"
+      "source_location": "L513"
     },
     {
       "id": "src_lib_markdownexamparser_extractexamsfromzip",
@@ -3659,7 +3659,7 @@
       "file_type": "code",
       "norm_label": "extractexamsfromzip()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L455"
+      "source_location": "L478"
     },
     {
       "id": "src_lib_markdownexamparser_matchoptionline",
@@ -33109,7 +33109,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L495",
+      "source_location": "L518",
       "weight": 1.0
     },
     {
@@ -33121,7 +33121,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L478",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -33133,7 +33133,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L327",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -33145,7 +33145,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L356",
+      "source_location": "L379",
       "weight": 1.0
     },
     {
@@ -62461,7 +62461,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L455",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -62472,7 +62472,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L490",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -65757,5 +65757,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "67740ca70daf660505f3406300762dc030ff91fd"
+  "built_at_commit": "743b300d4cf2af8682cc0cb4d7f034dd48cb2e4a"
 }
