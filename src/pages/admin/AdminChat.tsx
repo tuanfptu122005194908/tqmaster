@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
 import type { Tables } from '@/integrations/supabase/types';
-import { MessageCircle, Loader2, Search, Users, Clock, CheckCheck, Trash2 } from 'lucide-react';
+import { MessageCircle, Loader2, Search, Users, Clock, CheckCheck, Trash2, ChevronLeft } from 'lucide-react';
 import ChatWindow from '@/components/chat/ChatWindow';
 import { toast } from 'sonner';
 
