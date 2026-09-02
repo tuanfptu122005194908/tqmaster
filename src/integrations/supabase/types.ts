@@ -1065,6 +1065,23 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      get_admin_conversations: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          last_message: string
+          last_message_at: string
+          last_message_image: string
+          status: string
+          unread_count: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_request_ip: { Args: never; Returns: string }
       has_role: {
         Args: {
