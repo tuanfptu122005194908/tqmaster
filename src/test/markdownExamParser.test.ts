@@ -115,4 +115,72 @@ E None of them
     expect(matchOptionLine('F. Option 6')?.label).toBe('F');
     expect(matchOptionLine('G Option 7')?.label).toBe('G');
   });
+
+  it('should correctly parse multi-letter answers like NWC204 exam format', () => {
+    const md = `**Câu 8.** Which two characteristics describe the IP protocol at Layer 3? (Choose two answers)
+
+A. Connectionless and best-effort
+
+B. Independent of the underlying media
+
+C. Guarantees delivery of packets
+
+D. Relies on TCP for segmentation
+
+> **Đáp án:**
+> - Câu 8: **AB**
+
+---
+
+**Câu 10.** Match the command with the device mode.
+
+| | |
+| :--- | :--- |
+| A. login | 1. R1(config)# |
+| B. service password-encryption | 2. R1> |
+
+A. A5-B1
+B. A5-B2
+C. A1-B2
+
+> **Đáp án:**
+> - Câu 10: **B**
+
+---
+
+**Câu 16.** What are two services provided by the OSI network layer? (Choose two answers)
+
+A. Performing error detection
+B. Routing packets toward the destination
+C. Encapsulating PDUs from the transport layer
+D. Placement of frames on the media
+E. Collision detection
+
+> **Đáp án:**
+> - Câu 16: **BC**`;
+
+    const res = parseMarkdownExam(md);
+    expect(res.questions).toHaveLength(3);
+
+    // Câu 8
+    expect(res.questions[0].correctAnswers).toEqual(['A', 'B']);
+    expect(res.questions[0].options[0].isCorrect).toBe(true);
+    expect(res.questions[0].options[1].isCorrect).toBe(true);
+    expect(res.questions[0].options[2].isCorrect).toBe(false);
+    expect(res.questions[0].options[3].isCorrect).toBe(false);
+
+    // Câu 10 (table preservation)
+    expect(res.questions[1].content).toContain('| A. login | 1. R1(config)# |');
+    expect(res.questions[1].options).toHaveLength(3);
+    expect(res.questions[1].correctAnswers).toEqual(['B']);
+    expect(res.questions[1].options[1].isCorrect).toBe(true);
+
+    // Câu 16
+    expect(res.questions[2].correctAnswers).toEqual(['B', 'C']);
+    expect(res.questions[2].options[1].isCorrect).toBe(true);
+    expect(res.questions[2].options[2].isCorrect).toBe(true);
+    expect(res.questions[2].options[0].isCorrect).toBe(false);
+    expect(res.unansweredQuestions).toHaveLength(0);
+  });
 });
+

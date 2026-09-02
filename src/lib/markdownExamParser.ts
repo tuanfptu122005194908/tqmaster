@@ -47,31 +47,75 @@ export interface MarkdownParserOptions {
 /**
  * Extract isolated answer labels (A-H) from text
  * Handles formats like:
- * - "**B**"
- * - "**B, E, F**"
- * - "**A và B**", "A & C", "A hoặc D"
- * - "Đáp án: [C]"
+ * - "**B**", "**AB**", "**BC**", "**CE**", "**ABC**"
+ * - "**B, E, F**", "**A, B**", "A, B"
+ * - "**A và B**", "A & C", "A hoặc D", "A and B"
+ * - "Đáp án: [C]", "> - Câu 8: **AB**", "> - Câu 1: **C**"
+ * - "C. Troubleshooting and standardization"
  * - "A." / "B)"
  * Avoids false positive matches inside Vietnamese/English words like "tự động", "giải thích", "devise a plan"
  */
 export function extractAnswerLabels(text: string): string[] {
   if (!text) return [];
-  const cleaned = text.trim();
+  let cleaned = text.trim();
 
-  // If string has a period or colon followed by long explanation, only take prefix before explanation words
-  const firstPart = cleaned.split(/(?:\.\s+|:\s+|—|\(|là vì|do|vì|bởi vì)/i)[0];
-  const targetStr = cleaned.length < 30 ? cleaned : firstPart;
+  // Strip blockquote markdown prefix e.g. "> - ", "> "
+  cleaned = cleaned.replace(/^>\s*/, '').replace(/^-\s*/, '').trim();
 
-  // Sanitize out non-answer words that might contain letter boundaries
+  // If there's an explanation separator, take the prefix before explanation
+  const parts = cleaned.split(
+    /(?:\s+[—–]\s+|\s*\/\/\s*|\s*\(|(?:\.\s+|\s+)(?:là vì|do|vì|bởi vì|bởi|bằng cách|theo|giải thích|giai thich|explanation|reason|note|lưu ý|luu y)\b)/i
+  );
+  let targetStr = parts[0].trim();
+
+  // If targetStr still has prefix like "Đáp án: ", "Câu 1: ", "Question 1: ", "Key: ", "1. ", "1: "
+  targetStr = targetStr.replace(
+    /^(?:\*{0,2}(?:đáp án|dap an|answer|key|chọn|đáp án đúng|dap an dung)\*{0,2}[:\s-]*)/i,
+    ''
+  ).trim();
+  targetStr = targetStr.replace(/^(?:câu|cau|question|q)?\s*\d+[:.)\s-]+\s*/i, '').trim();
+
+  // Strip outer markdown formatting like **...**, *...*, `...`, [...], (...)
+  targetStr = targetStr.replace(/[*_`[\]()]/g, ' ').trim();
+
+  if (!targetStr) return [];
+
+  // Check 1: Contiguous letters without separators, e.g. "AB", "BC", "ABC", "CE", "ACD", "ABCD" (up to 8 chars, all A-H)
+  if (/^[A-Ha-h]{1,8}$/.test(targetStr)) {
+    const letters = targetStr.toUpperCase().split('');
+    return Array.from(new Set(letters));
+  }
+
+  // Check 2: Delimited letters e.g. "A, B", "A, B, C", "A & B", "A và B", "A and B", "A/B", "A - B", "A; B", "A B"
+  const delimitedCheck = targetStr.replace(/\b(?:và|and|hoặc|or)\b/gi, ',');
+  if (/^[A-Ha-h](?:\s*[,;&/+\s-]\s*[A-Ha-h])+$/i.test(delimitedCheck.trim())) {
+    const tokens = delimitedCheck.toUpperCase().match(/[A-H]/g);
+    if (tokens && tokens.length > 0) {
+      return Array.from(new Set(tokens));
+    }
+  }
+
+  // Check 3: Letter followed by dot/dash/colon and option content, e.g. "C. Troubleshooting and standardization" or "C - Troubleshooting"
+  const optionPrefixMatch = targetStr.match(/^([A-Ha-h])(?:\s*[-–—.:]\s*.*)?$/i);
+  if (optionPrefixMatch) {
+    return [optionPrefixMatch[1].toUpperCase()];
+  }
+
+  // Check 4: General fallback - sanitize non-answer words and search for isolated or grouped A-H tokens
   const sanitized = targetStr.replace(
-    /\b(?:và|and|hoặc|or|đáp|án|câu|question|answer|key|is|are|đúng|dung|chọn)\b/gi,
+    /\b(?:và|and|hoặc|or|đáp|án|câu|question|answer|key|is|are|đúng|dung|chọn|đáp án|dap an)\b/gi,
     ' '
   );
-  const tokenRegex = /\b([A-Ha-h])\b/g;
+
   const tokens: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = tokenRegex.exec(sanitized)) !== null) {
-    tokens.push(m[1].toUpperCase());
+  const wordTokens = sanitized.trim().split(/[\s,;&/+\-]+/);
+  for (const w of wordTokens) {
+    const cleanWord = w.replace(/[^A-Za-z]/g, '');
+    if (/^[A-Ha-h]{1,8}$/.test(cleanWord)) {
+      for (const char of cleanWord.toUpperCase()) {
+        tokens.push(char);
+      }
+    }
   }
 
   return Array.from(new Set(tokens));
@@ -119,8 +163,8 @@ export function matchOptionLine(trimmed: string): { label: string; content: stri
   return null;
 }
 
-// Words that commonly start an English sentence with article 'A' or 'An' (e.g. "A ball is thrown")
-const englishArticleWords = /^(?:ball|car|particle|object|function|subset|set|matrix|vector|system|point|plane|line|curve|body|box|block|cylinder|circle|triangle|solid|wire|rod|person|man|woman|student|company|factory|bag|urn|die|coin|card|fair|random|real|constant|linear|continuous|differentiable|given|certain|sample|simple|single|standard|small|large|positive|negative|non-negative|non-zero|closed|open|bounded|finite|infinite|tree|graph|node|vertex|edge|table|row|column|sequence|series|polynomial|root|fraction|number|prime|rate|ratio|score|method|test|rule|formula|theorem|lemma|definition|problem|model|signal|field|force|mass|spring|pendulum|tank|pipe|current|voltage|circuit|charge|proton|electron|atom|molecule|gas|liquid|fluid|wave|beam|light|ray|sound)\b/i;
+// Words that commonly start an English sentence with article 'A' or 'An' (e.g. "A ball is thrown", "A network administrator enters...")
+const englishArticleWords = /^(?:ball|car|particle|object|function|subset|set|matrix|vector|system|point|plane|line|curve|body|box|block|cylinder|circle|triangle|solid|wire|rod|person|man|woman|student|company|factory|bag|urn|die|coin|card|fair|random|real|constant|linear|continuous|differentiable|given|certain|sample|simple|single|standard|small|large|positive|negative|non-negative|non-zero|closed|open|bounded|finite|infinite|tree|graph|node|vertex|edge|table|row|column|sequence|series|polynomial|root|fraction|number|prime|rate|ratio|score|method|test|rule|formula|theorem|lemma|definition|problem|model|signal|field|force|mass|spring|pendulum|tank|pipe|current|voltage|circuit|charge|proton|electron|atom|molecule|gas|liquid|fluid|wave|beam|light|ray|sound|network|router|switch|packet|frame|device|host|server|client|user|technician|administrator|program|process|thread|computer|variable|class|interface|database|query|file|message|connection|port|service|protocol|layer|header|payload|bit|byte|channel|medium|key|value|token)\b/i;
 
 /**
  * Parse a raw markdown string into structured exam data
@@ -194,7 +238,7 @@ export function parseMarkdownExam(
   }
 
   // Regex for Answer line prefix:
-  const ansPrefixRegex = /^(?:>\s*)?\*{0,2}(?:đáp án|dap an|answer|key)\*{0,2}[:\s-]*(.*)$/i;
+  const ansPrefixRegex = /^(?:>\s*)?\*{0,2}(?:đáp án|dap an|answer|key|chọn|đáp án đúng|dap an dung)\*{0,2}[:\s-]*(.*)$/i;
 
   // Regex for Explanation header (locks answers to prevent overwrites):
   const explanationHeaderRegex = /^(?:>\s*)?\*{0,2}(?:giải thích|giai thich|explanation)\*{0,2}[:\s-]*(.*)$/i;
@@ -300,12 +344,9 @@ export function parseMarkdownExam(
 
       if (currentSection === 'answer') {
         if (correctAnswers.length === 0) {
-          const listAnsMatch = trimmed.match(
-            /^(?:>\s*)?(?:-\s*)?(?:câu\s*\d+[:\s]*)?\*{0,2}([A-Ha-h](?:\s*[,&/+\s]\s*[A-Ha-h])*)\*{0,2}\s*$/i
-          );
-          if (listAnsMatch) {
-            const labels = extractAnswerLabels(listAnsMatch[1]);
-            if (labels.length > 0) correctAnswers = labels;
+          const labels = extractAnswerLabels(trimmed);
+          if (labels.length > 0) {
+            correctAnswers = labels;
           }
         }
         continue;
@@ -325,20 +366,25 @@ export function parseMarkdownExam(
           }
         } else if (optMatch.label === 'A') {
           // Starting option A without punctuation
-          // Find subsequent candidate lines in this question
-          const subMatches = rq.lines
-            .slice(idx + 1)
-            .map(subL => matchOptionLine(subL.trim()))
-            .filter(Boolean);
-          const hasB = subMatches.some(m => m && m.label === 'B');
-          const hasC = subMatches.some(m => m && m.label === 'C');
+          if (englishArticleWords.test(optMatch.content)) {
+            isValidOption = false;
+          } else {
+            // Find subsequent candidate lines in this question
+            const subsequentLines = rq.lines.slice(idx + 1);
+            const subMatches = subsequentLines
+              .map(subL => matchOptionLine(subL.trim()))
+              .filter((m): m is NonNullable<typeof m> => Boolean(m));
 
-          if (hasB && hasC) {
-            // If both B and C follow, this is definitely the option list
-            isValidOption = true;
-          } else if (hasB && !englishArticleWords.test(optMatch.content)) {
-            // If only B follows (e.g. 2-choice question) and it doesn't look like an English article start
-            isValidOption = true;
+            // Check if there is another 'A' before the first 'B'
+            const firstBIdx = subMatches.findIndex(m => m.label === 'B');
+            const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m.label === 'A');
+
+            if (!anotherAExists && firstBIdx !== -1) {
+              const hasC = subMatches.some(m => m.label === 'C');
+              if (hasC || !englishArticleWords.test(optMatch.content)) {
+                isValidOption = true;
+              }
+            }
           }
         }
       }

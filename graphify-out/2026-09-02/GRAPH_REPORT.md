@@ -1,7 +1,7 @@
-# Graph Report - smart-curate-learn-main  (2026-09-02)
+# Graph Report - smart-curate-learn-main  (2026-09-01)
 
 ## Corpus Check
-- 295 files · ~867,636 words
+- 295 files · ~867,207 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `67740ca7`
+- Built from commit: `ff4a4466`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
