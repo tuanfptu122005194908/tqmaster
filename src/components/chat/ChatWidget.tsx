@@ -96,7 +96,16 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
         <div
           style={{
             position: 'fixed',
-            ...(isMaximized
+            ...(isMobile
+              ? {
+                  inset: 0,
+                  width: '100%',
+                  height: '100dvh',
+                  borderRadius: 0,
+                  boxShadow: 'none',
+                  animation: 'chatSlideUp 0.2s ease-out',
+                }
+              : isMaximized
               ? {
                   top: '50%',
                   left: '50%',
@@ -122,9 +131,12 @@ function ChatWidgetInner({ profileId, isOpen, setIsOpen, isMinimized, setIsMinim
             display: 'flex',
             flexDirection: 'column',
             zIndex: 1000,
-            border: '1px solid #e2e8f0',
+            border: isMobile ? 'none' : '1px solid #e2e8f0',
             overflow: 'hidden',
+            paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
+            paddingBottom: isMobile ? 'env(safe-area-inset-bottom)' : undefined,
           }}
+
         >
           {/* Header */}
           <div style={{
