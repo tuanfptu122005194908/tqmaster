@@ -128,7 +128,7 @@ export function BootScreen({ label = 'Đang tải…' }: { label?: string }) {
       `}</style>
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
         <div style={{ animation: 'bootPulse 1.4s ease-in-out infinite' }}>
-          <img src="/favicon.png" alt="" width={56} height={56} style={{ borderRadius: 16 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          <img src="/tqmaster-logo.svg" alt="" width={56} height={56} decoding="async" style={{ borderRadius: 16 }} />
         </div>
         <div style={{ width: 160, height: 4, borderRadius: 999, background: 'hsl(var(--muted, 210 40% 94%))', overflow: 'hidden' }}>
           <div
