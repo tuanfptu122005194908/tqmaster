@@ -623,23 +623,38 @@ export default function AdminChat() {
       {/* Right: Chat Panel */}
       <div style={{
         flex: 1,
-        display: 'flex',
+        display: panelVisible ? 'flex' : 'none',
         flexDirection: 'column',
         background: '#ffffff',
         overflow: 'hidden',
+        minWidth: 0,
+        minHeight: 0,
       }}>
         {selectedConvId && selectedConv ? (
           <>
             {/* Conversation Header */}
             <div style={{
-              padding: '14px 20px',
+              padding: isMobile ? '10px 12px' : '14px 20px',
               borderBottom: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
-              gap: 12,
+              gap: isMobile ? 8 : 12,
               background: '#ffffff',
               flexShrink: 0,
             }}>
+              {isMobile && (
+                <button
+                  onClick={() => setShowListMobile(true)}
+                  aria-label="Quay lại danh sách"
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%', border: 'none',
+                    background: '#f1f5f9', color: '#0f172a', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              )}
               <div style={{
                 width: 40,
                 height: 40,
@@ -655,6 +670,7 @@ export default function AdminChat() {
               }}>
                 {(selectedConv.profile?.full_name || selectedConv.profile?.username || 'U').charAt(0).toUpperCase()}
               </div>
+
               <div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
                   {selectedConv.profile?.full_name || selectedConv.profile?.username || 'Người dùng'}
