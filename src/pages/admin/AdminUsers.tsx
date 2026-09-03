@@ -64,8 +64,8 @@ export default function AdminUsers() {
   const fetch = async () => {
     try {
       const [profilesData, roles, subjectsRes, usub] = await Promise.all([
-        fetchAll<any>('profiles', '*'),
-        fetchAll<any>('user_roles', '*'),
+        fetchAll<any>('profiles', 'id, full_name, username, email, student_code, avatar_url, created_at, phone, is_banned'),
+        fetchAll<any>('user_roles', 'user_id, role'),
         supabase.from('subjects').select('id, name, semester').order('semester'),
         fetchAll<any>('user_subjects', 'user_id, subject_id'),
       ]);
@@ -103,7 +103,7 @@ export default function AdminUsers() {
   const filteredRows = useMemo(() => {
     return rows.filter(u => {
       const q = search.toLowerCase();
-      const matchSearch = !q || u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.full_name ?? '').toLowerCase().includes(q) || (u.student_code ?? '').toLowerCase().includes(q);
+      const matchSearch = !q || (u.username ?? '').toLowerCase().includes(q) || (u.email ?? '').toLowerCase().includes(q) || (u.full_name ?? '').toLowerCase().includes(q) || (u.student_code ?? '').toLowerCase().includes(q);
       const isAdmin = u.roles.includes('admin');
       const matchRole = roleFilter === 'all' || (roleFilter === 'admin' && isAdmin) || (roleFilter === 'user' && !isAdmin);
       return matchSearch && matchRole;

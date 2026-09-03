@@ -91,8 +91,7 @@ export default function AdminExams() {
   };
 
   useEffect(() => {
-    fetchExams();
-    fetchSubjects();
+    Promise.all([fetchExams(), fetchSubjects()]);
   }, []);
 
   const selectExam = async (exam: Exam) => {

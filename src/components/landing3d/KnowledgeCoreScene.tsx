@@ -44,10 +44,13 @@ function SubjectNode({
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const targetScale = isHovered ? 1.35 : isSelected ? 1.2 : 1.0;
+  // Cache Vector3 in a ref to avoid per-frame GC allocation
+  const scaleVec = useRef(new THREE.Vector3(1, 1, 1));
 
   useFrame((state, delta) => {
     if (meshRef.current) {
-      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 8);
+      scaleVec.current.set(targetScale, targetScale, targetScale);
+      meshRef.current.scale.lerp(scaleVec.current, delta * 8);
     }
     if (glowRef.current) {
       const pulse = Math.sin(state.clock.elapsedTime * 3 + node.position[0]) * 0.15 + 1.0;
@@ -68,21 +71,17 @@ function SubjectNode({
 
   return (
     <group position={node.position}>
-      {/* Subtle line connection back to core center */}
-      <primitive
-        object={
-          new THREE.Line(
-            lineGeometry,
-            new THREE.LineBasicMaterial({
-              color: isHovered ? '#06b6d4' : '#cbd5e1',
-              transparent: true,
-              opacity: isHovered ? 0.8 : 0.35,
-              linewidth: 1,
-            })
-          )
-        }
+      {/* Subtle line connection back to core center — declarative to avoid per-render object allocation */}
+      <line
+        geometry={lineGeometry}
         position={[-node.position[0], -node.position[1], -node.position[2]]}
-      />
+      >
+        <lineBasicMaterial
+          color={isHovered ? '#06b6d4' : '#cbd5e1'}
+          transparent
+          opacity={isHovered ? 0.8 : 0.35}
+        />
+      </line>
 
       {/* Floating sphere node */}
       <mesh
@@ -167,9 +166,9 @@ function SubjectNode({
                 {node.name}
               </div>
               <div className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-300">
-                <span className="text-emerald-400 font-medium">✓ Mock Exam</span>
+                <span className="text-emerald-400 font-medium">✓ Đề thi thử</span>
                 <span>•</span>
-                <span className="text-blue-400 font-medium">PE Practice</span>
+                <span className="text-blue-400 font-medium">Luyện thi PE</span>
               </div>
             </div>
           )}
@@ -430,7 +429,8 @@ export default function KnowledgeCoreScene({
             alpha: true,
             powerPreference: 'high-performance',
           }}
-          dpr={[1, 2]}
+          dpr={[1, 1.5]}
+          performance={{ min: 0.5 }}
           style={{ width: '100%', height: '100%' }}
         >
           <SceneContent onSelectSubject={onSelectSubject} />

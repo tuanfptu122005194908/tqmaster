@@ -35,7 +35,7 @@ export default function ProductShowcase() {
     { id: 'A', text: 'P ' },
     { id: 'B', text: 'C ' },
     { id: 'C', text: 'P C ' },
-    { id: 'D', text: 'Compilation error: cannot instantiate Child as Parent' },
+    { id: 'D', text: 'Lỗi biên dịch: không thể khởi tạo Child kiểu Parent' },
   ];
 
   return (
@@ -51,15 +51,15 @@ export default function ProductShowcase() {
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider">
             <Sparkles size={13} className="text-blue-600" />
-            <span>Interactive Platform Preview</span>
+            <span>Trải nghiệm nền tảng thực tế</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Everything you need for your course in one view.
+            Tất cả tài liệu môn học trong một màn hình duy nhất.
           </h2>
 
           <p className="text-base text-slate-600 font-normal">
-            Try the live simulator below — experience real university exam conditions with instant grading.
+            Trải nghiệm phòng thi mô phỏng trực tiếp — cảm nhận không khí thi thật với hệ thống chấm điểm tức thì.
           </p>
         </motion.div>
 
@@ -80,14 +80,14 @@ export default function ProductShowcase() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                    PRO192 — Object-Oriented Programming (Java)
+                    PRO192 — Lập trình hướng đối tượng với Java
                   </h3>
                   <span className="px-2 py-0.5 text-[11px] font-bold bg-blue-500/30 text-blue-300 border border-blue-400/40 rounded-full">
                     KỲ 2 • FPT SE & IT
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  12 Full Mock Exams • 8 PE Lab Scenarios • 1-Page Theory CheatSheet
+                  12 Đề thi thử đầy đủ • 8 Bộ đề thực hành PE • Tóm tắt lý thuyết 1 trang
                 </p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function ProductShowcase() {
                 onClick={() => navigate('/auth')}
                 className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
               >
-                Start Full Exam
+                Bắt đầu làm bài thi
               </button>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function ProductShowcase() {
               }`}
             >
               <BookOpen size={16} />
-              <span>01 Mock Exam Simulator</span>
+              <span>01 Mô phỏng thi trắc nghiệm</span>
             </button>
 
             <button
@@ -130,7 +130,7 @@ export default function ProductShowcase() {
               }`}
             >
               <Code2 size={16} />
-              <span>02 PE Practice (Lab)</span>
+              <span>02 Thực hành code PE (Lab)</span>
             </button>
 
             <button
@@ -142,7 +142,7 @@ export default function ProductShowcase() {
               }`}
             >
               <FileSpreadsheet size={16} />
-              <span>03 Theory CheatSheet</span>
+              <span>03 Tóm tắt lý thuyết CheatSheet</span>
             </button>
           </div>
 
@@ -163,20 +163,20 @@ export default function ProductShowcase() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <span className="px-2.5 py-1 bg-blue-50 text-blue-700 font-extrabold text-xs rounded-md border border-blue-200">
-                        QUESTION 12 / 40
+                        CÂU HỎI 12 / 40
                       </span>
                       <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-                        Topic: Dynamic Dispatch & Polymorphism
+                        Chuyên đề: Đa hình & Dynamic Dispatch
                       </span>
                     </div>
                     <span className="text-xs font-semibold text-slate-400">
-                      Click an option to test instant scoring
+                      Chọn một đáp án để trải nghiệm chấm điểm tức thì
                     </span>
                   </div>
 
                   {/* Question Prompt */}
                   <div className="text-base font-bold text-slate-900">
-                    What is the output of this Java program?
+                    Kết quả xuất ra màn hình của đoạn chương trình Java sau là gì?
                   </div>
 
                   {/* Code Block Snippet */}
@@ -244,7 +244,7 @@ export default function ProductShowcase() {
 
                           {isSelected && isCorrect && (
                             <span className="text-[11px] font-extrabold text-emerald-700 flex items-center gap-1">
-                              <CheckCircle2 size={13} /> Correct
+                              <CheckCircle2 size={13} /> Chính xác
                             </span>
                           )}
                         </button>
@@ -264,9 +264,9 @@ export default function ProductShowcase() {
                       >
                         <div className="font-bold text-blue-900 mb-1 flex items-center gap-1.5">
                           <Sparkles size={14} className="text-blue-600" />
-                          <span>Answer Explanation</span>
+                          <span>Giải thích chi tiết</span>
                         </div>
-                        In Java, method calls are resolved polymorphically at runtime via Dynamic Method Dispatch based on the actual object in memory (<code className="font-mono text-blue-700 font-bold bg-white px-1 py-0.5 rounded">Child</code>), not the reference type. Therefore, <code className="font-mono text-emerald-700 font-bold">Child.show()</code> executes and outputs <code className="font-mono font-bold">"C "</code>.
+                        Trong Java, lời gọi phương thức được giải quyết đa hình tại thời điểm chạy (Runtime Dynamic Method Dispatch) dựa trên đối tượng thực tế trong bộ nhớ (<code className="font-mono text-blue-700 font-bold bg-white px-1 py-0.5 rounded">Child</code>), chứ không phụ thuộc vào kiểu của biến tham chiếu. Do đó, phương thức ghi đè <code className="font-mono text-emerald-700 font-bold">Child.show()</code> được thực thi và in ra <code className="font-mono font-bold">"C "</code>.
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -284,27 +284,27 @@ export default function ProductShowcase() {
                   className="space-y-4"
                 >
                   <div className="text-sm font-bold text-slate-900">
-                    Practical Exam (PE) Real Coding Scenarios
+                    Đề thi thực hành PE (Practical Exam) sát đề thi thật
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-                      <div className="text-xs font-bold text-blue-600 mb-1">PAPER #01 (100 MINS)</div>
-                      <div className="font-bold text-slate-900 text-sm mb-2">Car Management (OOP & Collections)</div>
+                      <div className="text-xs font-bold text-blue-600 mb-1">BỘ ĐỀ #01 (100 PHÚT)</div>
+                      <div className="font-bold text-slate-900 text-sm mb-2">Quản lý xe Car Management (OOP & Collections)</div>
                       <p className="text-xs text-slate-600 mb-3">
-                        Includes NetBeans starter source code, test data files, and automated EOS evaluation scripts.
+                        Đầy đủ source code khởi tạo NetBeans, file dữ liệu test mẫu và kịch bản chấm điểm EOS tự động.
                       </p>
                       <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
-                        Verified 10/10 Solution Included
+                        ✓ Bao gồm bài giải mẫu đạt điểm tuyệt đối 10/10
                       </span>
                     </div>
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-                      <div className="text-xs font-bold text-blue-600 mb-1">PAPER #02 (100 MINS)</div>
-                      <div className="font-bold text-slate-900 text-sm mb-2">Student Records & File Serialization</div>
+                      <div className="text-xs font-bold text-blue-600 mb-1">BỘ ĐỀ #02 (100 PHÚT)</div>
+                      <div className="font-bold text-slate-900 text-sm mb-2">Hồ sơ sinh viên & Ghi đọc file nhị phân (Serialization)</div>
                       <p className="text-xs text-slate-600 mb-3">
-                        Covers custom exceptions, binary file reading, and sorting with java.util.Comparator.
+                        Bao gồm xử lý Custom Exception, đọc ghi file nhị phân và sắp xếp danh sách với java.util.Comparator.
                       </p>
                       <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded">
-                        Full Step-by-Step Guide
+                        ✓ Hướng dẫn giải chi tiết từng bước
                       </span>
                     </div>
                   </div>
@@ -323,24 +323,24 @@ export default function ProductShowcase() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-bold text-slate-900">
-                      1-Page High-Yield CheatSheet
+                      Tóm tắt công thức trọng tâm 1 trang
                     </div>
                     <button className="text-xs font-bold text-blue-600 flex items-center gap-1 hover:underline cursor-pointer">
-                      <Download size={13} /> Download Printable PDF
+                      <Download size={13} /> Tải file PDF in ấn
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     <div className="p-3.5 rounded-xl border border-slate-200 bg-white">
-                      <div className="font-bold text-slate-900 mb-1">4 OOP Pillars</div>
-                      <p className="text-slate-600">Encapsulation, Inheritance, Polymorphism, Abstraction.</p>
+                      <div className="font-bold text-slate-900 mb-1">4 Trụ cột OOP</div>
+                      <p className="text-slate-600">Đóng gói, Kế thừa, Đa hình, Trừu tượng.</p>
                     </div>
                     <div className="p-3.5 rounded-xl border border-slate-200 bg-white">
-                      <div className="font-bold text-slate-900 mb-1">Access Modifiers</div>
+                      <div className="font-bold text-slate-900 mb-1">Phạm vi truy cập</div>
                       <p className="text-slate-600">public &gt; protected &gt; default (package) &gt; private.</p>
                     </div>
                     <div className="p-3.5 rounded-xl border border-slate-200 bg-white">
-                      <div className="font-bold text-slate-900 mb-1">Exam Trap</div>
-                      <p className="text-slate-600">Constructors are NEVER inherited. == compares references.</p>
+                      <div className="font-bold text-slate-900 mb-1">Bẫy thi thường gặp</div>
+                      <p className="text-slate-600">Hàm khởi tạo (Constructor) KHÔNG BAO GIỜ kế thừa. Toán tử == so sánh địa chỉ tham chiếu.</p>
                     </div>
                   </div>
                 </motion.div>

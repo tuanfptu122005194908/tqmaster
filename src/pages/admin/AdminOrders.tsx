@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 
 type Order = Tables<'orders'>;
 
+const PAGE_SIZE = 50;
+
 export default function AdminOrders() {
   const { profile, refreshPendingOrdersCount } = useApp();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -24,19 +26,74 @@ export default function AdminOrders() {
   const [orderItems, setOrderItems] = useState<{ id: string; subject_id: string; price: number; subject_name: string }[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
 
-  const fetch = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select('*, order_items(subjects(name, id))')
-      .order('created_at', { ascending: false });
-    setOrders(data as any ?? []);
-    setLoading(false);
+  // Pagination
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  // Summary counts (always reflect full dataset, not just current page)
+  const [pendingCount, setPendingCount] = useState(0);
+  const [approvedCount, setApprovedCount] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+
+  const fetchPage = async (pageNum = page) => {
+    try {
+      const from = pageNum * PAGE_SIZE;
+      const to   = from + PAGE_SIZE - 1;
+
+      let query = supabase
+        .from('orders')
+        .select('id, created_at, final_amount, original_amount, discount_amount, discount_code, status, full_name, email, student_code, note, bill_image_url, reviewed_at, reviewed_by, order_items(subject_id, subjects(name, id))', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (filterStatus !== 'all') {
+        query = query.eq('status', filterStatus);
+      }
+      if (search.trim()) {
+        query = query.or(`full_name.ilike.%${search.trim()}%,email.ilike.%${search.trim()}%,id.ilike.%${search.trim()}%`);
+      }
+
+      const { data, count } = await query;
+      setOrders(data as any ?? []);
+      setTotalCount(count ?? 0);
+    } catch (e) {
+      console.error('Error fetching orders:', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { 
-    fetch(); 
+  // Fetch summary stats separately so they always cover the whole table
+  const fetchStats = async () => {
+    try {
+      const [pendingRes, approvedRes, revenueRes] = await Promise.all([
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+        supabase.from('orders').select('final_amount').eq('status', 'approved'),
+      ]);
+      setPendingCount(pendingRes.count ?? 0);
+      setApprovedCount(approvedRes.count ?? 0);
+      const rev = (revenueRes.data ?? []).reduce((s: number, o: any) => s + Number(o.final_amount), 0);
+      setTotalRevenue(rev);
+    } catch (e) {
+      console.error('Error fetching order stats:', e);
+    }
+  };
+
+  useEffect(() => {
+    // Reset to page 0 when filters change, then fetch
+    setPage(0);
+  }, [search, filterStatus]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchPage(page);
+  }, [page, search, filterStatus]);
+
+  useEffect(() => {
+    fetchStats();
     
-    // Đăng ký nhận thông báo realtime khi có đơn hàng mới/cập nhật
+    // Đăng ký nhận thông báo realtime với debounce để tránh spam query
+    let debounceTimer: any = null;
     const channelId = `admin-orders-page-realtime-${Date.now()}`;
     const channel = supabase
       .channel(channelId)
@@ -44,34 +101,22 @@ export default function AdminOrders() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         () => {
-          // Lấy lại danh sách mỗi khi có thay đổi (thêm, sửa, xoá)
-          fetch();
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            fetchPage(page);
+            fetchStats();
+          }, 400);
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, []);
 
-  const filtered = orders.filter(o => {
-    const q = search.toLowerCase();
-    
-    const matchSubject = (o as any).order_items?.some((item: any) => 
-      item.subjects?.name?.toLowerCase().includes(q) || 
-      item.subjects?.id?.toLowerCase().includes(q)
-    );
-
-    const matchQ = !q || 
-      o.id.toLowerCase().includes(q) || 
-      o.full_name?.toLowerCase().includes(q) || 
-      o.email?.toLowerCase().includes(q) ||
-      matchSubject;
-      
-    const matchS = filterStatus === 'all' || o.status === filterStatus;
-    return matchQ && matchS;
-  });
+  const filtered = orders; // Filtering now handled server-side
 
   const setStatus = async (id: string, status: 'approved' | 'rejected') => {
     setActioning(id);
@@ -85,7 +130,8 @@ export default function AdminOrders() {
       toast.success(status === 'approved' ? 'Đã duyệt đơn hàng' : 'Đã từ chối đơn hàng');
     }
     setViewOrder(v => v?.id === id ? { ...v, status } : v);
-    await fetch();
+    await fetchPage(page);
+    fetchStats();
     refreshPendingOrdersCount();
     setActioning(null);
   };
@@ -98,7 +144,8 @@ export default function AdminOrders() {
       return;
     }
     toast.success('Đã xoá đơn hàng');
-    fetch();
+    fetchPage(page);
+    fetchStats();
     refreshPendingOrdersCount();
   };
 
@@ -134,12 +181,10 @@ export default function AdminOrders() {
     return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>✕ Đã hủy</span>;
   };
 
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
-  const approvedCount = orders.filter(o => o.status === 'approved').length;
-  const totalRevenue = orders.filter(o => o.status === 'approved').reduce((s, o) => s + Number(o.final_amount), 0);
   const avgOrderValue = approvedCount > 0 ? Math.round(totalRevenue / approvedCount) : 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  if (loading) return (
+  if (loading && orders.length === 0) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
     </div>
@@ -232,7 +277,7 @@ export default function AdminOrders() {
             </div>
           </div>
           <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {orders.length.toLocaleString()}
+            {totalCount.toLocaleString()}
           </div>
           <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
             📈 +12% tháng trước
@@ -622,6 +667,31 @@ export default function AdminOrders() {
           );
         })}
       </div>
+
+      {/* ── PAGINATION CONTROLS ── */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, padding: '12px 16px', background: '#ffffff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+          <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+            Trang {page + 1} / {totalPages} &nbsp;·&nbsp; {totalCount.toLocaleString()} đơn hàng
+          </span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0 || loading}
+              style={{ padding: '7px 14px', borderRadius: 10, border: '1.5px solid #cbd5e1', background: page === 0 ? '#f8fafc' : '#ffffff', color: page === 0 ? '#94a3b8' : '#0f172a', fontWeight: 800, fontSize: 13, cursor: page === 0 ? 'default' : 'pointer' }}
+            >
+              ← Trước
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1 || loading}
+              style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: page >= totalPages - 1 ? '#f8fafc' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: page >= totalPages - 1 ? '#94a3b8' : '#ffffff', fontWeight: 800, fontSize: 13, cursor: page >= totalPages - 1 ? 'default' : 'pointer', boxShadow: page >= totalPages - 1 ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)' }}
+            >
+              Sau →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── ORDER DETAIL & BILL SLIDE PANEL ── */}
       {viewOrder && (

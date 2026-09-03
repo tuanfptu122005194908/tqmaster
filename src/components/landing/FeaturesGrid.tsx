@@ -4,27 +4,27 @@ import { Award, Code2, FileSpreadsheet, Sparkles, CheckCircle2 } from 'lucide-re
 const HIGHLIGHTS = [
   {
     icon: <Award className="w-6 h-6 text-blue-600" />,
-    title: 'Timed Mock Exams',
-    description: 'Calibrated directly to official university matrices with 40 questions, live countdown, and score ranking.',
-    tag: 'EXAM SIMULATION',
+    title: 'Thi thử bấm giờ chuẩn ma trận',
+    description: 'Bám sát 100% đề thi chính thức với 40 câu hỏi, đồng hồ đếm ngược thời gian thực và phân tích xếp hạng điểm.',
+    tag: 'MÔ PHỎNG THI THẬT',
   },
   {
     icon: <Code2 className="w-6 h-6 text-cyan-600" />,
-    title: 'PE Practical Coding',
-    description: 'Hands-on programming labs with starter zip files, automated unit tests, and verified full-score sample solutions.',
-    tag: 'HANDS-ON CODING',
+    title: 'Luyện thi thực hành PE',
+    description: 'Bài tập lập trình thực chiến kèm file starter zip, kịch bản unit test tự động và bài giải mẫu đạt điểm tuyệt đối 10/10.',
+    tag: 'CODE THỰC HÀNH',
   },
   {
     icon: <FileSpreadsheet className="w-6 h-6 text-indigo-600" />,
-    title: 'Theory CheatSheets',
-    description: '1-page condensed memory sheets summarizing an entire 15-week semester into essential printable points.',
-    tag: '1-PAGE PRINTABLE',
+    title: 'Tóm tắt lý thuyết CheatSheet',
+    description: 'Cô đọng toàn bộ kiến thức 15 tuần học của học kỳ vào tài liệu 1 trang in ấn, giúp ôn tập cấp tốc trước giờ thi.',
+    tag: 'TÀI LIỆU 1 TRANG',
   },
   {
     icon: <Sparkles className="w-6 h-6 text-emerald-600" />,
-    title: 'Instant Scoring & Explanations',
-    description: 'Clear step-by-step reasoning for every answer option so you understand why the right answer is correct.',
-    tag: 'DEEP DIVE',
+    title: 'Chấm điểm & Giải thích tức thì',
+    description: 'Phân tích chi tiết từng phương án đúng - sai kèm lý do cụ thể, giúp bạn hiểu sâu bản chất vấn đề và tránh bẫy thi.',
+    tag: 'GIẢI THÍCH CHI TIẾT',
   },
 ];
 
@@ -34,10 +34,10 @@ export default function FeaturesGrid() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider">
-            <span>Core Capabilities</span>
+            <span>Năng lực cốt lõi</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Designed specifically for university exam success
+            Thiết kế chuyên biệt cho mục tiêu đạt điểm cao
           </h2>
         </div>
 
@@ -63,7 +63,7 @@ export default function FeaturesGrid() {
               </div>
               <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
                 <CheckCircle2 size={13} />
-                <span>Standard Feature</span>
+                <span>Tính năng tiêu chuẩn</span>
               </div>
             </div>
           ))}

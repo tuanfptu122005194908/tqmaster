@@ -45,28 +45,32 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
             {/* Top pill badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100/90 border border-slate-200/90 shadow-2xs text-slate-800 text-xs font-semibold tracking-wide">
               <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-              <span>University Exam Preparation • FPT SE & IT</span>
+              <span>Luyện Thi Đại Học Chuyên Nghiệp • FPT SE & IT</span>
             </div>
 
             {/* Main Headline */}
-            <div className="space-y-2">
-              <h1 className="font-bebas text-6xl sm:text-7xl lg:text-[6.5rem] text-slate-900 tracking-wide leading-[0.92]">
-                STOP SEARCHING.
-                <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600">
-                  START STUDYING.
+            <div className="space-y-1">
+              <h1
+                className="font-bebas text-slate-900"
+                style={{ fontSize: 'clamp(1.5rem, 5.2vw, 3.8rem)' }}
+              >
+                <span className="block whitespace-nowrap">
+                  NGỪNG TÌM KIẾM.
+                </span>
+                <span className="block whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600">
+                  BẮT ĐẦU ÔN THI.
                 </span>
               </h1>
             </div>
 
             {/* Supporting Text */}
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl font-normal">
-              Everything you need to prepare for university exams —{' '}
-              <strong className="text-slate-800 font-semibold">Mock Exams</strong>,{' '}
-              <strong className="text-slate-800 font-semibold">PE Practice</strong>,{' '}
-              <strong className="text-slate-800 font-semibold">Cheat Sheets</strong> and{' '}
-              <strong className="text-slate-800 font-semibold">Flashcards</strong> — organized by
-              subject and semester.
+              Mọi tài liệu bạn cần để tự tin vượt qua các kỳ thi đại học —{' '}
+              <strong className="text-slate-800 font-semibold">Đề thi thử bấm giờ</strong>,{' '}
+              <strong className="text-slate-800 font-semibold">Luyện thi PE thực hành</strong>,{' '}
+              <strong className="text-slate-800 font-semibold">Tóm tắt lý thuyết</strong> và{' '}
+              <strong className="text-slate-800 font-semibold">Flashcards</strong> — được chuẩn hóa
+              theo từng môn học và học kỳ.
             </p>
 
             {/* CTAs */}
@@ -79,7 +83,7 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
                   boxShadow: '0 8px 22px rgba(37, 99, 235, 0.35)',
                 }}
               >
-                <span>Start Learning</span>
+                <span>Bắt đầu ôn thi ngay</span>
                 <ArrowRight size={18} />
               </button>
 
@@ -88,22 +92,22 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-bold text-slate-700 bg-white border border-slate-200 shadow-2xs hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all cursor-pointer"
               >
                 <Compass size={18} className="text-blue-600" />
-                <span>Explore Subjects</span>
+                <span>Khám phá môn học</span>
               </button>
             </div>
 
             {/* Small Supporting Promise Statement */}
             <div className="flex items-center gap-2 text-sm text-slate-500 font-semibold pt-1">
               <Zap size={16} className="text-amber-500 fill-amber-500" />
-              <span>From landing to studying under 3 minutes.</span>
+              <span>Đăng ký và bắt đầu học ngay chỉ trong 3 phút.</span>
             </div>
 
             {/* Micro Trust Stats */}
             <div className="pt-6 border-t border-slate-200/80 grid grid-cols-3 gap-4 sm:gap-6">
               {[
-                { value: '10,000+', label: 'Exam Questions' },
-                { value: '50+', label: 'FPT Specialized Packs' },
-                { value: '99.6%', label: 'Pass Rate' },
+                { value: '10,000+', label: 'Câu hỏi ôn thi' },
+                { value: '50+', label: 'Bộ đề chuyên ngành FPT' },
+                { value: '99.6%', label: 'Tỷ lệ qua môn' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -112,7 +116,7 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
                   transition={{ duration: 0.5, delay: 0.5 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
                   className="group"
                 >
-                  <div className="font-bebas text-3xl sm:text-4xl text-slate-900 tracking-wide group-hover:text-blue-600 transition-colors duration-300">
+                  <div className="font-bebas text-2xl sm:text-3xl text-slate-900 group-hover:text-blue-600 transition-colors duration-300">
                     {stat.value}
                   </div>
                   <div className="text-xs text-slate-500 font-medium mt-0.5">
@@ -136,10 +140,10 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
               <div className="absolute top-4 left-5 right-5 flex items-center justify-between pointer-events-none z-20">
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 border border-slate-200 shadow-2xs text-[11px] font-bold text-slate-700">
                   <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-                  <span>3D Knowledge Core</span>
+                  <span>Bản đồ tri thức 3D</span>
                 </div>
                 <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
-                  Hover node to inspect • Click to focus
+                  Rê chuột để xem • Nhấp để chọn môn
                 </div>
               </div>
 
@@ -149,7 +153,7 @@ export default function LandingHero({ onExploreSubjects }: LandingHeroProps) {
               {/* Bottom Subject Pills Preview */}
               <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between px-3 text-xs text-slate-500">
                 <span className="font-semibold text-slate-700">
-                  10 Core FPT Subjects:
+                  10 Môn học trọng tâm FPT:
                 </span>
                 <span className="font-mono text-[11px] text-blue-600 font-bold truncate max-w-[280px]">
                   PRF192 • PRO192 • MAD101 • CSD201 • DBI202 ...

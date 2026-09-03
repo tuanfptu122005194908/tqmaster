@@ -263,14 +263,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setUserEmail(session.user.email ?? null);
           setMustChangePassword(!!session.user.user_metadata?.must_change_password);
           if (session.user.email_confirmed_at) {
+            // 1. Await only loadProfileAndRole so ProtectedRoute and layouts know profile & role immediately
             await loadProfileAndRole(session.user.id);
-            await refreshPurchased();
-            enforceSingleSession(session.user.id);
-            const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id);
-            if (roleData?.some(r => r.role === 'admin')) {
-              await refreshPendingOrdersCount();
-              await refreshPendingReportsCount();
-            }
+            if (mounted) setAuthLoading(false);
+
+            // 2. Run non-blocking queries concurrently in background without blocking app render
+            Promise.allSettled([
+              refreshPurchased(),
+              enforceSingleSession(session.user.id),
+            ]).catch(console.error);
+            return;
           }
         }
       })
@@ -291,9 +293,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setMustChangePassword(!!session.user.user_metadata?.must_change_password);
           if (session.user.email_confirmed_at) {
             await loadProfileAndRole(session.user.id);
-            await refreshPurchased();
+            setAuthLoading(false);
+            refreshPurchased().catch(console.error);
             if (event === 'SIGNED_IN') {
-              enforceSingleSession(session.user.id);
+              enforceSingleSession(session.user.id).catch(console.error);
               setSearchQuery('');
             }
           }
@@ -334,19 +337,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isAdmin) return;
 
-    // Fetch counts immediately when becoming admin
-    refreshPendingOrdersCount();
-    refreshPendingReportsCount();
-    refreshUnreadChatCount();
+    // Fetch all 3 admin counts in parallel
+    Promise.allSettled([
+      refreshPendingOrdersCount(),
+      refreshPendingReportsCount(),
+      refreshUnreadChatCount(),
+    ]);
 
+    let ordersTimer: any = null;
     const ordersChannel = supabase
       .channel('admin-orders-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => { 
-          refreshPendingOrdersCount();
-          // Nếu có đơn hàng mới (INSERT), hiển thị toast thông báo cho Admin
+          clearTimeout(ordersTimer);
+          ordersTimer = setTimeout(() => refreshPendingOrdersCount(), 300);
           if (payload.eventType === 'INSERT') {
             const newOrder = payload.new as any;
             toast.success(
@@ -358,25 +364,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       )
       .subscribe();
 
+    let reportsTimer: any = null;
     const reportsChannel = supabase
       .channel('admin-reports-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'question_reports' },
-        () => { refreshPendingReportsCount(); }
+        () => {
+          clearTimeout(reportsTimer);
+          reportsTimer = setTimeout(() => refreshPendingReportsCount(), 300);
+        }
       )
       .subscribe();
 
+    let chatTimer: any = null;
     const chatChannel = supabase
       .channel('admin-chat-unread-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chat_messages' },
-        () => { refreshUnreadChatCount(); }
+        () => {
+          clearTimeout(chatTimer);
+          chatTimer = setTimeout(() => refreshUnreadChatCount(), 300);
+        }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(ordersTimer);
+      clearTimeout(reportsTimer);
+      clearTimeout(chatTimer);
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(reportsChannel);
       supabase.removeChannel(chatChannel);

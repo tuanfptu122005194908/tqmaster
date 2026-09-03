@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 
 export default function LandingPage() {
   useEffect(() => {
-    document.title = 'TQMaster — University Exam Preparation Platform | Smart Curate Learn';
+    document.title = 'TQMaster — Nền Tảng Ôn Thi Đại Học Toàn Diện | Smart Curate Learn';
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 

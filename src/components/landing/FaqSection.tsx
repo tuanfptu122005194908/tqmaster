@@ -48,15 +48,15 @@ export default function FaqSection() {
         <div className="text-center mb-14 space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider">
             <HelpCircle size={13} className="text-blue-600" />
-            <span>Got Questions?</span>
+            <span>Giải đáp thắc mắc</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-            Frequently Asked Questions
+            Câu hỏi thường gặp
           </h2>
 
           <p className="text-base text-slate-600 font-normal">
-            Everything you need to know about preparing for your exams with TQMaster.
+            Mọi điều bạn cần biết về lộ trình ôn thi hiệu quả cùng TQMaster.
           </p>
         </div>
 

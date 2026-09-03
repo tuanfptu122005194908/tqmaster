@@ -54,7 +54,7 @@ export default function LandingNavbar() {
               </span>
             </div>
             <span className="text-[11px] text-slate-500 font-medium hidden md:inline">
-              University Exam Prep Platform
+              Nền tảng ôn thi đại học toàn diện
             </span>
           </div>
         </div>
@@ -65,25 +65,25 @@ export default function LandingNavbar() {
             onClick={() => scrollToSection('subjects')}
             className="px-3.5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100/70 transition-colors cursor-pointer"
           >
-            Subjects
+            Môn học
           </button>
           <button
             onClick={() => scrollToSection('showcase')}
             className="px-3.5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100/70 transition-colors cursor-pointer"
           >
-            Platform Preview
+            Trải nghiệm nền tảng
           </button>
           <button
             onClick={() => scrollToSection('features')}
             className="px-3.5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100/70 transition-colors cursor-pointer"
           >
-            Features
+            Tính năng nổi bật
           </button>
           <button
             onClick={() => scrollToSection('faq')}
             className="px-3.5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100/70 transition-colors cursor-pointer"
           >
-            FAQ
+            Hỏi & Đáp
           </button>
         </nav>
 
@@ -91,14 +91,16 @@ export default function LandingNavbar() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/auth')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+            className="relative inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold text-white overflow-hidden group transition-all duration-200 hover:scale-[1.04] hover:shadow-blue-500/40 cursor-pointer"
             style={{
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-              boxShadow: '0 4px 18px rgba(37, 99, 235, 0.35)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%)',
+              boxShadow: '0 3px 14px rgba(37, 99, 235, 0.4)',
             }}
           >
-            <LogIn size={15} />
-            <span>Login</span>
+            {/* Gloss overlay */}
+            <span className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-80 pointer-events-none" />
+            <LogIn size={14} strokeWidth={2.5} className="relative z-10 shrink-0" />
+            <span className="relative z-10 tracking-wide">Đăng nhập</span>
           </button>
 
           {/* Mobile hamburger */}
@@ -125,38 +127,39 @@ export default function LandingNavbar() {
             onClick={() => scrollToSection('subjects')}
             className="block w-full text-left py-2 text-base font-semibold text-slate-700 hover:text-blue-600"
           >
-            Subjects
+            Môn học
           </button>
           <button
             onClick={() => scrollToSection('showcase')}
             className="block w-full text-left py-2 text-base font-semibold text-slate-700 hover:text-blue-600"
           >
-            Platform Preview
+            Trải nghiệm nền tảng
           </button>
           <button
             onClick={() => scrollToSection('features')}
             className="block w-full text-left py-2 text-base font-semibold text-slate-700 hover:text-blue-600"
           >
-            Features
+            Tính năng nổi bật
           </button>
           <button
             onClick={() => scrollToSection('faq')}
             className="block w-full text-left py-2 text-base font-semibold text-slate-700 hover:text-blue-600"
           >
-            FAQ
+            Hỏi & Đáp
           </button>
           <div className="pt-3 border-t border-slate-100">
-            <button
-              onClick={() => navigate('/auth')}
-              className="w-full py-2.5 text-center text-sm font-black text-white rounded-xl flex items-center justify-center gap-2"
-              style={{
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                boxShadow: '0 4px 16px rgba(37, 99, 235, 0.35)',
-              }}
-            >
-              <LogIn size={15} />
-              <span>Login</span>
-            </button>
+              <button
+                onClick={() => navigate('/auth')}
+                className="relative w-full py-3 text-center text-sm font-bold text-white rounded-full overflow-hidden flex items-center justify-center gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%)',
+                  boxShadow: '0 3px 14px rgba(37, 99, 235, 0.4)',
+                }}
+              >
+                <span className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                <LogIn size={14} strokeWidth={2.5} className="relative z-10" />
+                <span className="relative z-10 tracking-wide">Đăng nhập</span>
+              </button>
           </div>
         </div>
       )}

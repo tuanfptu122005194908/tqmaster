@@ -21,18 +21,17 @@ export default function FinalCtaSection({
         {/* Top Mini Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-blue-200 shadow-sm text-blue-700 text-xs font-bold uppercase tracking-wider">
           <Sparkles size={13} className="text-blue-600" />
-          <span>Prepare with Confidence</span>
+          <span>Tự tin trước mọi kỳ thi</span>
         </div>
 
         {/* Big Headline */}
         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
-          Your next exam starts here.
+          Kỳ thi tiếp theo bắt đầu từ đây.
         </h2>
 
         {/* Subtext */}
         <p className="text-lg sm:text-xl text-slate-600 font-normal max-w-2xl mx-auto leading-relaxed">
-          Stop wasting time searching for materials. Join thousands of Software Engineering and IT
-          students preparing with verified exam packs.
+          Không còn lãng phí hàng giờ tìm kiếm tài liệu rời rạc. Hàng ngàn sinh viên Kỹ thuật phần mềm & CNTT đã và đang ôn luyện hiệu quả cùng TQMaster.
         </p>
 
         {/* CTAs */}
@@ -45,7 +44,7 @@ export default function FinalCtaSection({
               boxShadow: '0 8px 24px rgba(37, 99, 235, 0.4)',
             }}
           >
-            <span>Start Learning</span>
+            <span>Bắt đầu ôn thi ngay</span>
             <ArrowRight size={18} />
           </button>
 
@@ -54,7 +53,7 @@ export default function FinalCtaSection({
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl text-base font-bold text-slate-700 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
           >
             <Compass size={18} className="text-blue-600" />
-            <span>Explore Subjects</span>
+            <span>Khám phá môn học</span>
           </button>
         </div>
 
@@ -62,15 +61,15 @@ export default function FinalCtaSection({
         <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-500">
           <span className="flex items-center gap-1.5">
             <CheckCircle2 size={14} className="text-emerald-500" />
-            Instant access after login
+            Truy cập tài liệu ngay sau khi đăng nhập
           </span>
           <span className="flex items-center gap-1.5">
             <CheckCircle2 size={14} className="text-emerald-500" />
-            100% University syllabus match
+            100% bám sát ma trận đề thi trường
           </span>
           <span className="flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-blue-500" />
-            Free introductory practice exams
+            Trải nghiệm các đề thi thử miễn phí
           </span>
         </div>
       </div>

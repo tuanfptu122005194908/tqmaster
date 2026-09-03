@@ -66,34 +66,59 @@ export default function AdminDashboard() {
 
     const load = async () => {
       try {
-        const [usersRes, subjectsRes, examsRes, questionsRes, ordersRes] = await Promise.all([
+        // Cutoff: 400 days ago covers all chart windows (day/week/month/year)
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - 400);
+        const cutoffISO = cutoff.toISOString();
+
+        const [
+          usersRes, subjectsRes, examsRes, questionsRes,
+          ordersRes,
+          pendingRes, approvedRes, rejectedRes,
+        ] = await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('subjects').select('id', { count: 'exact', head: true }),
           supabase.from('exams').select('id', { count: 'exact', head: true }),
           supabase.from('questions').select('id', { count: 'exact', head: true }),
-          supabase.from('orders').select('*').order('created_at', { ascending: false }),
+          // Only fetch recent orders needed for charts — limit 1000 rows
+          supabase.from('orders')
+            .select('id, created_at, final_amount, status, full_name, email, student_code')
+            .gte('created_at', cutoffISO)
+            .order('created_at', { ascending: false })
+            .limit(1000),
+          // Server-side counts for stat cards (no data transfer)
+          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
         ]);
 
-        const allOrders: Order[] = ordersRes.data ?? [];
-        setOrders(allOrders);
+        const allOrders = (ordersRes.data ?? []) as unknown as Order[];
+        if (isMounted) setOrders(allOrders);
 
-        setStats({
-          users:         usersRes.count ?? 0,
-          subjects:      subjectsRes.count ?? 0,
-          exams:         examsRes.count ?? 0,
-          questions:     questionsRes.count ?? 0,
-          orders:        allOrders.length,
-          pendingOrders: allOrders.filter(o => o.status === 'pending').length,
-          approved:      allOrders.filter(o => o.status === 'approved').length,
-          rejected:      allOrders.filter(o => o.status === 'rejected').length,
-        });
+        if (isMounted) {
+          setStats({
+            users:         usersRes.count ?? 0,
+            subjects:      subjectsRes.count ?? 0,
+            exams:         examsRes.count ?? 0,
+            questions:     questionsRes.count ?? 0,
+            orders:        (pendingRes.count ?? 0) + (approvedRes.count ?? 0) + (rejectedRes.count ?? 0),
+            pendingOrders: pendingRes.count ?? 0,
+            approved:      approvedRes.count ?? 0,
+            rejected:      rejectedRes.count ?? 0,
+          });
+        }
 
-        const approvedIds = allOrders.filter(o => o.status === 'approved').map(o => o.id);
-        if (approvedIds.length > 0) {
+        // Only fetch items for recent approved orders (max 60) to prevent huge IN-queries
+        const recentApprovedIds = allOrders
+          .filter(o => o.status === 'approved')
+          .slice(0, 60)
+          .map(o => o.id);
+
+        if (recentApprovedIds.length > 0) {
           const { data: itemsData } = await supabase
             .from('order_items')
-            .select('*, subjects(name)')
-            .in('order_id', approvedIds);
+            .select('id, order_id, price, subject_id, subjects(name)')
+            .in('order_id', recentApprovedIds);
           const allItems = (itemsData ?? []) as any[];
           if (isMounted) setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
         }
@@ -106,7 +131,8 @@ export default function AdminDashboard() {
 
     load();
 
-    // Use a unique channel name to prevent HMR/StrictMode errors
+    // Use a unique channel name with debounce to prevent reload spikes
+    let realtimeTimer: any = null;
     const channelId = `admin-dashboard-realtime-${Date.now()}`;
     const channel = supabase
       .channel(channelId)
@@ -114,14 +140,17 @@ export default function AdminDashboard() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         () => {
-          // Lấy lại danh sách và thống kê mỗi khi có đơn hàng mới
-          load();
+          clearTimeout(realtimeTimer);
+          realtimeTimer = setTimeout(() => {
+            if (isMounted) load();
+          }, 500);
         }
       )
       .subscribe();
 
     return () => { 
       isMounted = false; 
+      clearTimeout(realtimeTimer);
       supabase.removeChannel(channel);
     };
   }, []);

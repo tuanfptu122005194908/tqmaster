@@ -27,19 +27,18 @@ export default function LandingFooter() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 max-w-sm leading-relaxed">
-              The premier university exam preparation platform for Software Engineering and
-              Information Technology students.
+              Nền tảng ôn thi đại học hàng đầu dành cho sinh viên ngành Kỹ thuật phần mềm và Công nghệ thông tin.
             </p>
             <div className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>All systems operational • Spring 2026 Ready</span>
+              <span>Hệ thống hoạt động ổn định • Sẵn sàng cho kỳ Spring 2026</span>
             </div>
           </div>
 
           {/* Col 1: Learning */}
           <div className="space-y-3">
             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Study Packs
+              Tài liệu ôn thi
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
@@ -47,15 +46,7 @@ export default function LandingFooter() {
                   onClick={() => scrollTo('subjects')}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Subjects
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollTo('mock-exam')}
-                  className="hover:text-blue-600 transition-colors"
-                >
-                  Mock Exams
+                  Môn học
                 </button>
               </li>
               <li>
@@ -63,7 +54,7 @@ export default function LandingFooter() {
                   onClick={() => scrollTo('showcase')}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  PE Practice
+                  Đề thi thử
                 </button>
               </li>
               <li>
@@ -71,7 +62,15 @@ export default function LandingFooter() {
                   onClick={() => scrollTo('showcase')}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Theory CheatSheets
+                  Luyện thi PE
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => scrollTo('showcase')}
+                  className="hover:text-blue-600 transition-colors"
+                >
+                  Tóm tắt lý thuyết CheatSheet
                 </button>
               </li>
             </ul>
@@ -80,15 +79,15 @@ export default function LandingFooter() {
           {/* Col 2: Navigation */}
           <div className="space-y-3">
             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Platform
+              Nền tảng
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <button
-                  onClick={() => scrollTo('how-it-works')}
+                  onClick={() => scrollTo('subjects')}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  How It Works
+                  Lộ trình học kỳ
                 </button>
               </li>
               <li>
@@ -96,7 +95,7 @@ export default function LandingFooter() {
                   onClick={() => scrollTo('features')}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  Features
+                  Tính năng nổi bật
                 </button>
               </li>
               <li>
@@ -104,7 +103,7 @@ export default function LandingFooter() {
                   onClick={() => scrollTo('faq')}
                   className="hover:text-blue-600 transition-colors"
                 >
-                  FAQ
+                  Hỏi & Đáp
                 </button>
               </li>
             </ul>
@@ -113,7 +112,7 @@ export default function LandingFooter() {
           {/* Col 3: Account */}
           <div className="space-y-3">
             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Account
+              Tài khoản
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
@@ -121,7 +120,7 @@ export default function LandingFooter() {
                   onClick={() => navigate('/auth')}
                   className="hover:text-blue-600 transition-colors font-medium"
                 >
-                  Login
+                  Đăng nhập
                 </button>
               </li>
               <li>
@@ -129,7 +128,7 @@ export default function LandingFooter() {
                   onClick={() => navigate('/auth')}
                   className="hover:text-blue-600 transition-colors font-medium"
                 >
-                  Register
+                  Đăng ký
                 </button>
               </li>
             </ul>
@@ -139,14 +138,14 @@ export default function LandingFooter() {
         {/* Bottom copyright */}
         <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3">
           <div>
-            © {new Date().getFullYear()} TQMaster (Smart Curate Learn). All rights reserved.
+            © {new Date().getFullYear()} TQMaster (Smart Curate Learn). Bảo lưu mọi quyền.
           </div>
           <div className="flex items-center gap-4">
-            <span className="hover:text-slate-600 cursor-pointer">Terms of Service</span>
+            <span className="hover:text-slate-600 cursor-pointer">Điều khoản dịch vụ</span>
             <span>•</span>
-            <span className="hover:text-slate-600 cursor-pointer">Privacy Policy</span>
+            <span className="hover:text-slate-600 cursor-pointer">Chính sách bảo mật</span>
             <span>•</span>
-            <span className="hover:text-slate-600 cursor-pointer">University Academic Integrity</span>
+            <span className="hover:text-slate-600 cursor-pointer">Chuẩn mực học thuật</span>
           </div>
         </div>
       </div>
