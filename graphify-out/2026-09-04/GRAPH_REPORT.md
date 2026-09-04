@@ -1,16 +1,16 @@
-# Graph Report - smart-curate-learn-main  (2026-09-04)
+# Graph Report - smart-curate-learn-main  (2026-09-02)
 
 ## Corpus Check
-- 321 files · ~895,283 words
+- 295 files · ~867,697 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2681 nodes · 3367 edges · 275 communities (182 shown, 93 thin omitted)
+- 2519 nodes · 3171 edges · 263 communities (167 shown, 96 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `41021c76`
+- Built from commit: `743b300d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -18,7 +18,7 @@
 - sidebar.tsx
 - form.tsx
 - App.tsx
-- ProfilePage.tsx
+- HomePage.tsx
 - excelBackup.ts
 - AdminTheory.tsx
 - compilerOptions
@@ -98,7 +98,7 @@
 - @radix-ui/react-popover
 - @radix-ui/react-progress
 - @radix-ui/react-radio-group
-- CenterFocalPoint.tsx
+- home3d/index.ts
 - @radix-ui/react-select
 - @radix-ui/react-separator
 - @radix-ui/react-slider
@@ -130,7 +130,7 @@
 - typescript-eslint
 - vite
 - @vitejs/plugin-react-swc
-- Tables
+- AdminChat.tsx
 - update-agent-context.sh
 - vercel.json
 - Feature Specification: Rich Text Exam Import — LaTeX, Hình Ảnh Inline & Nhận Biết Câu Hỏi Thông Minh
@@ -148,23 +148,23 @@
 - Core Principles
 - Core Principles
 - chart.tsx
-- 2. User Scenarios & Testing
+- User Scenarios & Testing
 - Git Branching Workflow Extension
 - Create Feature Branch
 - Product
-- User Scenarios & Testing
-- 2. User Scenarios & Testing
+- Feature Specification: Core Authentication & Profile
+- Feature Specification: Admin Dashboard & Settings
 - Create Feature Branch
 - Implementation Plan: [FEATURE]
 - sheet.tsx
 - speckit.checklist.agent.md
-- Feature Specification: Subject Catalog & Theory Management
-- Feature Specification: Order Fulfillment & User Administration
-- Feature Specification: News & Community Post Administration
-- Feature Specification: Student StudyHub & Course Experience
-- 2. User Scenarios & Testing
-- Feature Specification: Student Cart, Checkout & VietQR Payment
-- Feature Specification: Student Community Feed & Interactions
+- Feature Specification: Subject & Theory Management
+- Feature Specification: Order & User Management
+- Feature Specification: News & Announcements Management
+- Feature Specification: StudyHub & Course Catalog
+- Feature Specification: Interactive Exam System
+- Feature Specification: E-Commerce & Checkout
+- Feature Specification: News & Announcements Viewer
 - **LỜI MỞ ĐẦU**
 - speckit.clarify.agent.md
 - speckit.implement.agent.md
@@ -200,7 +200,7 @@
 - Update Coding Agent Context
 - Gemini Agent Instructions
 - clsx
-- FptPanoViewer.tsx
+- HeroSection.tsx
 - eslint-plugin-react-refresh
 - file-saver
 - jszip
@@ -229,10 +229,10 @@
 - 08-user-exam-system/tasks.md
 - 09-user-ecommerce/tasks.md
 - 10-user-news/tasks.md
-- LandingPage.tsx
-- HomePage.tsx
-- AppContext.tsx
-- AuthPage.tsx
+- FptPanoViewer.tsx
+- CampusGround.tsx
+- CenterFocalPoint.tsx
+- TourHotspots.tsx
 - tailwindcss
 - @types/react-dom
 - vitest
@@ -240,14 +240,6 @@
 - SubjectDetailPage.tsx
 - toast.tsx
 - exportQuestions.ts
-- 2. User Scenarios & Testing
-- SafeCanvas.tsx
-- KnowledgeCoreScene.tsx
-- AdminAnnouncements.tsx
-- Feature Specification: Coupon & Discount Code Administration
-- Feature Specification: System Announcements & Modal Popups
-- BackupImportPanel.tsx
-- KnowledgeNetworkScene.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 228 edges
@@ -276,7 +268,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (275 total, 93 thin omitted)
+## Communities (263 total, 96 thin omitted)
 
 ### Community 0 - "sidebar.tsx"
 Cohesion: 0.07
@@ -287,20 +279,20 @@ Cohesion: 0.19
 Nodes (12): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+4 more)
 
 ### Community 2 - "App.tsx"
-Cohesion: 0.09
-Nodes (27): AdminNews, AdminOrders, AdminQuestionReports, adminVars, App(), AppShell(), NewsPage, ProtectedRoute() (+19 more)
+Cohesion: 0.08
+Nodes (31): adminVars, App(), AppShell(), ProtectedRoute(), queryClient, UserLayout(), AdminSidebar(), NAV (+23 more)
 
-### Community 3 - "ProfilePage.tsx"
-Cohesion: 0.12
-Nodes (27): AdminSubjects, CartPage, ProfilePage, formatDate(), formatPrice(), generateOrderId(), SEMESTERS, SUBJECT_COLORS (+19 more)
+### Community 3 - "HomePage.tsx"
+Cohesion: 0.09
+Nodes (30): optimizedImage(), formatPrice(), generateOrderId(), SEMESTERS, SUBJECT_COLORS, subjectColor(), subjectInitials(), AdminDashboard() (+22 more)
 
 ### Community 4 - "excelBackup.ts"
-Cohesion: 0.18
-Nodes (16): BackupTableSelector(), BackupTableSelectorProps, GROUP_LABELS, detectSheetsInFile(), detectSheetsInZip(), ExportResult, exportToExcel(), fetchBlob() (+8 more)
+Cohesion: 0.14
+Nodes (23): BackupExportPanel(), BackupImportPanel(), BackupTableSelector(), BackupTableSelectorProps, GROUP_LABELS, ImportResultDialog(), ImportResultDialogProps, detectSheetsInFile() (+15 more)
 
 ### Community 5 - "AdminTheory.tsx"
-Cohesion: 0.10
-Nodes (18): AdminSettings, AdminTheory, FileUploader(), Props, AdminSettings(), inputStyle, KEYS, SettingKey (+10 more)
+Cohesion: 0.12
+Nodes (16): FileUploader(), Props, AdminSettings(), inputStyle, KEYS, SettingKey, AdminTheory(), CAT_LABEL (+8 more)
 
 ### Community 6 - "compilerOptions"
 Cohesion: 0.08
@@ -311,8 +303,8 @@ Cohesion: 0.07
 Nodes (17): NavLink, NavLinkCompatProps, Badge(), BadgeProps, badgeVariants, Checkbox, HoverCardContent, InputOTP (+9 more)
 
 ### Community 8 - "types.ts"
-Cohesion: 0.12
-Nodes (14): AdminUsers, CompositeTypes, Constants, Database, DatabaseWithoutInternals, DefaultSchema, Enums, Json (+6 more)
+Cohesion: 0.10
+Nodes (20): CompositeTypes, Constants, Database, DatabaseWithoutInternals, DefaultSchema, Enums, Json, Tables (+12 more)
 
 ### Community 9 - "extract.py"
 Cohesion: 0.15
@@ -356,7 +348,7 @@ Nodes (49): AccordionContent, AccordionItem, AccordionTrigger, Avatar, AvatarFal
 
 ### Community 19 - "client.ts"
 Cohesion: 0.12
-Nodes (13): AdminCoupons, ResetPasswordPage, lovable, lovableAuth, SignInOptions, supabase, brokeredPreviewStorage(), AdminCoupons() (+5 more)
+Nodes (15): Logo(), lovable, lovableAuth, SignInOptions, supabase, brokeredPreviewStorage(), parseFunctionError(), AuthPage() (+7 more)
 
 ### Community 20 - "devDependencies"
 Cohesion: 0.18
@@ -420,7 +412,7 @@ Nodes (66): **6.1.1 Pha 0 — Context Discovery**, **6.1.2 Pha 1 — Specificati
 
 ### Community 35 - "AdminExams.tsx"
 Cohesion: 0.08
-Nodes (36): AdminExams, BulkExamZipModal(), BulkExamZipModalProps, Subject, getKatex(), parseSegments(), renderLatex(), RichContent() (+28 more)
+Nodes (33): BulkExamZipModal(), BulkExamZipModalProps, Subject, getKatex(), parseSegments(), renderLatex(), RichContent(), RichContentProps (+25 more)
 
 ### Community 36 - "**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**"
 Cohesion: 0.03
@@ -463,8 +455,8 @@ Cohesion: 0.05
 Nodes (42): **13.1.1 CORE — "Những thứ không được phép sai"**, **13.1.2 SHELL — "Những thứ cần xoay chuyển nhanh"**, **13.1 Nguyên tắc Hybrid — Mô hình "Core & Shell"**, **13.2.1 Ba chiều của Decision Matrix**, **13.2.2 The Decision Matrix — 9 ô × Risk overlay**, **13.2.3 Flowchart quyết định nhanh**, **13.2.4 Ví dụ áp dụng ma trận — 5 tình huống thực tế**, **13.2  Decision Matrix — Spec Depth × Agent Autonomy × Risk** (+34 more)
 
 ### Community 47 - "ExamPage.tsx"
-Cohesion: 0.25
-Nodes (9): ExamPage, getCtx(), playSound, playTone(), Exam, ExamPage(), formatRelativeTime(), formatTime() (+1 more)
+Cohesion: 0.29
+Nodes (8): getCtx(), playSound, playTone(), Exam, ExamPage(), formatRelativeTime(), formatTime(), Question
 
 ### Community 53 - "**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**"
 Cohesion: 0.05
@@ -486,10 +478,6 @@ Nodes (29): **1.1 Từ Waterfall đến Agile: Nửa Thế Kỷ Cô Đặc**, **
 Cohesion: 0.07
 Nodes (26): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 Only) (+18 more)
 
-### Community 84 - "CenterFocalPoint.tsx"
-Cohesion: 0.14
-Nodes (3): CenterFocalPointProps, FloatingBooksProps, FloatingParticlesProps
-
 ### Community 88 - "Key Design Improvements"
 Cohesion: 0.07
 Nodes (26): 1. **Hero Section with Current Semester Focus**, 2. **Quick Stats Dashboard**, 3. **Improved Semester Filter**, 4. **Enhanced Empty States**, 5. **Redesigned Subject Cards**, 6. **Color & Typography Strategy**, 7. **Mobile Responsive Improvements**, 8. **Accessibility & UX Enhancements** (+18 more)
@@ -503,12 +491,12 @@ Cohesion: 0.08
 Nodes (25): 1. Modern Design System, 1. Navigation System (TopNav.tsx), 2. Color Palette Strategy, 2. Homepage Redesign (HomePage.tsx), 3. Layout System (App.tsx), 3. Typography System, 4. Interactive Elements, 5. Advanced Visual Features (+17 more)
 
 ### Community 112 - "FptCampusScene.tsx"
-Cohesion: 0.09
-Nodes (16): AlphaBuilding(), AlphaBuildingProps, CampusGround(), CampusSky(), CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps (+8 more)
+Cohesion: 0.14
+Nodes (12): AlphaBuilding(), AlphaBuildingProps, CampusSky(), CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps, Waypoint (+4 more)
 
-### Community 116 - "Tables"
-Cohesion: 0.13
-Nodes (20): AdminChat, ChatMessageBubble(), ChatMessageBubbleProps, formatTime(), ChatWidget(), ChatWidgetInner(), ChatWidgetInnerProps, ChatWindow() (+12 more)
+### Community 116 - "AdminChat.tsx"
+Cohesion: 0.14
+Nodes (18): ChatMessageBubble(), ChatMessageBubbleProps, formatTime(), ChatWidget(), ChatWidgetInner(), ChatWidgetInnerProps, ChatWindow(), ChatWindowProps (+10 more)
 
 ### Community 138 - "Feature Specification: Rich Text Exam Import — LaTeX, Hình Ảnh Inline & Nhận Biết Câu Hỏi Thông Minh"
 Cohesion: 0.09
@@ -519,8 +507,8 @@ Cohesion: 0.12
 Nodes (16): Assumptions, Edge Cases, Edge Cases, Feature Specification: Live Chat Support (User ↔ Admin), Functional Requirements, Key Entities, Key Entities, Measurable Outcomes (+8 more)
 
 ### Community 140 - "AdminExamStats.tsx"
-Cohesion: 0.14
-Nodes (15): AdminExamStats, getExamScore(), AdminExamStats(), AnswerBar(), DEFAULT_PAL, ExamRow, ExamStat, ExamStatCard() (+7 more)
+Cohesion: 0.15
+Nodes (13): AdminExamStats(), AnswerBar(), DEFAULT_PAL, ExamRow, ExamStat, ExamStatCard(), getPal(), LABELS (+5 more)
 
 ### Community 141 - "README.md"
 Cohesion: 0.12
@@ -570,9 +558,9 @@ Nodes (10): Core Principles, Governance, [PRINCIPLE_1_NAME], [PRINCIPLE_2_NAME],
 Cohesion: 0.25
 Nodes (9): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, getPayloadConfigFromPayload(), THEMES (+1 more)
 
-### Community 153 - "2. User Scenarios & Testing"
-Cohesion: 0.17
-Nodes (11): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Exam, Questions & Analytics Management, Functional Requirements, Key Entities, User Story 1 – Quản lý bộ đề thi & sắp xếp niên đại (Priority: P1) (+3 more)
+### Community 153 - "User Scenarios & Testing"
+Cohesion: 0.20
+Nodes (9): Feature Specification: Exam & Question Management, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Create Exams (Priority: P1), User Story 2 - Review Question Reports (Priority: P2), User Story 3 - View Exam Stats (Thống kê đáp án) (Priority: P1) (+1 more)
 
 ### Community 154 - "Git Branching Workflow Extension"
 Cohesion: 0.20
@@ -586,13 +574,13 @@ Nodes (8): Branch Numbering Mode, Create Feature Branch, Environment Variable Ov
 Cohesion: 0.22
 Nodes (8): Accessibility & Inclusion, Anti-references, Brand Personality, Design Principles, Product, Product Purpose, Register, Users
 
-### Community 157 - "User Scenarios & Testing"
-Cohesion: 0.14
-Nodes (13): Feature Specification: Core Authentication & Profile, Functional Requirements, Key Entities, Key Files, Overview, Requirements, Success Criteria, User Scenarios & Testing (+5 more)
+### Community 157 - "Feature Specification: Core Authentication & Profile"
+Cohesion: 0.22
+Nodes (8): Feature Specification: Core Authentication & Profile, Functional Requirements, Key Entities, Requirements, Success Criteria, User Scenarios & Testing, User Story 1 - Sign Up & Login with OTP (Priority: P1), User Story 2 - Profile Management (Priority: P2)
 
-### Community 158 - "2. User Scenarios & Testing"
-Cohesion: 0.15
-Nodes (12): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Admin Dashboard & Analytics, Functional Requirements, Key Entities, Non-Functional Requirements (+4 more)
+### Community 158 - "Feature Specification: Admin Dashboard & Settings"
+Cohesion: 0.22
+Nodes (8): Feature Specification: Admin Dashboard & Settings, Functional Requirements, Key Entities, Requirements, Success Criteria, User Scenarios & Testing, User Story 1 - Dashboard Overview (Priority: P1), User Story 2 - Global Settings (Priority: P2)
 
 ### Community 159 - "Create Feature Branch"
 Cohesion: 0.22
@@ -610,33 +598,33 @@ Nodes (8): SheetContent, SheetContentProps, SheetDescription, SheetFooter(), She
 Cohesion: 0.25
 Nodes (7): Anti-Examples: What NOT To Do, Checklist Purpose: "Unit Tests for English", Example Checklist Types & Sample Items, Execution Steps, Post-Execution Checks, Pre-Execution Checks, User Input
 
-### Community 163 - "Feature Specification: Subject Catalog & Theory Management"
-Cohesion: 0.18
-Nodes (10): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Subject Catalog & Theory Management, Functional Requirements, Key Entities, User Story 1 – Quản trị danh mục môn học (Priority: P1) (+2 more)
+### Community 163 - "Feature Specification: Subject & Theory Management"
+Cohesion: 0.25
+Nodes (7): Feature Specification: Subject & Theory Management, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Subject CRUD (Priority: P1), User Story 2 - Theory Management (Priority: P1)
 
-### Community 164 - "Feature Specification: Order Fulfillment & User Administration"
-Cohesion: 0.18
-Nodes (10): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Order Fulfillment & User Administration, Functional Requirements, Key Entities, User Story 1 – Xem và duyệt đơn hàng với phân trang hiệu năng cao (Priority: P1) (+2 more)
+### Community 164 - "Feature Specification: Order & User Management"
+Cohesion: 0.25
+Nodes (7): Feature Specification: Order & User Management, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Order Approvals (Priority: P1), User Story 2 - User Management & Creation (Priority: P2)
 
-### Community 165 - "Feature Specification: News & Community Post Administration"
-Cohesion: 0.20
-Nodes (9): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: News & Community Post Administration, Functional Requirements, Key Entities, User Story 1 – Đăng bài viết tin tức mới (Priority: P1) (+1 more)
+### Community 165 - "Feature Specification: News & Announcements Management"
+Cohesion: 0.25
+Nodes (7): Feature Specification: News & Announcements Management, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Publish News (Priority: P2), User Story 2 - System Announcements (Priority: P3)
 
-### Community 166 - "Feature Specification: Student StudyHub & Course Experience"
-Cohesion: 0.18
-Nodes (10): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Student StudyHub & Course Experience, Functional Requirements, Key Entities, User Story 1 – Khám phá danh mục môn học theo học kỳ (Priority: P1) (+2 more)
+### Community 166 - "Feature Specification: StudyHub & Course Catalog"
+Cohesion: 0.25
+Nodes (7): Feature Specification: StudyHub & Course Catalog, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Browse Subjects (Priority: P1), User Story 2 - Subject Details (Priority: P1)
 
-### Community 167 - "2. User Scenarios & Testing"
-Cohesion: 0.17
-Nodes (11): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Interactive Exam Engine & Assessment, Functional Requirements, Key Entities, User Story 1 – Làm bài thi tính giờ chuẩn cấu trúc FPT (Priority: P1) (+3 more)
+### Community 167 - "Feature Specification: Interactive Exam System"
+Cohesion: 0.25
+Nodes (7): Feature Specification: Interactive Exam System, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Take Exam (Priority: P1), User Story 2 - Report Question (Priority: P3)
 
-### Community 168 - "Feature Specification: Student Cart, Checkout & VietQR Payment"
-Cohesion: 0.18
-Nodes (10): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Student Cart, Checkout & VietQR Payment, Functional Requirements, Key Entities, User Story 1 – Quản lý giỏ hàng & Áp dụng mã giảm giá (Priority: P1) (+2 more)
+### Community 168 - "Feature Specification: E-Commerce & Checkout"
+Cohesion: 0.25
+Nodes (7): Feature Specification: E-Commerce & Checkout, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Add to Cart (Priority: P2), User Story 2 - Checkout (Priority: P1)
 
-### Community 169 - "Feature Specification: Student Community Feed & Interactions"
-Cohesion: 0.18
-Nodes (10): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Student Community Feed & Interactions, Functional Requirements, Key Entities, User Story 1 – Xem dòng tin tức & Thư viện ảnh (Priority: P1) (+2 more)
+### Community 169 - "Feature Specification: News & Announcements Viewer"
+Cohesion: 0.25
+Nodes (7): Feature Specification: News & Announcements Viewer, Functional Requirements, Key Entities, Requirements, User Scenarios & Testing, User Story 1 - Read News (Priority: P3), User Story 2 - View Announcements (Priority: P2)
 
 ### Community 170 - "**LỜI MỞ ĐẦU**"
 Cohesion: 0.25
@@ -770,93 +758,53 @@ Nodes (3): Behavior, Execution, Update Coding Agent Context
 Cohesion: 0.50
 Nodes (3): Behavior, Execution, Update Coding Agent Context
 
-### Community 205 - "FptPanoViewer.tsx"
-Cohesion: 0.12
-Nodes (13): FptPanoViewer(), FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId, HeroSceneProps, FPT_CAMPUSES, HeroScene (+5 more)
+### Community 205 - "HeroSection.tsx"
+Cohesion: 0.20
+Nodes (9): FptPanoViewer(), HeroSceneProps, FPT_CAMPUSES, HeroScene, HeroSection(), HeroSectionProps, POPULAR_FPT_SUBJECTS, STATS (+1 more)
 
-### Community 252 - "LandingPage.tsx"
-Cohesion: 0.13
-Nodes (13): LandingPage, FaqItem, FAQS, FaqSection(), FeaturesGrid(), HIGHLIGHTS, LandingFooter(), LandingNavbar() (+5 more)
+### Community 252 - "FptPanoViewer.tsx"
+Cohesion: 0.25
+Nodes (4): FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId
 
-### Community 253 - "HomePage.tsx"
-Cohesion: 0.14
-Nodes (7): HomePage, BootScreen(), PageSkeleton(), SubjectGridSkeleton(), optimizedImage(), CourseCard(), Subject
-
-### Community 254 - "AppContext.tsx"
-Cohesion: 0.13
-Nodes (14): AdminDashboard, AppContext, AppContextValue, AppProvider(), CartItem, getDeviceId(), Profile, Subject (+6 more)
-
-### Community 255 - "AuthPage.tsx"
-Cohesion: 0.19
-Nodes (10): AuthPage, VerifyEmailPage, parseFunctionError(), AuthPage(), ensureGoogleScriptLoaded(), Mode, Window, getResendLog() (+2 more)
+### Community 255 - "TourHotspots.tsx"
+Cohesion: 0.40
+Nodes (3): HOTSPOTS, TourHotspots(), TourHotspotsProps
 
 ### Community 259 - "hooks/use-toast.ts"
-Cohesion: 0.16
-Nodes (15): ToastActionElement, ToastProps, Action, ActionType, actionTypes, addToRemoveQueue(), dispatch(), genId() (+7 more)
+Cohesion: 0.18
+Nodes (15): Toaster(), Action, ActionType, actionTypes, addToRemoveQueue(), dispatch(), genId(), listeners (+7 more)
 
 ### Community 260 - "SubjectDetailPage.tsx"
-Cohesion: 0.25
-Nodes (8): SubjectDetailPage, sortExams(), Announcement, Exam, Subject, SubjectDetailPage(), Tab, Theory
+Cohesion: 0.15
+Nodes (13): formatDate(), AdminAnnouncements(), Announcement, inputStyle, Subject, AdminOrders(), Order, Announcement (+5 more)
 
 ### Community 261 - "toast.tsx"
-Cohesion: 0.31
-Nodes (9): Toast, ToastAction, ToastClose, ToastDescription, ToastTitle, toastVariants, ToastViewport, Toaster() (+1 more)
+Cohesion: 0.29
+Nodes (9): Toast, ToastAction, ToastActionElement, ToastClose, ToastDescription, ToastProps, ToastTitle, toastVariants (+1 more)
 
 ### Community 262 - "exportQuestions.ts"
-Cohesion: 0.25
-Nodes (6): BackupExportPanel(), ExamRow, exportQuestionsReadable(), OptionRow, QuestionRow, SubjectRow
-
-### Community 263 - "2. User Scenarios & Testing"
-Cohesion: 0.17
-Nodes (11): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: 3D Interactive Landing Page & Conversion Showcase, Functional Requirements, Key Components, User Story 1 – Trải nghiệm không gian tri thức 3D tương tác (Priority: P1) (+3 more)
-
-### Community 264 - "SafeCanvas.tsx"
-Cohesion: 0.21
-Nodes (5): AmbientBackgroundCore(), FinalCtaSection(), Canvas(), isWebGLAvailable(), WebGLErrorBoundary
-
-### Community 265 - "KnowledgeCoreScene.tsx"
-Cohesion: 0.20
-Nodes (6): KnowledgeCoreScene(), KnowledgeCoreSceneProps, SUBJECT_NODES, SubjectNodeData, LandingHero(), LandingHeroProps
-
-### Community 266 - "AdminAnnouncements.tsx"
-Cohesion: 0.25
-Nodes (8): AdminAnnouncements, Announcement, AnnouncementPopup(), renderRichText(), AdminAnnouncements(), Announcement, inputStyle, Subject
-
-### Community 267 - "Feature Specification: Coupon & Discount Code Administration"
-Cohesion: 0.20
-Nodes (9): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Coupon & Discount Code Administration, Functional Requirements, Key Entities, User Story 1 – Tạo mã giảm giá mới (Priority: P1) (+1 more)
-
-### Community 268 - "Feature Specification: System Announcements & Modal Popups"
-Cohesion: 0.20
-Nodes (9): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: System Announcements & Modal Popups, Functional Requirements, Key Entities, User Story 1 – Đăng thông báo mới từ Admin (Priority: P1) (+1 more)
-
-### Community 269 - "BackupImportPanel.tsx"
-Cohesion: 0.31
-Nodes (6): AdminBackup, BackupImportPanel(), ImportResultDialog(), ImportResultDialogProps, downloadTemplate(), ImportResult
-
-### Community 270 - "KnowledgeNetworkScene.tsx"
-Cohesion: 0.25
-Nodes (3): KnowledgeNetworkScene(), NETWORK_DATA, NetworkNode
+Cohesion: 0.29
+Nodes (6): ExamRow, exportQuestionsReadable(), OptionRow, QuestionRow, SubjectRow, getExamScore()
 
 ## Knowledge Gaps
-- **1617 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `$schema`, `style`, `rsc` (+1612 more)
+- **1555 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `$schema`, `style`, `rsc` (+1550 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **93 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **96 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `**LỜI MỞ ĐẦU**` connect `**LỜI MỞ ĐẦU**` to `**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**`, `**<mark>SDD Workflow</mark>**`, `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**`, `**<mark>AI Agent Thực Sự Là Gì?</mark>**`, `**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**`, `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**`, `**<mark>Phân Tích Phê Bình về SDD</mark>**`, `**<mark>Multi-Agent & Orchestration</mark>**`, `**<mark>Hybrid Framework</mark>**`, `**<mark>Templates, Checklists & Quick References</mark>**`, `**<mark>Các Tiêu Chuẩn Mở</mark>**`, `**<mark>Executable Specification</mark>**`, `**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**`, `**<mark>Specification Patterns Nâng Cao</mark>**`, `**<mark>Agent-Driven Workflow</mark>**`?**
-  _High betweenness centrality (0.073) - this node is a cross-community bridge._
+  _High betweenness centrality (0.078) - this node is a cross-community bridge._
 - **Why does `cn()` connect `cn` to `drawer.tsx`, `form.tsx`, `sidebar.tsx`, `navigation-menu.tsx`, `sheet.tsx`, `toast.tsx`, `toggle-group.tsx`, `alert.tsx`, `utils.ts`, `pagination.tsx`, `command.tsx`, `carousel.tsx`, `context-menu.tsx`, `chart.tsx`, `table.tsx`, `breadcrumb.tsx`?**
-  _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `**<mark>SDD Workflow</mark>**` connect `**<mark>SDD Workflow</mark>**` to `**LỜI MỞ ĐẦU**`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
+- **Why does `**<mark>Các Tiêu Chuẩn Mở</mark>**` connect `**<mark>Các Tiêu Chuẩn Mở</mark>**` to `**LỜI MỞ ĐẦU**`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **What connects `update-agent-context.sh script`, `git-common.sh script`, `$schema` to the rest of the system?**
-  _1617 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1555 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidebar.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.07057057057057058 - nodes in this community are weakly interconnected._
 - **Should `App.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.08636977058029689 - nodes in this community are weakly interconnected._
-- **Should `ProfilePage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.12096774193548387 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08484848484848485 - nodes in this community are weakly interconnected._
+- **Should `HomePage.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.09024390243902439 - nodes in this community are weakly interconnected._

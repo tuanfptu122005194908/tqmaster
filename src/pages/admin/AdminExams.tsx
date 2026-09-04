@@ -10,7 +10,7 @@ import { RichContent } from '@/components/exam/RichContent';
 import { parseHtmlToQuestions, type ParsedQuestion } from '@/lib/wordParser';
 import { parseMarkdownExam } from '@/lib/markdownExamParser';
 import { BulkExamZipModal } from '@/components/admin/BulkExamZipModal';
-import { batchUploadImages } from '@/lib/imageUpload';
+import { batchUploadImages, uploadExamQuestionFile } from '@/lib/imageUpload';
 
 type Exam    = Tables<'exams'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
@@ -64,6 +64,7 @@ export default function AdminExams() {
 
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [imgOptionCount, setImgOptionCount] = useState<number>(4);
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   const [wordUploading, setWordUploading] = useState(false);
@@ -418,39 +419,77 @@ export default function AdminExams() {
 
   const uploadQuestionImages = async (files: FileList | null) => {
     if (!selExam || !files || files.length === 0) return;
+
+    // Sắp xếp tự nhiên theo tên file để câu 1, 2... 10 không bị xáo trộn thứ tự
+    const sortedFiles = Array.from(files).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+    );
+
     setUploadingImg(true);
-    setUploadProgress({ done: 0, total: files.length });
-    let startNum = questions.length + 1;
-    const defaultLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    setUploadProgress({ done: 0, total: sortedFiles.length });
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const ext = file.name.split('.').pop() ?? 'jpg';
-      const path = `${selExam.id}/${Date.now()}_${i}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('exam-images').upload(path, file);
-      if (upErr) { console.error('Upload image failed:', upErr); continue; }
-      const { data: pubData } = supabase.storage.from('exam-images').getPublicUrl(path);
-      const publicUrl = pubData.publicUrl;
+    // Tính toán số thứ tự bắt đầu chuẩn xác tránh xung đột khi đã có câu hỏi trước đó
+    const maxOrder = questions.length > 0 ? Math.max(...questions.map(q => q.order_num || 0)) : 0;
+    let nextOrderNum = maxOrder + 1;
 
-      const { data: q } = await supabase.from('questions').insert({
-        exam_id: selExam.id, order_num: startNum++,
-        content: null, type: 'image', image_url: publicUrl,
-        chapter_name: 'Hình ảnh',
-      }).select().single();
+    const allLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    const chosenLabels = allLabels.slice(0, imgOptionCount || 4);
 
-      if (q) {
-        await supabase.from('question_options').insert(
-          defaultLabels.map(label => ({
-            question_id: q.id, label, content: '', is_correct: false,
-          }))
-        );
+    let successCount = 0;
+    let lastErrMsg = '';
+
+    const toastId = toast.loading(`Đang xử lý & tải ảnh câu hỏi 0/${sortedFiles.length}...`);
+
+    for (let i = 0; i < sortedFiles.length; i++) {
+      const file = sortedFiles[i];
+      try {
+        // Tự động nén chất lượng cao + fallback thông minh giữa các bucket storage
+        const publicUrl = await uploadExamQuestionFile(selExam.id, file, i);
+
+        const { data: q, error: qErr } = await supabase.from('questions').insert({
+          exam_id: selExam.id,
+          order_num: nextOrderNum++,
+          content: null,
+          type: 'image',
+          image_url: publicUrl,
+          chapter_name: 'Hình ảnh',
+        }).select().single();
+
+        if (qErr) throw qErr;
+
+        if (q) {
+          const { error: optErr } = await supabase.from('question_options').insert(
+            chosenLabels.map(label => ({
+              question_id: q.id,
+              label,
+              content: '',
+              is_correct: false,
+            }))
+          );
+          if (optErr) console.warn('Lỗi tạo lựa chọn cho câu:', optErr);
+        }
+
+        successCount++;
+      } catch (err: any) {
+        console.error(`Lỗi upload ảnh ${file.name}:`, err);
+        lastErrMsg = err?.message || 'Lỗi không xác định';
       }
-      setUploadProgress({ done: i + 1, total: files.length });
+
+      setUploadProgress({ done: i + 1, total: sortedFiles.length });
+      toast.loading(`Đang tải ảnh ${i + 1}/${sortedFiles.length}...`, { id: toastId });
     }
 
     await fetchQuestions(selExam.id);
     setUploadingImg(false);
     if (imgInputRef.current) imgInputRef.current.value = '';
+
+    if (successCount === sortedFiles.length) {
+      toast.success(`Đã thêm thành công ${successCount} câu hỏi dạng ảnh!`, { id: toastId });
+    } else if (successCount > 0) {
+      toast.warning(`Đã tải ${successCount}/${sortedFiles.length} câu. Lỗi gặp phải: ${lastErrMsg}`, { id: toastId });
+    } else {
+      toast.error(`Không thể tải ảnh: ${lastErrMsg || 'Vui lòng kiểm tra lại kết nối hoặc quyền truy cập storage.'}`, { id: toastId });
+    }
   };
 
   const setOptionAsCorrect = async (questionId: string, optionId: string) => {
@@ -851,23 +890,99 @@ export default function AdminExams() {
 
             {/* Upload images as questions */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, padding: 22, marginBottom: 24, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-              <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Tải ảnh đề thi (1 ảnh = 1 câu)</h3>
-              <p style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>
-                Mỗi ảnh sẽ tạo 1 câu hỏi mới với các lựa chọn từ A đến H. Bấm chọn trực tiếp vào ô A, B, C, D... bên dưới để đổi đáp án đúng!
-              </p>
-              <input ref={imgInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
-                onChange={e => uploadQuestionImages(e.target.files)} />
-              <button
-                style={{
-                  padding: '10px 18px', background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe',
-                  borderRadius: 12, fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
-                }}
-                disabled={uploadingImg} onClick={() => imgInputRef.current?.click()}
-              >
-                {uploadingImg
-                  ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Đang tải {uploadProgress.done}/{uploadProgress.total}</>
-                  : <><ImagePlus size={15} /> Chọn nhiều ảnh đề thi</>}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
+                <div>
+                  <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', margin: '0 0 4px 0' }}>Tải ảnh đề thi (1 ảnh = 1 câu)</h3>
+                  <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
+                    Hệ thống tự động sắp xếp tên file theo thứ tự tự nhiên (ví dụ 1.png, 2.png... 10.png) và tự động nén ảnh sắc nét trước khi tải lên.
+                  </p>
+                </div>
+                
+                {/* Option Count Selector */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8fafc', padding: '4px 8px', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>Lựa chọn mỗi câu:</span>
+                  {[
+                    { count: 4, label: '4 (A-D)' },
+                    { count: 5, label: '5 (A-E)' },
+                    { count: 6, label: '6 (A-F)' },
+                    { count: 8, label: '8 (A-H)' },
+                  ].map(item => (
+                    <button
+                      key={item.count}
+                      type="button"
+                      onClick={() => setImgOptionCount(item.count)}
+                      style={{
+                        padding: '4px 9px',
+                        borderRadius: 8,
+                        fontSize: 12,
+                        fontWeight: imgOptionCount === item.count ? 800 : 600,
+                        background: imgOptionCount === item.count ? '#3b82f6' : 'transparent',
+                        color: imgOptionCount === item.count ? '#ffffff' : '#64748b',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <input
+                ref={imgInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/jpg"
+                multiple
+                style={{ display: 'none' }}
+                onChange={e => uploadQuestionImages(e.target.files)}
+              />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <button
+                  style={{
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: 12,
+                    fontSize: 13,
+                    fontWeight: 800,
+                    cursor: uploadingImg ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                    opacity: uploadingImg ? 0.8 : 1
+                  }}
+                  disabled={uploadingImg}
+                  onClick={() => imgInputRef.current?.click()}
+                >
+                  {uploadingImg ? (
+                    <>
+                      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                      Đang xử lý & tải {uploadProgress.done}/{uploadProgress.total} ({Math.round((uploadProgress.done / Math.max(1, uploadProgress.total)) * 100)}%)
+                    </>
+                  ) : (
+                    <>
+                      <ImagePlus size={16} /> Chọn nhiều ảnh đề thi
+                    </>
+                  )}
+                </button>
+
+                {uploadingImg && (
+                  <div style={{ flex: 1, minWidth: 160, maxWidth: 300, background: '#f1f5f9', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)',
+                        width: `${Math.round((uploadProgress.done / Math.max(1, uploadProgress.total)) * 100)}%`,
+                        transition: 'width 0.2s ease'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Bulk Answers Input */}
@@ -962,11 +1077,59 @@ export default function AdminExams() {
 
                     {/* Question image(s) — always shown when present */}
                     {q.image_url && (
-                      <img src={q.image_url} alt={`Câu ${i + 1}`} style={{ maxWidth: '100%', maxHeight: 380, borderRadius: 14, border: '1px solid #e2e8f0', marginBottom: 8, display: 'block' }} />
+                      <div style={{ marginBottom: 12 }}>
+                        <img
+                          src={q.image_url}
+                          alt={`Câu ${i + 1}`}
+                          onClick={() => window.open(q.image_url!, '_blank')}
+                          title="Click để mở xem ảnh kích thước gốc trong tab mới"
+                          style={{
+                            maxWidth: '100%', maxHeight: 420, borderRadius: 14,
+                            border: '1px solid #e2e8f0', display: 'block',
+                            cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                          }}
+                        />
+                      </div>
                     )}
                     {((q as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
                       <img key={xi} src={url} alt={`Câu ${i + 1} ảnh ${xi + 1}`} style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 12, border: '1px solid #e2e8f0', marginBottom: 6, display: 'block' }} />
                     ))}
+
+                    {/* Quick Answer Switcher Bar for Image Questions */}
+                    {(q.image_url || q.type === 'image') && opts.length > 0 && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                        background: '#f8fafc', padding: '10px 14px', borderRadius: 14,
+                        border: '1px solid #e2e8f0', marginBottom: 14
+                      }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>
+                          Đáp án đúng:
+                        </span>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {opts.map(o => (
+                            <button
+                              key={o.id || o.label}
+                              type="button"
+                              onClick={() => setOptionAsCorrect(q.id, o.id)}
+                              style={{
+                                minWidth: 38, height: 38, padding: '0 10px', borderRadius: 10,
+                                background: o.is_correct ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ffffff',
+                                color: o.is_correct ? '#ffffff' : '#334155',
+                                border: o.is_correct ? '1.5px solid #059669' : '1.5px solid #cbd5e1',
+                                fontWeight: 800, fontSize: 13, cursor: 'pointer',
+                                boxShadow: o.is_correct ? '0 3px 10px rgba(16, 185, 129, 0.35)' : '0 1px 3px rgba(0,0,0,0.02)',
+                                transition: 'all 0.15s ease',
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4
+                              }}
+                              title={`Click để chọn/đổi đáp án ${o.label} làm đáp án đúng`}
+                            >
+                              <span>{o.label}</span>
+                              {o.is_correct && <Check size={13} strokeWidth={3} />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Clean & Fast Answer Switcher Buttons */}
                     {opts.length > 0 && (
