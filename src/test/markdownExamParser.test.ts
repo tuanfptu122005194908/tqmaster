@@ -219,6 +219,97 @@ D 70
     expect(res.questions[0].options[1].content).toBe('50');
     expect(res.questions[0].correctAnswers).toEqual(['A']);
   });
+
+  it('should parse questions with closing brace or code statement glued to Option A', () => {
+    const md = `**Câu 1.** What is the output of the code?
+\`\`\`
+class Test {
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+\`\`\`
+
+}A. Hello
+B. World
+C. Error
+D. None
+
+> **Đáp án:**
+> - Câu 1: **A**
+
+**Câu 2.** What is printed?
+\`\`\`
+int sum = 10;
+\`\`\`
+System.out.println(sum);A. 10
+B. 20
+C. 0
+D. Error
+
+> **Đáp án:**
+> - Câu 2: **A**`;
+
+    const res = parseMarkdownExam(md);
+    expect(res.questions).toHaveLength(2);
+
+    // Q1: '}' moved into code block and Option A recognized
+    expect(res.questions[0].content).toContain('}\n```');
+    expect(res.questions[0].options).toHaveLength(4);
+    expect(res.questions[0].options[0].label).toBe('A');
+    expect(res.questions[0].options[0].content).toBe('Hello');
+    expect(res.questions[0].options[0].isCorrect).toBe(true);
+    expect(res.questions[0].correctAnswers).toEqual(['A']);
+
+    // Q2: System.out.println(sum); in content and Option A recognized
+    expect(res.questions[1].content).toContain('System.out.println(sum);');
+    expect(res.questions[1].options).toHaveLength(4);
+    expect(res.questions[1].options[0].label).toBe('A');
+    expect(res.questions[1].options[0].content).toBe('10');
+    expect(res.questions[1].options[0].isCorrect).toBe(true);
+  });
+
+  it('should parse questions where options are wrapped in code fences (like Q21)', () => {
+    const md = `**Câu 21.** What is the output?
+\`\`\`
+class Main {}
+\`\`\`
+
+A. Choice 1
+
+\`\`\`
+B. Choice 2
+C. Choice 3
+\`\`\`
+
+D. Choice 4
+
+> **Đáp án:**
+> - Câu 21: **B**`;
+
+    const res = parseMarkdownExam(md);
+    expect(res.questions).toHaveLength(1);
+    expect(res.questions[0].options).toHaveLength(4);
+    expect(res.questions[0].options.map(o => o.label)).toEqual(['A', 'B', 'C', 'D']);
+    expect(res.questions[0].options[1].content).toBe('Choice 2');
+    expect(res.questions[0].options[2].content).toBe('Choice 3');
+    expect(res.questions[0].options[1].isCorrect).toBe(true);
+    expect(res.questions[0].correctAnswers).toEqual(['B']);
+  });
+
+  it('should split horizontal options on a single line', () => {
+    const md = `**Câu 1.** Choose the correct value:
+A. 10    B. 20    C. 30    D. 40
+
+> Đáp án: C`;
+
+    const res = parseMarkdownExam(md);
+    expect(res.questions).toHaveLength(1);
+    expect(res.questions[0].options).toHaveLength(4);
+    expect(res.questions[0].options.map(o => o.label)).toEqual(['A', 'B', 'C', 'D']);
+    expect(res.questions[0].options[0].content).toBe('10');
+    expect(res.questions[0].options[2].content).toBe('30');
+    expect(res.questions[0].options[2].isCorrect).toBe(true);
+  });
 });
 
 

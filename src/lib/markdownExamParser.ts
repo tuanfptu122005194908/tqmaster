@@ -208,6 +208,93 @@ export function detectGluedOptionA(optAContent: string): {
 }
 
 /**
+ * Normalizes exam lines:
+ * 1. Separates code closing braces glued to text or options: e.g. "}A. ...", "}What will the output be?"
+ * 2. Separates code statements/delimiters glued to options: e.g. "System.out.println(sum);A. 6", "Car car;A. Undefined"
+ * 3. Splits horizontal options on the same line: e.g. "A. Option 1   B. Option 2   C. Option 3"
+ * 4. Unwraps markdown code fences that wrap option lists: e.g. ``` \n B. ... \n C. ... \n ```
+ */
+export function normalizeExamLines(lines: string[]): string[] {
+  const expanded: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // 1. Separate leading '}' when glued to text or option
+    // e.g. "}A. ...", "}What will the output be?", "}and this main method:"
+    const braceMatch = trimmed.match(/^(\})\s*([A-Za-z0-9].*)$/);
+    if (braceMatch) {
+      expanded.push(braceMatch[1]);
+      expanded.push(braceMatch[2]);
+      continue;
+    }
+
+    // 2. Separate code statement / delimiter + option marker
+    // e.g. "System.out.println(sum);A. 6", "Car car;A. Undefined"
+    const gluedOptMatch = trimmed.match(/^(.+?[;}])\s*([A-Ha-h][.:)]\s+.*)$/);
+    if (gluedOptMatch) {
+      expanded.push(gluedOptMatch[1]);
+      expanded.push(gluedOptMatch[2]);
+      continue;
+    }
+
+    // 3. Separate multiple options on the same line if any
+    // e.g. "A. Option 1   B. Option 2   C. Option 3   D. Option 4"
+    const multiOptParts = line.split(/(?<=\S)\s{2,}(?=[A-Ha-h][.:)]\s+)/);
+    if (multiOptParts.length > 1) {
+      expanded.push(...multiOptParts);
+      continue;
+    }
+
+    expanded.push(line);
+  }
+
+  // 4. Unwrap code fences that wrap options (e.g. Question 21):
+  // ```
+  // B. Option B
+  // C. Option C
+  // ```
+  const finalLines: string[] = [];
+  for (let i = 0; i < expanded.length; i++) {
+    const line = expanded[i];
+    const trimmed = line.trim();
+
+    if (trimmed === '```') {
+      // Look ahead to next non-empty line
+      let nextLine = '';
+      for (let j = i + 1; j < expanded.length; j++) {
+        if (expanded[j].trim()) {
+          nextLine = expanded[j].trim();
+          break;
+        }
+      }
+      // If next line starts with an option marker, this fence is opening around options!
+      if (/^[A-Ha-h][.:)]\s+/.test(nextLine)) {
+        continue;
+      }
+
+      // If next line is followed by an option or answer, and this fence follows an option:
+      if (nextLine && /^(?:[A-Ha-h][.:)]\s+|>\s*|--)/.test(nextLine)) {
+        let prevLine = '';
+        for (let j = finalLines.length - 1; j >= 0; j--) {
+          if (finalLines[j].trim()) {
+            prevLine = finalLines[j].trim();
+            break;
+          }
+        }
+        if (prevLine) {
+          continue;
+        }
+      }
+    }
+    finalLines.push(line);
+  }
+
+  return finalLines;
+}
+
+/**
  * Parse a raw markdown string into structured exam data
  */
 export function parseMarkdownExam(
@@ -219,7 +306,8 @@ export function parseMarkdownExam(
 
   // Normalize line breaks
   const rawText = mdContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const lines = rawText.split('\n');
+  const rawLines = rawText.split('\n');
+  const lines = normalizeExamLines(rawLines);
 
   let title = '';
   let description = '';
@@ -364,14 +452,58 @@ export function parseMarkdownExam(
         continue;
       }
 
-      // If inside code block, never treat as section delimiter, answer, or option
+      // If inside code block, check if this line is actually an option marker
       if (inCodeBlock) {
-        if (currentSection === 'option' && curOpt) {
-          curOpt.contentLines.push(line);
+        const innerOpt = matchOptionLine(trimmed);
+        if (innerOpt && innerOpt.isDefinite) {
+          const isNextOption = (currentSection === 'option' && curOpt) || innerOpt.label === 'A';
+          if (isNextOption) {
+            inCodeBlock = false;
+            // Pop provisional opening fence from curOpt if present
+            if (curOpt && curOpt.contentLines.length > 0 && curOpt.contentLines[curOpt.contentLines.length - 1].trim() === '```') {
+              curOpt.contentLines.pop();
+            }
+          } else {
+            if (currentSection === 'option' && curOpt) {
+              curOpt.contentLines.push(line);
+            } else {
+              contentLines.push(line);
+            }
+            continue;
+          }
         } else {
-          contentLines.push(line);
+          if (currentSection === 'option' && curOpt) {
+            curOpt.contentLines.push(line);
+          } else {
+            contentLines.push(line);
+          }
+          continue;
         }
-        continue;
+      }
+
+      // If in question section and line is '}', check if previous code block was missing a closing brace
+      if (currentSection === 'question' && trimmed === '}') {
+        let lastFenceIdx = -1;
+        for (let j = contentLines.length - 1; j >= 0; j--) {
+          if (contentLines[j].trim() === '```') {
+            lastFenceIdx = j;
+            break;
+          }
+          if (contentLines[j].trim()) break;
+        }
+        if (lastFenceIdx !== -1) {
+          let openCount = 0;
+          for (let j = lastFenceIdx - 1; j >= 0; j--) {
+            if (contentLines[j].trim().startsWith('```')) break;
+            const opens = (contentLines[j].match(/\{/g) || []).length;
+            const closes = (contentLines[j].match(/\}/g) || []).length;
+            openCount += opens - closes;
+          }
+          if (openCount > 0) {
+            contentLines.splice(lastFenceIdx, 0, '}');
+            continue;
+          }
+        }
       }
 
       // Horizontal separator
