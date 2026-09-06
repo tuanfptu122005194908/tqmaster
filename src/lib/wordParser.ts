@@ -180,12 +180,37 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
         isOpt = true;
       } else if (inOption && ['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
         isOpt = true;
-      } else if (optMatch.label === 'A') {
+      } else if (inOption && currentOptLabel === 'A' && optMatch.label === 'A') {
+        // Self-healing rollback: false Option A was started on a question sentence
         const subsequentHasB = lines.slice(lIdx + 1, lIdx + 15).some(sub => {
           const sm = matchOptionLine(sub.text.trim());
           return sm && sm.label === 'B';
         });
-        if (subsequentHasB) isOpt = true;
+        if (subsequentHasB && cur.options.length > 0) {
+          const falseOpt = cur.options.pop()!;
+          const restored = /^(?:A\b|Câu|Question)/i.test(falseOpt.content)
+            ? falseOpt.content
+            : `A ${falseOpt.content}`;
+          cur.content = cur.content ? `${cur.content}\n\n${restored}` : restored;
+          currentOptLabel = 'A';
+          cur.options.push({
+            label: 'A',
+            content: optMatch.content || '',
+            imageDataUrl: imgBefore,
+          });
+          continue;
+        }
+      } else if (optMatch.label === 'A') {
+        const subsequentLines = lines.slice(lIdx + 1, lIdx + 15);
+        const subMatches = subsequentLines
+          .map(sub => matchOptionLine(sub.text.trim()))
+          .filter((m): m is NonNullable<typeof m> => Boolean(m));
+        const firstBIdx = subMatches.findIndex(m => m.label === 'B');
+        const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m.label === 'A');
+
+        if (!anotherAExists && firstBIdx !== -1) {
+          isOpt = true;
+        }
       }
     }
 

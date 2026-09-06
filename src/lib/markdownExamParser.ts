@@ -167,6 +167,47 @@ export function matchOptionLine(trimmed: string): { label: string; content: stri
 const englishArticleWords = /^(?:ball|car|particle|object|function|subset|set|matrix|vector|system|point|plane|line|curve|body|box|block|cylinder|circle|triangle|solid|wire|rod|person|man|woman|student|company|factory|bag|urn|die|coin|card|fair|random|real|constant|linear|continuous|differentiable|given|certain|sample|simple|single|standard|small|large|positive|negative|non-negative|non-zero|closed|open|bounded|finite|infinite|tree|graph|node|vertex|edge|table|row|column|sequence|series|polynomial|root|fraction|number|prime|rate|ratio|score|method|test|rule|formula|theorem|lemma|definition|problem|model|signal|field|force|mass|spring|pendulum|tank|pipe|current|voltage|circuit|charge|proton|electron|atom|molecule|gas|liquid|fluid|wave|beam|light|ray|sound|network|router|switch|packet|frame|device|host|server|client|user|technician|administrator|program|process|thread|computer|variable|class|interface|database|query|file|message|connection|port|service|protocol|layer|header|payload|bit|byte|channel|medium|key|value|token)\b/i;
 
 /**
+ * Detects if Option A was mistakenly populated with question body text
+ * along with the real option line (e.g. "ball is thrown ... \n A 72").
+ * Returns separated questionPart and realAnswer if detected.
+ */
+export function detectGluedOptionA(optAContent: string): {
+  isGlued: boolean;
+  questionPart?: string;
+  realAnswer?: string;
+} {
+  if (!optAContent) return { isGlued: false };
+  const lines = optAContent.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return { isGlued: false };
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    // Check if line i starts with an option A marker:
+    // e.g. "A 72", "A. 72", "A) 72", "A: 72", "**A.** 72", "**A** 72", "(A) 72", "[A] 72"
+    const m = line.match(
+      /^(?:(?:\*{1,2}|_{1,2})?A(?:\*{1,2}|_{1,2})?[.):-]?\s+|\(A\)\s+|\[A\]\s+)(.*)$/i
+    );
+    if (m) {
+      const questionLines = lines.slice(0, i);
+      let questionText = questionLines.join('\n');
+      // If the question text doesn't start with "A " (because bare-letter 'A' was stripped), restore "A "
+      if (!/^(?:A\b|Câu|Question)/i.test(questionText)) {
+        questionText = `A ${questionText}`;
+      }
+      const answerLines = [m[1].trim(), ...lines.slice(i + 1)];
+      const realAnswer = answerLines.join('\n').trim();
+      return {
+        isGlued: true,
+        questionPart: questionText,
+        realAnswer: realAnswer,
+      };
+    }
+  }
+
+  return { isGlued: false };
+}
+
+/**
  * Parse a raw markdown string into structured exam data
  */
 export function parseMarkdownExam(
@@ -386,6 +427,34 @@ export function parseMarkdownExam(
           // Inside option section already, any bare B-H is a subsequent option
           if (['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
             isValidOption = true;
+          } else if (curOpt.label === 'A' && optMatch.label === 'A') {
+            // CRITICAL SELF-HEALING ROLLBACK:
+            // We are already inside Option A, but we just encountered another Option A line!
+            // (e.g. the first one was a question sentence starting with "A ball is thrown...", and this one is "A 72").
+            // Check if subsequent lines have Option B to verify this is the real option list:
+            const subsequentLines = rq.lines.slice(idx + 1);
+            const hasSubsequentB = subsequentLines.some(subL => {
+              const sm = matchOptionLine(subL.trim());
+              return sm && sm.label === 'B';
+            });
+
+            if (hasSubsequentB) {
+              // Roll back the false Option A back into question contentLines!
+              const firstLine = curOpt.contentLines[0] || '';
+              const restoredFirstLine = /^(?:A\b|Câu|Question)/i.test(firstLine)
+                ? firstLine
+                : `A ${firstLine}`;
+              const restoredLines = [restoredFirstLine, ...curOpt.contentLines.slice(1)];
+              contentLines.push(...restoredLines);
+
+              // Reset curOpt to the true Option A:
+              curOpt = {
+                label: 'A',
+                contentLines: optMatch.content ? [optMatch.content] : [],
+              };
+              currentSection = 'option';
+              continue;
+            }
           }
         } else if (optMatch.label === 'A') {
           // Starting option A without punctuation

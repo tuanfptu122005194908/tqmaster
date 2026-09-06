@@ -8,7 +8,7 @@ import { Plus, Trash2, ChevronRight, X, Check, Loader2, HelpCircle, ImagePlus, P
 import { toast } from 'sonner';
 import { RichContent } from '@/components/exam/RichContent';
 import { parseHtmlToQuestions, type ParsedQuestion } from '@/lib/wordParser';
-import { parseMarkdownExam } from '@/lib/markdownExamParser';
+import { parseMarkdownExam, detectGluedOptionA } from '@/lib/markdownExamParser';
 import { BulkExamZipModal } from '@/components/admin/BulkExamZipModal';
 import { batchUploadImages, uploadExamQuestionFile } from '@/lib/imageUpload';
 
@@ -184,6 +184,67 @@ export default function AdminExams() {
   const deleteQuestion = async (id: string) => {
     await supabase.from('questions').delete().eq('id', id);
     if (selExam) fetchQuestions(selExam.id);
+  };
+
+  const handleFixGluedOptionA = async (qId: string) => {
+    const q = questions.find(item => item.id === qId);
+    if (!q) return;
+    const optA = q.options.find(o => o.label === 'A');
+    if (!optA) return;
+
+    const check = detectGluedOptionA(optA.content || '');
+    if (!check.isGlued || !check.questionPart) return;
+
+    const newQContent = q.content ? `${q.content}\n\n${check.questionPart}` : check.questionPart;
+    const newOptAContent = check.realAnswer || '';
+
+    try {
+      await supabase.from('questions').update({ content: newQContent }).eq('id', q.id);
+      await supabase.from('question_options').update({ content: newOptAContent }).eq('id', optA.id);
+
+      setQuestions(prev => prev.map(pq => pq.id === q.id ? {
+        ...pq,
+        content: newQContent,
+        options: pq.options.map(po => po.id === optA.id ? { ...po, content: newOptAContent } : po)
+      } : pq));
+
+      toast.success('Đã tách đề bài và cập nhật lại Đáp án A thành công!');
+    } catch (err) {
+      console.error('Lỗi khi sửa đáp án:', err);
+      toast.error('Có lỗi xảy ra khi cập nhật.');
+    }
+  };
+
+  const handleFixAllGluedOptionA = async () => {
+    if (!selExam) return;
+    const candidates = questions.map(q => {
+      const optA = (q.options ?? []).find(o => o.label === 'A');
+      const check = optA ? detectGluedOptionA(optA.content || '') : { isGlued: false };
+      return { q, optA, check };
+    }).filter(item => item.check.isGlued && item.optA && item.check.questionPart);
+
+    if (candidates.length === 0) {
+      toast.info('Không phát hiện câu hỏi nào bị lỗi dính đề vào Đáp án A.');
+      return;
+    }
+
+    const toastId = toast.loading(`Đang tự động sửa ${candidates.length} câu hỏi...`);
+    try {
+      for (const item of candidates) {
+        const newQContent = item.q.content ? `${item.q.content}\n\n${item.check.questionPart}` : item.check.questionPart!;
+        const newOptAContent = item.check.realAnswer || '';
+        await supabase.from('questions').update({ content: newQContent }).eq('id', item.q.id);
+        await supabase.from('question_options').update({ content: newOptAContent }).eq('id', item.optA!.id);
+      }
+
+      await fetchQuestions(selExam.id);
+      toast.dismiss(toastId);
+      toast.success(`Đã tự động sửa xong ${candidates.length} câu hỏi bị dính đề bài vào Đáp án A!`);
+    } catch (err) {
+      console.error('Lỗi auto fix all:', err);
+      toast.dismiss(toastId);
+      toast.error('Có lỗi xảy ra khi tự động sửa.');
+    }
   };
 
   const handleWordUpload = async (file: File) => {
@@ -714,7 +775,28 @@ export default function AdminExams() {
                 <h2 style={{ fontWeight: 900, fontSize: 22, color: '#0f172a', margin: '0 0 4px 0' }}>{selExam.title}</h2>
                 <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>{questions.length} câu hỏi · {selExam.duration_min} phút làm bài</p>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {(() => {
+                  const gluedCount = questions.filter(q => {
+                    const optA = (q.options ?? []).find(o => o.label === 'A');
+                    return optA && detectGluedOptionA(optA.content || '').isGlued;
+                  }).length;
+                  if (gluedCount === 0) return null;
+                  return (
+                    <button
+                      style={{
+                        padding: '8px 14px', borderRadius: 10, border: '1.5px solid #93c5fd',
+                        background: '#eff6ff', color: '#1d4ed8', fontSize: 12.5, fontWeight: 800,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                        boxShadow: '0 2px 8px rgba(37, 99, 235, 0.15)'
+                      }}
+                      onClick={handleFixAllGluedOptionA}
+                      title="Tự động phát hiện và tách các câu hỏi bị dính đề bài vào Đáp án A"
+                    >
+                      <Sparkles size={14} /> Sửa lỗi dính đề vào Đáp án A ({gluedCount})
+                    </button>
+                  );
+                })()}
                 <button style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #fde68a', background: '#fef3c7', color: '#b45309', fontSize: 12.5, fontWeight: 800, cursor: 'pointer' }} onClick={clearAllAnswers}>Xóa đáp án</button>
                 <button style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #fecdd3', background: '#ffe4e6', color: '#e11d48', fontSize: 12.5, fontWeight: 800, cursor: 'pointer' }} onClick={deleteAllQuestions}>Xóa toàn bộ câu hỏi</button>
               </div>
@@ -1130,6 +1212,46 @@ export default function AdminExams() {
                         </div>
                       </div>
                     )}
+
+                    {/* Warning & Quick-Fix if Option A is glued */}
+                    {(() => {
+                      const optA = opts.find(o => o.label === 'A');
+                      const gluedCheck = optA ? detectGluedOptionA(optA.content || '') : { isGlued: false };
+                      if (!gluedCheck.isGlued) return null;
+                      return (
+                        <div style={{
+                          margin: '10px 0 14px', padding: '12px 16px',
+                          background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 14,
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.08)'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                            <AlertTriangle size={18} style={{ color: '#d97706', flexShrink: 0 }} />
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
+                                Phát hiện đề bài bị nhận diện nhầm vào Đáp án A!
+                              </div>
+                              <div style={{ fontSize: 12, color: '#b45309', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                Đoạn đề bài: <i>"{gluedCheck.questionPart?.slice(0, 70)}..."</i> · Đáp án thực sự: <b>{gluedCheck.realAnswer}</b>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleFixGluedOptionA(q.id)}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6,
+                              padding: '8px 16px', borderRadius: 10, border: 'none',
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                              color: '#ffffff', fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+                              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', flexShrink: 0
+                            }}
+                          >
+                            <Sparkles size={14} /> Tách đề bài & Sửa ngay
+                          </button>
+                        </div>
+                      );
+                    })()}
 
                     {/* Clean & Fast Answer Switcher Buttons */}
                     {opts.length > 0 && (

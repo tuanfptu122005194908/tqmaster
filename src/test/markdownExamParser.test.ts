@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseMarkdownExam, matchOptionLine } from '../lib/markdownExamParser';
+import { parseMarkdownExam, matchOptionLine, detectGluedOptionA } from '../lib/markdownExamParser';
 
 describe('markdownExamParser', () => {
   it('should recognize standard delimited options', () => {
@@ -182,5 +182,43 @@ E. Collision detection
     expect(res.questions[2].options[0].isCorrect).toBe(false);
     expect(res.unansweredQuestions).toHaveLength(0);
   });
+
+  it('detectGluedOptionA should detect when question body is mistakenly glued inside Option A', () => {
+    const gluedContent = `ball is thrown into the air such that its height (in feet) after t seconds takes the form $h(t) = at - 16t^2$. Assume that the velocity of the ball at time $t = 2$ is 8 ft/s. Find $a$.
+A 72`;
+
+    const check = detectGluedOptionA(gluedContent);
+    expect(check.isGlued).toBe(true);
+    expect(check.questionPart).toBe(
+      `A ball is thrown into the air such that its height (in feet) after t seconds takes the form $h(t) = at - 16t^2$. Assume that the velocity of the ball at time $t = 2$ is 8 ft/s. Find $a$.`
+    );
+    expect(check.realAnswer).toBe('72');
+
+    // Should return false for normal option
+    expect(detectGluedOptionA('72').isGlued).toBe(false);
+    expect(detectGluedOptionA('None of the other choices is correct').isGlued).toBe(false);
+  });
+
+  it('should auto-rollback when a question starts with an uncommon word after A and subsequent lines have A and B', () => {
+    // "quasiparticle" is not in englishArticleWords, but subsequent lines contain real "A 42" and "B 50"
+    const md = `**Câu 9.** A quasiparticle is excited inside the semiconductor quantum well. What is the binding energy?
+A 42
+B 50
+C 60
+D 70
+
+> **Đáp án:**
+> - Câu 9: **A**`;
+
+    const res = parseMarkdownExam(md);
+    expect(res.questions).toHaveLength(1);
+    expect(res.questions[0].content).toContain('A quasiparticle is excited');
+    expect(res.questions[0].options).toHaveLength(4);
+    expect(res.questions[0].options[0].label).toBe('A');
+    expect(res.questions[0].options[0].content).toBe('42');
+    expect(res.questions[0].options[1].content).toBe('50');
+    expect(res.questions[0].correctAnswers).toEqual(['A']);
+  });
 });
+
 
