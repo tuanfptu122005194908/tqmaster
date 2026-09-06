@@ -72,7 +72,7 @@ function SubjectNode({
   return (
     <group position={node.position}>
       {/* Subtle line connection back to core center — declarative to avoid per-render object allocation */}
-      <line
+      <lineSegments
         geometry={lineGeometry}
         position={[-node.position[0], -node.position[1], -node.position[2]]}
       >
@@ -81,7 +81,7 @@ function SubjectNode({
           transparent
           opacity={isHovered ? 0.8 : 0.35}
         />
-      </line>
+      </lineSegments>
 
       {/* Floating sphere node */}
       <mesh
