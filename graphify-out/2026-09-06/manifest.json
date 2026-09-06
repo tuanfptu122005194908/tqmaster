@@ -606,9 +606,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminExams.tsx": {
-    "mtime": 1788506828.2338398,
-    "seen": 1788507049.8799708,
-    "ast_hash": "de31d7a890a089acb43112c28c01741c",
+    "mtime": 1788659408.4999843,
+    "seen": 1788659460.5265648,
+    "ast_hash": "b793c84eb026d9240e1d5f259f27961e",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminNews.tsx": {
@@ -1024,9 +1024,9 @@
     "semantic_hash": ""
   },
   "src/lib/wordParser.ts": {
-    "mtime": 1788277979.0072427,
-    "seen": 1788278156.8994167,
-    "ast_hash": "8c4a03db87b50df75967d3480f0a4482",
+    "mtime": 1788659326.318023,
+    "seen": 1788659460.5256,
+    "ast_hash": "51edb6194356d372974eafdf16b7e8e9",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminBackup.tsx": {
@@ -2212,15 +2212,15 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1788367015.6463745,
-    "seen": 1788367073.6590223,
-    "ast_hash": "24dfea6d3be4fff291c34eb7e8f4063f",
+    "mtime": 1788659316.642567,
+    "seen": 1788659460.5252798,
+    "ast_hash": "0b87f92e0def625dd8d682a21b22f0c8",
     "semantic_hash": ""
   },
   "src/test/markdownExamParser.test.ts": {
-    "mtime": 1788335973.1822414,
-    "seen": 1788336051.9640906,
-    "ast_hash": "32bf22781d4db293709e815c6f09c08a",
+    "mtime": 1788659343.067104,
+    "seen": 1788659460.5276573,
+    "ast_hash": "f78d67dc7b1e1407dbc93f761cdc3ce9",
     "semantic_hash": ""
   },
   "src/components/SafeCanvas.tsx": {

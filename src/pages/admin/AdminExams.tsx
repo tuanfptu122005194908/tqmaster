@@ -896,17 +896,45 @@ export default function AdminExams() {
                         </div>
                         <button onClick={() => setParsedPreview(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}><X size={16} /></button>
                       </div>
-                      {/* Summary list — first 5 questions */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 140, overflowY: 'auto' }}>
-                        {parsedPreview.slice(0, 8).map((q, i) => (
-                          <div key={i} style={{ fontSize: 12, color: '#475569', display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <span style={{ background: '#dbeafe', color: '#2563eb', borderRadius: 6, padding: '1px 7px', fontWeight: 800, flexShrink: 0 }}>Câu {q.orderNum}</span>
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{q.content || '(Câu hình ảnh)'}</span>
-                            {(q.imageDataUrl || q.extraImageDataUrls.length > 0) && <span title="Có ảnh" style={{ color: '#7c3aed' }}>🖼</span>}
-                            <span style={{ color: '#64748b', flexShrink: 0 }}>{q.options.length} opt</span>
+                      {/* Summary list with image thumbnails & answer indicators */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
+                        {parsedPreview.slice(0, 10).map((q, i) => (
+                          <div key={i} style={{ fontSize: 12, color: '#475569', display: 'flex', gap: 8, alignItems: 'center', background: '#ffffff', padding: '6px 10px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                            <span style={{ background: '#edf5ff', color: '#2563eb', border: '1px solid #dbeafe', borderRadius: 6, padding: '1px 7px', fontWeight: 800, flexShrink: 0, fontSize: 11.5 }}>Câu {q.orderNum}</span>
+                            {q.imageDataUrl && (
+                              <img
+                                src={q.imageDataUrl}
+                                alt={`Ảnh câu ${q.orderNum}`}
+                                title="Bấm xem ảnh kích thước đầy đủ"
+                                onClick={() => window.open(q.imageDataUrl, '_blank')}
+                                style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 6, border: '1px solid #cbd5e1', cursor: 'pointer', flexShrink: 0 }}
+                              />
+                            )}
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: '#1e293b', fontWeight: 500 }}>
+                              {q.content || (q.imageDataUrl ? '(Câu hỏi bằng hình ảnh)' : '(Trống)')}
+                            </span>
+                            {(q.imageDataUrl || q.extraImageDataUrls.length > 0) && (
+                              <span style={{ background: '#f3eefd', color: '#8b5cf6', border: '1px solid #ede9fe', borderRadius: 6, padding: '1px 6px', fontSize: 10.5, fontWeight: 700, flexShrink: 0 }}>
+                                🖼 Sơ đồ/Ảnh
+                              </span>
+                            )}
+                            {q.correctAnswers.length > 0 ? (
+                              <span style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 6, padding: '1px 6px', fontSize: 10.5, fontWeight: 800, flexShrink: 0 }}>
+                                ✓ {q.correctAnswers.join(',')}
+                              </span>
+                            ) : (
+                              <span style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', borderRadius: 6, padding: '1px 6px', fontSize: 10.5, fontWeight: 700, flexShrink: 0 }}>
+                                Chưa có Đ/A
+                              </span>
+                            )}
+                            <span style={{ color: '#64748b', fontSize: 11, flexShrink: 0, fontWeight: 600 }}>{q.options.length} opt</span>
                           </div>
                         ))}
-                        {parsedPreview.length > 8 && <div style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center' }}>... và {parsedPreview.length - 8} câu nữa</div>}
+                        {parsedPreview.length > 10 && (
+                          <div style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', padding: '4px 0' }}>
+                            ... và {parsedPreview.length - 10} câu nữa
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => importFromParsed(parsedPreview)}

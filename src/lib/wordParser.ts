@@ -2,29 +2,37 @@
  * wordParser.ts
  * Smart parser for mammoth HTML output → structured exam questions.
  * Handles:
- *  - "Câu N:" / "Cau N:" / "N." question markers
+ *  - "Câu N:" / "Cau N:" / "Question N:" / "Q N:" / "Bài N:" and bare "N." question markers
  *  - "A." / "A)" option markers (A–H)
- *  - "Đáp án:" / "Answer:" answer keys
+ *  - "Đáp án:" / "Answer:" / "Key:" answer keys (both global at document end/start and per-question)
+ *  - Option marks like *A., [x] A.
+ *  - Matching question option resets (premises converted to question content)
  *  - "Chương N" chapter markers
- *  - <img src="data:..."> inline images mapped to correct question/option
+ *  - <img src="data:..."> inline images mapped to correct question/option with text preserved
  */
 
-import { matchOptionLine } from './markdownExamParser';
+import { matchOptionLine, extractAnswerLabels } from './markdownExamParser';
 
 export interface ParsedOption {
-  label: string;       // 'A' | 'B' | 'C' | 'D' | ...
+  label: string;          // 'A' | 'B' | 'C' | 'D' | ...
   content: string;
-  imageDataUrl?: string; // base64 data URL extracted from img tag in option
+  imageDataUrl?: string;  // base64 data URL extracted from img tag in option
 }
 
 export interface ParsedQuestion {
   orderNum: number;
   content: string;
   chapterName: string;
-  imageDataUrl?: string;       // first image before first option
-  extraImageDataUrls: string[]; // additional images before first option
+  imageDataUrl?: string;        // primary image for question
+  extraImageDataUrls: string[]; // additional images for question
   options: ParsedOption[];
-  correctAnswers: string[];    // e.g. ['A'], ['B', 'C']
+  correctAnswers: string[];     // e.g. ['A'], ['B', 'C']
+}
+
+/** Check if an option line is explicitly marked as correct, e.g. *A., [x] A., A*. */
+function checkOptionMarkedCorrect(text: string): boolean {
+  return /^\s*(?:\*|\[[xX]\]|\([xX]\))\s*[A-Ha-h][.:)]/i.test(text) ||
+         /^\s*[A-Ha-h]\*\s*[.:)]/i.test(text);
 }
 
 /** Parse raw HTML from mammoth.convertToHtml() into structured questions */
@@ -52,7 +60,7 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
         segments.push({ type: 'img', dataUrl: src });
       }
     } else {
-      // For block elements (p, div, h1-h6, li, etc.), add newline after
+      // For block elements (p, div, h1-h6, li, tr, etc.), add newline after
       const isBlock = /^(p|div|h[1-6]|li|tr|br|hr)$/i.test(node.nodeName);
       node.childNodes.forEach(child => collectSegments(child));
       if (isBlock) {
@@ -102,20 +110,43 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
   }
 
   // --- Regex patterns ---
-  // Question marker regex
-  const QUESTION_RE = /^(?:câu\s+|cau\s+)?(\d+)[.:)]\s*(.*)/i;
-  const ANSWER_RE   = /^(?:đáp án|answer)\s*[:.\s]\s*(.*)/i;
-  const CHAPTER_RE  = /^(?:#+|\[)?\s*(chương\s+\S[^\]\n]*)/i;
+  // Explicit question prefix pattern (e.g. Câu 1:, Question 1., Q1:, Bài 1:)
+  const EXPLICIT_PREFIX_RE = /^(?:câu|cau|question|q\b|q\.|bài|bai)\s*(\d+)[.:)\s-]\s*(.*)/i;
 
-  // Build answer map from "Đáp án: 1A 2BC 3D" line
-  const answerMap: Record<number, string[]> = {};
+  // Determine document question style:
+  // If the document has any explicit question prefix, lock question detection to explicit prefix only!
+  // This prevents IP addresses (e.g. 172.16.16.0/22?), numbered lists (1. item A, 2. item B),
+  // or decimals from being misidentified as questions.
+  const hasExplicitPrefix = lines.some(l => EXPLICIT_PREFIX_RE.test(l.text.trim()));
+
+  // Fallback for documents that ONLY use bare numbers (1. Question text, 2. Question text)
+  // Must be followed by whitespace AND a letter (never a digit, preventing 172.16 or 1.1)
+  const BARE_NUMBER_RE = /^(\d+)[.:)]\s+([A-Za-z\u00C0-\u024F\u1EA0-\u1EF9].*)/;
+
+  const ANSWER_RE = /^(?:đáp án|dap an|answer|key|đáp án đúng|dap an dung)\s*[:.\s]\s*(.*)/i;
+  const CHAPTER_RE = /^(?:#+|\[)?\s*(chương\s+\S[^\]\n]*)/i;
+
+  // Pre-scan: Build global answer map from lines like "Đáp án: 1A 2BC 3D" or "Answer: 1. A, 2. B"
+  const globalAnswerMap: Record<number, string[]> = {};
   for (const line of lines) {
-    const am = ANSWER_RE.exec(line.text);
+    const am = ANSWER_RE.exec(line.text.trim());
     if (am) {
-      const tokens = am[1].trim().split(/[\s,;]+/);
+      const rest = am[1].trim();
+      const tokens = rest.split(/[\s,;]+/);
+      let matchedAny = false;
       for (const tok of tokens) {
-        const m = tok.match(/^(\d+)([A-Ha-h]+)$/i);
-        if (m) answerMap[parseInt(m[1])] = m[2].toUpperCase().split('');
+        const m = tok.match(/^(\d+)[.:)]?([A-Ha-h]+)$/i) || tok.match(/^(\d+)\s*[-=:]\s*([A-Ha-h]+)$/i);
+        if (m) {
+          globalAnswerMap[parseInt(m[1])] = m[2].toUpperCase().split('');
+          matchedAny = true;
+        }
+      }
+      // Also try pattern "1. A, 2. B, 3. C"
+      if (!matchedAny) {
+        const pairs = rest.matchAll(/(\d+)[.:)]?\s*([A-Ha-h]+)/gi);
+        for (const p of pairs) {
+          globalAnswerMap[parseInt(p[1])] = p[2].toUpperCase().split('');
+        }
       }
     }
   }
@@ -134,6 +165,10 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
         cur.options[cur.options.length - 1].content =
           cur.options[cur.options.length - 1].content.trim();
       }
+      // If correctAnswers still empty, check globalAnswerMap
+      if (cur.correctAnswers.length === 0 && globalAnswerMap[cur.orderNum]) {
+        cur.correctAnswers = globalAnswerMap[cur.orderNum];
+      }
       questions.push(cur);
     }
   };
@@ -143,70 +178,114 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
     const { text, imgBefore } = line;
     const trimmed = text.trim();
 
-    // Skip answer lines
-    if (ANSWER_RE.test(trimmed)) continue;
-
-    // Chapter marker
+    // 1. Check for Chapter marker
     const chapM = CHAPTER_RE.exec(trimmed);
-    if (chapM && !QUESTION_RE.test(trimmed)) {
+    if (chapM && !EXPLICIT_PREFIX_RE.test(trimmed)) {
       currentChapter = chapM[1].replace(/\]$/, '').trim();
       continue;
     }
 
-    // Question marker
-    const qM = QUESTION_RE.exec(trimmed);
-    if (qM) {
+    // 2. Check for Question marker
+    let isQuestion = false;
+    let detectedOrder = 0;
+    let questionContent = '';
+
+    if (hasExplicitPrefix) {
+      const qM = EXPLICIT_PREFIX_RE.exec(trimmed);
+      if (qM) {
+        isQuestion = true;
+        detectedOrder = parseInt(qM[1]) || (qNum + 1);
+        questionContent = qM[2] || '';
+      }
+    } else {
+      const bM = BARE_NUMBER_RE.exec(trimmed);
+      if (bM) {
+        const num = parseInt(bM[1]);
+        // Validate bare number sequence: either first question (<=5) or strictly sequential (+1)
+        if (qNum === 0 ? num <= 5 : (num === qNum + 1 || num === qNum + 2)) {
+          isQuestion = true;
+          detectedOrder = num;
+          questionContent = bM[2] || '';
+        }
+      }
+    }
+
+    if (isQuestion) {
       pushCur();
-      qNum++;
+      qNum = detectedOrder;
       inOption = false;
       currentOptLabel = '';
       cur = {
         orderNum: qNum,
-        content: qM[2] || '',
+        content: questionContent,
         chapterName: currentChapter,
         imageDataUrl: imgBefore,
         extraImageDataUrls: [],
         options: [],
-        correctAnswers: answerMap[qNum] ?? [],
+        correctAnswers: globalAnswerMap[qNum] ?? [],
       };
       continue;
     }
 
-    // Option marker
-    const optMatch = matchOptionLine(trimmed);
+    // 3. Check for Per-Question Answer marker (e.g. "Đáp án: A" or "Answer: B, C" under options)
+    const ansMatch = ANSWER_RE.exec(trimmed);
+    if (ansMatch && cur) {
+      const rest = ansMatch[1].trim();
+      const labels = extractAnswerLabels(rest);
+      if (labels.length > 0) {
+        cur.correctAnswers = Array.from(new Set([...cur.correctAnswers, ...labels]));
+        continue;
+      }
+    }
+
+    // 4. Check for Option marker (A., B., C., D...)
+    const isMarked = checkOptionMarkedCorrect(trimmed);
+    const cleanedForOpt = trimmed
+      .replace(/^\s*(?:\*|\[[xX]\]|\([xX]\))\s*/, '')
+      .replace(/^([A-Ha-h])\*\s*([.:)])/i, '$1$2');
+    const optMatch = matchOptionLine(cleanedForOpt);
     let isOpt = false;
+
     if (optMatch && cur) {
       if (optMatch.isDefinite) {
         isOpt = true;
       } else if (inOption && ['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
         isOpt = true;
-      } else if (inOption && currentOptLabel === 'A' && optMatch.label === 'A') {
-        // Self-healing rollback: false Option A was started on a question sentence
+      }
+
+      // Self-healing: Detect when options reset back to 'A'
+      // Example: Matching question where premises are listed as A., B., C.,
+      // followed by actual multiple-choice options A., B., C., D.
+      if (optMatch.label === 'A' && cur.options.length > 0) {
         const subsequentHasB = lines.slice(lIdx + 1, lIdx + 15).some(sub => {
           const sm = matchOptionLine(sub.text.trim());
           return sm && sm.label === 'B';
         });
-        if (subsequentHasB && cur.options.length > 0) {
-          const falseOpt = cur.options.pop()!;
-          const restored = /^(?:A\b|Câu|Question)/i.test(falseOpt.content)
-            ? falseOpt.content
-            : `A ${falseOpt.content}`;
-          cur.content = cur.content ? `${cur.content}\n\n${restored}` : restored;
+        if (subsequentHasB) {
+          // If previous option A was just started on false sentence (single opt), rollback
+          if (cur.options.length === 1 && currentOptLabel === 'A') {
+            const falseOpt = cur.options.pop()!;
+            const restored = /^(?:A\b|Câu|Question)/i.test(falseOpt.content)
+              ? falseOpt.content
+              : `A ${falseOpt.content}`;
+            cur.content = cur.content ? `${cur.content}\n\n${restored}` : restored;
+          } else {
+            // Previous options (e.g. A, B, C) were actually matching premises!
+            const prevTexts = cur.options.map(o => `${o.label}. ${o.content}`).join('\n');
+            cur.content = cur.content ? `${cur.content}\n${prevTexts}` : prevTexts;
+            cur.options = [];
+          }
           currentOptLabel = 'A';
-          cur.options.push({
-            label: 'A',
-            content: optMatch.content || '',
-            imageDataUrl: imgBefore,
-          });
-          continue;
+          isOpt = true;
         }
-      } else if (optMatch.label === 'A') {
+      } else if (optMatch.label === 'A' && !inOption) {
+        // Lookahead for B to confirm it's truly an option and not regular text starting with 'A ...'
         const subsequentLines = lines.slice(lIdx + 1, lIdx + 15);
         const subMatches = subsequentLines
           .map(sub => matchOptionLine(sub.text.trim()))
-          .filter((m): m is NonNullable<typeof m> => Boolean(m));
-        const firstBIdx = subMatches.findIndex(m => m.label === 'B');
-        const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m.label === 'A');
+          .filter(Boolean);
+        const firstBIdx = subMatches.findIndex(m => m && m.label === 'B');
+        const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m && m.label === 'A');
 
         if (!anotherAExists && firstBIdx !== -1) {
           isOpt = true;
@@ -215,32 +294,39 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
     }
 
     if (isOpt && optMatch && cur) {
-      // finalize previous option
+      // finalize previous option content
       if (inOption && cur.options.length > 0) {
         cur.options[cur.options.length - 1].content =
           cur.options[cur.options.length - 1].content.trim();
       }
       currentOptLabel = optMatch.label;
       inOption = true;
+
+      // Clean content from leading asterisk or checkmark
+      let cleanContent = optMatch.content || '';
+      cleanContent = cleanContent.replace(/^\s*\*\s*/, '').trim();
+
+      if (isMarked && !cur.correctAnswers.includes(currentOptLabel)) {
+        cur.correctAnswers.push(currentOptLabel);
+      }
+
       cur.options.push({
         label: currentOptLabel,
-        content: optMatch.content || '',
+        content: cleanContent,
         imageDataUrl: imgBefore,
       });
       continue;
     }
 
-    // Continuation line
+    // 5. Continuation line (appends to current option or question content)
     if (cur) {
       if (inOption && cur.options.length > 0) {
-        // append to current option
         const lastOpt = cur.options[cur.options.length - 1];
         if (text) lastOpt.content += (lastOpt.content ? '\n' : '') + text;
         if (imgBefore && !lastOpt.imageDataUrl) lastOpt.imageDataUrl = imgBefore;
       } else {
-        // append to question content
         if (text) cur.content += (cur.content ? '\n' : '') + text;
-        // image before first option
+        // Images before or within question body
         if (imgBefore) {
           if (!cur.imageDataUrl) {
             cur.imageDataUrl = imgBefore;

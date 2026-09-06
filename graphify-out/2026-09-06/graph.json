@@ -355,82 +355,30 @@
       "source_location": "L24"
     },
     {
-      "id": "src_pages_admin_adminexamstats_examrow",
-      "label": "ExamRow",
+      "id": "src_pages_admin_admincoupons_coupon",
+      "label": "Coupon",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "examrow",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L8"
+      "norm_label": "coupon",
+      "source_file": "src/pages/admin/AdminCoupons.tsx",
+      "source_location": "L28"
     },
     {
-      "id": "src_pages_admin_adminexamstats_examstat",
-      "label": "ExamStat",
+      "id": "src_pages_admin_admincoupons_formstate",
+      "label": "FormState",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "examstat",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_optionrow",
-      "label": "OptionRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "optionrow",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_questionrow",
-      "label": "QuestionRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "questionrow",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_subjectgroup",
-      "label": "SubjectGroup",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "subjectgroup",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_subjectrow",
-      "label": "SubjectRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "subjectrow",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L7"
+      "norm_label": "formstate",
+      "source_file": "src/pages/admin/AdminCoupons.tsx",
+      "source_location": "L30"
     },
     {
       "id": "src_components_ui_carousel_carouselapi",
@@ -550,6 +498,32 @@
       "source_location": "L50"
     },
     {
+      "id": "src_components_announcementpopup_announcement",
+      "label": "Announcement",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "announcement",
+      "source_file": "src/components/AnnouncementPopup.tsx",
+      "source_location": "L7"
+    },
+    {
+      "id": "src_components_fileuploader_props",
+      "label": "Props",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "props",
+      "source_file": "src/components/FileUploader.tsx",
+      "source_location": "L5"
+    },
+    {
       "id": "src_integrations_lovable_index_signinoptions",
       "label": "SignInOptions",
       "_callable": true,
@@ -563,30 +537,43 @@
       "source_location": "L7"
     },
     {
-      "id": "src_pages_admin_admincoupons_coupon",
-      "label": "Coupon",
+      "id": "src_pages_admin_adminannouncements_announcement",
+      "label": "Announcement",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
-      "norm_label": "coupon",
-      "source_file": "src/pages/admin/AdminCoupons.tsx",
-      "source_location": "L28"
+      "norm_label": "announcement",
+      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
+      "source_location": "L10"
     },
     {
-      "id": "src_pages_admin_admincoupons_formstate",
-      "label": "FormState",
+      "id": "src_pages_admin_adminannouncements_subject",
+      "label": "Subject",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
-      "norm_label": "formstate",
-      "source_file": "src/pages/admin/AdminCoupons.tsx",
-      "source_location": "L30"
+      "norm_label": "subject",
+      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "src_pages_admin_adminsettings_settingkey",
+      "label": "SettingKey",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "settingkey",
+      "source_file": "src/pages/admin/AdminSettings.tsx",
+      "source_location": "L17"
     },
     {
       "id": "src_components_ui_sonner_toasterprops",
@@ -600,6 +587,58 @@
       "norm_label": "toasterprops",
       "source_file": "src/components/ui/sonner.tsx",
       "source_location": "L4"
+    },
+    {
+      "id": "src_lib_appcontext_appcontextvalue",
+      "label": "AppContextValue",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "appcontextvalue",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_lib_appcontext_cartitem",
+      "label": "CartItem",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "cartitem",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L20"
+    },
+    {
+      "id": "src_lib_appcontext_profile",
+      "label": "Profile",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "profile",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_lib_appcontext_subject",
+      "label": "Subject",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "subject",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L18"
     },
     {
       "id": "src_pages_admin_adminnews_newspost",
@@ -758,65 +797,13 @@
       "source_location": "L12"
     },
     {
-      "id": "src_lib_appcontext_appcontextvalue",
-      "label": "AppContextValue",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "appcontextvalue",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_lib_appcontext_cartitem",
-      "label": "CartItem",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "cartitem",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L20"
-    },
-    {
-      "id": "src_lib_appcontext_profile",
-      "label": "Profile",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "profile",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_lib_appcontext_subject",
-      "label": "Subject",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "subject",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L18"
-    },
-    {
       "id": "src_pages_admin_admindashboard_order",
       "label": "Order",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "order",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -829,7 +816,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "orderitem",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -842,7 +829,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "revfilter",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -855,7 +842,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "subject",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -886,214 +873,6 @@
       "norm_label": "window",
       "source_file": "src/pages/AuthPage.tsx",
       "source_location": "L15"
-    },
-    {
-      "id": "src_components_ui_toast_toastactionelement",
-      "label": "ToastActionElement",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "toastactionelement",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L99"
-    },
-    {
-      "id": "src_components_ui_toast_toastprops",
-      "label": "ToastProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "toastprops",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L97"
-    },
-    {
-      "id": "src_hooks_use_toast_action",
-      "label": "Action",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "action",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L31"
-    },
-    {
-      "id": "src_hooks_use_toast_actiontype",
-      "label": "ActionType",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "actiontype",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L29"
-    },
-    {
-      "id": "src_hooks_use_toast_state",
-      "label": "State",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "state",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L49"
-    },
-    {
-      "id": "src_hooks_use_toast_toast",
-      "label": "Toast",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "toast",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L135"
-    },
-    {
-      "id": "src_hooks_use_toast_toastertoast",
-      "label": "ToasterToast",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "toastertoast",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage_announcement",
-      "label": "Announcement",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "announcement",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L16"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage_exam",
-      "label": "Exam",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "exam",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L14"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage_subject",
-      "label": "Subject",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "subject",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L13"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage_tab",
-      "label": "Tab",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "tab",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage_theory",
-      "label": "Theory",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "theory",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_lib_exportquestions_examrow",
-      "label": "ExamRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "examrow",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L14"
-    },
-    {
-      "id": "src_lib_exportquestions_optionrow",
-      "label": "OptionRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "optionrow",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L23"
-    },
-    {
-      "id": "src_lib_exportquestions_questionrow",
-      "label": "QuestionRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "questionrow",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_lib_exportquestions_subjectrow",
-      "label": "SubjectRow",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "subjectrow",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L13"
     },
     {
       "id": "src_components_safecanvas_webglerrorboundary",
@@ -1146,71 +925,6 @@
       "norm_label": "landingheroprops",
       "source_file": "src/components/landing/LandingHero.tsx",
       "source_location": "L7"
-    },
-    {
-      "id": "src_components_announcementpopup_announcement",
-      "label": "Announcement",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "announcement",
-      "source_file": "src/components/AnnouncementPopup.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "src_pages_admin_adminannouncements_announcement",
-      "label": "Announcement",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "announcement",
-      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_pages_admin_adminannouncements_subject",
-      "label": "Subject",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "subject",
-      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "src_components_backup_importresultdialog_importresultdialogprops",
-      "label": "ImportResultDialogProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "importresultdialogprops",
-      "source_file": "src/components/backup/ImportResultDialog.tsx",
-      "source_location": "L5"
-    },
-    {
-      "id": "src_lib_excelbackup_importresult",
-      "label": "ImportResult",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "importresult",
-      "source_file": "src/lib/excelBackup.ts",
-      "source_location": "L412"
     },
     {
       "id": "src_components_landing3d_knowledgenetworkscene_networknode",
@@ -1328,6 +1042,71 @@
       "norm_label": "tabkey",
       "source_file": "src/pages/user/ProfilePage.tsx",
       "source_location": "L17"
+    },
+    {
+      "id": "src_pages_user_subjectdetailpage_announcement",
+      "label": "Announcement",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "announcement",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L16"
+    },
+    {
+      "id": "src_pages_user_subjectdetailpage_exam",
+      "label": "Exam",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "exam",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L14"
+    },
+    {
+      "id": "src_pages_user_subjectdetailpage_subject",
+      "label": "Subject",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "subject",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L13"
+    },
+    {
+      "id": "src_pages_user_subjectdetailpage_tab",
+      "label": "Tab",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "tab",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_pages_user_subjectdetailpage_theory",
+      "label": "Theory",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "theory",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L15"
     },
     {
       "id": "src_components_admin_bulkexamzipmodal_bulkexamzipmodalprops",
@@ -1512,17 +1291,199 @@
       "source_location": "L16"
     },
     {
+      "id": "src_pages_admin_adminexamstats_examrow",
+      "label": "ExamRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "examrow",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_examstat",
+      "label": "ExamStat",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "examstat",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_optionrow",
+      "label": "OptionRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "optionrow",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_questionrow",
+      "label": "QuestionRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "questionrow",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_subjectgroup",
+      "label": "SubjectGroup",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "subjectgroup",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_subjectrow",
+      "label": "SubjectRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "subjectrow",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L7"
+    },
+    {
       "id": "src_components_backup_backuptableselector_backuptableselectorprops",
       "label": "BackupTableSelectorProps",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "backuptableselectorprops",
       "source_file": "src/components/backup/BackupTableSelector.tsx",
       "source_location": "L11"
+    },
+    {
+      "id": "src_components_backup_importresultdialog_importresultdialogprops",
+      "label": "ImportResultDialogProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "importresultdialogprops",
+      "source_file": "src/components/backup/ImportResultDialog.tsx",
+      "source_location": "L5"
+    },
+    {
+      "id": "src_components_ui_toast_toastactionelement",
+      "label": "ToastActionElement",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastactionelement",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L99"
+    },
+    {
+      "id": "src_components_ui_toast_toastprops",
+      "label": "ToastProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastprops",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L97"
+    },
+    {
+      "id": "src_hooks_use_toast_action",
+      "label": "Action",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "action",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L31"
+    },
+    {
+      "id": "src_hooks_use_toast_actiontype",
+      "label": "ActionType",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "actiontype",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L29"
+    },
+    {
+      "id": "src_hooks_use_toast_state",
+      "label": "State",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "state",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L49"
+    },
+    {
+      "id": "src_hooks_use_toast_toast",
+      "label": "Toast",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toast",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L135"
+    },
+    {
+      "id": "src_hooks_use_toast_toastertoast",
+      "label": "ToasterToast",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastertoast",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L8"
     },
     {
       "id": "src_lib_excelbackup_exportresult",
@@ -1531,11 +1492,24 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "exportresult",
       "source_file": "src/lib/excelBackup.ts",
       "source_location": "L224"
+    },
+    {
+      "id": "src_lib_excelbackup_importresult",
+      "label": "ImportResult",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "importresult",
+      "source_file": "src/lib/excelBackup.ts",
+      "source_location": "L412"
     },
     {
       "id": "src_lib_excelbackup_importrowerror",
@@ -1544,7 +1518,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "importrowerror",
       "source_file": "src/lib/excelBackup.ts",
@@ -1557,7 +1531,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "importsheetresult",
       "source_file": "src/lib/excelBackup.ts",
@@ -1570,11 +1544,63 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "tableschema",
       "source_file": "src/lib/excelBackup.ts",
       "source_location": "L8"
+    },
+    {
+      "id": "src_lib_exportquestions_examrow",
+      "label": "ExamRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "examrow",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "src_lib_exportquestions_optionrow",
+      "label": "OptionRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "optionrow",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L23"
+    },
+    {
+      "id": "src_lib_exportquestions_questionrow",
+      "label": "QuestionRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "questionrow",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_lib_exportquestions_subjectrow",
+      "label": "SubjectRow",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "subjectrow",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L13"
     },
     {
       "id": "supabase_functions_notify_admin_new_order_index_orderitem",
@@ -1627,32 +1653,6 @@
       "norm_label": "question",
       "source_file": "src/pages/user/ExamPage.tsx",
       "source_location": "L15"
-    },
-    {
-      "id": "src_components_fileuploader_props",
-      "label": "Props",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "props",
-      "source_file": "src/components/FileUploader.tsx",
-      "source_location": "L5"
-    },
-    {
-      "id": "src_pages_admin_adminsettings_settingkey",
-      "label": "SettingKey",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "settingkey",
-      "source_file": "src/pages/admin/AdminSettings.tsx",
-      "source_location": "L17"
     },
     {
       "id": "src_pages_admin_admintheory_category",
@@ -2396,88 +2396,16 @@
       "source_location": "L4"
     },
     {
-      "id": "src_lib_utils_getexamscore",
-      "label": "getExamScore()",
+      "id": "src_pages_admin_admincoupons_admincoupons",
+      "label": "AdminCoupons()",
       "_callable": true,
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "getexamscore()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_adminexamstats",
-      "label": "AdminExamStats()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "adminexamstats()",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L187"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_adminexamstats_fetchall",
-      "label": "fetchAll()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "fetchall()",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L221"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_answerbar",
-      "label": "AnswerBar()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "answerbar()",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L45"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_examstatcard",
-      "label": "ExamStatCard()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "examstatcard()",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L71"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_getpal",
-      "label": "getPal()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "getpal()",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L40"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_pill",
-      "label": "Pill()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "pill()",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L177"
+      "norm_label": "admincoupons()",
+      "source_file": "src/pages/admin/AdminCoupons.tsx",
+      "source_location": "L62"
     },
     {
       "id": "src_components_ui_carousel_usecarousel",
@@ -2612,6 +2540,30 @@
       "source_location": "L5"
     },
     {
+      "id": "src_components_announcementpopup_announcementpopup",
+      "label": "AnnouncementPopup()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "announcementpopup()",
+      "source_file": "src/components/AnnouncementPopup.tsx",
+      "source_location": "L43"
+    },
+    {
+      "id": "src_components_fileuploader_fileuploader",
+      "label": "FileUploader()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "fileuploader()",
+      "source_file": "src/components/FileUploader.tsx",
+      "source_location": "L17"
+    },
+    {
       "id": "src_integrations_supabase_previewauthstorage_brokeredpreviewstorage",
       "label": "brokeredPreviewStorage()",
       "_callable": true,
@@ -2624,16 +2576,40 @@
       "source_location": "L5"
     },
     {
-      "id": "src_pages_admin_admincoupons_admincoupons",
-      "label": "AdminCoupons()",
+      "id": "src_lib_richtext_renderrichtext",
+      "label": "renderRichText()",
       "_callable": true,
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
-      "norm_label": "admincoupons()",
-      "source_file": "src/pages/admin/AdminCoupons.tsx",
-      "source_location": "L62"
+      "norm_label": "renderrichtext()",
+      "source_file": "src/lib/richText.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_pages_admin_adminannouncements_adminannouncements",
+      "label": "AdminAnnouncements()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "adminannouncements()",
+      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
+      "source_location": "L20"
+    },
+    {
+      "id": "src_pages_admin_adminsettings_adminsettings",
+      "label": "AdminSettings()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "adminsettings()",
+      "source_file": "src/pages/admin/AdminSettings.tsx",
+      "source_location": "L19"
     },
     {
       "id": "src_pages_completeprofilepage_completeprofilepage",
@@ -2790,6 +2766,30 @@
       "norm_label": "toaster()",
       "source_file": "src/components/ui/sonner.tsx",
       "source_location": "L6"
+    },
+    {
+      "id": "src_lib_appcontext_appprovider",
+      "label": "AppProvider()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "appprovider()",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L68"
+    },
+    {
+      "id": "src_lib_appcontext_getdeviceid",
+      "label": "getDeviceId()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "getdeviceid()",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L8"
     },
     {
       "id": "src_lib_appcontext_useapp",
@@ -3188,36 +3188,12 @@
       "source_location": "L394"
     },
     {
-      "id": "src_lib_appcontext_appprovider",
-      "label": "AppProvider()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "appprovider()",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L68"
-    },
-    {
-      "id": "src_lib_appcontext_getdeviceid",
-      "label": "getDeviceId()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "getdeviceid()",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L8"
-    },
-    {
       "id": "src_pages_admin_admindashboard_admindashboard",
       "label": "AdminDashboard()",
       "_callable": true,
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "admindashboard()",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -3229,7 +3205,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "revenuetooltip()",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -3342,138 +3318,6 @@
       "norm_label": "verifyemailpage()",
       "source_file": "src/pages/VerifyEmailPage.tsx",
       "source_location": "L26"
-    },
-    {
-      "id": "src_hooks_use_toast_addtoremovequeue",
-      "label": "addToRemoveQueue()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "addtoremovequeue()",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L55"
-    },
-    {
-      "id": "src_hooks_use_toast_dispatch",
-      "label": "dispatch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "dispatch()",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L128"
-    },
-    {
-      "id": "src_hooks_use_toast_genid",
-      "label": "genId()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "genid()",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_hooks_use_toast_reducer",
-      "label": "reducer()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "reducer()",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L71"
-    },
-    {
-      "id": "src_lib_utils_sortexams",
-      "label": "sortExams()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "sortexams()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L39"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage_subjectdetailpage",
-      "label": "SubjectDetailPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "subjectdetailpage()",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L21"
-    },
-    {
-      "id": "src_components_ui_toaster_toaster",
-      "label": "Toaster()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toaster()",
-      "source_file": "src/components/ui/toaster.tsx",
-      "source_location": "L4"
-    },
-    {
-      "id": "src_hooks_use_toast_usetoast",
-      "label": "useToast()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "usetoast()",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L166"
-    },
-    {
-      "id": "src_components_backup_backupexportpanel_backupexportpanel",
-      "label": "BackupExportPanel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "backupexportpanel()",
-      "source_file": "src/components/backup/BackupExportPanel.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_lib_exportquestions_exportquestionsreadable",
-      "label": "exportQuestionsReadable()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "exportquestionsreadable()",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L51"
-    },
-    {
-      "id": "src_lib_exportquestions_fetchall",
-      "label": "fetchAll()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "fetchall()",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L32"
     },
     {
       "id": "src_components_landing3d_ambientbackgroundcore_ambientbackgroundcore",
@@ -3642,90 +3486,6 @@
       "norm_label": "landinghero()",
       "source_file": "src/components/landing/LandingHero.tsx",
       "source_location": "L11"
-    },
-    {
-      "id": "src_components_announcementpopup_announcementpopup",
-      "label": "AnnouncementPopup()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "announcementpopup()",
-      "source_file": "src/components/AnnouncementPopup.tsx",
-      "source_location": "L43"
-    },
-    {
-      "id": "src_lib_richtext_renderrichtext",
-      "label": "renderRichText()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "renderrichtext()",
-      "source_file": "src/lib/richText.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_pages_admin_adminannouncements_adminannouncements",
-      "label": "AdminAnnouncements()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "adminannouncements()",
-      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
-      "source_location": "L20"
-    },
-    {
-      "id": "src_components_backup_backupimportpanel_backupimportpanel",
-      "label": "BackupImportPanel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "backupimportpanel()",
-      "source_file": "src/components/backup/BackupImportPanel.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_components_backup_importresultdialog_importresultdialog",
-      "label": "ImportResultDialog()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "importresultdialog()",
-      "source_file": "src/components/backup/ImportResultDialog.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_lib_excelbackup_downloadtemplate",
-      "label": "downloadTemplate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "downloadtemplate()",
-      "source_file": "src/lib/excelBackup.ts",
-      "source_location": "L616"
-    },
-    {
-      "id": "src_pages_admin_adminbackup_adminbackup",
-      "label": "AdminBackup()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "adminbackup()",
-      "source_file": "src/pages/admin/AdminBackup.tsx",
-      "source_location": "L6"
     },
     {
       "id": "src_components_landing3d_knowledgenetworkscene_graphnode",
@@ -4064,6 +3824,18 @@
       "source_location": "L48"
     },
     {
+      "id": "src_pages_user_subjectdetailpage_subjectdetailpage",
+      "label": "SubjectDetailPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "subjectdetailpage()",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L21"
+    },
+    {
       "id": "src_components_ui_breadcrumb_breadcrumbellipsis",
       "label": "BreadcrumbEllipsis()",
       "_callable": true,
@@ -4256,6 +4028,18 @@
       "source_location": "L19"
     },
     {
+      "id": "src_lib_markdownexamparser_detectgluedoptiona",
+      "label": "detectGluedOptionA()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "detectgluedoptiona()",
+      "source_file": "src/lib/markdownExamParser.ts",
+      "source_location": "L174"
+    },
+    {
       "id": "src_lib_markdownexamparser_extractanswerlabels",
       "label": "extractAnswerLabels()",
       "_callable": true,
@@ -4277,7 +4061,7 @@
       "file_type": "code",
       "norm_label": "extractexamfromfile()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L513"
+      "source_location": "L582"
     },
     {
       "id": "src_lib_markdownexamparser_extractexamsfromzip",
@@ -4289,7 +4073,7 @@
       "file_type": "code",
       "norm_label": "extractexamsfromzip()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L478"
+      "source_location": "L547"
     },
     {
       "id": "src_lib_markdownexamparser_matchoptionline",
@@ -4313,7 +4097,7 @@
       "file_type": "code",
       "norm_label": "parsemarkdownexam()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L172"
+      "source_location": "L213"
     },
     {
       "id": "src_lib_markdownexamparser_parsemarkdownexam_flushopt",
@@ -4325,7 +4109,31 @@
       "file_type": "code",
       "norm_label": "flushopt()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L299"
+      "source_location": "L340"
+    },
+    {
+      "id": "src_lib_utils_getexamscore",
+      "label": "getExamScore()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "getexamscore()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_lib_utils_sortexams",
+      "label": "sortExams()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "sortexams()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L39"
     },
     {
       "id": "src_lib_wordparser_parsehtmltoquestions",
@@ -4376,16 +4184,196 @@
       "source_location": "L28"
     },
     {
+      "id": "src_pages_admin_adminexamstats_adminexamstats",
+      "label": "AdminExamStats()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "adminexamstats()",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L187"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_adminexamstats_fetchall",
+      "label": "fetchAll()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "fetchall()",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L221"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_answerbar",
+      "label": "AnswerBar()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "answerbar()",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L45"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_examstatcard",
+      "label": "ExamStatCard()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "examstatcard()",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L71"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_getpal",
+      "label": "getPal()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "getpal()",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L40"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_pill",
+      "label": "Pill()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "pill()",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L177"
+    },
+    {
+      "id": "src_components_backup_backupexportpanel_backupexportpanel",
+      "label": "BackupExportPanel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "backupexportpanel()",
+      "source_file": "src/components/backup/BackupExportPanel.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_backup_backupimportpanel_backupimportpanel",
+      "label": "BackupImportPanel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "backupimportpanel()",
+      "source_file": "src/components/backup/BackupImportPanel.tsx",
+      "source_location": "L9"
+    },
+    {
       "id": "src_components_backup_backuptableselector_backuptableselector",
       "label": "BackupTableSelector()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "backuptableselector()",
       "source_file": "src/components/backup/BackupTableSelector.tsx",
       "source_location": "L17"
+    },
+    {
+      "id": "src_components_backup_importresultdialog_importresultdialog",
+      "label": "ImportResultDialog()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "importresultdialog()",
+      "source_file": "src/components/backup/ImportResultDialog.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_ui_toaster_toaster",
+      "label": "Toaster()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toaster()",
+      "source_file": "src/components/ui/toaster.tsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "src_hooks_use_toast_addtoremovequeue",
+      "label": "addToRemoveQueue()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "addtoremovequeue()",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L55"
+    },
+    {
+      "id": "src_hooks_use_toast_dispatch",
+      "label": "dispatch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "dispatch()",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L128"
+    },
+    {
+      "id": "src_hooks_use_toast_genid",
+      "label": "genId()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "genid()",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_hooks_use_toast_reducer",
+      "label": "reducer()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "reducer()",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L71"
+    },
+    {
+      "id": "src_hooks_use_toast_usetoast",
+      "label": "useToast()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "usetoast()",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L166"
     },
     {
       "id": "src_lib_excelbackup_detectsheetsinfile",
@@ -4393,7 +4381,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "detectsheetsinfile()",
       "source_file": "src/lib/excelBackup.ts",
@@ -4405,11 +4393,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "detectsheetsinzip()",
       "source_file": "src/lib/excelBackup.ts",
       "source_location": "L633"
+    },
+    {
+      "id": "src_lib_excelbackup_downloadtemplate",
+      "label": "downloadTemplate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "downloadtemplate()",
+      "source_file": "src/lib/excelBackup.ts",
+      "source_location": "L616"
     },
     {
       "id": "src_lib_excelbackup_exporttoexcel",
@@ -4417,7 +4417,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "exporttoexcel()",
       "source_file": "src/lib/excelBackup.ts",
@@ -4429,7 +4429,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "fetchblob()",
       "source_file": "src/lib/excelBackup.ts",
@@ -4441,7 +4441,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "getsupabasepublicurl()",
       "source_file": "src/lib/excelBackup.ts",
@@ -4453,7 +4453,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "importfromzip()",
       "source_file": "src/lib/excelBackup.ts",
@@ -4465,7 +4465,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "parsesupabaseurl()",
       "source_file": "src/lib/excelBackup.ts",
@@ -4477,11 +4477,47 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "sleep()",
       "source_file": "src/lib/excelBackup.ts",
       "source_location": "L420"
+    },
+    {
+      "id": "src_lib_exportquestions_exportquestionsreadable",
+      "label": "exportQuestionsReadable()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "exportquestionsreadable()",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L51"
+    },
+    {
+      "id": "src_lib_exportquestions_fetchall",
+      "label": "fetchAll()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "fetchall()",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L32"
+    },
+    {
+      "id": "src_pages_admin_adminbackup_adminbackup",
+      "label": "AdminBackup()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "adminbackup()",
+      "source_file": "src/pages/admin/AdminBackup.tsx",
+      "source_location": "L6"
     },
     {
       "id": "supabase_functions_notify_admin_new_order_index_escapehtml",
@@ -4602,30 +4638,6 @@
       "norm_label": "genpassword()",
       "source_file": "supabase/functions/forgot-password/index.ts",
       "source_location": "L9"
-    },
-    {
-      "id": "src_components_fileuploader_fileuploader",
-      "label": "FileUploader()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "fileuploader()",
-      "source_file": "src/components/FileUploader.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_pages_admin_adminsettings_adminsettings",
-      "label": "AdminSettings()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "adminsettings()",
-      "source_file": "src/pages/admin/AdminSettings.tsx",
-      "source_location": "L19"
     },
     {
       "id": "src_pages_admin_admintheory_admintheory",
@@ -8174,59 +8186,48 @@
       "source_location": "L16"
     },
     {
-      "id": "src_app_adminexamstats",
-      "label": "AdminExamStats",
+      "id": "src_app_admincoupons",
+      "label": "AdminCoupons",
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "adminexamstats",
+      "norm_label": "admincoupons",
       "source_file": "src/App.tsx",
-      "source_location": "L36"
+      "source_location": "L29"
     },
     {
-      "id": "src_pages_admin_adminexamstats",
-      "label": "AdminExamStats.tsx",
+      "id": "src_pages_admin_admincoupons",
+      "label": "AdminCoupons.tsx",
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "adminexamstats.tsx",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "norm_label": "admincoupons.tsx",
+      "source_file": "src/pages/admin/AdminCoupons.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_pages_admin_adminexamstats_default_pal",
-      "label": "DEFAULT_PAL",
+      "id": "src_pages_admin_admincoupons_initialformstate",
+      "label": "initialFormState",
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "default_pal",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L38"
+      "norm_label": "initialformstate",
+      "source_file": "src/pages/admin/AdminCoupons.tsx",
+      "source_location": "L40"
     },
     {
-      "id": "src_pages_admin_adminexamstats_labels",
-      "label": "LABELS",
+      "id": "src_pages_admin_admincoupons_inputstyle",
+      "label": "inputStyle",
       "_origin": "ast",
       "community": 140,
-      "community_name": "AdminExamStats.tsx",
+      "community_name": "AdminCoupons.tsx",
       "file_type": "code",
-      "norm_label": "labels",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L25"
-    },
-    {
-      "id": "src_pages_admin_adminexamstats_palette",
-      "label": "PALETTE",
-      "_origin": "ast",
-      "community": 140,
-      "community_name": "AdminExamStats.tsx",
-      "file_type": "code",
-      "norm_label": "palette",
-      "source_file": "src/pages/admin/AdminExamStats.tsx",
-      "source_location": "L27"
+      "norm_label": "inputstyle",
+      "source_file": "src/pages/admin/AdminCoupons.tsx",
+      "source_location": "L50"
     },
     {
       "id": "readme",
@@ -15690,15 +15691,26 @@
       "source_location": "L6"
     },
     {
-      "id": "src_app_admincoupons",
-      "label": "AdminCoupons",
+      "id": "src_app_adminannouncements",
+      "label": "AdminAnnouncements",
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
-      "norm_label": "admincoupons",
+      "norm_label": "adminannouncements",
       "source_file": "src/App.tsx",
-      "source_location": "L29"
+      "source_location": "L27"
+    },
+    {
+      "id": "src_app_adminsettings",
+      "label": "AdminSettings",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "adminsettings",
+      "source_file": "src/App.tsx",
+      "source_location": "L31"
     },
     {
       "id": "src_app_resetpasswordpage",
@@ -15710,6 +15722,28 @@
       "norm_label": "resetpasswordpage",
       "source_file": "src/App.tsx",
       "source_location": "L22"
+    },
+    {
+      "id": "src_components_announcementpopup",
+      "label": "AnnouncementPopup.tsx",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "announcementpopup.tsx",
+      "source_file": "src/components/AnnouncementPopup.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_fileuploader",
+      "label": "FileUploader.tsx",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "fileuploader.tsx",
+      "source_file": "src/components/FileUploader.tsx",
+      "source_location": "L1"
     },
     {
       "id": "src_integrations_lovable_index",
@@ -15778,37 +15812,70 @@
       "source_location": "L1"
     },
     {
-      "id": "src_pages_admin_admincoupons",
-      "label": "AdminCoupons.tsx",
+      "id": "src_lib_richtext",
+      "label": "richText.tsx",
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
-      "norm_label": "admincoupons.tsx",
-      "source_file": "src/pages/admin/AdminCoupons.tsx",
+      "norm_label": "richtext.tsx",
+      "source_file": "src/lib/richText.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_pages_admin_admincoupons_initialformstate",
-      "label": "initialFormState",
+      "id": "src_pages_admin_adminannouncements",
+      "label": "AdminAnnouncements.tsx",
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
-      "norm_label": "initialformstate",
-      "source_file": "src/pages/admin/AdminCoupons.tsx",
-      "source_location": "L40"
+      "norm_label": "adminannouncements.tsx",
+      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
+      "source_location": "L1"
     },
     {
-      "id": "src_pages_admin_admincoupons_inputstyle",
+      "id": "src_pages_admin_adminannouncements_inputstyle",
       "label": "inputStyle",
       "_origin": "ast",
       "community": 19,
       "community_name": "client.ts",
       "file_type": "code",
       "norm_label": "inputstyle",
-      "source_file": "src/pages/admin/AdminCoupons.tsx",
-      "source_location": "L50"
+      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
+      "source_location": "L13"
+    },
+    {
+      "id": "src_pages_admin_adminsettings",
+      "label": "AdminSettings.tsx",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "adminsettings.tsx",
+      "source_file": "src/pages/admin/AdminSettings.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_pages_admin_adminsettings_inputstyle",
+      "label": "inputStyle",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "inputstyle",
+      "source_file": "src/pages/admin/AdminSettings.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_pages_admin_adminsettings_keys",
+      "label": "KEYS",
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "client.ts",
+      "file_type": "code",
+      "norm_label": "keys",
+      "source_file": "src/pages/admin/AdminSettings.tsx",
+      "source_location": "L16"
     },
     {
       "id": "src_pages_completeprofilepage",
@@ -16455,17 +16522,6 @@
       "source_location": "L32"
     },
     {
-      "id": "src_app_adminorders",
-      "label": "AdminOrders",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "App.tsx",
-      "file_type": "code",
-      "norm_label": "adminorders",
-      "source_file": "src/App.tsx",
-      "source_location": "L28"
-    },
-    {
       "id": "src_app_adminquestionreports",
       "label": "AdminQuestionReports",
       "_origin": "ast",
@@ -16497,6 +16553,17 @@
       "norm_label": "newspage",
       "source_file": "src/App.tsx",
       "source_location": "L20"
+    },
+    {
+      "id": "src_app_profilepage",
+      "label": "ProfilePage",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "profilepage",
+      "source_file": "src/App.tsx",
+      "source_location": "L19"
     },
     {
       "id": "src_app_queryclient",
@@ -16574,6 +16641,28 @@
       "norm_label": "sonner.tsx",
       "source_file": "src/components/ui/sonner.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_lib_appcontext",
+      "label": "AppContext.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "appcontext.tsx",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_appcontext_appcontext",
+      "label": "AppContext",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "App.tsx",
+      "file_type": "code",
+      "norm_label": "appcontext",
+      "source_file": "src/lib/AppContext.tsx",
+      "source_location": "L66"
     },
     {
       "id": "src_main",
@@ -20241,40 +20330,18 @@
       "label": "AdminDashboard",
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "admindashboard",
       "source_file": "src/App.tsx",
       "source_location": "L23"
     },
     {
-      "id": "src_lib_appcontext",
-      "label": "AppContext.tsx",
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "appcontext.tsx",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_appcontext_appcontext",
-      "label": "AppContext",
-      "_origin": "ast",
-      "community": 254,
-      "community_name": "AppContext.tsx",
-      "file_type": "code",
-      "norm_label": "appcontext",
-      "source_file": "src/lib/AppContext.tsx",
-      "source_location": "L66"
-    },
-    {
       "id": "src_pages_admin_admindashboard",
       "label": "AdminDashboard.tsx",
       "_origin": "ast",
       "community": 254,
-      "community_name": "AppContext.tsx",
+      "community_name": "AdminDashboard.tsx",
       "file_type": "code",
       "norm_label": "admindashboard.tsx",
       "source_file": "src/pages/admin/AdminDashboard.tsx",
@@ -20389,72 +20456,6 @@
       "norm_label": "vitest",
       "source_file": "package.json",
       "source_location": "L105"
-    },
-    {
-      "id": "src_components_ui_use_toast",
-      "label": "ui/use-toast.ts",
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "ui/use-toast.ts",
-      "source_file": "src/components/ui/use-toast.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_hooks_use_toast",
-      "label": "hooks/use-toast.ts",
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "hooks/use-toast.ts",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_hooks_use_toast_actiontypes",
-      "label": "actionTypes",
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "actiontypes",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_hooks_use_toast_listeners",
-      "label": "listeners",
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "listeners",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L124"
-    },
-    {
-      "id": "src_hooks_use_toast_memorystate",
-      "label": "memoryState",
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "memorystate",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L126"
-    },
-    {
-      "id": "src_hooks_use_toast_toasttimeouts",
-      "label": "toastTimeouts",
-      "_origin": "ast",
-      "community": 259,
-      "community_name": "hooks/use-toast.ts",
-      "file_type": "code",
-      "norm_label": "toasttimeouts",
-      "source_file": "src/hooks/use-toast.ts",
-      "source_location": "L53"
     },
     {
       "id": "spec_driven_agent_driven_development_2_10_1_2_pha_2_intent_communication_what_kh\u00f4ng_ph\u1ea3i_how",
@@ -21309,138 +21310,6 @@
       "source_location": "L12776"
     },
     {
-      "id": "src_app_subjectdetailpage",
-      "label": "SubjectDetailPage",
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "subjectdetailpage",
-      "source_file": "src/App.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_pages_user_subjectdetailpage",
-      "label": "SubjectDetailPage.tsx",
-      "_origin": "ast",
-      "community": 260,
-      "community_name": "SubjectDetailPage.tsx",
-      "file_type": "code",
-      "norm_label": "subjectdetailpage.tsx",
-      "source_file": "src/pages/user/SubjectDetailPage.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_toast",
-      "label": "toast.tsx",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toast.tsx",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_toast_toast",
-      "label": "Toast",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toast",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L40"
-    },
-    {
-      "id": "src_components_ui_toast_toastaction",
-      "label": "ToastAction",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toastaction",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L48"
-    },
-    {
-      "id": "src_components_ui_toast_toastclose",
-      "label": "ToastClose",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toastclose",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L63"
-    },
-    {
-      "id": "src_components_ui_toast_toastdescription",
-      "label": "ToastDescription",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toastdescription",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L89"
-    },
-    {
-      "id": "src_components_ui_toast_toasttitle",
-      "label": "ToastTitle",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toasttitle",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L81"
-    },
-    {
-      "id": "src_components_ui_toast_toastvariants",
-      "label": "toastVariants",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toastvariants",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L25"
-    },
-    {
-      "id": "src_components_ui_toast_toastviewport",
-      "label": "ToastViewport",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toastviewport",
-      "source_file": "src/components/ui/toast.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_ui_toaster",
-      "label": "toaster.tsx",
-      "_origin": "ast",
-      "community": 261,
-      "community_name": "toast.tsx",
-      "file_type": "code",
-      "norm_label": "toaster.tsx",
-      "source_file": "src/components/ui/toaster.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_exportquestions",
-      "label": "exportQuestions.ts",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "exportQuestions.ts",
-      "file_type": "code",
-      "norm_label": "exportquestions.ts",
-      "source_file": "src/lib/exportQuestions.ts",
-      "source_location": "L1"
-    },
-    {
       "id": "sdd_specs_17_interactive_landing_page_spec",
       "label": "17-interactive-landing-page/spec.md",
       "_origin": "ast",
@@ -21649,61 +21518,6 @@
       "norm_label": "landinghero.tsx",
       "source_file": "src/components/landing/LandingHero.tsx",
       "source_location": "L1"
-    },
-    {
-      "id": "src_app_adminannouncements",
-      "label": "AdminAnnouncements",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "adminannouncements",
-      "source_file": "src/App.tsx",
-      "source_location": "L27"
-    },
-    {
-      "id": "src_components_announcementpopup",
-      "label": "AnnouncementPopup.tsx",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "announcementpopup.tsx",
-      "source_file": "src/components/AnnouncementPopup.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_richtext",
-      "label": "richText.tsx",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "richtext.tsx",
-      "source_file": "src/lib/richText.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_pages_admin_adminannouncements",
-      "label": "AdminAnnouncements.tsx",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "adminannouncements.tsx",
-      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_pages_admin_adminannouncements_inputstyle",
-      "label": "inputStyle",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "AdminAnnouncements.tsx",
-      "file_type": "code",
-      "norm_label": "inputstyle",
-      "source_file": "src/pages/admin/AdminAnnouncements.tsx",
-      "source_location": "L13"
     },
     {
       "id": "sdd_specs_15_admin_coupons_spec",
@@ -21944,50 +21758,6 @@
       "norm_label": "user story 2 \u2013 trai nghiem xem popup cua hoc vien (priority: p1)",
       "source_file": ".sdd/specs/16-system-announcements/spec.md",
       "source_location": "L24"
-    },
-    {
-      "id": "src_app_adminbackup",
-      "label": "AdminBackup",
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "adminbackup",
-      "source_file": "src/App.tsx",
-      "source_location": "L34"
-    },
-    {
-      "id": "src_components_backup_backupimportpanel",
-      "label": "BackupImportPanel.tsx",
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "backupimportpanel.tsx",
-      "source_file": "src/components/backup/BackupImportPanel.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_backup_importresultdialog",
-      "label": "ImportResultDialog.tsx",
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "importresultdialog.tsx",
-      "source_file": "src/components/backup/ImportResultDialog.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_pages_admin_adminbackup",
-      "label": "AdminBackup.tsx",
-      "_origin": "ast",
-      "community": 269,
-      "community_name": "BackupImportPanel.tsx",
-      "file_type": "code",
-      "norm_label": "adminbackup.tsx",
-      "source_file": "src/pages/admin/AdminBackup.tsx",
-      "source_location": "L1"
     },
     {
       "id": "src_components_ui_table",
@@ -22276,6 +22046,17 @@
       "source_location": "L13"
     },
     {
+      "id": "src_app_adminorders",
+      "label": "AdminOrders",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "adminorders",
+      "source_file": "src/App.tsx",
+      "source_location": "L28"
+    },
+    {
       "id": "src_app_adminsubjects",
       "label": "AdminSubjects",
       "_origin": "ast",
@@ -22298,15 +22079,15 @@
       "source_location": "L16"
     },
     {
-      "id": "src_app_profilepage",
-      "label": "ProfilePage",
+      "id": "src_app_subjectdetailpage",
+      "label": "SubjectDetailPage",
       "_origin": "ast",
       "community": 3,
       "community_name": "ProfilePage.tsx",
       "file_type": "code",
-      "norm_label": "profilepage",
+      "norm_label": "subjectdetailpage",
       "source_file": "src/App.tsx",
-      "source_location": "L19"
+      "source_location": "L17"
     },
     {
       "id": "src_lib_mockdata",
@@ -22406,6 +22187,17 @@
       "norm_label": "inputstyle",
       "source_file": "src/pages/user/ProfilePage.tsx",
       "source_location": "L19"
+    },
+    {
+      "id": "src_pages_user_subjectdetailpage",
+      "label": "SubjectDetailPage.tsx",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "ProfilePage.tsx",
+      "file_type": "code",
+      "norm_label": "subjectdetailpage.tsx",
+      "source_file": "src/pages/user/SubjectDetailPage.tsx",
+      "source_location": "L1"
     },
     {
       "id": "specify_scripts_powershell_create_new_feature",
@@ -23508,6 +23300,17 @@
       "source_location": "L25"
     },
     {
+      "id": "src_app_adminexamstats",
+      "label": "AdminExamStats",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "adminexamstats",
+      "source_file": "src/App.tsx",
+      "source_location": "L36"
+    },
+    {
       "id": "src_components_admin_bulkexamzipmodal",
       "label": "BulkExamZipModal.tsx",
       "_origin": "ast",
@@ -23594,6 +23397,50 @@
       "norm_label": "inputstyle",
       "source_file": "src/pages/admin/AdminExams.tsx",
       "source_location": "L20"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats",
+      "label": "AdminExamStats.tsx",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "adminexamstats.tsx",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_default_pal",
+      "label": "DEFAULT_PAL",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "default_pal",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L38"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_labels",
+      "label": "LABELS",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "labels",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L25"
+    },
+    {
+      "id": "src_pages_admin_adminexamstats_palette",
+      "label": "PALETTE",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "AdminExams.tsx",
+      "file_type": "code",
+      "norm_label": "palette",
+      "source_file": "src/pages/admin/AdminExamStats.tsx",
+      "source_location": "L27"
     },
     {
       "id": "src_test_markdownexamparser_test",
@@ -24502,14 +24349,36 @@
       "source_location": "L6"
     },
     {
+      "id": "src_app_adminbackup",
+      "label": "AdminBackup",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "adminbackup",
+      "source_file": "src/App.tsx",
+      "source_location": "L34"
+    },
+    {
       "id": "src_components_backup_backupexportpanel",
       "label": "BackupExportPanel.tsx",
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "backupexportpanel.tsx",
       "source_file": "src/components/backup/BackupExportPanel.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_backup_backupimportpanel",
+      "label": "BackupImportPanel.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "backupimportpanel.tsx",
+      "source_file": "src/components/backup/BackupImportPanel.tsx",
       "source_location": "L1"
     },
     {
@@ -24517,7 +24386,7 @@
       "label": "BackupTableSelector.tsx",
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "backuptableselector.tsx",
       "source_file": "src/components/backup/BackupTableSelector.tsx",
@@ -24528,18 +24397,194 @@
       "label": "GROUP_LABELS",
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "group_labels",
       "source_file": "src/components/backup/BackupTableSelector.tsx",
       "source_location": "L5"
     },
     {
+      "id": "src_components_backup_importresultdialog",
+      "label": "ImportResultDialog.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "importresultdialog.tsx",
+      "source_file": "src/components/backup/ImportResultDialog.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_toast",
+      "label": "toast.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toast.tsx",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_toast_toast",
+      "label": "Toast",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toast",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L40"
+    },
+    {
+      "id": "src_components_ui_toast_toastaction",
+      "label": "ToastAction",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastaction",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L48"
+    },
+    {
+      "id": "src_components_ui_toast_toastclose",
+      "label": "ToastClose",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastclose",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L63"
+    },
+    {
+      "id": "src_components_ui_toast_toastdescription",
+      "label": "ToastDescription",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastdescription",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L89"
+    },
+    {
+      "id": "src_components_ui_toast_toasttitle",
+      "label": "ToastTitle",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toasttitle",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L81"
+    },
+    {
+      "id": "src_components_ui_toast_toastvariants",
+      "label": "toastVariants",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastvariants",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L25"
+    },
+    {
+      "id": "src_components_ui_toast_toastviewport",
+      "label": "ToastViewport",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toastviewport",
+      "source_file": "src/components/ui/toast.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_ui_toaster",
+      "label": "toaster.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toaster.tsx",
+      "source_file": "src/components/ui/toaster.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_use_toast",
+      "label": "ui/use-toast.ts",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "ui/use-toast.ts",
+      "source_file": "src/components/ui/use-toast.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_hooks_use_toast",
+      "label": "hooks/use-toast.ts",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "hooks/use-toast.ts",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_hooks_use_toast_actiontypes",
+      "label": "actionTypes",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "actiontypes",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_hooks_use_toast_listeners",
+      "label": "listeners",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "listeners",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L124"
+    },
+    {
+      "id": "src_hooks_use_toast_memorystate",
+      "label": "memoryState",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "memorystate",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L126"
+    },
+    {
+      "id": "src_hooks_use_toast_toasttimeouts",
+      "label": "toastTimeouts",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "toasttimeouts",
+      "source_file": "src/hooks/use-toast.ts",
+      "source_location": "L53"
+    },
+    {
       "id": "src_lib_excelbackup",
       "label": "excelBackup.ts",
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "excelbackup.ts",
       "source_file": "src/lib/excelBackup.ts",
@@ -24550,11 +24595,33 @@
       "label": "TABLE_SCHEMAS",
       "_origin": "ast",
       "community": 4,
-      "community_name": "excelBackup.ts",
+      "community_name": "hooks/use-toast.ts",
       "file_type": "code",
       "norm_label": "table_schemas",
       "source_file": "src/lib/excelBackup.ts",
       "source_location": "L22"
+    },
+    {
+      "id": "src_lib_exportquestions",
+      "label": "exportQuestions.ts",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "exportquestions.ts",
+      "source_file": "src/lib/exportQuestions.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_pages_admin_adminbackup",
+      "label": "AdminBackup.tsx",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "hooks/use-toast.ts",
+      "file_type": "code",
+      "norm_label": "adminbackup.tsx",
+      "source_file": "src/pages/admin/AdminBackup.tsx",
+      "source_location": "L1"
     },
     {
       "id": "spec_driven_agent_driven_development_2_9_1_1_v\u00f2ng_l\u1eb7p_plan_execute_observe_adjust",
@@ -27699,17 +27766,6 @@
       "source_location": "L4"
     },
     {
-      "id": "src_app_adminsettings",
-      "label": "AdminSettings",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "adminsettings",
-      "source_file": "src/App.tsx",
-      "source_location": "L31"
-    },
-    {
       "id": "src_app_admintheory",
       "label": "AdminTheory",
       "_origin": "ast",
@@ -27719,50 +27775,6 @@
       "norm_label": "admintheory",
       "source_file": "src/App.tsx",
       "source_location": "L26"
-    },
-    {
-      "id": "src_components_fileuploader",
-      "label": "FileUploader.tsx",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "fileuploader.tsx",
-      "source_file": "src/components/FileUploader.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_pages_admin_adminsettings",
-      "label": "AdminSettings.tsx",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "adminsettings.tsx",
-      "source_file": "src/pages/admin/AdminSettings.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_pages_admin_adminsettings_inputstyle",
-      "label": "inputStyle",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "inputstyle",
-      "source_file": "src/pages/admin/AdminSettings.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_pages_admin_adminsettings_keys",
-      "label": "KEYS",
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "AdminTheory.tsx",
-      "file_type": "code",
-      "norm_label": "keys",
-      "source_file": "src/pages/admin/AdminSettings.tsx",
-      "source_location": "L16"
     },
     {
       "id": "src_pages_admin_admintheory",
@@ -35068,7 +35080,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L518",
+      "source_location": "L587",
       "weight": 1.0
     },
     {
@@ -35080,7 +35092,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L501",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -35092,7 +35104,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L350",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -35104,7 +35116,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L379",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -35253,6 +35265,18 @@
     },
     {
       "source": "src_pages_admin_adminexams_adminexams",
+      "target": "src_lib_markdownexamparser_detectgluedoptiona",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/pages/admin/AdminExams.tsx",
+      "source_location": "L195",
+      "weight": 1.0
+    },
+    {
+      "source": "src_pages_admin_adminexams_adminexams",
       "target": "src_lib_markdownexamparser_parsemarkdownexam",
       "relation": "calls",
       "_origin": "ast",
@@ -35260,7 +35284,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/pages/admin/AdminExams.tsx",
-      "source_location": "L204",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -35272,7 +35296,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/pages/admin/AdminExams.tsx",
-      "source_location": "L225",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -35284,7 +35308,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/pages/admin/AdminExams.tsx",
-      "source_location": "L252",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -35296,7 +35320,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/pages/admin/AdminExams.tsx",
-      "source_location": "L309",
+      "source_location": "L370",
       "weight": 1.0
     },
     {
@@ -35320,7 +35344,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/pages/admin/AdminExams.tsx",
-      "source_location": "L447",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -36112,7 +36136,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L299",
+      "source_location": "L340",
       "weight": 1.0
     },
     {
@@ -39911,6 +39935,18 @@
     },
     {
       "source": "src_pages_admin_adminexams",
+      "target": "src_lib_markdownexamparser_detectgluedoptiona",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/pages/admin/AdminExams.tsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "src_pages_admin_adminexams",
       "target": "src_lib_markdownexamparser_parsemarkdownexam",
       "relation": "imports",
       "_origin": "ast",
@@ -41035,6 +41071,18 @@
       "context": "import",
       "source_file": "src/pages/VerifyEmailPage.tsx",
       "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_test_markdownexamparser_test",
+      "target": "src_lib_markdownexamparser_detectgluedoptiona",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/test/markdownExamParser.test.ts",
+      "source_location": "L2",
       "weight": 1.0
     },
     {
@@ -66182,13 +66230,24 @@
     },
     {
       "source": "src_lib_markdownexamparser",
+      "target": "src_lib_markdownexamparser_detectgluedoptiona",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/markdownExamParser.ts",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_markdownexamparser",
       "target": "src_lib_markdownexamparser_parsemarkdownexam",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L172",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -66232,18 +66291,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L478",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_markdownexamparser",
-      "target": "src_lib_markdownexamparser_extractexamfromfile",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L513",
+      "source_location": "L547",
       "weight": 1.0
     },
     {
@@ -66255,6 +66303,17 @@
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
       "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_markdownexamparser",
+      "target": "src_lib_markdownexamparser_extractexamfromfile",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/markdownExamParser.ts",
+      "source_location": "L582",
       "weight": 1.0
     },
     {
@@ -69819,5 +69878,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "41021c768ac2111f92348c7f8d2491e11ee7dd69"
+  "built_at_commit": "dd46d6e7ea2788b271bdbf38f4cd7bf8a0cd349c"
 }

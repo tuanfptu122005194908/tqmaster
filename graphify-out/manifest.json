@@ -606,9 +606,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminExams.tsx": {
-    "mtime": 1788659408.4999843,
-    "seen": 1788659460.5265648,
-    "ast_hash": "b793c84eb026d9240e1d5f259f27961e",
+    "mtime": 1788670543.4933777,
+    "seen": 1788670593.5955794,
+    "ast_hash": "2b4cc1d340e680745a24f6472e2e9090",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminNews.tsx": {
@@ -1024,15 +1024,15 @@
     "semantic_hash": ""
   },
   "src/lib/wordParser.ts": {
-    "mtime": 1788659326.318023,
-    "seen": 1788659460.5256,
-    "ast_hash": "51edb6194356d372974eafdf16b7e8e9",
+    "mtime": 1788670509.787594,
+    "seen": 1788670593.5926378,
+    "ast_hash": "a5c806231a337e3cda28172652054cd9",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminBackup.tsx": {
-    "mtime": 1786098932.7006028,
-    "seen": 1788157034.7996068,
-    "ast_hash": "9f0843edd5b6f16ec1e831a035edcf78",
+    "mtime": 1788660779.0709403,
+    "seen": 1788670593.594441,
+    "ast_hash": "985bdc0292f2cd19d1a599fe4f3818da",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminChat.tsx": {
@@ -2242,9 +2242,9 @@
     "semantic_hash": ""
   },
   "src/components/landing3d/KnowledgeCoreScene.tsx": {
-    "mtime": 1788408234.0165868,
-    "seen": 1788507049.8547118,
-    "ast_hash": "a8a1168de0316aa5b5b2839826bc453b",
+    "mtime": 1788660779.0678394,
+    "seen": 1788670593.5776327,
+    "ast_hash": "65e6b04a0235342af5c0c3a0555b863b",
     "semantic_hash": ""
   },
   "src/components/landing3d/KnowledgeNetworkScene.tsx": {
@@ -2365,6 +2365,30 @@
     "mtime": 1788376049.4422007,
     "seen": 1788507049.93891,
     "ast_hash": "176402f73843b46c2712ce35f7e2bef4",
+    "semantic_hash": ""
+  },
+  "src/components/backup/SnapshotExportPanel.tsx": {
+    "mtime": 1788660779.063576,
+    "seen": 1788670593.5730863,
+    "ast_hash": "446bb22ef1c9dd4231e44ea4d17c676f",
+    "semantic_hash": ""
+  },
+  "src/components/backup/SnapshotRestorePanel.tsx": {
+    "mtime": 1788660779.065253,
+    "seen": 1788670593.5730915,
+    "ast_hash": "9961ee9b0356237b52b5925d5ad06de4",
+    "semantic_hash": ""
+  },
+  "src/lib/backupCore.ts": {
+    "mtime": 1788660779.0678394,
+    "seen": 1788670593.5906975,
+    "ast_hash": "f9b656f4f21e36569554542ba8b5544c",
+    "semantic_hash": ""
+  },
+  "src/test/wordParser.test.ts": {
+    "mtime": 1788670482.8429253,
+    "seen": 1788670593.6018658,
+    "ast_hash": "8dd79931b90672a261ea7d3a278ad2bb",
     "semantic_hash": ""
   }
 }
