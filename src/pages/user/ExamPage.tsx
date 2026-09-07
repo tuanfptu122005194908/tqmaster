@@ -550,7 +550,7 @@ export default function ExamPage() {
         
         <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 120, overflowY: 'auto' }}>
           <strong style={{ color: '#0f172a' }}>Câu hỏi: </strong>
-          {reportingQuestion.content}
+          <RichContent content={reportingQuestion.content || ''} />
         </div>
 
         <div>
@@ -580,7 +580,8 @@ export default function ExamPage() {
                     {isChecked && <CheckCircle size={14} color="white" />}
                   </div>
                   <span style={{ fontSize: 14, fontWeight: isChecked ? 700 : 500, color: isChecked ? '#1e40af' : '#334155', flex: 1 }}>
-                    {opt.label}. {opt.content}
+                    <span style={{ fontWeight: 800, marginRight: 6 }}>{opt.label}.</span>
+                    <RichContent content={opt.content || ''} displayMode={false} />
                   </span>
                   {isAlreadyCorrect && (
                     <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 4 }}>
@@ -957,7 +958,8 @@ export default function ExamPage() {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 800, fontSize: 16, color: '#000', marginBottom: 6 }}>
-                            Câu {i + 1}: {q.content?.trim() ? q.content : '[Câu hình ảnh]'}
+                            <span>Câu {i + 1}: </span>
+                            {q.content?.trim() ? <RichContent content={q.content} /> : '[Câu hình ảnh]'}
                           </div>
                           <div style={{ fontSize: 13, color: '#666', fontWeight: 600 }}>
                             {isQCorrect ? 'TRẢ LỜI ĐÚNG' : 'TRẢ LỜI SAI'}
@@ -979,8 +981,9 @@ export default function ExamPage() {
                       {q.options.some(opt => opt.content?.trim()) && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', padding: '0 10px' }}>
                           {q.options.map((opt) => opt.content?.trim() ? (
-                            <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000' }}>
-                              {opt.label}. {opt.content}
+                            <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                              <span style={{ fontWeight: 700 }}>{opt.label}.</span>
+                              <span style={{ flex: 1 }}><RichContent content={opt.content} displayMode={false} /></span>
                             </div>
                           ) : null)}
                         </div>
@@ -1638,8 +1641,9 @@ export default function ExamPage() {
                                 </svg>
                               )}
                             </div>
-                            <span className="text-xs sm:text-sm">
-                              <span className="font-bold mr-1">{opt.label}.</span> {opt.content || ''}
+                            <span className="text-xs sm:text-sm flex-1">
+                              <span className="font-bold mr-1">{opt.label}.</span>
+                              <RichContent content={opt.content || ''} displayMode={false} />
                             </span>
                           </div>
                         );
@@ -1755,7 +1759,8 @@ export default function ExamPage() {
                               )}
                             </div>
                             <span className="text-xs sm:text-sm font-medium flex-1">
-                              <span className="font-bold mr-1">{opt.label}.</span> {opt.content || ''}
+                              <span className="font-bold mr-1">{opt.label}.</span>
+                              <RichContent content={opt.content || ''} displayMode={false} />
                             </span>
                             {isAlreadyCorrect && (
                               <span className="ml-2 text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded border border-emerald-200 shrink-0">

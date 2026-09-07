@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
 import { Check, X, MessageSquareWarning, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { RichContent } from '@/components/exam/RichContent';
 
 type QuestionReport = {
   id: string;
@@ -202,7 +203,7 @@ export default function AdminQuestionReports() {
                     )}
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 16, lineHeight: 1.5 }}>
-                    {group.question.content}
+                    <RichContent content={group.question.content} />
                   </div>
                   {group.question.image_url && (
                     <img src={group.question.image_url} alt="Question" style={{ maxWidth: 240, borderRadius: 12, marginBottom: 16, border: '1px solid #e2e8f0' }} />
@@ -212,8 +213,9 @@ export default function AdminQuestionReports() {
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#10b981', marginBottom: 8, letterSpacing: '0.05em' }}>ĐÁP ÁN ĐÚNG HIỆN TẠI</div>
                     {currentCorrectOpts.length > 0 ? (
                       currentCorrectOpts.map((o: any) => (
-                        <div key={o.id} style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
-                          <span style={{ color: '#10b981' }}>{o.label}.</span> {o.content}
+                        <div key={o.id} style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 4, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          <span style={{ color: '#10b981', fontWeight: 800 }}>{o.label}.</span>
+                          <span style={{ flex: 1 }}><RichContent content={o.content} displayMode={false} /></span>
                         </div>
                       ))
                     ) : (
@@ -241,8 +243,9 @@ export default function AdminQuestionReports() {
                           {/* List of proposed options */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                             {prop.options.map((opt: any) => (
-                              <div key={opt.id} style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', background: 'white', padding: '8px 12px', borderRadius: 8, border: '1px solid #fed7aa' }}>
-                                <strong style={{ color: '#d97706' }}>{opt.label}.</strong> {opt.content}
+                              <div key={opt.id} style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', background: 'white', padding: '8px 12px', borderRadius: 8, border: '1px solid #fed7aa', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                                <strong style={{ color: '#d97706' }}>{opt.label}.</strong>
+                                <span style={{ flex: 1 }}><RichContent content={opt.content} displayMode={false} /></span>
                               </div>
                             ))}
                           </div>

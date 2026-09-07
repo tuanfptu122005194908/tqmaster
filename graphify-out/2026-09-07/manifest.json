@@ -624,9 +624,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminQuestionReports.tsx": {
-    "mtime": 1788754395.4266343,
-    "seen": 1788754602.8141322,
-    "ast_hash": "cc1b26d5922e43895f86204d48057656",
+    "mtime": 1788158844.576774,
+    "seen": 1788158907.4731636,
+    "ast_hash": "356be0ff7b37d847e31f1c375aa48f0e",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminSettings.tsx": {
@@ -660,9 +660,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/ExamPage.tsx": {
-    "mtime": 1788754376.7026236,
-    "seen": 1788754602.8144891,
-    "ast_hash": "039d1b4851ac8e35a7b1c58798e8102e",
+    "mtime": 1788160198.8681884,
+    "seen": 1788160232.5132196,
+    "ast_hash": "b37f6853833ae56bb1e1555f3db6064b",
     "semantic_hash": ""
   },
   "src/pages/user/HomePage.tsx": {
@@ -952,9 +952,9 @@
     "semantic_hash": ""
   },
   "src/components/exam/RichContent.tsx": {
-    "mtime": 1788754438.5704403,
-    "seen": 1788754602.80523,
-    "ast_hash": "e39f989d09277769c52507138a9f6406",
+    "mtime": 1786266853.0262194,
+    "seen": 1788157034.7992723,
+    "ast_hash": "e5a4666e6429d8b78dfa6d7b39de3ace",
     "semantic_hash": ""
   },
   "src/components/home3d/CenterFocalPoint.tsx": {
@@ -2212,15 +2212,15 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1788678109.4321501,
-    "seen": 1788754602.8126388,
-    "ast_hash": "9498b7fbc7012ab0386bf3f636cee056",
+    "mtime": 1788659316.642567,
+    "seen": 1788659460.5252798,
+    "ast_hash": "0b87f92e0def625dd8d682a21b22f0c8",
     "semantic_hash": ""
   },
   "src/test/markdownExamParser.test.ts": {
-    "mtime": 1788678142.8461888,
-    "seen": 1788754602.8149173,
-    "ast_hash": "a5add899a11cf4daa11e20b1a4396f6e",
+    "mtime": 1788659343.067104,
+    "seen": 1788659460.5276573,
+    "ast_hash": "f78d67dc7b1e1407dbc93f761cdc3ce9",
     "semantic_hash": ""
   },
   "src/components/SafeCanvas.tsx": {
@@ -2389,18 +2389,6 @@
     "mtime": 1788670482.8429253,
     "seen": 1788670593.6018658,
     "ast_hash": "8dd79931b90672a261ea7d3a278ad2bb",
-    "semantic_hash": ""
-  },
-  "src/test/pro192.test.ts": {
-    "mtime": 1788678121.8822577,
-    "seen": 1788754602.8149195,
-    "ast_hash": "f664bbffde190ab8013754d983e7f761",
-    "semantic_hash": ""
-  },
-  "src/test/richContent.test.ts": {
-    "mtime": 1788754444.041698,
-    "seen": 1788754602.814921,
-    "ast_hash": "a347f5dd81ad5ef4517967650a8159ee",
     "semantic_hash": ""
   }
 }

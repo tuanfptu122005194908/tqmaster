@@ -1,16 +1,16 @@
-# Graph Report - smart-curate-learn-main  (2026-09-07)
+# Graph Report - smart-curate-learn-main  (2026-09-06)
 
 ## Corpus Check
-- 327 files · ~903,805 words
+- 325 files · ~902,413 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2753 nodes · 3490 edges · 278 communities (185 shown, 93 thin omitted)
+- 2749 nodes · 3483 edges · 277 communities (184 shown, 93 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `afe809c3`
+- Built from commit: `746ade4a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -130,7 +130,7 @@
 - typescript-eslint
 - vite
 - @vitejs/plugin-react-swc
-- AdminChat.tsx
+- Tables
 - update-agent-context.sh
 - vercel.json
 - Feature Specification: Rich Text Exam Import — LaTeX, Hình Ảnh Inline & Nhận Biết Câu Hỏi Thông Minh
@@ -231,7 +231,7 @@
 - 10-user-news/tasks.md
 - LandingPage.tsx
 - HomePage.tsx
-- AdminDashboard.tsx
+- AppContext.tsx
 - AuthPage.tsx
 - tailwindcss
 - @types/react-dom
@@ -249,7 +249,7 @@
 - toast.tsx
 - KnowledgeNetworkScene.tsx
 - AdminAnnouncements.tsx
-- AdminCoupons.tsx
+- SubjectDetailPage.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 228 edges
@@ -278,7 +278,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (278 total, 93 thin omitted)
+## Communities (277 total, 93 thin omitted)
 
 ### Community 0 - "sidebar.tsx"
 Cohesion: 0.07
@@ -289,12 +289,12 @@ Cohesion: 0.19
 Nodes (12): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+4 more)
 
 ### Community 2 - "App.tsx"
-Cohesion: 0.07
-Nodes (35): AdminNews, AdminOrders, AdminQuestionReports, adminVars, App(), AppShell(), CartPage, NewsPage (+27 more)
+Cohesion: 0.09
+Nodes (27): AdminNews, AdminOrders, AdminQuestionReports, adminVars, App(), AppShell(), NewsPage, ProtectedRoute() (+19 more)
 
 ### Community 3 - "ProfilePage.tsx"
-Cohesion: 0.13
-Nodes (26): AdminSubjects, ProfilePage, formatDate(), formatPrice(), generateOrderId(), SEMESTERS, SUBJECT_COLORS, subjectColor() (+18 more)
+Cohesion: 0.12
+Nodes (27): AdminSubjects, CartPage, ProfilePage, formatDate(), formatPrice(), generateOrderId(), SEMESTERS, SUBJECT_COLORS (+19 more)
 
 ### Community 4 - "excelBackup.ts"
 Cohesion: 0.15
@@ -313,8 +313,8 @@ Cohesion: 0.07
 Nodes (17): NavLink, NavLinkCompatProps, Badge(), BadgeProps, badgeVariants, Checkbox, HoverCardContent, InputOTP (+9 more)
 
 ### Community 8 - "types.ts"
-Cohesion: 0.10
-Nodes (20): SubjectDetailPage, BulkExamZipModalProps, Subject, CompositeTypes, Constants, Database, DatabaseWithoutInternals, DefaultSchema (+12 more)
+Cohesion: 0.12
+Nodes (14): AdminUsers, CompositeTypes, Constants, Database, DatabaseWithoutInternals, DefaultSchema, Enums, Json (+6 more)
 
 ### Community 9 - "extract.py"
 Cohesion: 0.15
@@ -358,7 +358,7 @@ Nodes (49): AccordionContent, AccordionItem, AccordionTrigger, Avatar, AvatarFal
 
 ### Community 19 - "client.ts"
 Cohesion: 0.12
-Nodes (12): AdminUsers, ResetPasswordPage, lovable, lovableAuth, SignInOptions, supabase, brokeredPreviewStorage(), inputStyle (+4 more)
+Nodes (13): AdminCoupons, ResetPasswordPage, lovable, lovableAuth, SignInOptions, supabase, brokeredPreviewStorage(), AdminCoupons() (+5 more)
 
 ### Community 20 - "devDependencies"
 Cohesion: 0.18
@@ -422,7 +422,7 @@ Nodes (66): **6.1.1 Pha 0 — Context Discovery**, **6.1.2 Pha 1 — Specificati
 
 ### Community 35 - "AdminExams.tsx"
 Cohesion: 0.08
-Nodes (37): AdminExams, BulkExamZipModal(), getKatex(), parseSegments(), renderLatex(), RichContent(), RichContentProps, Segment (+29 more)
+Nodes (38): AdminExams, BulkExamZipModal(), BulkExamZipModalProps, Subject, getKatex(), parseSegments(), renderLatex(), RichContent() (+30 more)
 
 ### Community 36 - "**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**"
 Cohesion: 0.03
@@ -508,9 +508,9 @@ Nodes (25): 1. Modern Design System, 1. Navigation System (TopNav.tsx), 2. Color
 Cohesion: 0.09
 Nodes (16): AlphaBuilding(), AlphaBuildingProps, CampusGround(), CampusSky(), CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps (+8 more)
 
-### Community 116 - "AdminChat.tsx"
+### Community 116 - "Tables"
 Cohesion: 0.13
-Nodes (19): AdminChat, ChatMessageBubble(), ChatMessageBubbleProps, formatTime(), ChatWidget(), ChatWidgetInner(), ChatWidgetInnerProps, ChatWindow() (+11 more)
+Nodes (20): AdminChat, ChatMessageBubble(), ChatMessageBubbleProps, formatTime(), ChatWidget(), ChatWidgetInner(), ChatWidgetInnerProps, ChatWindow() (+12 more)
 
 ### Community 138 - "Feature Specification: Rich Text Exam Import — LaTeX, Hình Ảnh Inline & Nhận Biết Câu Hỏi Thông Minh"
 Cohesion: 0.09
@@ -784,9 +784,9 @@ Nodes (13): LandingPage, FaqItem, FAQS, FaqSection(), FeaturesGrid(), HIGHLIGHTS
 Cohesion: 0.14
 Nodes (7): HomePage, BootScreen(), PageSkeleton(), SubjectGridSkeleton(), optimizedImage(), CourseCard(), Subject
 
-### Community 254 - "AdminDashboard.tsx"
-Cohesion: 0.25
-Nodes (7): AdminDashboard, AdminDashboard(), Order, OrderItem, RevenueTooltip(), RevFilter, Subject
+### Community 254 - "AppContext.tsx"
+Cohesion: 0.13
+Nodes (14): AdminDashboard, AppContext, AppContextValue, AppProvider(), CartItem, getDeviceId(), Profile, Subject (+6 more)
 
 ### Community 255 - "AuthPage.tsx"
 Cohesion: 0.19
@@ -844,9 +844,9 @@ Nodes (3): KnowledgeNetworkScene(), NETWORK_DATA, NetworkNode
 Cohesion: 0.25
 Nodes (8): AdminAnnouncements, Announcement, AnnouncementPopup(), renderRichText(), AdminAnnouncements(), Announcement, inputStyle, Subject
 
-### Community 276 - "AdminCoupons.tsx"
-Cohesion: 0.29
-Nodes (6): AdminCoupons, AdminCoupons(), Coupon, FormState, initialFormState, inputStyle
+### Community 276 - "SubjectDetailPage.tsx"
+Cohesion: 0.25
+Nodes (8): SubjectDetailPage, sortExams(), Announcement, Exam, Subject, SubjectDetailPage(), Tab, Theory
 
 ## Knowledge Gaps
 - **1654 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `$schema`, `style`, `rsc` (+1649 more)
@@ -857,16 +857,16 @@ Nodes (6): AdminCoupons, AdminCoupons(), Coupon, FormState, initialFormState, in
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `**LỜI MỞ ĐẦU**` connect `**LỜI MỞ ĐẦU**` to `**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**`, `**<mark>SDD Workflow</mark>**`, `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**`, `**<mark>AI Agent Thực Sự Là Gì?</mark>**`, `**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**`, `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**`, `**<mark>Phân Tích Phê Bình về SDD</mark>**`, `**<mark>Multi-Agent & Orchestration</mark>**`, `**<mark>Hybrid Framework</mark>**`, `**<mark>Templates, Checklists & Quick References</mark>**`, `**<mark>Các Tiêu Chuẩn Mở</mark>**`, `**<mark>Executable Specification</mark>**`, `**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**`, `**<mark>Specification Patterns Nâng Cao</mark>**`, `**<mark>Agent-Driven Workflow</mark>**`?**
-  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+  _High betweenness centrality (0.066) - this node is a cross-community bridge._
 - **Why does `cn()` connect `cn` to `drawer.tsx`, `form.tsx`, `sidebar.tsx`, `navigation-menu.tsx`, `sheet.tsx`, `toggle-group.tsx`, `alert.tsx`, `utils.ts`, `pagination.tsx`, `command.tsx`, `toast.tsx`, `carousel.tsx`, `context-menu.tsx`, `chart.tsx`, `table.tsx`, `breadcrumb.tsx`?**
   _High betweenness centrality (0.032) - this node is a cross-community bridge._
 - **Why does `**<mark>Executable Specification</mark>**` connect `**<mark>Executable Specification</mark>**` to `**LỜI MỞ ĐẦU**`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **What connects `update-agent-context.sh script`, `git-common.sh script`, `$schema` to the rest of the system?**
   _1654 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidebar.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.07057057057057058 - nodes in this community are weakly interconnected._
 - **Should `App.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.07358156028368794 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08636977058029689 - nodes in this community are weakly interconnected._
 - **Should `ProfilePage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.12688172043010754 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12096774193548387 - nodes in this community are weakly interconnected._

@@ -14,6 +14,7 @@ import React, { useEffect, useState, useRef } from 'react';
 interface RichContentProps {
   content: string;
   className?: string;
+  style?: React.CSSProperties;
   /** If true, block math is centered (default true) */
   displayMode?: boolean;
 }
@@ -26,9 +27,12 @@ type Segment =
 /** Split content string into text / inline-math / block-math segments */
 function parseSegments(content: string): Segment[] {
   const segments: Segment[] = [];
-  // Matches $$...$$ (block), $...$ (inline), \[...\] (block), \(...\) (inline)
-  // Order matters: match $$ before $
-  const re = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$[^$\n]+?\$|\\\([^)]+?\\\))/g;
+  // Matches:
+  // 1. $$...$$ (block)
+  // 2. \[...\] (block)
+  // 3. $...$ (inline, allowing formula characters and not matching across paragraph breaks)
+  // 4. \(...\) (inline, allowing inner parentheses)
+  const re = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$(?!\s)(?:[^\$\n]|\n(?!\s*\n))+?(?<!\s)\$|\\\([\s\S]+?\\\))/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
@@ -37,22 +41,29 @@ function parseSegments(content: string): Segment[] {
     if (before) segments.push({ kind: 'text', value: before });
 
     const raw = match[1];
-    if (raw.startsWith('$$') || raw.startsWith('\\[')) {
-      const latex = raw.startsWith('$$')
-        ? raw.slice(2, -2)
-        : raw.slice(2, -2); // \[...\]
-      segments.push({ kind: 'block', latex: latex.trim() });
-    } else {
-      const latex = raw.startsWith('$')
-        ? raw.slice(1, -1)
-        : raw.slice(2, -2); // \(...\)
-      segments.push({ kind: 'inline', latex: latex.trim() });
+    if (raw.startsWith('$$')) {
+      segments.push({ kind: 'block', latex: raw.slice(2, -2).trim() });
+    } else if (raw.startsWith('\\[')) {
+      segments.push({ kind: 'block', latex: raw.slice(2, -2).trim() });
+    } else if (raw.startsWith('\\(')) {
+      segments.push({ kind: 'inline', latex: raw.slice(2, -2).trim() });
+    } else if (raw.startsWith('$')) {
+      segments.push({ kind: 'inline', latex: raw.slice(1, -1).trim() });
     }
     lastIndex = match.index + raw.length;
   }
 
   const tail = content.slice(lastIndex);
   if (tail) segments.push({ kind: 'text', value: tail });
+
+  // Fallback: If no delimiters matched, but the string is a raw un-delimited LaTeX formula (e.g. \frac{1}{4} or \sqrt{2})
+  if (segments.length === 1 && segments[0].kind === 'text') {
+    const trimmed = content.trim();
+    if (/^\\(frac|sqrt|sum|int|lim|vec|prod|pmatrix|matrix|bmatrix|alpha|beta|gamma|delta|theta|pi|partial|infty|leq|geq|neq|approx|times|div|pm)\b/.test(trimmed)) {
+      return [{ kind: 'inline', latex: trimmed }];
+    }
+  }
+
   return segments;
 }
 
@@ -79,6 +90,7 @@ function renderLatex(latex: string, displayMode: boolean, katex: typeof import('
 export const RichContent: React.FC<RichContentProps> = ({
   content,
   className,
+  style,
   displayMode = true,
 }) => {
   const [rendered, setRendered] = useState<React.ReactNode[]>([]);
@@ -122,7 +134,7 @@ export const RichContent: React.FC<RichContentProps> = ({
             </React.Fragment>
           );
         }
-        const isBlock = seg.kind === 'block';
+        const isBlock = seg.kind === 'block' && displayMode;
         const html = renderLatex(seg.latex, isBlock, katex);
         return (
           <span
@@ -134,12 +146,12 @@ export const RichContent: React.FC<RichContentProps> = ({
       });
       setRendered(nodes);
     });
-  }, [content]);
+  }, [content, displayMode]);
 
   if (!content) return null;
 
   return (
-    <span className={className} style={{ lineHeight: 1.7 }}>
+    <span className={className} style={{ lineHeight: 1.6, ...style }}>
       {rendered.length > 0 ? rendered : content}
     </span>
   );
