@@ -225,15 +225,34 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
   if (includeMedia) {
     onProgress?.(dbShare, 'Đang liệt kê file media...');
     const { data: buckets } = await supabase.storage.listBuckets();
+    const KNOWN_BUCKETS = [
+      'thumbnails',
+      'theory-files',
+      'theory-images',
+      'question-images',
+      'exam-images',
+      'bill-images',
+      'qr-codes',
+      'announcement-images',
+      'avatars',
+      'news-images',
+      'chat-images',
+    ];
+    const bucketNames = Array.from(
+      new Set([...(buckets ?? []).map((b) => b.name), ...KNOWN_BUCKETS])
+    );
+
     const all: MediaEntry[] = [];
-    for (const b of buckets ?? []) {
-      const files = await listBucketFiles(b.name);
+    for (const b of bucketNames) {
+      const files = await listBucketFiles(b);
       all.push(...files);
-      manifest.media.push({
-        bucket: b.name,
-        files: files.length,
-        bytes: files.reduce((s, f) => s + f.size, 0),
-      });
+      if (files.length > 0) {
+        manifest.media.push({
+          bucket: b,
+          files: files.length,
+          bytes: files.reduce((s, f) => s + f.size, 0),
+        });
+      }
     }
     manifest.totalMediaFiles = all.length;
 

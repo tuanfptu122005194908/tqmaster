@@ -1,7 +1,26 @@
 -- =========================================
+-- 0. CLEANUP & RESET SCHEMA PUBLIC (CHẠY LẠI KHÔNG BỊ TRÙNG LỖI)
+-- =========================================
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL ON SCHEMA public TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres, anon, authenticated, service_role;
+
+-- =========================================
 -- ENUMS & EXTENSIONS
 -- =========================================
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+DO $$
+BEGIN
+  CREATE EXTENSION IF NOT EXISTS pg_cron;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'pg_cron extension could not be loaded: %', SQLERRM;
+END $$;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 CREATE TYPE public.app_role AS ENUM ('user', 'admin');
 
 -- =========================================
@@ -382,6 +401,11 @@ BEGIN
   provider_name := LOWER(COALESCE(NEW.raw_app_meta_data->>'provider', ''));
   is_admin_created := (COALESCE(NEW.raw_user_meta_data->>'created_by_admin', 'false') = 'true');
 
+  -- Cho phép nếu tạo qua Admin Dashboard / SQL Editor / Service Role
+  IF auth.role() = 'service_role' OR auth.role() IS NULL OR current_user IN ('postgres', 'supabase_admin') THEN
+    is_admin_created := TRUE;
+  END IF;
+
   IF provider_name = 'google'
      OR (NEW.raw_app_meta_data->'providers')::text LIKE '%google%'
      OR (NEW.raw_user_meta_data->>'iss') LIKE '%google%'
@@ -391,7 +415,7 @@ BEGIN
   END IF;
 
   IF NOT is_google AND NOT is_admin_created THEN
-    RAISE EXCEPTION 'Ä Äƒng kÃ½ trá»±c tiáº¿p báº±ng Email Ä‘Ã£ bá»‹ khÃ³a. Vui lÃ²ng sá»­ dá»¥ng Ä Äƒng kÃ½ báº±ng Google.';
+    RAISE EXCEPTION 'Đăng ký trực tiếp bằng Email đã bị khóa. Vui lòng sử dụng Đăng ký bằng Google.';
   END IF;
 
   base_username := COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1), 'user');
@@ -483,15 +507,74 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.get_admin_conversations()
+RETURNS TABLE(
+  id uuid,
+  user_id uuid,
+  status text,
+  last_message_at timestamptz,
+  created_at timestamptz,
+  full_name text,
+  username text,
+  email text,
+  avatar_url text,
+  unread_count bigint,
+  last_message text,
+  last_message_image text
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    c.id,
+    c.user_id,
+    c.status,
+    c.last_message_at,
+    c.created_at,
+    p.full_name,
+    p.username,
+    p.email,
+    p.avatar_url,
+    COALESCE(u.cnt, 0) AS unread_count,
+    lm.content AS last_message,
+    lm.image_url AS last_message_image
+  FROM public.conversations c
+  LEFT JOIN public.profiles p ON p.id = c.user_id
+  LEFT JOIN LATERAL (
+    SELECT count(*) AS cnt
+    FROM public.chat_messages m
+    WHERE m.conversation_id = c.id
+      AND m.sender_role = 'user'
+      AND m.is_read = false
+  ) u ON true
+  LEFT JOIN LATERAL (
+    SELECT m.content, m.image_url
+    FROM public.chat_messages m
+    WHERE m.conversation_id = c.id
+    ORDER BY m.created_at DESC
+    LIMIT 1
+  ) lm ON true
+  WHERE public.has_role(auth.uid(), 'admin')
+  ORDER BY c.last_message_at DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_admin_conversations() TO authenticated;
+
 DO $$ 
 DECLARE jid bigint; 
 BEGIN 
-  SELECT jobid INTO jid FROM cron.job WHERE jobname = 'cleanup-unverified-users'; 
-  IF jid IS NOT NULL THEN 
-    PERFORM cron.alter_job(jid, schedule := '* * * * *'); 
-  ELSE 
-    PERFORM cron.schedule('cleanup-unverified-users', '* * * * *', 'SELECT public.cleanup_unverified_users();'); 
-  END IF; 
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    SELECT jobid INTO jid FROM cron.job WHERE jobname = 'cleanup-unverified-users'; 
+    IF jid IS NOT NULL THEN 
+      PERFORM cron.alter_job(jid, schedule := '* * * * *'); 
+    ELSE 
+      PERFORM cron.schedule('cleanup-unverified-users', '* * * * *', 'SELECT public.cleanup_unverified_users();'); 
+    END IF; 
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'cron schedule skipped: %', SQLERRM;
 END $$;
 
 -- =========================================
@@ -607,36 +690,123 @@ INSERT INTO storage.buckets (id, name, public) VALUES
   ('theory-files', 'theory-files', TRUE),
   ('theory-images', 'theory-images', TRUE),
   ('question-images', 'question-images', TRUE),
+  ('exam-images', 'exam-images', TRUE),
   ('bill-images', 'bill-images', FALSE),
   ('qr-codes', 'qr-codes', TRUE),
   ('announcement-images', 'announcement-images', TRUE),
   ('avatars', 'avatars', TRUE),
   ('news-images', 'news-images', TRUE),
   ('chat-images', 'chat-images', TRUE)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
-CREATE POLICY "public_read_public_buckets" ON storage.objects FOR SELECT USING (bucket_id IN ('thumbnails','theory-files','theory-images','question-images','qr-codes','announcement-images','avatars','news-images','chat-images'));
+DROP POLICY IF EXISTS "public_read_public_buckets" ON storage.objects;
+CREATE POLICY "public_read_public_buckets" ON storage.objects FOR SELECT USING (bucket_id IN ('thumbnails','theory-files','theory-images','question-images','exam-images','qr-codes','announcement-images','avatars','news-images','chat-images'));
 
+DROP POLICY IF EXISTS "authenticated_upload_exam_and_question_images" ON storage.objects;
+CREATE POLICY "authenticated_upload_exam_and_question_images" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('question-images', 'exam-images'));
+
+DROP POLICY IF EXISTS "users_upload_own_avatar" ON storage.objects;
 CREATE POLICY "users_upload_own_avatar" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::TEXT = (storage.foldername(name))[1]);
+
+DROP POLICY IF EXISTS "users_update_own_avatar" ON storage.objects;
 CREATE POLICY "users_update_own_avatar" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.uid()::TEXT = (storage.foldername(name))[1]);
 
+DROP POLICY IF EXISTS "users_upload_own_bill" ON storage.objects;
 CREATE POLICY "users_upload_own_bill" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'bill-images' AND auth.uid()::TEXT = (storage.foldername(name))[1]);
+
+DROP POLICY IF EXISTS "users_view_own_bill" ON storage.objects;
 CREATE POLICY "users_view_own_bill" ON storage.objects FOR SELECT USING (bucket_id = 'bill-images' AND (auth.uid()::TEXT = (storage.foldername(name))[1] OR public.has_role(auth.uid(), 'admin')));
 
+DROP POLICY IF EXISTS "news_images_admin_write" ON storage.objects;
 CREATE POLICY "news_images_admin_write" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'news-images' AND public.has_role(auth.uid(), 'admin'));
+
+DROP POLICY IF EXISTS "news_images_admin_update" ON storage.objects;
 CREATE POLICY "news_images_admin_update" ON storage.objects FOR UPDATE USING (bucket_id = 'news-images' AND public.has_role(auth.uid(), 'admin'));
+
+DROP POLICY IF EXISTS "news_images_admin_delete" ON storage.objects;
 CREATE POLICY "news_images_admin_delete" ON storage.objects FOR DELETE USING (bucket_id = 'news-images' AND public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "users_upload_chat_images" ON storage.objects;
 CREATE POLICY "users_upload_chat_images" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'chat-images');
+
+DROP POLICY IF EXISTS "users_delete_chat_images" ON storage.objects;
 CREATE POLICY "users_delete_chat_images" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'chat-images' AND auth.uid() = owner);
 
+DROP POLICY IF EXISTS "admins_manage_all_storage" ON storage.objects;
 CREATE POLICY "admins_manage_all_storage" ON storage.objects FOR ALL USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 -- =========================================
 -- REALTIME
 -- =========================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.active_sessions;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.active_sessions;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
 ALTER TABLE public.active_sessions REPLICA IDENTITY FULL;
+
+-- =========================================
+-- KHỞI TẠO TÀI KHOẢN ADMIN: admin@gmail.com / tuan0112
+-- =========================================
+DO $$
+DECLARE
+  v_user_id UUID;
+  v_encrypted_pw TEXT;
+BEGIN
+  v_encrypted_pw := extensions.crypt('tuan0112', extensions.gen_salt('bf'));
+  SELECT id INTO v_user_id FROM auth.users WHERE email = 'admin@gmail.com';
+
+  IF v_user_id IS NULL THEN
+    v_user_id := gen_random_uuid();
+    INSERT INTO auth.users (
+      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+      raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+      confirmation_token, email_change, email_change_token_new, recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000', v_user_id, 'authenticated', 'authenticated',
+      'admin@gmail.com', v_encrypted_pw, now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      '{"full_name":"Admin TQMaster","created_by_admin":"true","username":"admin"}'::jsonb,
+      now(), now(), '', '', '', ''
+    );
+  ELSE
+    UPDATE auth.users
+    SET encrypted_password = v_encrypted_pw,
+        email_confirmed_at = COALESCE(email_confirmed_at, now()),
+        raw_app_meta_data = '{"provider":"email","providers":["email"]}'::jsonb,
+        raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"created_by_admin":"true"}'::jsonb,
+        updated_at = now()
+    WHERE id = v_user_id;
+  END IF;
+
+  INSERT INTO public.profiles (id, email, username, full_name)
+  VALUES (v_user_id, 'admin@gmail.com', 'admin', 'Admin TQMaster')
+  ON CONFLICT (id) DO UPDATE 
+  SET email = EXCLUDED.email, username = EXCLUDED.username, full_name = EXCLUDED.full_name;
+
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (v_user_id, 'admin'::public.app_role)
+  ON CONFLICT (user_id, role) DO NOTHING;
+
+  RAISE NOTICE 'ĐÃ TẠO XONG ADMIN: admin@gmail.com / tuan0112';
+END $$;
+
