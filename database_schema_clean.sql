@@ -483,7 +483,16 @@ BEGIN
 END;
 $$;
 
-DO $$ DECLARE jid bigint; BEGIN SELECT jobid INTO jid FROM cron.job WHERE jobname = 'cleanup-unverified-users'; IF jid IS NOT NULL THEN PERFORM cron.alter_job(jid, schedule := '* * * * *'); ELSE PERFORM cron.schedule('cleanup-unverified-users', '* * * * *', $$ SELECT public.cleanup_unverified_users(); $$); END IF; END $$;
+DO $$ 
+DECLARE jid bigint; 
+BEGIN 
+  SELECT jobid INTO jid FROM cron.job WHERE jobname = 'cleanup-unverified-users'; 
+  IF jid IS NOT NULL THEN 
+    PERFORM cron.alter_job(jid, schedule := '* * * * *'); 
+  ELSE 
+    PERFORM cron.schedule('cleanup-unverified-users', '* * * * *', 'SELECT public.cleanup_unverified_users();'); 
+  END IF; 
+END $$;
 
 -- =========================================
 -- RLS POLICIES
@@ -518,8 +527,12 @@ CREATE POLICY "users_view_own_attempts" ON public.exam_attempts FOR SELECT USING
 CREATE POLICY "users_create_own_attempts" ON public.exam_attempts FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "users_update_own_attempts" ON public.exam_attempts FOR UPDATE USING (user_id = auth.uid());
 
-CREATE POLICY "users_view_own_answers" ON public.attempt_answers FOR SELECT USING (EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = auth.uid()) OR public.has_role(auth.uid(), 'admin'));
-CREATE POLICY "users_manage_own_answers" ON public.attempt_answers FOR ALL USING (EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = auth.uid())) WITH CHECK (EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = auth.uid()));
+CREATE POLICY "admins_manage_attempt_answers" ON public.attempt_answers FOR ALL TO authenticated USING ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role))) WITH CHECK ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "users_view_own_answers" ON public.attempt_answers FOR SELECT TO authenticated USING ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)) OR EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = (SELECT auth.uid())));
+CREATE POLICY "users_manage_own_answers" ON public.attempt_answers FOR ALL TO authenticated USING ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)) OR EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = (SELECT auth.uid()))) WITH CHECK ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)) OR EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = (SELECT auth.uid())));
+CREATE INDEX IF NOT EXISTS idx_attempt_answers_attempt_id ON public.attempt_answers(attempt_id);
+CREATE INDEX IF NOT EXISTS idx_attempt_answers_question_id ON public.attempt_answers(question_id);
+CREATE INDEX IF NOT EXISTS idx_exam_attempts_user_id ON public.exam_attempts(user_id);
 
 CREATE POLICY "users_view_accessible_theories" ON public.theories FOR SELECT USING (public.has_role(auth.uid(), 'admin') OR EXISTS (SELECT 1 FROM public.theory_subjects ts JOIN public.user_subjects us ON us.subject_id = ts.subject_id WHERE ts.theory_id = theories.id AND us.user_id = auth.uid()));
 CREATE POLICY "admins_manage_theories" ON public.theories FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));

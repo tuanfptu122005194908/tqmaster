@@ -494,7 +494,7 @@ function CourseCard({
             alt={subject.name}
             loading={idx < 4 ? 'eager' : 'lazy'}
             decoding="async"
-            fetchPriority={idx < 2 ? 'high' : 'auto'}
+            fetchpriority={idx < 2 ? 'high' : 'auto'}
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease', transform: hov ? 'scale(1.05)' : 'scale(1)' }}
           />
         ) : (
