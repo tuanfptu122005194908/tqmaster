@@ -141,7 +141,16 @@ export default function SnapshotExportPanel() {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {result.manifest.tables.map((t) => (
-              <span key={t.name} style={{ ...chip, background: t.error ? '#fee2e2' : '#dcfce7', color: t.error ? '#dc2626' : '#15803d' }}>
+              <span
+                key={t.name}
+                title={t.error ? `Chi tiết lỗi: ${t.error}` : `${t.rows} dòng`}
+                style={{
+                  ...chip,
+                  background: t.error ? '#fee2e2' : '#dcfce7',
+                  color: t.error ? '#dc2626' : '#15803d',
+                  cursor: t.error ? 'help' : 'default',
+                }}
+              >
                 {t.label}: {t.error ? 'Lỗi' : `${t.rows}`}
               </span>
             ))}

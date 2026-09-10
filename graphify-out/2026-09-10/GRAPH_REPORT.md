@@ -1,16 +1,16 @@
-# Graph Report - smart-curate-learn-main  (2026-09-10)
+# Graph Report - smart-curate-learn-main  (2026-09-07)
 
 ## Corpus Check
-- 329 files · ~905,622 words
+- 327 files · ~903,805 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2749 nodes · 3222 edges · 289 communities (190 shown, 99 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.5)
+- 2753 nodes · 3490 edges · 278 communities (185 shown, 93 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.76)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `23a8b4dc`
+- Built from commit: `afe809c3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -204,6 +204,7 @@
 - eslint-plugin-react-refresh
 - file-saver
 - jszip
+- @lovable.dev/cloud-auth-js
 - katex
 - @radix-ui/react-tabs
 - @radix-ui/react-toast
@@ -228,7 +229,6 @@
 - 08-user-exam-system/tasks.md
 - 09-user-ecommerce/tasks.md
 - 10-user-news/tasks.md
-- katex
 - LandingPage.tsx
 - HomePage.tsx
 - AdminDashboard.tsx
@@ -250,23 +250,13 @@
 - KnowledgeNetworkScene.tsx
 - AdminAnnouncements.tsx
 - AdminCoupons.tsx
-- tabs.tsx
-- AdminBackup.tsx
-- sonner.tsx
-- class-variance-authority
-- date-fns
-- gsap
-- mammoth
-- @radix-ui/react-checkbox
-- @radix-ui/react-scroll-area
-- @radix-ui/react-slot
 
 ## God Nodes (most connected - your core abstractions)
-1. `**<mark>Các Tiêu Chuẩn Mở</mark>**` - 99 edges
-2. `**<mark>Executable Specification</mark>**` - 77 edges
-3. `**<mark>Specification Patterns Nâng Cao</mark>**` - 72 edges
-4. `**<mark>Agent-Driven Workflow</mark>**` - 71 edges
-5. `cn()` - 70 edges
+1. `cn()` - 228 edges
+2. `**<mark>Các Tiêu Chuẩn Mở</mark>**` - 99 edges
+3. `**<mark>Executable Specification</mark>**` - 77 edges
+4. `**<mark>Specification Patterns Nâng Cao</mark>**` - 72 edges
+5. `**<mark>Agent-Driven Workflow</mark>**` - 71 edges
 6. `**<mark>SDD Workflow</mark>**` - 66 edges
 7. `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**` - 59 edges
 8. `**<mark>AI Agent Thực Sự Là Gì?</mark>**` - 56 edges
@@ -274,45 +264,45 @@
 10. `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**` - 51 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `detectSheetsInZip()` --references--> `jszip`  [EXTRACTED]
-  src/lib/excelBackup.ts → package.json
-- `exportToExcel()` --references--> `jszip`  [EXTRACTED]
-  src/lib/excelBackup.ts → package.json
-- `importFromZip()` --references--> `jszip`  [EXTRACTED]
-  src/lib/excelBackup.ts → package.json
-- `extractExamsFromZip()` --references--> `jszip`  [EXTRACTED]
-  src/lib/markdownExamParser.ts → package.json
-- `Canvas()` --references--> `react`  [EXTRACTED]
-  src/components/SafeCanvas.tsx → package.json
+- `NavLink` --calls--> `cn()`  [EXTRACTED]
+  src/components/NavLink.tsx → src/lib/utils.ts
+- `AlertDialogOverlay` --calls--> `cn()`  [EXTRACTED]
+  src/components/ui/alert-dialog.tsx → src/lib/utils.ts
+- `AlertDialogContent` --calls--> `cn()`  [EXTRACTED]
+  src/components/ui/alert-dialog.tsx → src/lib/utils.ts
+- `AlertDialogHeader()` --calls--> `cn()`  [EXTRACTED]
+  src/components/ui/alert-dialog.tsx → src/lib/utils.ts
+- `AlertDialogFooter()` --calls--> `cn()`  [EXTRACTED]
+  src/components/ui/alert-dialog.tsx → src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (289 total, 99 thin omitted)
+## Communities (278 total, 93 thin omitted)
 
 ### Community 0 - "sidebar.tsx"
-Cohesion: 0.06
+Cohesion: 0.07
 Nodes (31): Input, Separator, Sidebar, SidebarContent, SidebarContext, SidebarFooter, SidebarGroup, SidebarGroupAction (+23 more)
 
 ### Community 1 - "form.tsx"
-Cohesion: 0.15
-Nodes (11): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+3 more)
+Cohesion: 0.19
+Nodes (12): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+4 more)
 
 ### Community 2 - "App.tsx"
-Cohesion: 0.11
-Nodes (20): AdminSidebar(), NAV, MobileNav(), AppContext, AppContextValue, AppProvider(), CartItem, getDeviceId() (+12 more)
+Cohesion: 0.07
+Nodes (35): AdminNews, AdminOrders, AdminQuestionReports, adminVars, App(), AppShell(), CartPage, NewsPage (+27 more)
 
 ### Community 3 - "ProfilePage.tsx"
-Cohesion: 0.09
-Nodes (30): optimizedImage(), formatPrice(), generateOrderId(), SEMESTERS, SUBJECT_COLORS, subjectColor(), subjectInitials(), AdminDashboard() (+22 more)
+Cohesion: 0.13
+Nodes (26): AdminSubjects, ProfilePage, formatDate(), formatPrice(), generateOrderId(), SEMESTERS, SUBJECT_COLORS, subjectColor() (+18 more)
 
 ### Community 4 - "excelBackup.ts"
-Cohesion: 0.13
-Nodes (25): xlsx, BackupExportPanel(), BackupImportPanel(), BackupTableSelectorProps, GROUP_LABELS, ImportResultDialogProps, Toaster(), useToast() (+17 more)
+Cohesion: 0.15
+Nodes (21): BackupImportPanel(), BackupTableSelector(), BackupTableSelectorProps, GROUP_LABELS, ImportResultDialog(), ImportResultDialogProps, detectSheetsInFile(), detectSheetsInZip() (+13 more)
 
 ### Community 5 - "AdminTheory.tsx"
-Cohesion: 0.18
-Nodes (10): AdminTheory(), CAT_LABEL, Category, EMPTY_FORM, FormState, getCat(), inputStyle, Subject (+2 more)
+Cohesion: 0.10
+Nodes (18): AdminSettings, AdminTheory, FileUploader(), Props, AdminSettings(), inputStyle, KEYS, SettingKey (+10 more)
 
 ### Community 6 - "compilerOptions"
 Cohesion: 0.08
@@ -320,19 +310,19 @@ Nodes (25): DOM, DOM.Iterable, ES2020, src, vitest/globals, compilerOptions, all
 
 ### Community 7 - "utils.ts"
 Cohesion: 0.07
-Nodes (21): NavLink, NavLinkCompatProps, AccordionContent, AccordionItem, AccordionTrigger, Checkbox, HoverCardContent, PopoverContent (+13 more)
+Nodes (17): NavLink, NavLinkCompatProps, Badge(), BadgeProps, badgeVariants, Checkbox, HoverCardContent, InputOTP (+9 more)
 
 ### Community 8 - "types.ts"
 Cohesion: 0.10
-Nodes (18): CompositeTypes, Constants, DatabaseWithoutInternals, DefaultSchema, Enums, Json, Tables, TablesInsert (+10 more)
+Nodes (20): SubjectDetailPage, BulkExamZipModalProps, Subject, CompositeTypes, Constants, Database, DatabaseWithoutInternals, DefaultSchema (+12 more)
 
 ### Community 9 - "extract.py"
 Cohesion: 0.15
 Nodes (23): Groq, Path, build_docx(), call_groq_batch(), clean_json_array(), get_groq_client(), groq_all_batched(), main() (+15 more)
 
 ### Community 10 - "pagination.tsx"
-Cohesion: 0.08
-Nodes (25): AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay, AlertDialogTitle (+17 more)
+Cohesion: 0.11
+Nodes (21): AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay, AlertDialogTitle (+13 more)
 
 ### Community 11 - "compilerOptions"
 Cohesion: 0.11
@@ -347,8 +337,8 @@ Cohesion: 0.12
 Nodes (16): aliases, components, hooks, lib, ui, utils, rsc, $schema (+8 more)
 
 ### Community 14 - "create-new-feature.sh"
-Cohesion: 0.20
-Nodes (3): _extract_highest_number(), get_highest_from_branches(), create-new-feature.sh script
+Cohesion: 0.24
+Nodes (14): _byte_length(), check_existing_branches(), clean_branch_name(), _extract_highest_number(), _find_project_root(), generate_branch_name(), get_highest_from_branches(), get_highest_from_remote_refs() (+6 more)
 
 ### Community 15 - "common.ps1"
 Cohesion: 0.23
@@ -359,16 +349,16 @@ Cohesion: 0.02
 Nodes (99): 18. Bước 2: Test kết nối thủ công, 19. Bước 3: Check authentication, **4.1.1 Giải phẫu một AGENTS.md hoàn chỉnh**, **4.1.2 Chiến lược "Single Source of Truth"**, **4.1.3 Security Filtering — Lọc thông tin nhạy cảm**, **4.1.4 Version Control cho Prompt — Quản lý "Tư duy Agent"**, **4.1.5 Bài tập thực hành — AGENTS.md**, **4.1 AGENTS.md — Bộ Hiến Pháp Của Agent** (+91 more)
 
 ### Community 17 - "dependencies"
-Cohesion: 0.13
-Nodes (15): cobe, file-saver, input-otp, @lovable.dev/cloud-auth-js, dependencies, cobe, file-saver, input-otp (+7 more)
+Cohesion: 0.12
+Nodes (17): class-variance-authority, date-fns, gsap, mammoth, dependencies, class-variance-authority, date-fns, gsap (+9 more)
 
 ### Community 18 - "cn"
-Cohesion: 0.17
-Nodes (11): Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarLabel, MenubarRadioItem, MenubarSeparator, MenubarShortcut() (+3 more)
+Cohesion: 0.06
+Nodes (49): AccordionContent, AccordionItem, AccordionTrigger, Avatar, AvatarFallback, AvatarImage, Card, CardContent (+41 more)
 
 ### Community 19 - "client.ts"
-Cohesion: 0.14
-Nodes (12): Props, lovable, lovableAuth, SignInOptions, supabase, brokeredPreviewStorage(), Database, AdminSettings() (+4 more)
+Cohesion: 0.12
+Nodes (12): AdminUsers, ResetPasswordPage, lovable, lovableAuth, SignInOptions, supabase, brokeredPreviewStorage(), inputStyle (+4 more)
 
 ### Community 20 - "devDependencies"
 Cohesion: 0.18
@@ -415,15 +405,15 @@ Cohesion: 0.46
 Nodes (7): ConvertTo-CleanBranchName(), Get-BranchName(), Get-HighestNumberFromBranches(), Get-HighestNumberFromNames(), Get-HighestNumberFromRemoteRefs(), Get-HighestNumberFromSpecs(), Get-NextBranchNumber()
 
 ### Community 31 - "breadcrumb.tsx"
-Cohesion: 0.09
-Nodes (27): Badge(), BadgeProps, badgeVariants, Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList (+19 more)
+Cohesion: 0.25
+Nodes (7): Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
 
 ### Community 32 - "drawer.tsx"
-Cohesion: 0.21
-Nodes (10): formatDate(), sortExams(), AdminOrders(), Order, Announcement, Exam, Subject, SubjectDetailPage() (+2 more)
+Cohesion: 0.25
+Nodes (6): DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
 
 ### Community 33 - "navigation-menu.tsx"
-Cohesion: 0.25
+Cohesion: 0.29
 Nodes (7): NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle, NavigationMenuViewport
 
 ### Community 34 - "**<mark>SDD Workflow</mark>**"
@@ -432,14 +422,14 @@ Nodes (66): **6.1.1 Pha 0 — Context Discovery**, **6.1.2 Pha 1 — Specificati
 
 ### Community 35 - "AdminExams.tsx"
 Cohesion: 0.08
-Nodes (38): BulkExamZipModal(), BulkExamZipModalProps, Subject, getKatex(), parseSegments(), renderLatex(), RichContent(), RichContentProps (+30 more)
+Nodes (37): AdminExams, BulkExamZipModal(), getKatex(), parseSegments(), renderLatex(), RichContent(), RichContentProps, Segment (+29 more)
 
 ### Community 36 - "**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**"
 Cohesion: 0.03
 Nodes (59): **2.1 Từ “Code Writer” Đến “Outcome Engineer”**, **2.2  T-Shape Developer Trong Kỷ Nguyên AI**, **2.3 Cognitive Load Và “Context As Infrastructure”**, **2.4 Debugging & Verification — Kỹ Năng Sống Còn**, **2.5 Ethical Considerations: Trách Nhiệm & Bảo Mật**, 🎯 **Bài học cốt lõi từ Case Study**, 🛠 **Bài tập: Ma Trận Tự Đánh Giá Kỹ Năng (Skill Matrix)**, **Bảng 2.1: Ma trận tự đánh giá kỹ năng cho AI-Augmented Developer** (+51 more)
 
 ### Community 37 - "toggle-group.tsx"
-Cohesion: 0.33
+Cohesion: 0.43
 Nodes (5): ToggleGroup, ToggleGroupContext, ToggleGroupItem, Toggle, toggleVariants
 
 ### Community 38 - "package.json"
@@ -447,7 +437,7 @@ Cohesion: 0.40
 Nodes (4): name, private, type, version
 
 ### Community 39 - "alert.tsx"
-Cohesion: 0.40
+Cohesion: 0.50
 Nodes (4): Alert, AlertDescription, AlertTitle, alertVariants
 
 ### Community 40 - "**<mark>AI Agent Thực Sự Là Gì?</mark>**"
@@ -475,8 +465,8 @@ Cohesion: 0.05
 Nodes (42): **13.1.1 CORE — "Những thứ không được phép sai"**, **13.1.2 SHELL — "Những thứ cần xoay chuyển nhanh"**, **13.1 Nguyên tắc Hybrid — Mô hình "Core & Shell"**, **13.2.1 Ba chiều của Decision Matrix**, **13.2.2 The Decision Matrix — 9 ô × Risk overlay**, **13.2.3 Flowchart quyết định nhanh**, **13.2.4 Ví dụ áp dụng ma trận — 5 tình huống thực tế**, **13.2  Decision Matrix — Spec Depth × Agent Autonomy × Risk** (+34 more)
 
 ### Community 47 - "ExamPage.tsx"
-Cohesion: 0.29
-Nodes (8): getCtx(), playSound, playTone(), Exam, ExamPage(), formatRelativeTime(), formatTime(), Question
+Cohesion: 0.25
+Nodes (9): ExamPage, getCtx(), playSound, playTone(), Exam, ExamPage(), formatRelativeTime(), formatTime() (+1 more)
 
 ### Community 53 - "**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**"
 Cohesion: 0.05
@@ -486,17 +476,9 @@ Nodes (37): **14.1  Giai Đoạn 1: Foundation**, **14.2  Giai Đoạn 2: Core D
 Cohesion: 0.06
 Nodes (30): Chiến lược Export, Chiến lược Import (Upsert), File Changes, Implementation Steps, Phase 1: Setup & Core Logic, Phase 2: Components, Phase 3: Page & Routing, Phân tích Kỹ thuật (+22 more)
 
-### Community 63 - "input-otp"
-Cohesion: 0.20
-Nodes (9): DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut(), DropdownMenuSubContent (+1 more)
-
 ### Community 66 - "**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**"
 Cohesion: 0.06
 Nodes (31): **12.1  Sức Mạnh Thực Sự của ADD**, **12.2 Những Nguy Hiểm Thực Sự**, **12.3  Vấn Đề "Last Mile" và Technical Debt**, **12.4 Khi Nào ADD KHÔNG Phù Hợp**, **12.5 Bảng So Sánh Tổng Hợp: SDD vs. ADD**, **12.6  The Future of Junior Developers**, **Agent Tối Ưu Cho "Chạy Được", Không Phải "Maintainable"**, **Ba Rủi Ro Cụ Thể** (+23 more)
-
-### Community 69 - "@radix-ui/react-alert-dialog"
-Cohesion: 0.29
-Nodes (7): FPT_CAMPUSES, HeroScene, HeroSection(), HeroSectionProps, POPULAR_FPT_SUBJECTS, STATS, useIsMobile()
 
 ### Community 72 - "**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**"
 Cohesion: 0.07
@@ -507,16 +489,12 @@ Cohesion: 0.07
 Nodes (26): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 Only) (+18 more)
 
 ### Community 84 - "CenterFocalPoint.tsx"
-Cohesion: 0.12
-Nodes (4): AlphaBuildingProps, FloatingBooksProps, FloatingParticlesProps, FptSign3DProps
+Cohesion: 0.14
+Nodes (3): CenterFocalPointProps, FloatingBooksProps, FloatingParticlesProps
 
 ### Community 88 - "Key Design Improvements"
 Cohesion: 0.07
 Nodes (26): 1. **Hero Section with Current Semester Focus**, 2. **Quick Stats Dashboard**, 3. **Improved Semester Filter**, 4. **Enhanced Empty States**, 5. **Redesigned Subject Cards**, 6. **Color & Typography Strategy**, 7. **Mobile Responsive Improvements**, 8. **Accessibility & UX Enhancements** (+18 more)
-
-### Community 96 - "react-router-dom"
-Cohesion: 0.25
-Nodes (7): SelectContent, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger
 
 ### Community 107 - "speckit.analyze.agent.md"
 Cohesion: 0.08
@@ -527,12 +505,12 @@ Cohesion: 0.08
 Nodes (25): 1. Modern Design System, 1. Navigation System (TopNav.tsx), 2. Color Palette Strategy, 2. Homepage Redesign (HomePage.tsx), 3. Layout System (App.tsx), 3. Typography System, 4. Interactive Elements, 5. Advanced Visual Features (+17 more)
 
 ### Community 112 - "FptCampusScene.tsx"
-Cohesion: 0.19
-Nodes (7): CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps, Waypoint, WAYPOINTS, HotspotData
+Cohesion: 0.09
+Nodes (16): AlphaBuilding(), AlphaBuildingProps, CampusGround(), CampusSky(), CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps (+8 more)
 
 ### Community 116 - "AdminChat.tsx"
-Cohesion: 0.19
-Nodes (12): ChatMessageBubble(), ChatMessageBubbleProps, formatTime(), ChatWidget(), ChatWidgetInner(), ChatWidgetInnerProps, ChatWindowProps, ChatCleanupLog (+4 more)
+Cohesion: 0.13
+Nodes (19): AdminChat, ChatMessageBubble(), ChatMessageBubbleProps, formatTime(), ChatWidget(), ChatWidgetInner(), ChatWidgetInnerProps, ChatWindow() (+11 more)
 
 ### Community 138 - "Feature Specification: Rich Text Exam Import — LaTeX, Hình Ảnh Inline & Nhận Biết Câu Hỏi Thông Minh"
 Cohesion: 0.09
@@ -543,8 +521,8 @@ Cohesion: 0.12
 Nodes (16): Assumptions, Edge Cases, Edge Cases, Feature Specification: Live Chat Support (User ↔ Admin), Functional Requirements, Key Entities, Key Entities, Measurable Outcomes (+8 more)
 
 ### Community 140 - "backupCore.ts"
-Cohesion: 0.11
-Nodes (24): jszip, jszip, BackupManifest, BackupTable, buildReadme(), currentOrigin(), DEFAULT_TABLES, downloadMedia() (+16 more)
+Cohesion: 0.13
+Nodes (21): BACKUP_FORMAT_VERSION, BackupManifest, BackupTable, buildReadme(), currentOrigin(), DEFAULT_TABLES, downloadMedia(), exportFullSnapshot() (+13 more)
 
 ### Community 141 - "README.md"
 Cohesion: 0.12
@@ -559,8 +537,8 @@ Cohesion: 0.13
 Nodes (14): 1. Khung Card Chuẩn (Standard Card), 🎯 1. Triết Lý Thiết Kế (Design Philosophy), 🎨 2. Bảng Màu Chi Tiết (Color Palette), 2. Khung Trống Dạng Nét Đứt (Dashed Empty State Card), 3. Nút Nổi Bật (Primary Button Gradient), 🔤 3. Quy Chuẩn Font Chữ (Typography Rules), 4. Nút Chuyển Tab / Bộ Lọc (Filter Pill Buttons), 🧱 4. Quy Chuẩn Cấu Trúc Khung (Component Specifications) (+6 more)
 
 ### Community 144 - "carousel.tsx"
-Cohesion: 0.29
-Nodes (6): Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
+Cohesion: 0.19
+Nodes (13): Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem, CarouselNext, CarouselOptions (+5 more)
 
 ### Community 145 - "Feature Specification: [FEATURE NAME]"
 Cohesion: 0.15
@@ -591,8 +569,8 @@ Cohesion: 0.18
 Nodes (10): Core Principles, Governance, [PRINCIPLE_1_NAME], [PRINCIPLE_2_NAME], [PRINCIPLE_3_NAME], [PRINCIPLE_4_NAME], [PRINCIPLE_5_NAME], [PROJECT_NAME] Constitution (+2 more)
 
 ### Community 152 - "chart.tsx"
-Cohesion: 0.13
-Nodes (12): react, react, useCarousel(), ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent (+4 more)
+Cohesion: 0.25
+Nodes (9): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, getPayloadConfigFromPayload(), THEMES (+1 more)
 
 ### Community 153 - "2. User Scenarios & Testing"
 Cohesion: 0.17
@@ -627,7 +605,7 @@ Cohesion: 0.22
 Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: [FEATURE], Project Structure, Source Code (repository root), Summary, Technical Context
 
 ### Community 161 - "sheet.tsx"
-Cohesion: 0.22
+Cohesion: 0.25
 Nodes (8): SheetContent, SheetContentProps, SheetDescription, SheetFooter(), SheetHeader(), SheetOverlay, SheetTitle, sheetVariants
 
 ### Community 162 - "speckit.checklist.agent.md"
@@ -795,64 +773,56 @@ Cohesion: 0.50
 Nodes (3): Behavior, Execution, Update Coding Agent Context
 
 ### Community 205 - "FptPanoViewer.tsx"
-Cohesion: 0.17
-Nodes (5): FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId, HeroSceneProps
-
-### Community 207 - "file-saver"
-Cohesion: 0.47
-Nodes (5): AdminChat(), Conversation, ConversationWithUser, formatRelativeTime(), Profile
-
-### Community 250 - "katex"
-Cohesion: 0.40
-Nodes (4): InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot
+Cohesion: 0.12
+Nodes (13): FptPanoViewer(), FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId, HeroSceneProps, FPT_CAMPUSES, HeroScene (+5 more)
 
 ### Community 252 - "LandingPage.tsx"
-Cohesion: 0.15
-Nodes (5): FaqItem, FAQS, HIGHLIGHTS, FinalCtaSection(), LandingFooter()
+Cohesion: 0.13
+Nodes (13): LandingPage, FaqItem, FAQS, FaqSection(), FeaturesGrid(), HIGHLIGHTS, LandingFooter(), LandingNavbar() (+5 more)
 
 ### Community 253 - "HomePage.tsx"
-Cohesion: 0.29
-Nodes (3): BootScreen(), PageSkeleton(), SubjectGridSkeleton()
+Cohesion: 0.14
+Nodes (7): HomePage, BootScreen(), PageSkeleton(), SubjectGridSkeleton(), optimizedImage(), CourseCard(), Subject
 
 ### Community 254 - "AdminDashboard.tsx"
-Cohesion: 0.06
-Nodes (30): AdminAnnouncements, AdminBackup, AdminChat, AdminCoupons, AdminDashboard, AdminExams, AdminExamStats, AdminNews (+22 more)
+Cohesion: 0.25
+Nodes (7): AdminDashboard, AdminDashboard(), Order, OrderItem, RevenueTooltip(), RevFilter, Subject
 
 ### Community 255 - "AuthPage.tsx"
-Cohesion: 0.29
-Nodes (4): AuthPage(), ensureGoogleScriptLoaded(), Mode, Window
+Cohesion: 0.19
+Nodes (10): AuthPage, VerifyEmailPage, parseFunctionError(), AuthPage(), ensureGoogleScriptLoaded(), Mode, Window, getResendLog() (+2 more)
 
 ### Community 259 - "SnapshotRestorePanel.tsx"
-Cohesion: 0.12
-Nodes (19): card, cb, chip, confirmInput, dangerBtn(), dropZone(), footer, header (+11 more)
+Cohesion: 0.11
+Nodes (20): card, cb, chip, confirmInput, dangerBtn(), dropZone(), footer, header (+12 more)
 
 ### Community 260 - "SnapshotExportPanel.tsx"
-Cohesion: 0.12
-Nodes (18): card, cb, chip, footer, ghostBtn, groupBox, groupHeader, GROUPS (+10 more)
+Cohesion: 0.11
+Nodes (19): card, cb, chip, footer, ghostBtn, groupBox, groupHeader, GROUPS (+11 more)
 
 ### Community 261 - "AdminExamStats.tsx"
-Cohesion: 0.17
-Nodes (14): getExamScore(), AdminExamStats(), AnswerBar(), DEFAULT_PAL, ExamRow, ExamStat, ExamStatCard(), getPal() (+6 more)
+Cohesion: 0.14
+Nodes (15): AdminExamStats, getExamScore(), AdminExamStats(), AnswerBar(), DEFAULT_PAL, ExamRow, ExamStat, ExamStatCard() (+7 more)
 
 ### Community 262 - "useToast"
-Cohesion: 0.33
-Nodes (4): ExamRow, OptionRow, QuestionRow, SubjectRow
+Cohesion: 0.17
+Nodes (9): AdminBackup, BackupExportPanel(), useToast(), ExamRow, exportQuestionsReadable(), OptionRow, QuestionRow, SubjectRow (+1 more)
 
 ### Community 263 - "2. User Scenarios & Testing"
 Cohesion: 0.17
 Nodes (11): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: 3D Interactive Landing Page & Conversion Showcase, Functional Requirements, Key Components, User Story 1 – Trải nghiệm không gian tri thức 3D tương tác (Priority: P1) (+3 more)
 
 ### Community 264 - "SafeCanvas.tsx"
-Cohesion: 0.24
-Nodes (3): Canvas(), isWebGLAvailable(), WebGLErrorBoundary
+Cohesion: 0.21
+Nodes (5): AmbientBackgroundCore(), FinalCtaSection(), Canvas(), isWebGLAvailable(), WebGLErrorBoundary
 
 ### Community 265 - "KnowledgeCoreScene.tsx"
-Cohesion: 0.18
-Nodes (4): KnowledgeCoreSceneProps, SUBJECT_NODES, SubjectNodeData, LandingHeroProps
+Cohesion: 0.20
+Nodes (6): KnowledgeCoreScene(), KnowledgeCoreSceneProps, SUBJECT_NODES, SubjectNodeData, LandingHero(), LandingHeroProps
 
 ### Community 266 - "hooks/use-toast.ts"
-Cohesion: 0.12
-Nodes (22): Toast, ToastAction, ToastActionElement, ToastClose, ToastDescription, ToastProps, ToastTitle, toastVariants (+14 more)
+Cohesion: 0.19
+Nodes (13): Action, ActionType, actionTypes, addToRemoveQueue(), dispatch(), genId(), listeners, memoryState (+5 more)
 
 ### Community 267 - "Feature Specification: Coupon & Discount Code Administration"
 Cohesion: 0.20
@@ -862,37 +832,41 @@ Nodes (9): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success
 Cohesion: 0.20
 Nodes (9): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: System Announcements & Modal Popups, Functional Requirements, Key Entities, User Story 1 – Đăng thông báo mới từ Admin (Priority: P1) (+1 more)
 
+### Community 269 - "toast.tsx"
+Cohesion: 0.26
+Nodes (10): Toast, ToastAction, ToastActionElement, ToastClose, ToastDescription, ToastProps, ToastTitle, toastVariants (+2 more)
+
+### Community 270 - "KnowledgeNetworkScene.tsx"
+Cohesion: 0.25
+Nodes (3): KnowledgeNetworkScene(), NETWORK_DATA, NetworkNode
+
 ### Community 275 - "AdminAnnouncements.tsx"
-Cohesion: 0.29
-Nodes (7): Announcement, AnnouncementPopup(), renderRichText(), AdminAnnouncements(), Announcement, inputStyle, Subject
+Cohesion: 0.25
+Nodes (8): AdminAnnouncements, Announcement, AnnouncementPopup(), renderRichText(), AdminAnnouncements(), Announcement, inputStyle, Subject
 
 ### Community 276 - "AdminCoupons.tsx"
-Cohesion: 0.50
-Nodes (3): Avatar, AvatarFallback, AvatarImage
-
-### Community 278 - "tabs.tsx"
-Cohesion: 0.50
-Nodes (3): TabsContent, TabsList, TabsTrigger
+Cohesion: 0.29
+Nodes (6): AdminCoupons, AdminCoupons(), Coupon, FormState, initialFormState, inputStyle
 
 ## Knowledge Gaps
-- **1833 isolated node(s):** `update-agent-context.sh script`, `auto-commit.sh script`, `create-new-feature.sh script`, `git-common.sh script`, `initialize-repo.sh script` (+1828 more)
+- **1654 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `$schema`, `style`, `rsc` (+1649 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **99 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **93 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `**LỜI MỞ ĐẦU**` connect `**LỜI MỞ ĐẦU**` to `**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**`, `**<mark>SDD Workflow</mark>**`, `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**`, `**<mark>AI Agent Thực Sự Là Gì?</mark>**`, `**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**`, `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**`, `**<mark>Phân Tích Phê Bình về SDD</mark>**`, `**<mark>Multi-Agent & Orchestration</mark>**`, `**<mark>Hybrid Framework</mark>**`, `**<mark>Templates, Checklists & Quick References</mark>**`, `**<mark>Các Tiêu Chuẩn Mở</mark>**`, `**<mark>Executable Specification</mark>**`, `**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**`, `**<mark>Specification Patterns Nâng Cao</mark>**`, `**<mark>Agent-Driven Workflow</mark>**`?**
-  _High betweenness centrality (0.066) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `dependencies` to `excelBackup.ts`, `@types/katex`, `backupCore.ts`, `chart.tsx`, `class-variance-authority`, `date-fns`, `gsap`, `mammoth`, `@radix-ui/react-checkbox`, `@radix-ui/react-scroll-area`, `@radix-ui/react-slot`, `@types/three`, `package.json`, `cmdk`, `embla-carousel-react`, `react-resizable-panels`, `framer-motion`, `@hookform/resolvers`, `@react-three/drei`, `lucide-react`, `next-themes`, `@radix-ui/react-accordion`, `@radix-ui/react-aspect-ratio`, `@radix-ui/react-avatar`, `@radix-ui/react-collapsible`, `@radix-ui/react-context-menu`, `@radix-ui/react-dialog`, `clsx`, `@radix-ui/react-dropdown-menu`, `@radix-ui/react-hover-card`, `@radix-ui/react-label`, `@radix-ui/react-navigation-menu`, `@radix-ui/react-popover`, `katex`, `@radix-ui/react-progress`, `@radix-ui/react-radio-group`, `@radix-ui/react-select`, `@radix-ui/react-separator`, `@radix-ui/react-slider`, `@radix-ui/react-tabs`, `@radix-ui/react-switch`, `@radix-ui/react-toast`, `@radix-ui/react-toggle`, `@radix-ui/react-toggle-group`, `@radix-ui/react-tooltip`, `react-day-picker`, `react-dom`, `react-fast-marquee`, `react-hook-form`, `@react-three/fiber`, `recharts`, `sonner`, `@supabase/supabase-js`, `tailwind-merge`, `tailwindcss-animate`, `@tanstack/react-query`, `tesseract.js`, `vaul`, `zod`, `three`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
-- **Why does `react` connect `chart.tsx` to `SafeCanvas.tsx`, `dependencies`, `excelBackup.ts`, `sidebar.tsx`?**
-  _High betweenness centrality (0.044) - this node is a cross-community bridge._
-- **What connects `update-agent-context.sh script`, `auto-commit.sh script`, `create-new-feature.sh script` to the rest of the system?**
-  _1833 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **Why does `cn()` connect `cn` to `drawer.tsx`, `form.tsx`, `sidebar.tsx`, `navigation-menu.tsx`, `sheet.tsx`, `toggle-group.tsx`, `alert.tsx`, `utils.ts`, `pagination.tsx`, `command.tsx`, `toast.tsx`, `carousel.tsx`, `context-menu.tsx`, `chart.tsx`, `table.tsx`, `breadcrumb.tsx`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
+- **Why does `**<mark>Executable Specification</mark>**` connect `**<mark>Executable Specification</mark>**` to `**LỜI MỞ ĐẦU**`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **What connects `update-agent-context.sh script`, `git-common.sh script`, `$schema` to the rest of the system?**
+  _1654 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidebar.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.06306306306306306 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07057057057057058 - nodes in this community are weakly interconnected._
 - **Should `App.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.1111111111111111 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07358156028368794 - nodes in this community are weakly interconnected._
 - **Should `ProfilePage.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.09024390243902439 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12688172043010754 - nodes in this community are weakly interconnected._
