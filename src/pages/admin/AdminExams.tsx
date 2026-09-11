@@ -111,7 +111,7 @@ export default function AdminExams() {
       ...q,
       options: (q.question_options ?? q.options ?? []).sort((a: any, b: any) => (a.label || '').localeCompare(b.label || '')),
     }));
-    setQuestions(formatted);
+    setQuestions((await signQuestionImages(formatted as any)) as Question[]);
   };
 
   const openCreate = () => {
