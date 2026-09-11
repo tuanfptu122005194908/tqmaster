@@ -424,6 +424,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (id: string) => setCart(c => c.filter(i => (typeof i === 'string' ? i : i?.id) !== id));
   const clearCart    = () => setCart([]);
   const isInCart     = (id: string) => cart.some(i => (typeof i === 'string' ? i : i?.id) === id);
+  // Tải danh sách môn miễn phí ngay cả khi chưa đăng nhập
+  useEffect(() => {
+    supabase
+      .from('subjects')
+      .select('id')
+      .eq('is_active', true)
+      .lte('price', 0)
+      .then(({ data }) => setFreeSubjectIds((data ?? []).map(r => r.id)));
+  }, []);
+
   const isFree       = (id: string) => freeSubjectIds.includes(id);
   const isPurchased  = (id: string) => purchasedIds.includes(id) || freeSubjectIds.includes(id);
 
