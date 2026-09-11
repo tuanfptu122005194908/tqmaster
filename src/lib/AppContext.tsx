@@ -47,6 +47,8 @@ interface AppContextValue {
 
   // Purchased subjects
   purchasedIds:    string[];
+  freeSubjectIds:  string[];
+  isFree:          (id: string) => boolean;
   isPurchased:     (id: string) => boolean;
   refreshPurchased: () => Promise<void>;
 
