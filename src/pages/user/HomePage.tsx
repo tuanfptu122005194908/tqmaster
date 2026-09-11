@@ -595,11 +595,11 @@ function CourseCard({
         }}>
           {owned ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#16a34a', fontWeight: 800, fontSize: 12.5 }}>
-                <Check size={14} strokeWidth={3} /> SỞ HỮU
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: Number(subject.price) <= 0 ? '#0284c7' : '#16a34a', fontWeight: 800, fontSize: 12.5 }}>
+                <Check size={14} strokeWidth={3} /> {Number(subject.price) <= 0 ? 'MIỄN PHÍ' : 'SỞ HỮU'}
               </div>
               <ActionButton primary onClick={onOpen}>
-                Xem chi tiết
+                {Number(subject.price) <= 0 ? 'Học ngay' : 'Xem chi tiết'}
               </ActionButton>
             </>
           ) : (
