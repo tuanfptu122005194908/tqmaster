@@ -510,9 +510,9 @@
     "semantic_hash": ""
   },
   "src/integrations/supabase/types.ts": {
-    "mtime": 1789149425.168529,
-    "seen": 1789149550.6673658,
-    "ast_hash": "904bd2349d9c59d6322ce88ebecf4519",
+    "mtime": 1789149007.2820456,
+    "seen": 1789149043.7801385,
+    "ast_hash": "6ed2a79ce503e6ec1c4703af7e41bec7",
     "semantic_hash": ""
   },
   "src/lib/AppContext.tsx": {
@@ -1030,9 +1030,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminBackup.tsx": {
-    "mtime": 1789149461.1326823,
-    "seen": 1789149550.6689758,
-    "ast_hash": "e48bd8daf1046ccc9ac7f83a65ed971e",
+    "mtime": 1789149007.2860792,
+    "seen": 1789149043.7821715,
+    "ast_hash": "aff1b9df0b991f9ccd85e77d5f080fc0",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminChat.tsx": {
@@ -2511,18 +2511,6 @@
     "mtime": 1789141088.2252994,
     "seen": 1789149043.7984447,
     "ast_hash": "fa2601664c55228bac826132bb872dd0",
-    "semantic_hash": ""
-  },
-  "src/components/backup/BackgroundBackupPanel.tsx": {
-    "mtime": 1789149450.8523917,
-    "seen": 1789149550.6602762,
-    "ast_hash": "99ef6f45da7dde4af084667e0335cbd6",
-    "semantic_hash": ""
-  },
-  "supabase/functions/backup-worker/index.ts": {
-    "mtime": 1789149410.2558622,
-    "seen": 1789149550.6708577,
-    "ast_hash": "a6fd87c71f59317a88696a643dfec34a",
     "semantic_hash": ""
   }
 }

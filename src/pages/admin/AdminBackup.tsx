@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldAlert, HardDrive, FileSpreadsheet } from 'lucide-react';
 import SnapshotExportPanel from '@/components/backup/SnapshotExportPanel';
+import BackgroundBackupPanel from '@/components/backup/BackgroundBackupPanel';
 import SnapshotRestorePanel from '@/components/backup/SnapshotRestorePanel';
 import BackgroundRestorePanel from '@/components/backup/BackgroundRestorePanel';
 import BackupExportPanel from '@/components/backup/BackupExportPanel';
@@ -33,7 +34,7 @@ export default function AdminBackup() {
         </div>
         <p style={{ fontSize: 14, color: '#64748b', margin: 0, maxWidth: 860 }}>
           Tạo bản sao lưu đầy đủ toàn bộ dữ liệu và ảnh/tệp của hệ thống trong một gói duy nhất, đủ để khôi phục
-          hoặc chuyển toàn bộ sang một cơ sở dữ liệu khác.
+          hoặc chuyển toàn bộ sang một cơ sở dữ liệu khác. Hỗ trợ chạy nền trên máy chủ đám mây, bạn có thể tắt máy sau khi bấm.
         </p>
       </div>
 
@@ -76,8 +77,9 @@ export default function AdminBackup() {
       }}>
         {tab === 'snapshot' ? (
           <>
-            <SnapshotExportPanel />
+            <BackgroundBackupPanel />
             <BackgroundRestorePanel />
+            <SnapshotExportPanel />
             <SnapshotRestorePanel />
           </>
         ) : (
