@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 import { RichContent } from '@/components/exam/RichContent';
+import { signQuestionImages } from '@/lib/signedImage';
+
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 
 type Exam = Tables<'exams'>;
