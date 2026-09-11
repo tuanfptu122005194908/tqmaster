@@ -382,6 +382,12 @@ export default function AdminTheory() {
                     href={t.url}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={async (e) => {
+                      if (t.type === 'link') return;
+                      e.preventDefault();
+                      const signed = await signStorageUrl(t.url);
+                      window.open(signed ?? t.url, '_blank', 'noopener');
+                    }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       width: '100%', padding: '10px', borderRadius: 12, border: '1.5px solid #dbeafe',
