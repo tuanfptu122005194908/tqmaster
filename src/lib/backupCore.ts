@@ -206,6 +206,7 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
     includeMedia,
     tables: [],
     media: [],
+    mediaFailed: [],
     totalRows: 0,
     totalMediaFiles: 0,
   };
