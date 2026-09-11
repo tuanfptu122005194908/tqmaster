@@ -11,3 +11,10 @@ verify_jwt = false
 
 [functions.signup-with-otp]
 verify_jwt = false
+
+[functions.restore-worker]
+verify_jwt = false
+
+[functions.backup-worker]
+verify_jwt = false
+

@@ -12,11 +12,81 @@ import {
   Database,
   Image as ImageIcon,
   ShieldAlert,
+  Copy,
 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 import { BACKUP_TABLES, DEFAULT_TABLES, formatBytes } from '@/lib/backupCore';
 import { useToast } from '@/hooks/use-toast';
+
+const INIT_SQL = `-- Chạy script này trong Supabase Dashboard -> SQL Editor
+CREATE TABLE IF NOT EXISTS public.backup_jobs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  file_path text,
+  file_name text,
+  file_size bigint NOT NULL DEFAULT 0,
+  status text NOT NULL DEFAULT 'pending',
+  include_media boolean NOT NULL DEFAULT false,
+  tables jsonb NOT NULL DEFAULT '[]'::jsonb,
+  progress numeric NOT NULL DEFAULT 0,
+  step text,
+  manifest jsonb,
+  error text,
+  started_at timestamptz,
+  finished_at timestamptz,
+  heartbeat_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.backup_jobs TO authenticated;
+GRANT ALL ON public.backup_jobs TO service_role;
+
+ALTER TABLE public.backup_jobs ENABLE ROW LEVEL SECURITY;
+
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'backup_jobs' AND policyname = 'Admins can view backup jobs'
+  ) THEN
+    CREATE POLICY "Admins can view backup jobs"
+      ON public.backup_jobs FOR SELECT TO authenticated
+      USING (public.has_role(auth.uid(), 'admin'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'backup_jobs' AND policyname = 'Admins can create backup jobs'
+  ) THEN
+    CREATE POLICY "Admins can create backup jobs"
+      ON public.backup_jobs FOR INSERT TO authenticated
+      WITH CHECK (public.has_role(auth.uid(), 'admin') AND created_by = auth.uid());
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'backup_jobs' AND policyname = 'Admins can update backup jobs'
+  ) THEN
+    CREATE POLICY "Admins can update backup jobs"
+      ON public.backup_jobs FOR UPDATE TO authenticated
+      USING (public.has_role(auth.uid(), 'admin'))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'backup_jobs' AND policyname = 'Admins can delete backup jobs'
+  ) THEN
+    CREATE POLICY "Admins can delete backup jobs"
+      ON public.backup_jobs FOR DELETE TO authenticated
+      USING (public.has_role(auth.uid(), 'admin'));
+  END IF;
+END $$;
+
+DROP TRIGGER IF EXISTS trg_backup_jobs_updated_at ON public.backup_jobs;
+CREATE TRIGGER trg_backup_jobs_updated_at
+  BEFORE UPDATE ON public.backup_jobs
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_backup_jobs_created_at ON public.backup_jobs (created_at DESC);`;
 
 interface BackupJob {
   id: string;
@@ -48,13 +118,22 @@ export default function BackgroundBackupPanel() {
   const [jobs, setJobs] = useState<BackupJob[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [schemaError, setSchemaError] = useState(false);
 
   const loadJobs = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('backup_jobs')
       .select('id, file_name, file_path, file_size, status, include_media, progress, step, error, created_at, finished_at')
       .order('created_at', { ascending: false })
       .limit(6);
+
+    if (error) {
+      if (error.message?.includes('schema cache') || error.code === 'PGRST205') {
+        setSchemaError(true);
+      }
+      return;
+    }
+    setSchemaError(false);
     setJobs((data ?? []) as unknown as BackupJob[]);
   }, []);
 
@@ -96,6 +175,10 @@ export default function BackgroundBackupPanel() {
         .single();
 
       if (jobErr || !job) {
+        if (jobErr?.message?.includes('schema cache') || jobErr?.code === 'PGRST205') {
+          setSchemaError(true);
+          throw new Error('Bảng backup_jobs chưa tồn tại trên Supabase. Vui lòng bấm nút "Sao chép mã SQL" phía trên và chạy trong SQL Editor.');
+        }
         throw new Error(jobErr?.message ?? 'Không thể tạo yêu cầu sao lưu.');
       }
 
@@ -104,7 +187,7 @@ export default function BackgroundBackupPanel() {
       });
 
       if (fnErr) {
-        throw new Error(fnErr.message);
+        throw new Error(`Lỗi gọi Edge Function (backup-worker): ${fnErr.message}. Nếu chưa deploy hàm lên Supabase, hãy deploy hàm backup-worker.`);
       }
 
       toast({
@@ -252,6 +335,56 @@ export default function BackgroundBackupPanel() {
             <b>Tắt máy & đóng tab thoải mái:</b> Sau khi bấm nút, máy chủ Supabase sẽ tự động gom dữ liệu, nén zip và lưu trữ. Khi nào mở lại máy, bạn chỉ việc bấm <b>Tải về</b>.
           </div>
         </div>
+
+        {/* Cảnh báo khi chưa chạy migration trên Supabase */}
+        {schemaError && (
+          <div
+            style={{
+              padding: '14px 16px',
+              borderRadius: 14,
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <ShieldAlert size={20} color="#dc2626" style={{ flexShrink: 0, marginTop: 2 }} />
+              <div style={{ fontSize: 12, color: '#991b1b', lineHeight: 1.6 }}>
+                <b>Cần chạy SQL khởi tạo trên Supabase:</b> Bảng <code>backup_jobs</code> chưa được tạo trên cơ sở dữ liệu Supabase của bạn. Bấm nút dưới đây để sao chép script, sau đó dán vào <b>Supabase Dashboard → SQL Editor</b> và bấm <b>Run</b>.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(INIT_SQL);
+                toast({
+                  title: '📋 Đã sao chép mã SQL!',
+                  description: 'Hãy mở Supabase Dashboard → SQL Editor, dán vào và bấm Run (Ctrl + Enter).',
+                });
+              }}
+              style={{
+                alignSelf: 'flex-start',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '7px 14px',
+                borderRadius: 10,
+                background: '#dc2626',
+                color: '#ffffff',
+                fontSize: 12,
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)',
+              }}
+            >
+              <Copy size={13} />
+              Sao chép mã SQL khởi tạo
+            </button>
+          </div>
+        )}
 
         {/* Media Option */}
         <div
