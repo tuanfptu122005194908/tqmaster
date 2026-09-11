@@ -118,6 +118,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── Load purchased subjects ──────────────────────────────
   const refreshPurchased = useCallback(async () => {
     try {
+      // Môn học miễn phí (giá 0đ) → ai cũng truy cập được
+      supabase
+        .from('subjects')
+        .select('id')
+        .eq('is_active', true)
+        .lte('price', 0)
+        .then(({ data }) => setFreeSubjectIds((data ?? []).map(r => r.id)));
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setPurchasedIds([]); return; }
       const { data, error } = await supabase
