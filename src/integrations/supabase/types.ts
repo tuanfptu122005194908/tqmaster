@@ -1060,6 +1060,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      can_access_exam_assets: { Args: { _exam_id: string }; Returns: boolean }
       cleanup_unverified_users: { Args: never; Returns: undefined }
       delete_user_by_admin: {
         Args: { target_user_id: string }
