@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldAlert, HardDrive, FileSpreadsheet } from 'lucide-react';
 import SnapshotExportPanel from '@/components/backup/SnapshotExportPanel';
 import SnapshotRestorePanel from '@/components/backup/SnapshotRestorePanel';
+import BackgroundRestorePanel from '@/components/backup/BackgroundRestorePanel';
 import BackupExportPanel from '@/components/backup/BackupExportPanel';
 import BackupImportPanel from '@/components/backup/BackupImportPanel';
 
