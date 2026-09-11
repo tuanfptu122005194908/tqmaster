@@ -75,6 +75,7 @@ export const BACKUP_TABLES: BackupTable[] = [
   { name: 'news_comments', label: 'Bình luận tin tức', group: 'activity', order: 54, conflict: 'id', orderBy: 'created_at', requiresAuthUsers: true },
   { name: 'conversations', label: 'Hội thoại hỗ trợ', group: 'activity', order: 55, conflict: 'id', orderBy: 'created_at', requiresAuthUsers: true },
   { name: 'chat_messages', label: 'Tin nhắn hỗ trợ', group: 'activity', order: 56, conflict: 'id', orderBy: 'created_at', requiresAuthUsers: true },
+  { name: 'chat_cleanup_logs', label: 'Nhật ký dọn tin nhắn', group: 'activity', order: 57, conflict: 'id', orderBy: 'cleaned_at', requiresAuthUsers: true },
 
   // ── Hệ thống ────────────────────────────────────────────────
   { name: 'system_settings', label: 'Cấu hình hệ thống', group: 'system', order: 60, conflict: 'key', orderBy: 'key' },
