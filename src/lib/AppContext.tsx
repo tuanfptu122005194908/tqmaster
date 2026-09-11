@@ -456,7 +456,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshAuthUser, signOut,
     searchQuery, setSearchQuery,
     cart, addToCart, removeFromCart, clearCart, isInCart,
-    purchasedIds, isPurchased, refreshPurchased,
+    purchasedIds, freeSubjectIds, isFree, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
     unreadChatCount, refreshUnreadChatCount,
