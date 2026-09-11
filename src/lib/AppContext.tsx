@@ -78,6 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [cart,          setCart]          = useState<CartItem[]>([]);
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
+  const [freeSubjectIds, setFreeSubjectIds] = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
