@@ -47,6 +47,8 @@ interface AppContextValue {
 
   // Purchased subjects
   purchasedIds:    string[];
+  freeSubjectIds:  string[];
+  isFree:          (id: string) => boolean;
   isPurchased:     (id: string) => boolean;
   refreshPurchased: () => Promise<void>;
 
@@ -76,6 +78,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [cart,          setCart]          = useState<CartItem[]>([]);
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
+  const [freeSubjectIds, setFreeSubjectIds] = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
@@ -118,6 +121,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── Load purchased subjects ──────────────────────────────
   const refreshPurchased = useCallback(async () => {
     try {
+      // Môn học miễn phí (giá 0đ) → ai cũng truy cập được
+      supabase
+        .from('subjects')
+        .select('id')
+        .eq('is_active', true)
+        .lte('price', 0)
+        .then(({ data }) => setFreeSubjectIds((data ?? []).map(r => r.id)));
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setPurchasedIds([]); return; }
       const { data, error } = await supabase
@@ -402,6 +413,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Cart helpers ─────────────────────────────────────────
   const addToCart = (s: Subject | string) => {
+    const sid = typeof s === 'string' ? s : s?.id;
+    if (sid && freeSubjectIds.includes(sid)) return; // môn miễn phí: không cần giỏ hàng
     if (typeof s === 'string') {
       supabase.from('subjects').select('*').eq('id', s).maybeSingle().then(({ data }) => {
         if (data) setCart(c => c.find(i => (typeof i === 'string' ? i : i?.id) === data.id) ? c : [...c, data as any]);
@@ -413,7 +426,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (id: string) => setCart(c => c.filter(i => (typeof i === 'string' ? i : i?.id) !== id));
   const clearCart    = () => setCart([]);
   const isInCart     = (id: string) => cart.some(i => (typeof i === 'string' ? i : i?.id) === id);
-  const isPurchased  = (id: string) => purchasedIds.includes(id);
+  // Tải danh sách môn miễn phí ngay cả khi chưa đăng nhập
+  useEffect(() => {
+    supabase
+      .from('subjects')
+      .select('id')
+      .eq('is_active', true)
+      .lte('price', 0)
+      .then(({ data }) => setFreeSubjectIds((data ?? []).map(r => r.id)));
+  }, []);
+
+  const isFree       = (id: string) => freeSubjectIds.includes(id);
+  const isPurchased  = (id: string) => purchasedIds.includes(id) || freeSubjectIds.includes(id);
 
   // ── Sign out ─────────────────────────────────────────────
   const signOut = async () => {
@@ -444,7 +468,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshAuthUser, signOut,
     searchQuery, setSearchQuery,
     cart, addToCart, removeFromCart, clearCart, isInCart,
-    purchasedIds, isPurchased, refreshPurchased,
+    purchasedIds, freeSubjectIds, isFree, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
     unreadChatCount, refreshUnreadChatCount,

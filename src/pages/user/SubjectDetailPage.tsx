@@ -282,9 +282,11 @@ export default function SubjectDetailPage() {
                   fontSize: '0.875rem',
                   marginBottom: 4,
                 }}>
-                  <CheckCircle size={18} /> ĐÃ SỞ HỮU
+                  <CheckCircle size={18} /> {Number(subject.price) <= 0 ? 'MIỄN PHÍ' : 'ĐÃ SỞ HỮU'}
                 </span>
-                <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>Bạn đã có quyền truy cập vĩnh viễn</p>
+                <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>
+                  {Number(subject.price) <= 0 ? 'Môn học miễn phí — học ngay không cần mua' : 'Bạn đã có quyền truy cập vĩnh viễn'}
+                </p>
               </div>
             ) : (
               <>
