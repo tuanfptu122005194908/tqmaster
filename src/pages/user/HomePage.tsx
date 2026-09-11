@@ -528,12 +528,12 @@ function CourseCard({
           <span style={{
             position: 'absolute', top: 12, right: 12,
             padding: '4px 10px', borderRadius: 8,
-            background: '#15803d', color: '#ffffff',
+            background: Number(subject.price) <= 0 ? '#0ea5e9' : '#15803d', color: '#ffffff',
             fontSize: 11, fontWeight: 800,
             display: 'flex', alignItems: 'center', gap: 4,
             boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
           }}>
-            <Check size={12} strokeWidth={3} /> Đã sở hữu
+            <Check size={12} strokeWidth={3} /> {Number(subject.price) <= 0 ? 'Miễn phí' : 'Đã sở hữu'}
           </span>
         )}
 
