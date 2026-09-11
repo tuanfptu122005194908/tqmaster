@@ -413,6 +413,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Cart helpers ─────────────────────────────────────────
   const addToCart = (s: Subject | string) => {
+    const sid = typeof s === 'string' ? s : s?.id;
+    if (sid && freeSubjectIds.includes(sid)) return; // môn miễn phí: không cần giỏ hàng
     if (typeof s === 'string') {
       supabase.from('subjects').select('*').eq('id', s).maybeSingle().then(({ data }) => {
         if (data) setCart(c => c.find(i => (typeof i === 'string' ? i : i?.id) === data.id) ? c : [...c, data as any]);
