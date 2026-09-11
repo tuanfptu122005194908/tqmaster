@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, formatDate } from '@/lib/mockData';
 import { sortExams } from '@/lib/utils';
+import { signStorageUrls } from '@/lib/signedImage';
 import {
   ArrowLeft, ShoppingCart, CheckCircle, Clock,
   BookOpen, Bell, FileText, ExternalLink,
@@ -44,7 +45,9 @@ export default function SubjectDetailPage() {
       setSubject(subjRes.data);
       const examsData = (examRes.data ?? []).map((r: any) => r.exams).filter(Boolean);
       setExams(sortExams(examsData));
-      setTheories((theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean));
+      const theoryData = (theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean);
+      const signMap = await signStorageUrls(theoryData.map((t: any) => t.url));
+      setTheories(theoryData.map((t: any) => ({ ...t, url: signMap.get(t.url) ?? t.url })));
       setAnnouncements(annRes.data ?? []);
       setLoading(false);
     };

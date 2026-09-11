@@ -5,6 +5,7 @@ import { useApp } from '@/lib/AppContext';
 import { Plus, Trash2, X, Check, Loader2, FileText, Link as LinkIcon, Image as ImageIcon, Download, Pencil, Search, Filter } from 'lucide-react';
 import FileUploader from '@/components/FileUploader';
 import { toast } from 'sonner';
+import { signStorageUrl } from '@/lib/signedImage';
 
 type Theory  = Tables<'theories'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
@@ -382,6 +383,12 @@ export default function AdminTheory() {
                     href={t.url}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={async (e) => {
+                      if (t.type === 'link') return;
+                      e.preventDefault();
+                      const signed = await signStorageUrl(t.url);
+                      window.open(signed ?? t.url, '_blank', 'noopener');
+                    }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       width: '100%', padding: '10px', borderRadius: 12, border: '1.5px solid #dbeafe',

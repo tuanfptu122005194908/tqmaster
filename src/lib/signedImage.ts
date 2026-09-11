@@ -6,7 +6,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 
-const PRIVATE_BUCKETS = ['question-images', 'exam-images'] as const;
+const PRIVATE_BUCKETS = ['question-images', 'exam-images', 'theory-files', 'theory-images'] as const;
 const EXPIRES_IN = 60 * 60 * 4; // 4 giờ
 
 type CacheEntry = { url: string; expiresAt: number };
