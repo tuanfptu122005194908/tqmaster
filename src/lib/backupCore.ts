@@ -75,6 +75,7 @@ export const BACKUP_TABLES: BackupTable[] = [
   { name: 'news_comments', label: 'Bình luận tin tức', group: 'activity', order: 54, conflict: 'id', orderBy: 'created_at', requiresAuthUsers: true },
   { name: 'conversations', label: 'Hội thoại hỗ trợ', group: 'activity', order: 55, conflict: 'id', orderBy: 'created_at', requiresAuthUsers: true },
   { name: 'chat_messages', label: 'Tin nhắn hỗ trợ', group: 'activity', order: 56, conflict: 'id', orderBy: 'created_at', requiresAuthUsers: true },
+  { name: 'chat_cleanup_logs', label: 'Nhật ký dọn tin nhắn', group: 'activity', order: 57, conflict: 'id', orderBy: 'cleaned_at', requiresAuthUsers: true },
 
   // ── Hệ thống ────────────────────────────────────────────────
   { name: 'system_settings', label: 'Cấu hình hệ thống', group: 'system', order: 60, conflict: 'key', orderBy: 'key' },
@@ -89,7 +90,9 @@ export interface BackupManifest {
   sourceOrigin: string;
   includeMedia: boolean;
   tables: { name: string; label: string; rows: number; error?: string }[];
-  media: { bucket: string; files: number; bytes: number }[];
+  media: { bucket: string; files: number; bytes: number; public?: boolean }[];
+  /** Các file media không tải được khi sao lưu (nếu có) */
+  mediaFailed: string[];
   totalRows: number;
   totalMediaFiles: number;
 }
@@ -168,9 +171,12 @@ async function listBucketFiles(bucket: string): Promise<MediaEntry[]> {
 }
 
 async function downloadMedia(bucket: string, path: string): Promise<Blob | null> {
-  const { data, error } = await supabase.storage.from(bucket).download(path);
-  if (error || !data) return null;
-  return data;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await supabase.storage.from(bucket).download(path);
+    if (!error && data) return data;
+    await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+  }
+  return null;
 }
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
@@ -200,6 +206,7 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
     includeMedia,
     tables: [],
     media: [],
+    mediaFailed: [],
     totalRows: 0,
     totalMediaFiles: 0,
   };
@@ -242,6 +249,10 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
       new Set([...(buckets ?? []).map((b) => b.name), ...KNOWN_BUCKETS])
     );
 
+    const publicFlags = new Map<string, boolean>(
+      (buckets ?? []).map((b) => [b.name, Boolean((b as unknown as { public?: boolean }).public)])
+    );
+
     const all: MediaEntry[] = [];
     for (const b of bucketNames) {
       const files = await listBucketFiles(b);
@@ -251,18 +262,30 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
           bucket: b,
           files: files.length,
           bytes: files.reduce((s, f) => s + f.size, 0),
+          public: publicFlags.get(b) ?? false,
         });
       }
     }
     manifest.totalMediaFiles = all.length;
 
-    for (let i = 0; i < all.length; i++) {
-      const f = all[i];
-      const pct = dbShare + ((i + 1) / Math.max(all.length, 1)) * (95 - dbShare);
-      onProgress?.(pct, `Đang tải media ${i + 1}/${all.length}: ${f.bucket}/${f.path}`);
-      const blob = await downloadMedia(f.bucket, f.path);
-      if (blob) zip.file(`media/${f.bucket}/${f.path}`, blob);
-    }
+    // Tải song song (6 file cùng lúc) để nhanh hơn nhiều lần
+    const CONCURRENCY = 6;
+    let done = 0;
+    let cursor = 0;
+    const worker = async () => {
+      for (;;) {
+        const idx = cursor++;
+        if (idx >= all.length) return;
+        const f = all[idx];
+        const blob = await downloadMedia(f.bucket, f.path);
+        if (blob) zip.file(`media/${f.bucket}/${f.path}`, blob);
+        else manifest.mediaFailed.push(`${f.bucket}/${f.path}`);
+        done++;
+        const pct = dbShare + (done / Math.max(all.length, 1)) * (95 - dbShare);
+        onProgress?.(pct, `Đang tải media ${done}/${all.length}...`);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, all.length) }, worker));
   }
 
   zip.file('manifest.json', JSON.stringify(manifest, null, 2));
@@ -291,10 +314,29 @@ function buildReadme(m: BackupManifest): string {
     '',
     `Tổng số dòng: ${m.totalRows}`,
     `Tổng số file media: ${m.totalMediaFiles}`,
+    `File media không tải được: ${m.mediaFailed?.length ?? 0}`,
     '',
     'Khôi phục: mở trang Admin → Backup & Restore → Khôi phục toàn bộ, chọn đúng file .zip này.',
     'Khi khôi phục sang hệ thống khác, đường dẫn ảnh sẽ tự động được đổi sang tên miền mới.',
   ].join('\n');
+}
+
+const MIME: Record<string, string> = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+  webp: 'image/webp', svg: 'image/svg+xml', pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  zip: 'application/zip', rar: 'application/vnd.rar', txt: 'text/plain',
+  mp4: 'video/mp4', mp3: 'audio/mpeg',
+};
+
+function guessContentType(path: string): string {
+  const ext = path.split('.').pop()?.toLowerCase() ?? '';
+  return MIME[ext] ?? 'application/octet-stream';
 }
 
 // ─── INSPECT ──────────────────────────────────────────────────────────────────
@@ -333,6 +375,10 @@ export interface RestoreReport {
   tables: RestoreTableReport[];
   mediaUploaded: number;
   mediaFailed: number;
+  /** Chi tiết lỗi tải lên media (tối đa 20 dòng) */
+  mediaErrors: string[];
+  /** Kho lưu trữ có trong gói nhưng chưa tồn tại ở hệ thống đích */
+  missingBuckets: string[];
   totalInserted: number;
   totalFailed: number;
   dryRun: boolean;
@@ -370,7 +416,9 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
   const report: RestoreReport = {
     tables: [],
     mediaUploaded: 0,
-    mediaFailed: 0,
+  mediaFailed: 0,
+    mediaErrors: [],
+    missingBuckets: [],
     totalInserted: 0,
     totalFailed: 0,
     dryRun,
@@ -383,20 +431,41 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
   const mediaPaths = Object.keys(zip.files).filter((p) => p.startsWith('media/') && !zip.files[p].dir);
   const mediaShare = includeMedia && mediaPaths.length > 0 ? 40 : 0;
 
+  if (includeMedia && mediaPaths.length > 0) {
+    // Kiểm tra các kho lưu trữ (bucket) còn thiếu ở hệ thống đích
+    const { data: existing } = await supabase.storage.listBuckets();
+    const existingNames = new Set((existing ?? []).map((b) => b.name));
+    const neededBuckets = new Set(mediaPaths.map((p) => p.split('/')[1]));
+    for (const b of neededBuckets) if (!existingNames.has(b)) report.missingBuckets.push(b);
+  }
+
   if (includeMedia && mediaPaths.length > 0 && !dryRun) {
+    const skip = new Set(report.missingBuckets);
     for (let i = 0; i < mediaPaths.length; i++) {
       const p = mediaPaths[i];
       const parts = p.split('/');
       const bucket = parts[1];
       const path = parts.slice(2).join('/');
       onProgress?.(((i + 1) / mediaPaths.length) * mediaShare, `Đang tải lên media ${i + 1}/${mediaPaths.length}...`);
+      if (skip.has(bucket)) {
+        report.mediaFailed++;
+        continue;
+      }
       try {
         const blob = await zip.files[p].async('blob');
-        const { error } = await supabase.storage.from(bucket).upload(path, blob, { upsert: true });
-        if (error) report.mediaFailed++;
-        else report.mediaUploaded++;
-      } catch {
+        const { error } = await supabase.storage.from(bucket).upload(path, blob, {
+          upsert: true,
+          contentType: blob.type || guessContentType(path),
+        });
+        if (error) {
+          report.mediaFailed++;
+          if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${error.message}`);
+        } else {
+          report.mediaUploaded++;
+        }
+      } catch (err) {
         report.mediaFailed++;
+        if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${String(err)}`);
       }
     }
   }

@@ -173,8 +173,18 @@ export default function SnapshotRestorePanel() {
           <div style={{ marginTop: 14, border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ padding: '9px 13px', background: '#f8fafc', fontSize: 12, fontWeight: 700, color: '#334155' }}>
               {report.dryRun ? 'Kết quả kiểm tra' : 'Kết quả khôi phục'} · {report.totalInserted} thành công · {report.totalFailed} lỗi
-              {!report.dryRun && ` · ${report.mediaUploaded} media`}
+              {!report.dryRun && ` · ${report.mediaUploaded} media${report.mediaFailed > 0 ? ` (${report.mediaFailed} lỗi)` : ''}`}
             </div>
+            {report.missingBuckets.length > 0 && (
+              <div style={{ padding: '9px 13px', background: '#fff7ed', borderTop: '1px solid #fed7aa', fontSize: 11.5, color: '#b45309' }}>
+                ⚠️ Hệ thống đích chưa có kho lưu trữ: <b>{report.missingBuckets.join(', ')}</b>. Hãy tạo trước rồi khôi phục lại phần ảnh/tệp.
+              </div>
+            )}
+            {report.mediaErrors.length > 0 && (
+              <div style={{ padding: '9px 13px', background: '#fef2f2', borderTop: '1px solid #fecaca', fontSize: 11, color: '#b91c1c' }}>
+                {report.mediaErrors.slice(0, 5).map((e, i) => <div key={i}>{e}</div>)}
+              </div>
+            )}
             <div style={{ maxHeight: 240, overflowY: 'auto' }}>
               {report.tables.map((t) => (
                 <div key={t.name} style={{ padding: '8px 13px', borderTop: '1px solid #f1f5f9' }}>
