@@ -314,6 +314,7 @@ function buildReadme(m: BackupManifest): string {
     '',
     `Tổng số dòng: ${m.totalRows}`,
     `Tổng số file media: ${m.totalMediaFiles}`,
+    `File media không tải được: ${m.mediaFailed?.length ?? 0}`,
     '',
     'Khôi phục: mở trang Admin → Backup & Restore → Khôi phục toàn bộ, chọn đúng file .zip này.',
     'Khi khôi phục sang hệ thống khác, đường dẫn ảnh sẽ tự động được đổi sang tên miền mới.',
