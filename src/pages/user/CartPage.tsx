@@ -14,6 +14,7 @@ type Step = 'cart' | 'checkout' | 'confirm';
 type DiscountCode = Tables<'discount_codes'>;
 
 import { useNavigate } from 'react-router-dom';
+import CheckoutHero3D from '@/components/cart/CheckoutHero3D';
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, profile, refreshPurchased } = useApp();
@@ -203,7 +204,14 @@ export default function CartPage() {
   // ═══ SUCCESS SCREEN ════════════════════════════════════
   if (orderId) {
     return (
-      <div className="page-shell" style={{ maxWidth: 560, margin: '0 auto', textAlign: 'center', paddingTop: 'var(--space-12)' }}>
+      <div className="page-shell" style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+        <CheckoutHero3D
+          step="done"
+          title="Cảm ơn bạn!"
+          subtitle="Đơn hàng đã được ghi nhận và đang chờ xác nhận."
+          itemCount={4}
+        />
+
         <div style={{
           width: 96, height: 96, borderRadius: '50%',
           background: 'linear-gradient(135deg, hsl(var(--success-light)), hsl(162 48% 90%))',
@@ -337,6 +345,12 @@ export default function CartPage() {
   if (step === 'confirm') {
     return (
       <div className="page-shell" style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <CheckoutHero3D
+          step="confirm"
+          title="Hoàn tất thanh toán"
+          subtitle="Chuyển khoản theo thông tin bên dưới rồi tải ảnh biên lai để xác nhận đơn."
+          itemCount={displayCart.length}
+        />
         <Stepper current="confirm" />
 
         <div className="checkout-grid">
@@ -529,6 +543,12 @@ export default function CartPage() {
   if (step === 'checkout') {
     return (
       <div className="page-shell" style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <CheckoutHero3D
+          step="checkout"
+          title="Thông tin thanh toán"
+          subtitle="Chỉ vài bước nữa là bạn có thể mở khoá toàn bộ tài liệu môn học."
+          itemCount={displayCart.length}
+        />
         <Stepper current="checkout" />
 
         <div className="checkout-grid">
@@ -643,6 +663,12 @@ export default function CartPage() {
   // ═══ CART STEP ════════════════════════════════════════
   return (
     <div className="page-shell" style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <CheckoutHero3D
+        step="cart"
+        title="Giỏ hàng của bạn"
+        subtitle={`Bạn đang có ${displayCart.length} môn học trong giỏ. Kiểm tra lại trước khi thanh toán nhé.`}
+        itemCount={displayCart.length}
+      />
       <Stepper current="cart" />
 
       <div className="checkout-grid">
