@@ -356,6 +356,10 @@ export interface RestoreReport {
   tables: RestoreTableReport[];
   mediaUploaded: number;
   mediaFailed: number;
+  /** Chi tiết lỗi tải lên media (tối đa 20 dòng) */
+  mediaErrors: string[];
+  /** Kho lưu trữ có trong gói nhưng chưa tồn tại ở hệ thống đích */
+  missingBuckets: string[];
   totalInserted: number;
   totalFailed: number;
   dryRun: boolean;
@@ -393,7 +397,9 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
   const report: RestoreReport = {
     tables: [],
     mediaUploaded: 0,
-    mediaFailed: 0,
+  mediaFailed: 0,
+    mediaErrors: [],
+    missingBuckets: [],
     totalInserted: 0,
     totalFailed: 0,
     dryRun,
