@@ -173,7 +173,7 @@ export default function SnapshotRestorePanel() {
           <div style={{ marginTop: 14, border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ padding: '9px 13px', background: '#f8fafc', fontSize: 12, fontWeight: 700, color: '#334155' }}>
               {report.dryRun ? 'Kết quả kiểm tra' : 'Kết quả khôi phục'} · {report.totalInserted} thành công · {report.totalFailed} lỗi
-              {!report.dryRun && ` · ${report.mediaUploaded} media`}
+              {!report.dryRun && ` · ${report.mediaUploaded} media${report.mediaFailed > 0 ? ` (${report.mediaFailed} lỗi)` : ''}`}
             </div>
             {report.missingBuckets.length > 0 && (
               <div style={{ padding: '9px 13px', background: '#fff7ed', borderTop: '1px solid #fed7aa', fontSize: 11.5, color: '#b45309' }}>
