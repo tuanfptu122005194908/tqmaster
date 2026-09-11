@@ -799,6 +799,72 @@ export type Database = {
           },
         ]
       }
+      restore_jobs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          cursor: Json
+          dry_run: boolean
+          error: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          finished_at: string | null
+          heartbeat_at: string | null
+          id: string
+          include_media: boolean
+          progress: number
+          report: Json | null
+          started_at: string | null
+          status: string
+          step: string | null
+          tables: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          cursor?: Json
+          dry_run?: boolean
+          error?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          include_media?: boolean
+          progress?: number
+          report?: Json | null
+          started_at?: string | null
+          status?: string
+          step?: string | null
+          tables?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          cursor?: Json
+          dry_run?: boolean
+          error?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          include_media?: boolean
+          progress?: number
+          report?: Json | null
+          started_at?: string | null
+          status?: string
+          step?: string | null
+          tables?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       signup_otps: {
         Row: {
           attempts: number
