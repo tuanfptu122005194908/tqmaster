@@ -406,20 +406,41 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
   const mediaPaths = Object.keys(zip.files).filter((p) => p.startsWith('media/') && !zip.files[p].dir);
   const mediaShare = includeMedia && mediaPaths.length > 0 ? 40 : 0;
 
+  if (includeMedia && mediaPaths.length > 0) {
+    // Kiểm tra các kho lưu trữ (bucket) còn thiếu ở hệ thống đích
+    const { data: existing } = await supabase.storage.listBuckets();
+    const existingNames = new Set((existing ?? []).map((b) => b.name));
+    const neededBuckets = new Set(mediaPaths.map((p) => p.split('/')[1]));
+    for (const b of neededBuckets) if (!existingNames.has(b)) report.missingBuckets.push(b);
+  }
+
   if (includeMedia && mediaPaths.length > 0 && !dryRun) {
+    const skip = new Set(report.missingBuckets);
     for (let i = 0; i < mediaPaths.length; i++) {
       const p = mediaPaths[i];
       const parts = p.split('/');
       const bucket = parts[1];
       const path = parts.slice(2).join('/');
       onProgress?.(((i + 1) / mediaPaths.length) * mediaShare, `Đang tải lên media ${i + 1}/${mediaPaths.length}...`);
+      if (skip.has(bucket)) {
+        report.mediaFailed++;
+        continue;
+      }
       try {
         const blob = await zip.files[p].async('blob');
-        const { error } = await supabase.storage.from(bucket).upload(path, blob, { upsert: true });
-        if (error) report.mediaFailed++;
-        else report.mediaUploaded++;
-      } catch {
+        const { error } = await supabase.storage.from(bucket).upload(path, blob, {
+          upsert: true,
+          contentType: blob.type || guessContentType(path),
+        });
+        if (error) {
+          report.mediaFailed++;
+          if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${error.message}`);
+        } else {
+          report.mediaUploaded++;
+        }
+      } catch (err) {
         report.mediaFailed++;
+        if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${String(err)}`);
       }
     }
   }
