@@ -100,6 +100,29 @@ export interface BackupManifest {
 export type ProgressFn = (percent: number, message: string) => void;
 
 const PAGE = 1000;
+const TABLE_EXPORT_CONCURRENCY = 4;
+const BUCKET_LIST_CONCURRENCY = 4;
+const MEDIA_DOWNLOAD_CONCURRENCY = 8;
+const MEDIA_UPLOAD_CONCURRENCY = 6;
+const TABLE_RESTORE_CONCURRENCY = 3;
+const CHUNK_RESTORE_CONCURRENCY = 3;
+
+async function runPool<T>(
+  items: T[],
+  concurrency: number,
+  task: (item: T, index: number) => Promise<void>
+): Promise<void> {
+  let cursor = 0;
+  const worker = async () => {
+    for (;;) {
+      const index = cursor++;
+      if (index >= items.length) return;
+      await task(items[index], index);
+    }
+  };
+  const workerCount = Math.min(Math.max(concurrency, 1), items.length);
+  await Promise.all(Array.from({ length: workerCount }, worker));
+}
 
 function currentOrigin(): string {
   const url = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_SUPABASE_URL || '';
@@ -179,6 +202,20 @@ async function downloadMedia(bucket: string, path: string): Promise<Blob | null>
   return null;
 }
 
+async function uploadMedia(bucket: string, path: string, blob: Blob): Promise<string | null> {
+  let lastError = 'Không thể tải file lên';
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error } = await supabase.storage.from(bucket).upload(path, blob, {
+      upsert: true,
+      contentType: blob.type || guessContentType(path),
+    });
+    if (!error) return null;
+    lastError = error.message;
+    await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)));
+  }
+  return lastError;
+}
+
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 
 export interface ExportOptions {
@@ -213,21 +250,39 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
 
   const dbShare = includeMedia ? 55 : 95;
 
-  for (let i = 0; i < selected.length; i++) {
-    const table = selected[i];
-    const base = (i / selected.length) * dbShare;
-    onProgress?.(base, `Đang đọc bảng ${table.label}...`);
+  let completedTables = 0;
+  const tableResults = new Map<string, BackupManifest['tables'][number]>();
+  await runPool(selected, TABLE_EXPORT_CONCURRENCY, async (table) => {
+    onProgress?.(
+      (completedTables / Math.max(selected.length, 1)) * dbShare,
+      `Đang đọc song song ${TABLE_EXPORT_CONCURRENCY} bảng · ${completedTables}/${selected.length} xong...`
+    );
     try {
       const rows = await fetchAllRows(table, (loaded) =>
-        onProgress?.(base, `Đang đọc bảng ${table.label}... (${loaded} dòng)`)
+        onProgress?.(
+          (completedTables / Math.max(selected.length, 1)) * dbShare,
+          `Đang đọc ${table.label} (${loaded} dòng) · ${completedTables}/${selected.length} bảng xong...`
+        )
       );
       zip.file(`data/${table.name}.json`, JSON.stringify(rows, null, 0));
-      manifest.tables.push({ name: table.name, label: table.label, rows: rows.length });
-      manifest.totalRows += rows.length;
+      tableResults.set(table.name, { name: table.name, label: table.label, rows: rows.length });
     } catch (err) {
-      manifest.tables.push({ name: table.name, label: table.label, rows: 0, error: String(err) });
+      tableResults.set(table.name, { name: table.name, label: table.label, rows: 0, error: String(err) });
+    } finally {
+      completedTables++;
+      onProgress?.(
+        (completedTables / Math.max(selected.length, 1)) * dbShare,
+        `Đã đọc ${completedTables}/${selected.length} bảng...`
+      );
     }
-  }
+  });
+  manifest.tables = selected.map((table) => tableResults.get(table.name) ?? {
+    name: table.name,
+    label: table.label,
+    rows: 0,
+    error: 'Không nhận được kết quả',
+  });
+  manifest.totalRows = manifest.tables.reduce((sum, table) => sum + table.rows, 0);
 
   if (includeMedia) {
     onProgress?.(dbShare, 'Đang liệt kê file media...');
@@ -253,39 +308,35 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
       (buckets ?? []).map((b) => [b.name, Boolean((b as unknown as { public?: boolean }).public)])
     );
 
-    const all: MediaEntry[] = [];
-    for (const b of bucketNames) {
+    const filesByBucket = new Map<string, MediaEntry[]>();
+    let listedBuckets = 0;
+    await runPool(bucketNames, BUCKET_LIST_CONCURRENCY, async (b) => {
       const files = await listBucketFiles(b);
-      all.push(...files);
-      if (files.length > 0) {
-        manifest.media.push({
-          bucket: b,
-          files: files.length,
-          bytes: files.reduce((s, f) => s + f.size, 0),
-          public: publicFlags.get(b) ?? false,
-        });
-      }
-    }
+      filesByBucket.set(b, files);
+      listedBuckets++;
+      onProgress?.(dbShare, `Đang liệt kê song song kho lưu trữ ${listedBuckets}/${bucketNames.length}...`);
+    });
+    const all = bucketNames.flatMap((bucket) => filesByBucket.get(bucket) ?? []);
+    manifest.media = bucketNames.flatMap((bucket) => {
+      const files = filesByBucket.get(bucket) ?? [];
+      return files.length === 0 ? [] : [{
+        bucket,
+        files: files.length,
+        bytes: files.reduce((sum, file) => sum + file.size, 0),
+        public: publicFlags.get(bucket) ?? false,
+      }];
+    });
     manifest.totalMediaFiles = all.length;
 
-    // Tải song song (6 file cùng lúc) để nhanh hơn nhiều lần
-    const CONCURRENCY = 6;
     let done = 0;
-    let cursor = 0;
-    const worker = async () => {
-      for (;;) {
-        const idx = cursor++;
-        if (idx >= all.length) return;
-        const f = all[idx];
-        const blob = await downloadMedia(f.bucket, f.path);
-        if (blob) zip.file(`media/${f.bucket}/${f.path}`, blob);
-        else manifest.mediaFailed.push(`${f.bucket}/${f.path}`);
-        done++;
-        const pct = dbShare + (done / Math.max(all.length, 1)) * (95 - dbShare);
-        onProgress?.(pct, `Đang tải media ${done}/${all.length}...`);
-      }
-    };
-    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, all.length) }, worker));
+    await runPool(all, MEDIA_DOWNLOAD_CONCURRENCY, async (file) => {
+      const blob = await downloadMedia(file.bucket, file.path);
+      if (blob) zip.file(`media/${file.bucket}/${file.path}`, blob);
+      else manifest.mediaFailed.push(`${file.bucket}/${file.path}`);
+      done++;
+      const pct = dbShare + (done / Math.max(all.length, 1)) * (95 - dbShare);
+      onProgress?.(pct, `Đang tải song song ${MEDIA_DOWNLOAD_CONCURRENCY} file · ${done}/${all.length}...`);
+    });
   }
 
   zip.file('manifest.json', JSON.stringify(manifest, null, 2));
@@ -393,6 +444,16 @@ export interface RestoreOptions {
 
 const CHUNK = 200;
 
+const RESTORE_STAGE: Record<string, number> = {
+  subjects: 1,
+  exams: 2, theories: 2, news_posts: 2, announcements: 2, discount_codes: 2, profiles: 2, system_settings: 2,
+  exam_subjects: 3, questions: 3, theory_subjects: 3, user_roles: 3, user_subjects: 3, orders: 3,
+  question_options: 4, order_items: 4, exam_attempts: 4, question_reports: 4,
+  news_likes: 4, news_comments: 4, conversations: 4,
+  attempt_answers: 5, chat_messages: 5,
+  chat_cleanup_logs: 6,
+};
+
 /** Đổi mọi URL trỏ về origin cũ thành origin mới (dùng khi chuyển hệ thống) */
 function rewriteOrigins(value: unknown, from: string, to: string): unknown {
   if (!from || !to || from === to) return value;
@@ -441,40 +502,41 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
 
   if (includeMedia && mediaPaths.length > 0 && !dryRun) {
     const skip = new Set(report.missingBuckets);
-    for (let i = 0; i < mediaPaths.length; i++) {
-      const p = mediaPaths[i];
+    let completedMedia = 0;
+    await runPool(mediaPaths, MEDIA_UPLOAD_CONCURRENCY, async (p) => {
       const parts = p.split('/');
       const bucket = parts[1];
       const path = parts.slice(2).join('/');
-      onProgress?.(((i + 1) / mediaPaths.length) * mediaShare, `Đang tải lên media ${i + 1}/${mediaPaths.length}...`);
       if (skip.has(bucket)) {
         report.mediaFailed++;
-        continue;
-      }
-      try {
-        const blob = await zip.files[p].async('blob');
-        const { error } = await supabase.storage.from(bucket).upload(path, blob, {
-          upsert: true,
-          contentType: blob.type || guessContentType(path),
-        });
-        if (error) {
+      } else {
+        try {
+          const blob = await zip.files[p].async('blob');
+          const uploadError = await uploadMedia(bucket, path, blob);
+          if (uploadError) {
+            report.mediaFailed++;
+            if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${uploadError}`);
+          } else {
+            report.mediaUploaded++;
+          }
+        } catch (err) {
           report.mediaFailed++;
-          if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${error.message}`);
-        } else {
-          report.mediaUploaded++;
+          if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${String(err)}`);
         }
-      } catch (err) {
-        report.mediaFailed++;
-        if (report.mediaErrors.length < 20) report.mediaErrors.push(`${bucket}/${path}: ${String(err)}`);
       }
-    }
+      completedMedia++;
+      onProgress?.(
+        (completedMedia / mediaPaths.length) * mediaShare,
+        `Đang tải lên song song ${MEDIA_UPLOAD_CONCURRENCY} file · ${completedMedia}/${mediaPaths.length}...`
+      );
+    });
   }
 
   // 2) Dữ liệu theo đúng thứ tự khoá ngoại
   const selected = BACKUP_TABLES.filter((t) => tables.includes(t.name)).sort((a, b) => a.order - b.order);
-
-  for (let ti = 0; ti < selected.length; ti++) {
-    const table = selected[ti];
+  let completedRestoreTables = 0;
+  const restoreResults = new Map<string, RestoreTableReport>();
+  const restoreTable = async (table: BackupTable) => {
     const entry = zip.file(`data/${table.name}.json`);
     const rep: RestoreTableReport = {
       name: table.name,
@@ -486,8 +548,9 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
       errors: [],
     };
     if (!entry) {
-      report.tables.push(rep);
-      continue;
+      restoreResults.set(table.name, rep);
+      completedRestoreTables++;
+      return;
     }
 
     const raw = JSON.parse(await entry.async('string')) as Record<string, unknown>[];
@@ -495,13 +558,18 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
     rep.total = rows.length;
 
     if (dryRun) {
-      report.tables.push(rep);
-      onProgress?.(mediaShare + ((ti + 1) / selected.length) * (100 - mediaShare), `Kiểm tra ${table.label}...`);
-      continue;
+      restoreResults.set(table.name, rep);
+      completedRestoreTables++;
+      onProgress?.(mediaShare + (completedRestoreTables / selected.length) * (100 - mediaShare), `Đã kiểm tra ${completedRestoreTables}/${selected.length} bảng...`);
+      return;
     }
 
-    for (let i = 0; i < rows.length; i += CHUNK) {
-      const chunk = rows.slice(i, i + CHUNK);
+    const chunks = Array.from({ length: Math.ceil(rows.length / CHUNK) }, (_, index) => ({
+      start: index * CHUNK,
+      rows: rows.slice(index * CHUNK, (index + 1) * CHUNK),
+    }));
+    let completedRows = 0;
+    await runPool(chunks, CHUNK_RESTORE_CONCURRENCY, async ({ start, rows: chunk }) => {
       const { error } = await supabase
         .from(table.name as never)
         .upsert(chunk as never[], { onConflict: table.conflict, ignoreDuplicates: false });
@@ -514,7 +582,7 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
             .upsert([chunk[r]] as never[], { onConflict: table.conflict, ignoreDuplicates: false });
           if (rowErr) {
             rep.failed++;
-            if (rep.errors.length < 20) rep.errors.push({ row: i + r + 1, message: rowErr.message });
+            if (rep.errors.length < 20) rep.errors.push({ row: start + r + 1, message: rowErr.message });
           } else {
             rep.inserted++;
           }
@@ -522,16 +590,27 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
       } else {
         rep.inserted += chunk.length;
       }
+      completedRows += chunk.length;
+      const tableFraction = completedRows / Math.max(rows.length, 1);
+      const pct = mediaShare + ((completedRestoreTables + tableFraction) / selected.length) * (100 - mediaShare);
+      onProgress?.(Math.min(pct, 99), `Đang ghi song song ${table.label} (${completedRows}/${rows.length})...`);
+    });
 
-      const inner = (i + chunk.length) / Math.max(rows.length, 1);
-      const pct = mediaShare + ((ti + inner) / selected.length) * (100 - mediaShare);
-      onProgress?.(Math.min(pct, 99), `Đang khôi phục ${table.label} (${i + chunk.length}/${rows.length})...`);
-    }
+    restoreResults.set(table.name, rep);
+    completedRestoreTables++;
+  };
 
-    report.totalInserted += rep.inserted;
-    report.totalFailed += rep.failed;
-    report.tables.push(rep);
+  const stages = Array.from(new Set(selected.map((table) => RESTORE_STAGE[table.name] ?? 99))).sort((a, b) => a - b);
+  for (const stage of stages) {
+    const stageTables = selected.filter((table) => (RESTORE_STAGE[table.name] ?? 99) === stage);
+    await runPool(stageTables, TABLE_RESTORE_CONCURRENCY, restoreTable);
   }
+
+  report.tables = selected.map((table) => restoreResults.get(table.name) ?? {
+    name: table.name, label: table.label, total: 0, inserted: 0, failed: 0, skipped: true, errors: [],
+  });
+  report.totalInserted = report.tables.reduce((sum, table) => sum + table.inserted, 0);
+  report.totalFailed = report.tables.reduce((sum, table) => sum + table.failed, 0);
 
   onProgress?.(100, dryRun ? 'Kiểm tra hoàn tất!' : 'Khôi phục hoàn tất!');
   return report;
