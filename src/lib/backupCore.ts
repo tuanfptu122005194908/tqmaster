@@ -90,7 +90,9 @@ export interface BackupManifest {
   sourceOrigin: string;
   includeMedia: boolean;
   tables: { name: string; label: string; rows: number; error?: string }[];
-  media: { bucket: string; files: number; bytes: number }[];
+  media: { bucket: string; files: number; bytes: number; public?: boolean }[];
+  /** Các file media không tải được khi sao lưu (nếu có) */
+  mediaFailed: string[];
   totalRows: number;
   totalMediaFiles: number;
 }
@@ -246,6 +248,10 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
       new Set([...(buckets ?? []).map((b) => b.name), ...KNOWN_BUCKETS])
     );
 
+    const publicFlags = new Map<string, boolean>(
+      (buckets ?? []).map((b) => [b.name, Boolean((b as unknown as { public?: boolean }).public)])
+    );
+
     const all: MediaEntry[] = [];
     for (const b of bucketNames) {
       const files = await listBucketFiles(b);
@@ -255,18 +261,30 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
           bucket: b,
           files: files.length,
           bytes: files.reduce((s, f) => s + f.size, 0),
+          public: publicFlags.get(b) ?? false,
         });
       }
     }
     manifest.totalMediaFiles = all.length;
 
-    for (let i = 0; i < all.length; i++) {
-      const f = all[i];
-      const pct = dbShare + ((i + 1) / Math.max(all.length, 1)) * (95 - dbShare);
-      onProgress?.(pct, `Đang tải media ${i + 1}/${all.length}: ${f.bucket}/${f.path}`);
-      const blob = await downloadMedia(f.bucket, f.path);
-      if (blob) zip.file(`media/${f.bucket}/${f.path}`, blob);
-    }
+    // Tải song song (6 file cùng lúc) để nhanh hơn nhiều lần
+    const CONCURRENCY = 6;
+    let done = 0;
+    let cursor = 0;
+    const worker = async () => {
+      for (;;) {
+        const idx = cursor++;
+        if (idx >= all.length) return;
+        const f = all[idx];
+        const blob = await downloadMedia(f.bucket, f.path);
+        if (blob) zip.file(`media/${f.bucket}/${f.path}`, blob);
+        else manifest.mediaFailed.push(`${f.bucket}/${f.path}`);
+        done++;
+        const pct = dbShare + (done / Math.max(all.length, 1)) * (95 - dbShare);
+        onProgress?.(pct, `Đang tải media ${done}/${all.length}...`);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, all.length) }, worker));
   }
 
   zip.file('manifest.json', JSON.stringify(manifest, null, 2));
