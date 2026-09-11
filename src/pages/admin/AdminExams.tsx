@@ -11,6 +11,8 @@ import { parseHtmlToQuestions, type ParsedQuestion } from '@/lib/wordParser';
 import { parseMarkdownExam, detectGluedOptionA } from '@/lib/markdownExamParser';
 import { BulkExamZipModal } from '@/components/admin/BulkExamZipModal';
 import { batchUploadImages, uploadExamQuestionFile } from '@/lib/imageUpload';
+import { signQuestionImages } from '@/lib/signedImage';
+
 
 type Exam    = Tables<'exams'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
