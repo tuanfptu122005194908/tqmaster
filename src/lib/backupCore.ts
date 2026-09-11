@@ -274,12 +274,14 @@ export interface ExportOptions {
   tables: string[];
   includeMedia: boolean;
   onProgress?: ProgressFn;
+  saveToFile?: boolean;
 }
 
 export interface SnapshotExportResult {
   fileName: string;
   manifest: BackupManifest;
   sizeBytes: number;
+  blob: Blob;
 }
 
 export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotExportResult> {
@@ -397,10 +399,12 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
   onProgress?.(96, 'Đang nén gói sao lưu...');
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
   const fileName = `TQMaster_Snapshot_${timestamp()}.zip`;
-  saveAs(blob, fileName);
+  if (opts.saveToFile !== false) {
+    saveAs(blob, fileName);
+  }
   onProgress?.(100, 'Hoàn tất!');
 
-  return { fileName, manifest, sizeBytes: blob.size };
+  return { fileName, manifest, sizeBytes: blob.size, blob };
 }
 
 function buildReadme(m: BackupManifest): string {

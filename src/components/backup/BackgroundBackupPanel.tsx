@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
-import { BACKUP_TABLES, DEFAULT_TABLES, formatBytes } from '@/lib/backupCore';
+import { BACKUP_TABLES, DEFAULT_TABLES, formatBytes, exportFullSnapshot } from '@/lib/backupCore';
 import { useToast } from '@/hooks/use-toast';
 
 const INIT_SQL = `-- Chạy script này trong Supabase Dashboard -> SQL Editor
@@ -182,28 +182,93 @@ export default function BackgroundBackupPanel() {
         throw new Error(jobErr?.message ?? 'Không thể tạo yêu cầu sao lưu.');
       }
 
-      const { error: fnErr } = await supabase.functions.invoke('backup-worker', {
-        body: { jobId: job.id },
-      });
-
-      if (fnErr) {
-        throw new Error(`Lỗi gọi Edge Function (backup-worker): ${fnErr.message}. Nếu chưa deploy hàm lên Supabase, hãy deploy hàm backup-worker.`);
+      let invokedServer = false;
+      try {
+        const { error: fnErr } = await supabase.functions.invoke('backup-worker', {
+          body: { jobId: job.id },
+        });
+        if (!fnErr) {
+          invokedServer = true;
+        }
+      } catch {
+        invokedServer = false;
       }
 
+      if (invokedServer) {
+        toast({
+          title: '🚀 Đã bắt đầu sao lưu trên máy chủ',
+          description: 'Bạn có thể đóng tab hoặc tắt máy tính ngay bây giờ. Máy chủ Supabase sẽ tự động chạy ngầm và lưu trữ gói sao lưu.',
+        });
+        await loadJobs();
+        return;
+      }
+
+      // Nếu Edge Function chưa được deploy trên Supabase Cloud:
+      // Tự động đóng gói trực tiếp và tải lên Cloud Storage cho người dùng
       toast({
-        title: '🚀 Đã bắt đầu sao lưu trên máy chủ',
-        description: 'Bạn có thể đóng tab hoặc tắt máy tính ngay bây giờ. Máy chủ Supabase sẽ tự động chạy ngầm và lưu trữ gói sao lưu.',
+        title: '⚡ Đang đóng gói dữ liệu và lưu lên đám mây...',
+        description: 'Đang tự động đọc dữ liệu và nén tệp sao lưu lưu trữ trên Cloud Storage...',
       });
 
+      await supabase.from('backup_jobs').update({
+        status: 'running',
+        step: 'Đang đọc và đóng gói dữ liệu...',
+        progress: 10,
+      }).eq('id', job.id);
+      await loadJobs();
+
+      const res = await exportFullSnapshot({
+        tables: selected,
+        includeMedia,
+        saveToFile: false,
+        onProgress: async (p, m) => {
+          await supabase.from('backup_jobs').update({
+            progress: Math.min(Math.round(p), 90),
+            step: m,
+          }).eq('id', job.id);
+          await loadJobs();
+        },
+      });
+
+      const filePath = `archives/${job.id}/${res.fileName}`;
+      await supabase.from('backup_jobs').update({
+        progress: 95,
+        step: 'Đang lưu trữ gói sao lưu lên Cloud Storage...',
+      }).eq('id', job.id);
+
+      const { error: upErr } = await supabase.storage
+        .from('backup-uploads')
+        .upload(filePath, res.blob, {
+          contentType: 'application/zip',
+          upsert: true,
+        });
+
+      if (upErr) throw new Error(`Lỗi tải lên Storage: ${upErr.message}`);
+
+      await supabase.from('backup_jobs').update({
+        status: 'done',
+        file_path: filePath,
+        file_name: res.fileName,
+        file_size: res.sizeBytes,
+        progress: 100,
+        step: 'Hoàn tất! Đã tạo và lưu trữ an toàn trên đám mây.',
+        finished_at: new Date().toISOString(),
+      }).eq('id', job.id);
+
+      toast({
+        title: '✅ Đã lưu trữ gói sao lưu trên đám mây',
+        description: `${res.fileName} (${formatBytes(res.sizeBytes)}). Bạn có thể bấm "Tải về (.zip)" bất cứ lúc nào!`,
+      });
       await loadJobs();
     } catch (err) {
       toast({
-        title: 'Không thể khởi động sao lưu',
+        title: 'Không thể thực hiện sao lưu',
         description: String(err instanceof Error ? err.message : err),
         variant: 'destructive',
       });
     } finally {
       setStarting(false);
+      await loadJobs();
     }
   };
 
@@ -656,66 +721,66 @@ export default function BackgroundBackupPanel() {
                       </div>
                     )}
 
-                    {/* Done Actions */}
-                    {isDone && (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, borderTop: '1px solid #f1f5f9' }}>
-                        <div style={{ fontSize: 11, color: '#64748b' }}>
-                          {job.file_size > 0 ? formatBytes(job.file_size) : 'Đã nén'} · {job.include_media ? 'Kèm Media' : 'Chỉ Database'}
-                        </div>
+                    {/* Actions */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 6, borderTop: '1px solid #f1f5f9' }}>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>
+                        {isDone
+                          ? `${job.file_size > 0 ? formatBytes(job.file_size) : 'Đã nén'} · ${job.include_media ? 'Kèm Media' : 'Chỉ Database'}`
+                          : (job.include_media ? 'Kèm Media' : 'Chỉ Database')}
+                      </div>
 
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          {job.file_path && (
-                            <button
-                              type="button"
-                              onClick={() => handleDownload(job)}
-                              disabled={downloadingId === job.id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '6px 12px',
-                                borderRadius: 10,
-                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                                color: '#ffffff',
-                                fontSize: 12,
-                                fontWeight: 700,
-                                border: 'none',
-                                cursor: downloadingId === job.id ? 'not-allowed' : 'pointer',
-                                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
-                              }}
-                            >
-                              {downloadingId === job.id ? (
-                                <Loader2 size={13} className="animate-spin" />
-                              ) : (
-                                <Download size={13} />
-                              )}
-                              Tải về (.zip)
-                            </button>
-                          )}
-
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        {isDone && job.file_path && (
                           <button
                             type="button"
-                            onClick={() => handleDelete(job)}
-                            disabled={deletingId === job.id}
-                            title="Xóa khỏi đám mây"
+                            onClick={() => handleDownload(job)}
+                            disabled={downloadingId === job.id}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              width: 30,
-                              height: 30,
+                              gap: 6,
+                              padding: '6px 12px',
                               borderRadius: 10,
-                              background: '#f8fafc',
-                              color: '#ef4444',
-                              border: '1px solid #e2e8f0',
-                              cursor: deletingId === job.id ? 'not-allowed' : 'pointer',
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                              color: '#ffffff',
+                              fontSize: 12,
+                              fontWeight: 700,
+                              border: 'none',
+                              cursor: downloadingId === job.id ? 'not-allowed' : 'pointer',
+                              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
                             }}
                           >
-                            {deletingId === job.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                            {downloadingId === job.id ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : (
+                              <Download size={13} />
+                            )}
+                            Tải về (.zip)
                           </button>
-                        </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(job)}
+                          disabled={deletingId === job.id}
+                          title="Xóa bản ghi này"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 30,
+                            height: 30,
+                            borderRadius: 10,
+                            background: '#f8fafc',
+                            color: '#ef4444',
+                            border: '1px solid #e2e8f0',
+                            cursor: deletingId === job.id ? 'not-allowed' : 'pointer',
+                          }}
+                        >
+                          {deletingId === job.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}

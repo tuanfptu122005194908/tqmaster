@@ -27,3 +27,4 @@ dist-ssr
 .agents/
 .gemini/
 graphify-out/cache/
+supabase/.temp/
