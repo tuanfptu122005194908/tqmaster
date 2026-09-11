@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 import { RichContent } from '@/components/exam/RichContent';
+import { signQuestionImages } from '@/lib/signedImage';
+
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 
 type Exam = Tables<'exams'>;
@@ -190,7 +192,9 @@ export default function ExamPage() {
       }));
       // Sort options by label
       qs.forEach(q => { q.options.sort((a, b) => a.label.localeCompare(b.label)); });
-      setQuestions(qs);
+      const signedQs = await signQuestionImages(qs as any);
+      setQuestions(signedQs as Question[]);
+
       
       let initialTimeLeft = examData ? examData.duration_min * 60 : 0;
       const draftStr = localStorage.getItem(`exam_draft_${selectedExamId}_${examMode}`);
