@@ -40,7 +40,11 @@ export default function AdminQuestionReports() {
       toast.error('Lỗi tải danh sách báo cáo');
       console.error(error);
     } else {
-      setReports(data || []);
+      const rows = data || [];
+      const signedQuestions = await signQuestionImages(rows.map((r: any) => r.question).filter(Boolean));
+      let qi = 0;
+      setReports(rows.map((r: any) => (r.question ? { ...r, question: signedQuestions[qi++] } : r)));
+
     }
     setLoading(false);
   };
