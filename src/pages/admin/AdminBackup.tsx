@@ -77,6 +77,7 @@ export default function AdminBackup() {
         {tab === 'snapshot' ? (
           <>
             <SnapshotExportPanel />
+            <BackgroundRestorePanel />
             <SnapshotRestorePanel />
           </>
         ) : (
