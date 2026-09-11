@@ -424,7 +424,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (id: string) => setCart(c => c.filter(i => (typeof i === 'string' ? i : i?.id) !== id));
   const clearCart    = () => setCart([]);
   const isInCart     = (id: string) => cart.some(i => (typeof i === 'string' ? i : i?.id) === id);
-  const isPurchased  = (id: string) => purchasedIds.includes(id);
+  const isFree       = (id: string) => freeSubjectIds.includes(id);
+  const isPurchased  = (id: string) => purchasedIds.includes(id) || freeSubjectIds.includes(id);
 
   // ── Sign out ─────────────────────────────────────────────
   const signOut = async () => {
