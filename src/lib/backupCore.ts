@@ -169,9 +169,12 @@ async function listBucketFiles(bucket: string): Promise<MediaEntry[]> {
 }
 
 async function downloadMedia(bucket: string, path: string): Promise<Blob | null> {
-  const { data, error } = await supabase.storage.from(bucket).download(path);
-  if (error || !data) return null;
-  return data;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await supabase.storage.from(bucket).download(path);
+    if (!error && data) return data;
+    await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+  }
+  return null;
 }
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
