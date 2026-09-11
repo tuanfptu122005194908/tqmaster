@@ -4,6 +4,8 @@ import { useApp } from '@/lib/AppContext';
 import { Check, X, MessageSquareWarning, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { RichContent } from '@/components/exam/RichContent';
+import { signQuestionImages } from '@/lib/signedImage';
+
 
 type QuestionReport = {
   id: string;
