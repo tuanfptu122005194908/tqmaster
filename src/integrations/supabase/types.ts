@@ -122,6 +122,66 @@ export type Database = {
           },
         ]
       }
+      backup_jobs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number
+          finished_at: string | null
+          heartbeat_at: string | null
+          id: string
+          include_media: boolean
+          manifest: Json | null
+          progress: number
+          started_at: string | null
+          status: string
+          step: string | null
+          tables: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          include_media?: boolean
+          manifest?: Json | null
+          progress?: number
+          started_at?: string | null
+          status?: string
+          step?: string | null
+          tables?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          include_media?: boolean
+          manifest?: Json | null
+          progress?: number
+          started_at?: string | null
+          status?: string
+          step?: string | null
+          tables?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_cleanup_logs: {
         Row: {
           cleaned_at: string
@@ -798,66 +858,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      backup_jobs: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          error: string | null
-          file_name: string | null
-          file_path: string | null
-          file_size: number
-          finished_at: string | null
-          heartbeat_at: string | null
-          id: string
-          include_media: boolean
-          manifest: Json | null
-          progress: number
-          started_at: string | null
-          status: string
-          step: string | null
-          tables: Json
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          error?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_size?: number
-          finished_at?: string | null
-          heartbeat_at?: string | null
-          id?: string
-          include_media?: boolean
-          manifest?: Json | null
-          progress?: number
-          started_at?: string | null
-          status?: string
-          step?: string | null
-          tables?: Json
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          error?: string | null
-          file_name?: string | null
-          file_path?: string | null
-          file_size?: number
-          finished_at?: string | null
-          heartbeat_at?: string | null
-          id?: string
-          include_media?: boolean
-          manifest?: Json | null
-          progress?: number
-          started_at?: string | null
-          status?: string
-          step?: string | null
-          tables?: Json
-          updated_at?: string
-        }
-        Relationships: []
       }
       restore_jobs: {
         Row: {
