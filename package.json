@@ -10,7 +10,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "export:sql": "node scripts/export_to_sql.mjs",
+    "migrate:db": "node scripts/migrate_to_new_db.mjs",
+    "db:export": "node scripts/export_to_sql.mjs",
+    "db:migrate": "node scripts/migrate_to_new_db.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

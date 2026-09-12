@@ -28,3 +28,4 @@ dist-ssr
 .gemini/
 graphify-out/cache/
 supabase/.temp/
+backup_sql/
