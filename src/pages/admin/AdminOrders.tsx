@@ -137,16 +137,54 @@ export default function AdminOrders() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Xóa đơn hàng này?')) return;
-    const { error } = await supabase.from('orders').delete().eq('id', id);
-    if (error) {
-      toast.error('Lỗi khi xoá đơn hàng: ' + error.message);
-      return;
+    if (!confirm('Xoá đơn hàng này? Nếu đơn hàng đã từng duyệt, quyền học của học viên sẽ được tự động thu hồi.')) return;
+
+    try {
+      // 1. Kiểm tra thông tin đơn hàng và các môn trước khi xoá
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('id, user_id, status, order_items(subject_id)')
+        .eq('id', id)
+        .single();
+
+      if (orderData && orderData.status === 'approved' && orderData.order_items?.length) {
+        const subjectIds = (orderData.order_items as any[])
+          .map((item: any) => item.subject_id)
+          .filter(Boolean);
+
+        for (const subjId of subjectIds) {
+          // Kiểm tra xem user có đơn nào khác cũng đang approved môn này không
+          const { data: otherOrders } = await supabase
+            .from('orders')
+            .select('id, order_items!inner(subject_id)')
+            .eq('user_id', orderData.user_id)
+            .eq('status', 'approved')
+            .neq('id', id)
+            .eq('order_items.subject_id', subjId);
+
+          if (!otherOrders || otherOrders.length === 0) {
+            await supabase
+              .from('user_subjects')
+              .delete()
+              .eq('user_id', orderData.user_id)
+              .eq('subject_id', subjId);
+          }
+        }
+      }
+
+      // 2. Xoá đơn hàng
+      const { error } = await supabase.from('orders').delete().eq('id', id);
+      if (error) {
+        toast.error('Lỗi khi xoá đơn hàng: ' + error.message);
+        return;
+      }
+      toast.success('Đã xoá đơn hàng và thu hồi quyền môn học');
+      fetchPage(page);
+      fetchStats();
+      refreshPendingOrdersCount();
+    } catch (e: any) {
+      toast.error('Lỗi xử lý xoá: ' + (e?.message || 'Có lỗi xảy ra'));
     }
-    toast.success('Đã xoá đơn hàng');
-    fetchPage(page);
-    fetchStats();
-    refreshPendingOrdersCount();
   };
 
   const openDetail = async (order: Order) => {
