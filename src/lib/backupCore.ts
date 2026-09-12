@@ -409,6 +409,7 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
     compressionOptions: { level: 1 },
   });
 
+  let lastReportedP = -1;
   onProgress?.(95, 'Đang đóng gói tệp .zip...');
   const blob = await zip.generateAsync(
     {
@@ -416,10 +417,18 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
       compression: 'STORE',
     },
     (meta) => {
-      onProgress?.(
-        95 + Math.round((meta.percent / 100) * 4),
-        `Đang hoàn thiện tệp .zip (${Math.round(meta.percent)}%)...`
-      );
+      const p = Math.round(meta.percent);
+      if (p !== lastReportedP && (p % 25 === 0 || p === 100)) {
+        lastReportedP = p;
+        try {
+          onProgress?.(
+            95 + Math.round((p / 100) * 4),
+            `Đang đóng gói tệp .zip (${p}%)...`
+          );
+        } catch {
+          // Bỏ qua lỗi callback
+        }
+      }
     }
   );
 

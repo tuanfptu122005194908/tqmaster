@@ -2374,9 +2374,9 @@
     "semantic_hash": ""
   },
   "src/lib/backupCore.ts": {
-    "mtime": 1789178887.7548647,
-    "seen": 1789179592.66441,
-    "ast_hash": "7e98e5fcc7cc63ce178afa9be7d40c57",
+    "mtime": 1789181413.4357953,
+    "seen": 1789181494.073973,
+    "ast_hash": "3e0ef2f1105b0b6703a8a8cc1b1c17c1",
     "semantic_hash": ""
   },
   "src/test/wordParser.test.ts": {
@@ -2514,9 +2514,9 @@
     "semantic_hash": ""
   },
   "src/components/backup/BackgroundBackupPanel.tsx": {
-    "mtime": 1789179054.511682,
-    "seen": 1789179592.646029,
-    "ast_hash": "6792843a07f02d3aa416de45ced15676",
+    "mtime": 1789181437.6496882,
+    "seen": 1789181494.053252,
+    "ast_hash": "57bcf2b41012ebcf956d71edf356b9db",
     "semantic_hash": ""
   },
   "supabase/functions/backup-worker/index.ts": {

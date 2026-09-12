@@ -212,17 +212,27 @@ export default function BackgroundBackupPanel() {
         description: 'Động cơ nén tối ưu (STORE media + fast DEFLATE) đang xử lý...',
       });
 
+      let lastDbUpdate = 0;
       const res = await exportFullSnapshot({
         tables: selected,
         includeMedia,
         saveToFile: false,
         onProgress: async (p, m) => {
-          await supabase.from('backup_jobs').update({
-            progress: Math.min(Math.round(p), 94),
-            step: m,
-            heartbeat_at: new Date().toISOString(),
-          }).eq('id', job.id);
-          await loadJobs();
+          const now = Date.now();
+          const pct = Math.min(Math.round(p), 94);
+          // Giới hạn tần suất gọi Supabase tối đa 1 lần mỗi 1.5 giây để chống nghẽn kết nối PostgREST
+          if (now - lastDbUpdate > 1500 || pct >= 94) {
+            lastDbUpdate = now;
+            try {
+              await supabase.from('backup_jobs').update({
+                progress: pct,
+                step: m,
+                heartbeat_at: new Date().toISOString(),
+              }).eq('id', job.id);
+            } catch {
+              // Bỏ qua lỗi cập nhật tiến độ tạm thời
+            }
+          }
         },
       });
 
@@ -232,7 +242,6 @@ export default function BackgroundBackupPanel() {
         step: 'Đang lưu trữ gói sao lưu lên Cloud Storage...',
         heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
-      await loadJobs();
 
       const { error: upErr } = await supabase.storage
         .from('backup-uploads')
@@ -241,7 +250,11 @@ export default function BackgroundBackupPanel() {
           upsert: true,
         });
 
-      if (upErr) throw new Error(`Lỗi tải lên Storage: ${upErr.message}`);
+      if (upErr) {
+        // Nếu lỗi tải lên Storage (ví dụ chưa có bucket), tự động tải ngay file về máy người dùng để không mất dữ liệu
+        downloadBlob(res.blob, res.fileName);
+        throw new Error(`Kho lưu trữ đám mây báo lỗi: ${upErr.message}. Hệ thống đã tự động kích hoạt tải file .zip về máy của bạn!`);
+      }
 
       await supabase.from('backup_jobs').update({
         status: 'done',
@@ -260,9 +273,21 @@ export default function BackgroundBackupPanel() {
       });
       await loadJobs();
     } catch (err) {
+      const errMsg = String(err instanceof Error ? err.message : err);
+      console.error('Lỗi khi sao lưu:', err);
+      try {
+        if (job?.id) {
+          await supabase.from('backup_jobs').update({
+            status: 'failed',
+            error: errMsg,
+            step: 'Thất bại khi thực hiện sao lưu: ' + errMsg,
+            finished_at: new Date().toISOString(),
+          }).eq('id', job.id);
+        }
+      } catch {}
       toast({
-        title: 'Không thể thực hiện sao lưu',
-        description: String(err instanceof Error ? err.message : err),
+        title: 'Không thể hoàn tất sao lưu',
+        description: errMsg,
         variant: 'destructive',
       });
     } finally {
@@ -277,24 +302,36 @@ export default function BackgroundBackupPanel() {
       toast({ title: '⚡ Đang tiếp tục đóng gói và lưu tệp lên đám mây...' });
       await supabase.from('backup_jobs').update({
         status: 'running',
-        step: 'Đang tiếp tục đọc dữ liệu & hoàn tất tệp sao lưu...',
+        step: 'Đang đọc dữ liệu và nén tệp sao lưu...',
         progress: 10,
         heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
       await loadJobs();
 
+      // Đảm bảo bucket backup-uploads sẵn sàng
+      try {
+        await supabase.storage.createBucket('backup-uploads', { public: false });
+      } catch {}
+
       const tablesToExport = (job.tables && job.tables.length > 0) ? job.tables : DEFAULT_TABLES;
+      let lastDbUpdate = 0;
       const res = await exportFullSnapshot({
         tables: tablesToExport,
         includeMedia: job.include_media,
         saveToFile: false,
         onProgress: async (p, m) => {
-          await supabase.from('backup_jobs').update({
-            progress: Math.min(Math.round(p), 94),
-            step: m,
-            heartbeat_at: new Date().toISOString(),
-          }).eq('id', job.id);
-          await loadJobs();
+          const now = Date.now();
+          const pct = Math.min(Math.round(p), 94);
+          if (now - lastDbUpdate > 1500 || pct >= 94) {
+            lastDbUpdate = now;
+            try {
+              await supabase.from('backup_jobs').update({
+                progress: pct,
+                step: m,
+                heartbeat_at: new Date().toISOString(),
+              }).eq('id', job.id);
+            } catch {}
+          }
         },
       });
 
@@ -304,7 +341,6 @@ export default function BackgroundBackupPanel() {
         step: 'Đang lưu trữ gói sao lưu lên Cloud Storage...',
         heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
-      await loadJobs();
 
       const { error: upErr } = await supabase.storage
         .from('backup-uploads')
@@ -313,7 +349,10 @@ export default function BackgroundBackupPanel() {
           upsert: true,
         });
 
-      if (upErr) throw new Error(`Lỗi tải lên Storage: ${upErr.message}`);
+      if (upErr) {
+        downloadBlob(res.blob, res.fileName);
+        throw new Error(`Kho lưu trữ đám mây báo lỗi: ${upErr.message}. Đã tự động tải file .zip về máy của bạn!`);
+      }
 
       await supabase.from('backup_jobs').update({
         status: 'done',
@@ -332,9 +371,19 @@ export default function BackgroundBackupPanel() {
       });
       await loadJobs();
     } catch (err) {
+      const errMsg = String(err instanceof Error ? err.message : err);
+      console.error('Lỗi hoàn tất:', err);
+      try {
+        await supabase.from('backup_jobs').update({
+          status: 'failed',
+          error: errMsg,
+          step: 'Thất bại khi thực hiện: ' + errMsg,
+          finished_at: new Date().toISOString(),
+        }).eq('id', job.id);
+      } catch {}
       toast({
         title: 'Lỗi khi hoàn tất sao lưu',
-        description: String(err instanceof Error ? err.message : err),
+        description: errMsg,
         variant: 'destructive',
       });
     } finally {

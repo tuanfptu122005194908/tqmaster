@@ -430,7 +430,7 @@
       "file_type": "code",
       "norm_label": "restoreoptions",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L546"
+      "source_location": "L555"
     },
     {
       "id": "src_lib_backupcore_restoretablereport",
@@ -443,7 +443,7 @@
       "file_type": "code",
       "norm_label": "restoretablereport",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L523"
+      "source_location": "L532"
     },
     {
       "id": "src_components_ui_chart_chartconfig",
@@ -794,7 +794,7 @@
       "file_type": "code",
       "norm_label": "restorereport",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L533"
+      "source_location": "L542"
     },
     {
       "id": "src_components_backup_backgroundbackuppanel_backupjob",
@@ -937,7 +937,7 @@
       "file_type": "code",
       "norm_label": "snapshotinfo",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L503"
+      "source_location": "L512"
     },
     {
       "id": "src_components_safecanvas_webglerrorboundary",
@@ -2605,7 +2605,7 @@
       "file_type": "code",
       "norm_label": "buildreadme()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L462"
+      "source_location": "L471"
     },
     {
       "id": "src_lib_backupcore_currentorigin",
@@ -2665,7 +2665,7 @@
       "file_type": "code",
       "norm_label": "guesscontenttype()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L496"
+      "source_location": "L505"
     },
     {
       "id": "src_lib_backupcore_istimeouterror",
@@ -2713,7 +2713,7 @@
       "file_type": "code",
       "norm_label": "restoresnapshot()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L578"
+      "source_location": "L587"
     },
     {
       "id": "src_lib_backupcore_rewriteorigins",
@@ -2725,7 +2725,7 @@
       "file_type": "code",
       "norm_label": "rewriteorigins()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L566"
+      "source_location": "L575"
     },
     {
       "id": "src_lib_backupcore_runpool",
@@ -3649,7 +3649,7 @@
       "file_type": "code",
       "norm_label": "downloadblob()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L436"
+      "source_location": "L445"
     },
     {
       "id": "src_lib_backupcore_formatbytes",
@@ -3661,7 +3661,7 @@
       "file_type": "code",
       "norm_label": "formatbytes()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L727"
+      "source_location": "L736"
     },
     {
       "id": "src_pages_admin_adminbackup_adminbackup",
@@ -3721,7 +3721,7 @@
       "file_type": "code",
       "norm_label": "inspectsnapshot()",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L510"
+      "source_location": "L519"
     },
     {
       "id": "src_components_landing3d_ambientbackgroundcore_ambientbackgroundcore",
@@ -8983,7 +8983,7 @@
       "file_type": "code",
       "norm_label": "mime",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L483"
+      "source_location": "L492"
     },
     {
       "id": "src_lib_backupcore_restore_stage",
@@ -8994,7 +8994,7 @@
       "file_type": "code",
       "norm_label": "restore_stage",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L555"
+      "source_location": "L564"
     },
     {
       "id": "readme",
@@ -33743,19 +33743,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/backup/BackgroundBackupPanel.tsx",
-      "source_location": "L215",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_backup_backgroundbackuppanel_backgroundbackuppanel",
-      "target": "src_lib_backupcore_formatbytes",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/backup/BackgroundBackupPanel.tsx",
-      "source_location": "L259",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -33767,7 +33755,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/backup/BackgroundBackupPanel.tsx",
-      "source_location": "L377",
+      "source_location": "L255",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_backup_backgroundbackuppanel_backgroundbackuppanel",
+      "target": "src_lib_backupcore_formatbytes",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/backup/BackgroundBackupPanel.tsx",
+      "source_location": "L272",
       "weight": 1.0
     },
     {
@@ -36887,7 +36887,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L426",
+      "source_location": "L435",
       "weight": 1.0
     },
     {
@@ -36899,7 +36899,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L428",
+      "source_location": "L437",
       "weight": 1.0
     },
     {
@@ -36935,7 +36935,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L596",
+      "source_location": "L605",
       "weight": 1.0
     },
     {
@@ -36947,7 +36947,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L614",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -36959,7 +36959,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L623",
+      "source_location": "L632",
       "weight": 1.0
     },
     {
@@ -36971,7 +36971,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L665",
+      "source_location": "L674",
       "weight": 1.0
     },
     {
@@ -69845,7 +69845,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L436",
+      "source_location": "L445",
       "weight": 1.0
     },
     {
@@ -69867,7 +69867,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L462",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -69878,7 +69878,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L483",
+      "source_location": "L492",
       "weight": 1.0
     },
     {
@@ -69889,7 +69889,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L496",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -69900,7 +69900,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L503",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -69911,7 +69911,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L510",
+      "source_location": "L519",
       "weight": 1.0
     },
     {
@@ -69922,7 +69922,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L523",
+      "source_location": "L532",
       "weight": 1.0
     },
     {
@@ -69933,7 +69933,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L533",
+      "source_location": "L542",
       "weight": 1.0
     },
     {
@@ -69944,7 +69944,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L546",
+      "source_location": "L555",
       "weight": 1.0
     },
     {
@@ -69955,7 +69955,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L555",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -69966,7 +69966,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L566",
+      "source_location": "L575",
       "weight": 1.0
     },
     {
@@ -69977,7 +69977,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L578",
+      "source_location": "L587",
       "weight": 1.0
     },
     {
@@ -69988,7 +69988,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/backupCore.ts",
-      "source_location": "L727",
+      "source_location": "L736",
       "weight": 1.0
     },
     {
@@ -74378,5 +74378,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "0d6481e5034597e1a9e0503254b3394628e2fbef"
+  "built_at_commit": "9371ef0cd2fc09aa66ace3dab53f2be750f461c5"
 }

@@ -510,9 +510,9 @@
     "semantic_hash": ""
   },
   "src/integrations/supabase/types.ts": {
-    "mtime": 1789149425.168529,
-    "seen": 1789149550.6673658,
-    "ast_hash": "904bd2349d9c59d6322ce88ebecf4519",
+    "mtime": 1789151551.6135204,
+    "seen": 1789179592.6642082,
+    "ast_hash": "342ba88bdc2c84995e2614afdd07a72c",
     "semantic_hash": ""
   },
   "src/lib/AppContext.tsx": {
@@ -2362,9 +2362,9 @@
     "semantic_hash": ""
   },
   "src/components/backup/SnapshotExportPanel.tsx": {
-    "mtime": 1789054820.599961,
-    "seen": 1789059066.0057676,
-    "ast_hash": "de9b7e28497beea4af034a85c94c84ab",
+    "mtime": 1789178909.3339791,
+    "seen": 1789179592.647573,
+    "ast_hash": "fd0b611ac73f942e293f0e858bf3d068",
     "semantic_hash": ""
   },
   "src/components/backup/SnapshotRestorePanel.tsx": {
@@ -2374,9 +2374,9 @@
     "semantic_hash": ""
   },
   "src/lib/backupCore.ts": {
-    "mtime": 1789150771.399674,
-    "seen": 1789150870.0639784,
-    "ast_hash": "a943076f27509e8c2802e5819301e621",
+    "mtime": 1789178887.7548647,
+    "seen": 1789179592.66441,
+    "ast_hash": "7e98e5fcc7cc63ce178afa9be7d40c57",
     "semantic_hash": ""
   },
   "src/test/wordParser.test.ts": {
@@ -2514,15 +2514,15 @@
     "semantic_hash": ""
   },
   "src/components/backup/BackgroundBackupPanel.tsx": {
-    "mtime": 1789150836.2150643,
-    "seen": 1789150870.0563304,
-    "ast_hash": "4fe18f420e69dd63996dd1df27d84fbb",
+    "mtime": 1789179054.511682,
+    "seen": 1789179592.646029,
+    "ast_hash": "6792843a07f02d3aa416de45ced15676",
     "semantic_hash": ""
   },
   "supabase/functions/backup-worker/index.ts": {
-    "mtime": 1789149989.4776833,
-    "seen": 1789150524.7421854,
-    "ast_hash": "871f4c28b47b34a0308a6400fe006d5e",
+    "mtime": 1789178963.5058744,
+    "seen": 1789179592.672447,
+    "ast_hash": "4c9655866d3022da98f3ab7848a62911",
     "semantic_hash": ""
   }
 }
