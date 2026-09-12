@@ -149,60 +149,35 @@ export default function AuthPage() {
     }
   };
 
-  // Direct manual Google button click handler (works even if GIS iframe is blocked or slow)
-  const handleManualGoogleClick = async () => {
+  // Direct Google OAuth flow (Full Page Redirect, 100% immune to popup blockers & AdBlock)
+  const handleDirectGoogleLogin = async () => {
     setLoading(true);
     setError('');
     try {
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredentialResponse,
-          auto_select: false,
-        });
-        window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // If One Tap prompt cannot be displayed, fall back directly to Supabase OAuth popup/redirect
-            supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: `${window.location.origin}/`,
-              },
-            }).catch((err) => {
-              console.error('OAuth redirect fallback error:', err);
-            });
-          }
-        });
-      } else {
-        // If Google GIS script is blocked by AdBlock or Brave Shields
-        const { error: oauthErr } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/`,
-          },
-        });
-        if (oauthErr) {
-          toast.error('Lỗi kết nối Google: ' + oauthErr.message);
-          setError(oauthErr.message);
-        }
+      const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      if (oauthErr) {
+        toast.error('Lỗi kết nối Google: ' + oauthErr.message);
+        setError(oauthErr.message);
+        setLoading(false);
       }
     } catch (err: any) {
       toast.error('Không thể kết nối Google: ' + (err?.message || 'Vui lòng thử lại'));
-    } finally {
-      setTimeout(() => setLoading(false), 1500);
+      setLoading(false);
     }
   };
 
-  const [gisReadyRegister, setGisReadyRegister] = useState(false);
-  const [gisReadyLogin, setGisReadyLogin] = useState(false);
-
-  // Initialize GIS and render official Google button with polling & retry
+  // Silently initialize Google One Tap in background (optional bonus for returning users)
   useEffect(() => {
     ensureGoogleScriptLoaded();
     let active = true;
     let attempts = 0;
 
-    const initGIS = () => {
+    const initOneTap = () => {
       if (!active) return;
       if (window.google?.accounts?.id) {
         try {
@@ -211,48 +186,21 @@ export default function AuthPage() {
             callback: handleGoogleCredentialResponse,
             auto_select: false,
           });
-
-          const renderInDiv = (id: string, isRegister: boolean) => {
-            const container = document.getElementById(id);
-            if (container) {
-              const width = Math.min(360, Math.max(240, container.clientWidth || 320));
-              container.innerHTML = '';
-              window.google.accounts.id.renderButton(container, {
-                theme: 'outline',
-                size: 'large',
-                width,
-                text: isRegister ? 'signup_with' : 'signin_with',
-                shape: 'rectangular',
-                logo_alignment: 'center',
-              });
-
-              setTimeout(() => {
-                if (!active) return;
-                const c = document.getElementById(id);
-                if (c && (c.querySelector('iframe') || c.childNodes.length > 0)) {
-                  if (isRegister) setGisReadyRegister(true);
-                  else setGisReadyLogin(true);
-                }
-              }, 150);
-            }
-          };
-
-          renderInDiv('googleButtonDivRegister', true);
-          renderInDiv('googleButtonDivLogin', false);
+          window.google.accounts.id.prompt();
         } catch (err) {
-          console.error('GIS render error:', err);
+          // One Tap is purely optional background enhancement, ignore failures
         }
-      } else if (attempts < 12) {
+      } else if (attempts < 6) {
         attempts++;
-        setTimeout(initGIS, 400);
+        setTimeout(initOneTap, 600);
       }
     };
 
-    initGIS();
+    initOneTap();
     return () => {
       active = false;
     };
-  }, [mode, mounted]);
+  }, [mounted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -857,55 +805,44 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                {/* Official GIS Button Container */}
-                <div
-                  id="googleButtonDivRegister"
+                {/* Native Google Register Button (100% immune to popup blockers & AdBlock) */}
+                <motion.button
+                  type="button"
+                  onClick={handleDirectGoogleLogin}
+                  disabled={loading}
+                  whileHover={!loading ? { scale: 1.015, translateY: -1 } : {}}
+                  whileTap={!loading ? { scale: 0.985 } : {}}
                   style={{
-                    display: gisReadyRegister ? 'flex' : 'none',
-                    justifyContent: 'center',
-                    minHeight: 40,
+                    height: 46,
                     width: '100%',
-                    margin: '2px 0',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: 12,
+                    fontSize: 14,
+                    fontWeight: 800,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    margin: '2px 0 6px 0',
+                    transition: 'all 0.15s ease',
                   }}
-                />
-
-                {/* Fallback Custom Google Register Button (renders instantly on all devices/browsers) */}
-                {!gisReadyRegister && (
-                  <motion.button
-                    type="button"
-                    onClick={handleManualGoogleClick}
-                    disabled={loading}
-                    whileHover={!loading ? { scale: 1.015, translateY: -1 } : {}}
-                    whileTap={!loading ? { scale: 0.985 } : {}}
-                    style={{
-                      height: 44,
-                      width: '100%',
-                      background: '#ffffff',
-                      color: '#1e293b',
-                      border: '1.5px solid #cbd5e1',
-                      borderRadius: 10,
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      margin: '2px 0',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {loading ? (
+                >
+                  {loading ? (
+                    <>
                       <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-                    ) : (
-                      <>
-                        <GoogleGIcon />
-                        <span>Đăng ký nhanh bằng Google</span>
-                      </>
-                    )}
-                  </motion.button>
-                )}
+                      <span>Đang kết nối Google...</span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleGIcon size={20} />
+                      <span>Đăng ký nhanh bằng Google</span>
+                    </>
+                  )}
+                </motion.button>
 
                 {/* Feature Points */}
                 <div
@@ -1162,53 +1099,43 @@ export default function AuthPage() {
                       <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
                     </div>
 
-                    {/* Official GIS Button Container */}
-                    <div
-                      id="googleButtonDivLogin"
+                    {/* Native Google Login Button (100% immune to popup blockers & AdBlock) */}
+                    <motion.button
+                      type="button"
+                      onClick={handleDirectGoogleLogin}
+                      disabled={loading}
+                      whileHover={!loading ? { scale: 1.015, translateY: -1 } : {}}
+                      whileTap={!loading ? { scale: 0.985 } : {}}
                       style={{
-                        display: gisReadyLogin ? 'flex' : 'none',
-                        justifyContent: 'center',
+                        height: 44,
                         width: '100%',
-                        minHeight: 40,
+                        background: '#ffffff',
+                        color: '#0f172a',
+                        border: '1.5px solid #cbd5e1',
+                        borderRadius: 12,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 10,
+                        transition: 'all 0.15s ease',
                       }}
-                    />
-
-                    {/* Fallback Custom Google Login Button (renders instantly on all devices/browsers) */}
-                    {!gisReadyLogin && (
-                      <motion.button
-                        type="button"
-                        onClick={handleManualGoogleClick}
-                        disabled={loading}
-                        whileHover={!loading ? { scale: 1.015, translateY: -1 } : {}}
-                        whileTap={!loading ? { scale: 0.985 } : {}}
-                        style={{
-                          height: 42,
-                          width: '100%',
-                          background: '#ffffff',
-                          color: '#1e293b',
-                          border: '1.5px solid #cbd5e1',
-                          borderRadius: 10,
-                          fontSize: 13.5,
-                          fontWeight: 700,
-                          cursor: loading ? 'not-allowed' : 'pointer',
-                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 8,
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {loading ? (
-                          <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-                        ) : (
-                          <>
-                            <GoogleGIcon />
-                            <span>Đăng nhập bằng Google</span>
-                          </>
-                        )}
-                      </motion.button>
-                    )}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+                          <span>Đang chuyển hướng tới Google...</span>
+                        </>
+                      ) : (
+                        <>
+                          <GoogleGIcon size={20} />
+                          <span>Đăng nhập bằng Google</span>
+                        </>
+                      )}
+                    </motion.button>
                   </>
                 )}
               </motion.form>
