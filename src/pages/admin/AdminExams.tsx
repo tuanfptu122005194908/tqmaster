@@ -674,11 +674,26 @@ export default function AdminExams() {
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Tìm theo tên đề, môn..."
               style={{
-                width: '100%', padding: '7px 10px 7px 30px', borderRadius: 10,
+                width: '100%', padding: '7px 28px 7px 30px', borderRadius: 10,
                 border: '1px solid #cbd5e1', fontSize: 12.5, outline: 'none', background: '#ffffff',
                 color: '#0f172a', boxSizing: 'border-box'
               }}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                  background: '#e2e8f0', border: 'none', borderRadius: '50%',
+                  width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: 0, color: '#475569'
+                }}
+                title="Xóa tìm kiếm"
+              >
+                <X size={10} strokeWidth={3} />
+              </button>
+            )}
           </div>
         </div>
 

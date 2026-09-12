@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatDate, formatPrice } from '@/lib/mockData';
@@ -14,12 +14,31 @@ type Order = Tables<'orders'>;
 
 const PAGE_SIZE = 50;
 
+type DateFilter = 'all' | 'today' | '7days' | '30days' | 'this_month';
+
+const DATE_OPTIONS: { key: DateFilter; label: string }[] = [
+  { key: 'all', label: 'Tất cả thời gian' },
+  { key: 'today', label: 'Hôm nay' },
+  { key: '7days', label: '7 ngày qua' },
+  { key: '30days', label: '30 ngày qua' },
+  { key: 'this_month', label: 'Tháng này' },
+];
+
 export default function AdminOrders() {
   const { profile, refreshPendingOrdersCount } = useApp();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isTableLoading, setIsTableLoading] = useState(false);
+
+  // Search input & debounced search
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Status & Date Filters
   const [filterStatus, setFilterStatus] = useState<'all' | Order['status']>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [showDateDropdown, setShowDateDropdown] = useState(false);
+
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [actioning, setActioning] = useState<string | null>(null);
   const [billUrl, setBillUrl] = useState<string | null>(null);
@@ -34,7 +53,37 @@ export default function AdminOrders() {
   const [approvedCount, setApprovedCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
-  const fetchPage = async (pageNum = page) => {
+  // Guard against race conditions from rapid responses
+  const latestRequestId = useRef(0);
+
+  // Debounce search input (350ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Keep latest filter values in a ref for realtime subscription without stale closure
+  const filterRef = useRef({ page, debouncedSearch, filterStatus, dateFilter });
+  useEffect(() => {
+    filterRef.current = { page, debouncedSearch, filterStatus, dateFilter };
+  }, [page, debouncedSearch, filterStatus, dateFilter]);
+
+  // Reset page to 0 when debounced search or filters change
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, filterStatus, dateFilter]);
+
+  const fetchPage = async (
+    pageNum = page,
+    searchVal = debouncedSearch,
+    statusVal = filterStatus,
+    dateVal = dateFilter
+  ) => {
+    const reqId = ++latestRequestId.current;
+    setIsTableLoading(true);
+
     try {
       const from = pageNum * PAGE_SIZE;
       const to   = from + PAGE_SIZE - 1;
@@ -45,20 +94,54 @@ export default function AdminOrders() {
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      if (filterStatus !== 'all') {
-        query = query.eq('status', filterStatus);
-      }
-      if (search.trim()) {
-        query = query.or(`full_name.ilike.%${search.trim()}%,email.ilike.%${search.trim()}%,id.ilike.%${search.trim()}%`);
+      if (statusVal !== 'all') {
+        query = query.eq('status', statusVal);
       }
 
-      const { data, count } = await query;
-      setOrders(data as any ?? []);
-      setTotalCount(count ?? 0);
+      // Date filtering
+      if (dateVal !== 'all') {
+        const now = new Date();
+        let startDate: Date | null = null;
+        if (dateVal === 'today') {
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        } else if (dateVal === '7days') {
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        } else if (dateVal === '30days') {
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        } else if (dateVal === 'this_month') {
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        }
+        if (startDate) {
+          query = query.gte('created_at', startDate.toISOString());
+        }
+      }
+
+      // Sanitize search query to avoid PostgREST parsing errors
+      const cleanSearch = searchVal.trim().replace(/^#/, '').replace(/[,()%\\]/g, ' ').trim();
+      if (cleanSearch) {
+        query = query.or(
+          `full_name.ilike.%${cleanSearch}%,email.ilike.%${cleanSearch}%,student_code.ilike.%${cleanSearch}%,id.ilike.%${cleanSearch}%,note.ilike.%${cleanSearch}%`
+        );
+      }
+
+      const { data, count, error } = await query;
+
+      // Ignore stale responses
+      if (reqId !== latestRequestId.current) return;
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+      } else {
+        setOrders(data as any ?? []);
+        setTotalCount(count ?? 0);
+      }
     } catch (e) {
       console.error('Error fetching orders:', e);
     } finally {
-      setLoading(false);
+      if (reqId === latestRequestId.current) {
+        setIsTableLoading(false);
+        setInitialLoading(false);
+      }
     }
   };
 
@@ -80,14 +163,8 @@ export default function AdminOrders() {
   };
 
   useEffect(() => {
-    // Reset to page 0 when filters change, then fetch
-    setPage(0);
-  }, [search, filterStatus]);
-
-  useEffect(() => {
-    setLoading(true);
-    fetchPage(page);
-  }, [page, search, filterStatus]);
+    fetchPage(page, debouncedSearch, filterStatus, dateFilter);
+  }, [page, debouncedSearch, filterStatus, dateFilter]);
 
   useEffect(() => {
     fetchStats();
@@ -103,7 +180,8 @@ export default function AdminOrders() {
         () => {
           clearTimeout(debounceTimer);
           debounceTimer = setTimeout(() => {
-            fetchPage(page);
+            const cur = filterRef.current;
+            fetchPage(cur.page, cur.debouncedSearch, cur.filterStatus, cur.dateFilter);
             fetchStats();
           }, 400);
         }
@@ -222,7 +300,7 @@ export default function AdminOrders() {
   const avgOrderValue = approvedCount > 0 ? Math.round(totalRevenue / approvedCount) : 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  if (loading && orders.length === 0) return (
+  if (initialLoading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
     </div>
@@ -404,30 +482,131 @@ export default function AdminOrders() {
         </div>
 
         {/* Search & Filters */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', width: '100%', maxWidth: 420 }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: 180 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', width: '100%', maxWidth: 480 }}>
+          {/* Search Box */}
+          <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
             <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Tìm tên, email, mã..."
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              placeholder="Tìm tên, email, MSV, mã đơn..."
               style={{
-                width: '100%', padding: '9px 12px 9px 36px', borderRadius: 12,
+                width: '100%', padding: '9px 34px 9px 36px', borderRadius: 12,
                 border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', background: '#ffffff',
                 color: '#0f172a', boxSizing: 'border-box'
               }}
             />
+            {/* Search Clear Button or Spinner */}
+            <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+              {(isTableLoading || searchInput !== debouncedSearch) ? (
+                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+              ) : searchInput ? (
+                <button
+                  type="button"
+                  onClick={() => { setSearchInput(''); setDebouncedSearch(''); }}
+                  style={{
+                    background: '#e2e8f0', border: 'none', borderRadius: '50%',
+                    width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', padding: 0, color: '#475569'
+                  }}
+                  title="Xóa tìm kiếm"
+                >
+                  <X size={11} strokeWidth={3} />
+                </button>
+              ) : null}
+            </div>
           </div>
 
-          <button style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px', borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff', fontSize: 12.5, fontWeight: 700, color: '#475569', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            <Calendar size={14} /> 7 ngày
-          </button>
+          {/* Date Filter Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setShowDateDropdown(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px',
+                borderRadius: 12,
+                border: dateFilter !== 'all' ? '1.5px solid #2563eb' : '1.5px solid #cbd5e1',
+                background: dateFilter !== 'all' ? '#eff6ff' : '#ffffff',
+                fontSize: 12.5, fontWeight: 700,
+                color: dateFilter !== 'all' ? '#2563eb' : '#475569',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                boxShadow: dateFilter !== 'all' ? '0 2px 8px rgba(37, 99, 235, 0.15)' : 'none'
+              }}
+            >
+              <Calendar size={14} />
+              {DATE_OPTIONS.find(o => o.key === dateFilter)?.label || 'Thời gian'}
+            </button>
+
+            {showDateDropdown && (
+              <>
+                <div
+                  onClick={() => setShowDateDropdown(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: 90 }}
+                />
+                <div style={{
+                  position: 'absolute', right: 0, top: '100%', marginTop: 6,
+                  background: '#ffffff', borderRadius: 14, border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                  zIndex: 91, minWidth: 165, padding: 6, display: 'flex', flexDirection: 'column', gap: 2
+                }}>
+                  {DATE_OPTIONS.map(opt => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => {
+                        setDateFilter(opt.key);
+                        setShowDateDropdown(false);
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '8px 12px', borderRadius: 8, border: 'none',
+                        background: dateFilter === opt.key ? '#eff6ff' : 'transparent',
+                        color: dateFilter === opt.key ? '#2563eb' : '#334155',
+                        fontSize: 12.5, fontWeight: dateFilter === opt.key ? 800 : 600,
+                        cursor: 'pointer', textAlign: 'left', width: '100%'
+                      }}
+                    >
+                      <span>{opt.label}</span>
+                      {dateFilter === opt.key && <Check size={14} strokeWidth={3} />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Reset All Filters Button (shown only when active) */}
+          {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput('');
+                setDebouncedSearch('');
+                setFilterStatus('all');
+                setDateFilter('all');
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4, padding: '9px 12px',
+                borderRadius: 12, border: '1.5px dashed #fecdd3', background: '#fff1f2',
+                fontSize: 12, fontWeight: 800, color: '#e11d48', cursor: 'pointer', whiteSpace: 'nowrap'
+              }}
+              title="Đặt lại toàn bộ bộ lọc"
+            >
+              <X size={13} strokeWidth={2.5} /> Đặt lại
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── DESKTOP TABLE VIEW (With overflowX: 'auto' so it never cuts off) ── */}
       <div className="orders-desktop-table">
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', position: 'relative' }}>
+          {/* Subtle loading indicator line */}
+          <div style={{
+            height: 3, width: '100%',
+            background: isTableLoading ? 'linear-gradient(90deg, #3b82f6 0%, #93c5fd 50%, #3b82f6 100%)' : 'transparent',
+            transition: 'background 0.2s ease'
+          }} />
           <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
@@ -440,11 +619,32 @@ export default function AdminOrders() {
                 <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'right' }}>THAO TÁC</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8', fontSize: 13 }}>
-                    Không tìm thấy đơn hàng nào
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <Filter size={24} style={{ opacity: 0.4 }} />
+                      <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
+                      {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchInput('');
+                            setDebouncedSearch('');
+                            setFilterStatus('all');
+                            setDateFilter('all');
+                          }}
+                          style={{
+                            marginTop: 4, padding: '6px 14px', borderRadius: 10,
+                            border: '1px solid #cbd5e1', background: '#ffffff',
+                            color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          Đặt lại tất cả bộ lọc
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : filtered.map((order) => {
@@ -574,10 +774,29 @@ export default function AdminOrders() {
       </div>
 
       {/* ── MOBILE CARDS VIEW (Clean, High-contrast responsive list) ── */}
-      <div className="orders-mobile-cards">
+      <div className="orders-mobile-cards" style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#ffffff', borderRadius: 20, border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: 13 }}>
-            Không tìm thấy đơn hàng nào
+          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#ffffff', borderRadius: 20, border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: 13, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Filter size={24} style={{ opacity: 0.4 }} />
+            <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
+            {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput('');
+                  setDebouncedSearch('');
+                  setFilterStatus('all');
+                  setDateFilter('all');
+                }}
+                style={{
+                  marginTop: 4, padding: '6px 14px', borderRadius: 10,
+                  border: '1px solid #cbd5e1', background: '#ffffff',
+                  color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                }}
+              >
+                Đặt lại tất cả bộ lọc
+              </button>
+            )}
           </div>
         ) : filtered.map(order => {
           const avatarInitials = (order.full_name || 'U').slice(0, 2).toUpperCase();
@@ -715,14 +934,14 @@ export default function AdminOrders() {
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button
               onClick={() => setPage(p => Math.max(0, p - 1))}
-              disabled={page === 0 || loading}
+              disabled={page === 0 || isTableLoading}
               style={{ padding: '7px 14px', borderRadius: 10, border: '1.5px solid #cbd5e1', background: page === 0 ? '#f8fafc' : '#ffffff', color: page === 0 ? '#94a3b8' : '#0f172a', fontWeight: 800, fontSize: 13, cursor: page === 0 ? 'default' : 'pointer' }}
             >
               ← Trước
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1 || loading}
+              disabled={page >= totalPages - 1 || isTableLoading}
               style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: page >= totalPages - 1 ? '#f8fafc' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: page >= totalPages - 1 ? '#94a3b8' : '#ffffff', fontWeight: 800, fontSize: 13, cursor: page >= totalPages - 1 ? 'default' : 'pointer', boxShadow: page >= totalPages - 1 ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)' }}
             >
               Sau →

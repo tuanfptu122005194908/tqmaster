@@ -378,12 +378,27 @@ export default function AdminUsers() {
             onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
             placeholder="Tìm theo tên, email, MSV..."
             style={{
-              width: '100%', padding: '9px 14px 9px 40px',
+              width: '100%', padding: '9px 34px 9px 40px',
               border: '1.5px solid #cbd5e1', borderRadius: 12,
               fontSize: 13.5, outline: 'none', background: '#f8fafc',
-              color: '#0f172a'
+              color: '#0f172a', boxSizing: 'border-box'
             }}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(''); setCurrentPage(1); }}
+              style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                background: '#e2e8f0', border: 'none', borderRadius: '50%',
+                width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0, color: '#475569'
+              }}
+              title="Xóa tìm kiếm"
+            >
+              <X size={11} strokeWidth={3} />
+            </button>
+          )}
         </div>
 
         {/* Role Filter Pills */}

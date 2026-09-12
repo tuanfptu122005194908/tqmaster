@@ -398,14 +398,30 @@ export default function AdminCoupons() {
             onChange={e => setSearchQuery(e.target.value)}
             style={{
               width: '100%',
-              padding: '9px 12px 9px 36px',
+              padding: '9px 34px 9px 36px',
               borderRadius: 10,
               border: '1px solid #cbd5e1',
               fontSize: 13.5,
               outline: 'none',
               background: '#f8fafc',
+              boxSizing: 'border-box'
             }}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                background: '#e2e8f0', border: 'none', borderRadius: '50%',
+                width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0, color: '#475569'
+              }}
+              title="Xóa tìm kiếm"
+            >
+              <X size={11} strokeWidth={3} />
+            </button>
+          )}
         </div>
 
         {/* Filter tabs */}
