@@ -1,5 +1,19 @@
+-- ==============================================================================
+-- TQMASTER DATABASE SCHEMA (CLEAN & COMPLETE)
+-- Chạy trên Supabase SQL Editor khi cài đặt mới hoặc reset toàn bộ cơ sở dữ liệu.
+-- Đã đồng bộ đầy đủ các tính năng:
+--   - Đầy đủ bảng Backup / Restore nền (backup_jobs, restore_jobs)
+--   - Cột khoá tài khoản (is_banned, ban_reason...) & Trigger bảo vệ profile
+--   - Cột phân loại tài liệu lý thuyết / PE (category) & Index
+--   - Hỗ trợ xem tài liệu & làm bài thi miễn phí (price <= 0) qua RLS
+--   - Bảo mật tài nguyên ảnh đề thi/tài liệu (Storage RLS + can_access helpers)
+--   - Bucket sao lưu backup-uploads
+--   - Realtime cho announcements, conversations, orders...
+--   - Sửa lỗi font chữ tiếng Việt (UTF-8 sạch)
+-- ==============================================================================
+
 -- =========================================
--- 0. CLEANUP & RESET SCHEMA PUBLIC (CHẠY LẠI KHÔNG BỊ TRÙNG LỖI)
+-- 0. CLEANUP & RESET SCHEMA PUBLIC
 -- =========================================
 DROP SCHEMA IF EXISTS public CASCADE;
 CREATE SCHEMA public;
@@ -34,6 +48,10 @@ CREATE TABLE public.profiles (
   student_code  TEXT,
   avatar_url    TEXT,
   phone         TEXT,
+  is_banned     BOOLEAN NOT NULL DEFAULT FALSE,
+  ban_reason    TEXT,
+  banned_at     TIMESTAMPTZ,
+  banned_by     UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -110,7 +128,7 @@ CREATE TABLE public.questions (
   content      TEXT,
   image_url    TEXT,
   type         TEXT NOT NULL DEFAULT 'image' CHECK (type IN ('text', 'image')),
-  chapter_name TEXT DEFAULT 'Tá»•ng há»£p',
+  chapter_name TEXT DEFAULT 'Tổng hợp',
   extra_images TEXT[] DEFAULT '{}',
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -171,6 +189,7 @@ CREATE TABLE public.theories (
   type        TEXT NOT NULL CHECK (type IN ('image', 'file', 'link')),
   url         TEXT NOT NULL,
   file_name   TEXT,
+  category    TEXT NOT NULL DEFAULT 'theory' CHECK (category IN ('theory', 'pe')),
   sort_order  INT DEFAULT 0,
   created_by  UUID REFERENCES public.profiles(id),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -275,7 +294,7 @@ CREATE TABLE public.order_items (
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
 -- =========================================
--- 7. SYSTEM, SUPPORT & CHAT
+-- 7. SYSTEM, SUPPORT, CHAT & JOBS
 -- =========================================
 CREATE TABLE public.system_settings (
   key        TEXT PRIMARY KEY,
@@ -292,7 +311,7 @@ INSERT INTO public.system_settings (key, value) VALUES
   ('bank_content',  'Thanh toan tai lieu'),
   ('bank_qr_url',   ''),
   ('contact_info',  ''),
-  ('site_name',     'EduDocs'),
+  ('site_name',     'TQMaster'),
   ('site_logo_url', '');
 
 CREATE TABLE public.signup_otps (
@@ -350,24 +369,82 @@ CREATE TABLE public.chat_cleanup_logs (
 );
 ALTER TABLE public.chat_cleanup_logs ENABLE ROW LEVEL SECURITY;
 
+-- ── Backup Jobs (Edge Function backup-worker) ──
+CREATE TABLE public.backup_jobs (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  file_path     TEXT,
+  file_name     TEXT,
+  file_size     BIGINT NOT NULL DEFAULT 0,
+  status        TEXT NOT NULL DEFAULT 'pending',
+  include_media BOOLEAN NOT NULL DEFAULT FALSE,
+  tables        JSONB NOT NULL DEFAULT '[]'::jsonb,
+  progress      NUMERIC NOT NULL DEFAULT 0,
+  step          TEXT,
+  manifest      JSONB,
+  error         TEXT,
+  started_at    TIMESTAMPTZ,
+  finished_at   TIMESTAMPTZ,
+  heartbeat_at  TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.backup_jobs ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.backup_jobs TO authenticated;
+GRANT ALL ON public.backup_jobs TO service_role;
+
+-- ── Restore Jobs (Edge Function restore-worker) ──
+CREATE TABLE public.restore_jobs (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  file_path     TEXT NOT NULL,
+  file_name     TEXT NOT NULL,
+  file_size     BIGINT NOT NULL DEFAULT 0,
+  status        TEXT NOT NULL DEFAULT 'pending',
+  dry_run       BOOLEAN NOT NULL DEFAULT FALSE,
+  include_media BOOLEAN NOT NULL DEFAULT TRUE,
+  tables        JSONB NOT NULL DEFAULT '[]'::jsonb,
+  progress      NUMERIC NOT NULL DEFAULT 0,
+  step          TEXT,
+  cursor        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  report        JSONB,
+  error         TEXT,
+  started_at    TIMESTAMPTZ,
+  finished_at   TIMESTAMPTZ,
+  heartbeat_at  TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE public.restore_jobs ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.restore_jobs TO authenticated;
+GRANT ALL ON public.restore_jobs TO service_role;
+
 -- =========================================
 -- INDEXES
 -- =========================================
-CREATE INDEX idx_subjects_semester    ON public.subjects(semester);
-CREATE INDEX idx_orders_user_id       ON public.orders(user_id);
-CREATE INDEX idx_orders_status        ON public.orders(status);
-CREATE INDEX idx_user_subjects_user   ON public.user_subjects(user_id);
-CREATE INDEX idx_user_subjects_subj   ON public.user_subjects(subject_id);
-CREATE INDEX idx_questions_exam       ON public.questions(exam_id, order_num);
-CREATE INDEX idx_theory_subjects      ON public.theory_subjects(subject_id);
-CREATE INDEX idx_announcements_subject ON public.announcements(subject_id, created_at DESC);
-CREATE INDEX idx_discount_code        ON public.discount_codes(code) WHERE is_active = TRUE;
-CREATE INDEX idx_news_comments_post   ON public.news_comments(post_id, created_at);
-CREATE INDEX idx_news_likes_post      ON public.news_likes(post_id);
-CREATE INDEX idx_signup_otps_email    ON public.signup_otps(email);
+CREATE INDEX idx_profiles_is_banned         ON public.profiles(is_banned) WHERE is_banned = TRUE;
+CREATE INDEX idx_subjects_semester          ON public.subjects(semester);
+CREATE INDEX idx_orders_user_id             ON public.orders(user_id);
+CREATE INDEX idx_orders_status              ON public.orders(status);
+CREATE INDEX idx_user_subjects_user         ON public.user_subjects(user_id);
+CREATE INDEX idx_user_subjects_subj         ON public.user_subjects(subject_id);
+CREATE INDEX idx_questions_exam             ON public.questions(exam_id, order_num);
+CREATE INDEX idx_theories_category          ON public.theories(category);
+CREATE INDEX idx_theory_subjects            ON public.theory_subjects(subject_id);
+CREATE INDEX idx_announcements_subject      ON public.announcements(subject_id, created_at DESC);
+CREATE INDEX idx_discount_code              ON public.discount_codes(code) WHERE is_active = TRUE;
+CREATE INDEX idx_news_comments_post         ON public.news_comments(post_id, created_at);
+CREATE INDEX idx_news_likes_post            ON public.news_likes(post_id);
+CREATE INDEX idx_signup_otps_email          ON public.signup_otps(email);
 CREATE INDEX idx_chat_messages_conversation ON public.chat_messages(conversation_id, created_at);
-CREATE INDEX idx_chat_messages_is_read      ON public.chat_messages(conversation_id, is_read);
+CREATE INDEX idx_chat_messages_conv_created ON public.chat_messages(conversation_id, created_at DESC);
+CREATE INDEX idx_chat_messages_unread       ON public.chat_messages(conversation_id) WHERE is_read = FALSE;
 CREATE INDEX idx_conversations_last_message ON public.conversations(last_message_at DESC);
+CREATE INDEX idx_attempt_answers_attempt_id ON public.attempt_answers(attempt_id);
+CREATE INDEX idx_attempt_answers_question_id ON public.attempt_answers(question_id);
+CREATE INDEX idx_exam_attempts_user_id      ON public.exam_attempts(user_id);
+CREATE INDEX idx_backup_jobs_created_at     ON public.backup_jobs(created_at DESC);
+CREATE INDEX idx_restore_jobs_created_at    ON public.restore_jobs(created_at DESC);
 
 -- =========================================
 -- TRIGGERS & FUNCTIONS
@@ -387,6 +464,39 @@ CREATE TRIGGER trg_theories_updated_at BEFORE UPDATE ON public.theories FOR EACH
 CREATE TRIGGER trg_announcements_updated_at BEFORE UPDATE ON public.announcements FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 CREATE TRIGGER trg_orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 CREATE TRIGGER news_posts_updated_at BEFORE UPDATE ON public.news_posts FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER trg_backup_jobs_updated_at BEFORE UPDATE ON public.backup_jobs FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+CREATE TRIGGER trg_restore_jobs_updated_at BEFORE UPDATE ON public.restore_jobs FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- Bảo vệ các trường chỉ quản trị viên được phép sửa trên bảng profiles
+CREATE OR REPLACE FUNCTION public.protect_profile_admin_fields()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  IF auth.uid() IS NULL OR public.has_role(auth.uid(), 'admin') THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.is_banned IS DISTINCT FROM OLD.is_banned
+     OR NEW.ban_reason IS DISTINCT FROM OLD.ban_reason
+     OR NEW.banned_at IS DISTINCT FROM OLD.banned_at
+     OR NEW.banned_by IS DISTINCT FROM OLD.banned_by
+     OR NEW.email IS DISTINCT FROM OLD.email
+     OR NEW.student_code IS DISTINCT FROM OLD.student_code
+     OR NEW.id IS DISTINCT FROM OLD.id
+  THEN
+    RAISE EXCEPTION 'Bạn không có quyền thay đổi các trường quản trị của hồ sơ';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_protect_profile_admin_fields
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.protect_profile_admin_fields();
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -495,7 +605,7 @@ CREATE TRIGGER trg_validate_order_item_price BEFORE INSERT OR UPDATE OF price, s
 CREATE OR REPLACE FUNCTION public.delete_user_by_admin(target_user_id UUID)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF NOT public.has_role(auth.uid(), 'admin') THEN RAISE EXCEPTION 'Chá»‰ admin má»›i cÃ³ quyá» n xoÃ¡ ngÆ°á» i dÃ¹ng'; END IF;
+  IF NOT public.has_role(auth.uid(), 'admin') THEN RAISE EXCEPTION 'Chỉ admin mới có quyền xoá người dùng'; END IF;
   DELETE FROM auth.users WHERE id = target_user_id;
 END;
 $$;
@@ -562,6 +672,61 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_admin_conversations() TO authenticated;
 
+-- Helper check quyền xem hình ảnh đề thi / câu hỏi (kể cả đề miễn phí price <= 0)
+CREATE OR REPLACE FUNCTION public.can_access_exam_assets(_exam_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.exam_subjects es
+    JOIN public.subjects s ON s.id = es.subject_id
+    WHERE es.exam_id = _exam_id
+      AND s.is_active = true
+      AND (
+        s.price <= 0
+        OR EXISTS (
+          SELECT 1 FROM public.user_subjects us
+          WHERE us.subject_id = s.id AND us.user_id = auth.uid()
+        )
+      )
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.can_access_exam_assets(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.can_access_exam_assets(uuid) TO anon, authenticated, service_role;
+
+-- Helper check quyền xem file/ảnh lý thuyết
+CREATE OR REPLACE FUNCTION public.can_access_theory_asset(_object_name text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.theories t
+    JOIN public.theory_subjects ts ON ts.theory_id = t.id
+    JOIN public.subjects s ON s.id = ts.subject_id
+    WHERE s.is_active = true
+      AND (t.url LIKE '%/' || _object_name OR t.url LIKE '%/' || _object_name || '?%')
+      AND (
+        s.price <= 0
+        OR EXISTS (
+          SELECT 1 FROM public.user_subjects us
+          WHERE us.subject_id = s.id AND us.user_id = auth.uid()
+        )
+      )
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.can_access_theory_asset(text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.can_access_theory_asset(text) TO authenticated, service_role;
+
 DO $$ 
 DECLARE jid bigint; 
 BEGIN 
@@ -594,16 +759,66 @@ CREATE POLICY "admins_manage_subjects" ON public.subjects FOR ALL USING (public.
 CREATE POLICY "users_view_own_access" ON public.user_subjects FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "admins_manage_user_subjects" ON public.user_subjects FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY "users_view_accessible_exams" ON public.exams FOR SELECT USING (is_active = TRUE AND (public.has_role(auth.uid(), 'admin') OR EXISTS (SELECT 1 FROM public.exam_subjects es JOIN public.user_subjects us ON us.subject_id = es.subject_id WHERE es.exam_id = exams.id AND us.user_id = auth.uid())));
+-- Exams: xem được nếu là Admin HOẶC đã mua môn học HOẶC môn học miễn phí (price <= 0)
+CREATE POLICY "users_view_accessible_exams" ON public.exams FOR SELECT TO authenticated
+USING (
+  is_active = TRUE AND (
+    public.has_role(auth.uid(), 'admin')
+    OR EXISTS (
+      SELECT 1 FROM public.exam_subjects es
+      JOIN public.user_subjects us ON us.subject_id = es.subject_id
+      WHERE es.exam_id = exams.id AND us.user_id = auth.uid()
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.exam_subjects es
+      JOIN public.subjects s ON s.id = es.subject_id
+      WHERE es.exam_id = exams.id AND s.is_active = TRUE AND s.price <= 0
+    )
+  )
+);
 CREATE POLICY "admins_manage_exams" ON public.exams FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
 CREATE POLICY "authenticated_view_exam_subjects" ON public.exam_subjects FOR SELECT TO authenticated USING (true);
 CREATE POLICY "admins_manage_exam_subjects" ON public.exam_subjects FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY "users_view_questions_of_accessible_exams" ON public.questions FOR SELECT USING (public.has_role(auth.uid(), 'admin') OR EXISTS (SELECT 1 FROM public.exams e JOIN public.exam_subjects es ON es.exam_id = e.id JOIN public.user_subjects us ON us.subject_id = es.subject_id WHERE e.id = questions.exam_id AND us.user_id = auth.uid() AND e.is_active = TRUE));
+-- Questions: xem được nếu Admin HOẶC đã mua môn học HOẶC môn học miễn phí
+CREATE POLICY "users_view_questions_of_accessible_exams" ON public.questions FOR SELECT TO authenticated
+USING (
+  public.has_role(auth.uid(), 'admin')
+  OR EXISTS (
+    SELECT 1 FROM public.exams e
+    JOIN public.exam_subjects es ON es.exam_id = e.id
+    JOIN public.user_subjects us ON us.subject_id = es.subject_id
+    WHERE e.id = questions.exam_id AND us.user_id = auth.uid() AND e.is_active = TRUE
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.exams e
+    JOIN public.exam_subjects es ON es.exam_id = e.id
+    JOIN public.subjects s ON s.id = es.subject_id
+    WHERE e.id = questions.exam_id AND e.is_active = TRUE AND s.is_active = TRUE AND s.price <= 0
+  )
+);
 CREATE POLICY "admins_manage_questions" ON public.questions FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY "users_view_options_of_accessible_questions" ON public.question_options FOR SELECT USING (public.has_role(auth.uid(), 'admin') OR EXISTS (SELECT 1 FROM public.questions q JOIN public.exams e ON e.id = q.exam_id JOIN public.exam_subjects es ON es.exam_id = e.id JOIN public.user_subjects us ON us.subject_id = es.subject_id WHERE q.id = question_options.question_id AND us.user_id = auth.uid() AND e.is_active = TRUE));
+-- Question Options: xem được nếu Admin HOẶC đã mua môn học HOẶC môn học miễn phí
+CREATE POLICY "users_view_options_of_accessible_questions" ON public.question_options FOR SELECT TO authenticated
+USING (
+  public.has_role(auth.uid(), 'admin')
+  OR EXISTS (
+    SELECT 1 FROM public.questions q
+    JOIN public.exams e ON e.id = q.exam_id
+    JOIN public.exam_subjects es ON es.exam_id = e.id
+    JOIN public.user_subjects us ON us.subject_id = es.subject_id
+    WHERE q.id = question_options.question_id AND us.user_id = auth.uid() AND e.is_active = TRUE
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.questions q
+    JOIN public.exams e ON e.id = q.exam_id
+    JOIN public.exam_subjects es ON es.exam_id = e.id
+    JOIN public.subjects s ON s.id = es.subject_id
+    WHERE q.id = question_options.question_id AND e.is_active = TRUE AND s.is_active = TRUE AND s.price <= 0
+  )
+);
 CREATE POLICY "admins_manage_options" ON public.question_options FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
 CREATE POLICY "users_view_own_attempts" ON public.exam_attempts FOR SELECT USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
@@ -613,11 +828,22 @@ CREATE POLICY "users_update_own_attempts" ON public.exam_attempts FOR UPDATE USI
 CREATE POLICY "admins_manage_attempt_answers" ON public.attempt_answers FOR ALL TO authenticated USING ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role))) WITH CHECK ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)));
 CREATE POLICY "users_view_own_answers" ON public.attempt_answers FOR SELECT TO authenticated USING ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)) OR EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = (SELECT auth.uid())));
 CREATE POLICY "users_manage_own_answers" ON public.attempt_answers FOR ALL TO authenticated USING ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)) OR EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = (SELECT auth.uid()))) WITH CHECK ((SELECT public.has_role(auth.uid(), 'admin'::public.app_role)) OR EXISTS (SELECT 1 FROM public.exam_attempts WHERE id = attempt_answers.attempt_id AND user_id = (SELECT auth.uid())));
-CREATE INDEX IF NOT EXISTS idx_attempt_answers_attempt_id ON public.attempt_answers(attempt_id);
-CREATE INDEX IF NOT EXISTS idx_attempt_answers_question_id ON public.attempt_answers(question_id);
-CREATE INDEX IF NOT EXISTS idx_exam_attempts_user_id ON public.exam_attempts(user_id);
 
-CREATE POLICY "users_view_accessible_theories" ON public.theories FOR SELECT USING (public.has_role(auth.uid(), 'admin') OR EXISTS (SELECT 1 FROM public.theory_subjects ts JOIN public.user_subjects us ON us.subject_id = ts.subject_id WHERE ts.theory_id = theories.id AND us.user_id = auth.uid()));
+-- Theories: xem được nếu Admin HOẶC đã mua môn học HOẶC môn học miễn phí
+CREATE POLICY "users_view_accessible_theories" ON public.theories FOR SELECT TO authenticated
+USING (
+  public.has_role(auth.uid(), 'admin')
+  OR EXISTS (
+    SELECT 1 FROM public.theory_subjects ts
+    JOIN public.user_subjects us ON us.subject_id = ts.subject_id
+    WHERE ts.theory_id = theories.id AND us.user_id = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.theory_subjects ts
+    JOIN public.subjects s ON s.id = ts.subject_id
+    WHERE ts.theory_id = theories.id AND s.is_active = TRUE AND s.price <= 0
+  )
+);
 CREATE POLICY "admins_manage_theories" ON public.theories FOR ALL USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
 CREATE POLICY "authenticated_view_theory_subjects" ON public.theory_subjects FOR SELECT TO authenticated USING (true);
@@ -672,35 +898,99 @@ CREATE POLICY "users_insert_own_session" ON public.active_sessions FOR INSERT WI
 CREATE POLICY "users_update_own_session" ON public.active_sessions FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 CREATE POLICY "users_delete_own_session" ON public.active_sessions FOR DELETE USING (user_id = auth.uid());
 
+-- Backup & Restore RLS Policies
+CREATE POLICY "Admins can view backup jobs" ON public.backup_jobs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can create backup jobs" ON public.backup_jobs FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin') AND created_by = auth.uid());
+CREATE POLICY "Admins can update backup jobs" ON public.backup_jobs FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can delete backup jobs" ON public.backup_jobs FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Admins can view restore jobs" ON public.restore_jobs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can create restore jobs" ON public.restore_jobs FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin') AND created_by = auth.uid());
+CREATE POLICY "Admins can update restore jobs" ON public.restore_jobs FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin')) WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins can delete restore jobs" ON public.restore_jobs FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.question_reports TO authenticated;
 GRANT ALL ON public.question_reports TO service_role;
 
 REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.grant_subject_access_on_approve() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.update_updated_at() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.protect_profile_admin_fields() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.cleanup_unverified_users() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
 
 -- =========================================
--- STORAGE BUCKETS
+-- STORAGE BUCKETS & POLICIES
 -- =========================================
+-- Lưu ý: question-images, exam-images, theory-files, theory-images đặt private = FALSE trong bảng bucket
+-- nhưng RLS storage.objects kiểm soát nghiêm ngặt bằng policy để chống lộ tài liệu có phí.
 INSERT INTO storage.buckets (id, name, public) VALUES
   ('thumbnails', 'thumbnails', TRUE),
-  ('theory-files', 'theory-files', TRUE),
-  ('theory-images', 'theory-images', TRUE),
-  ('question-images', 'question-images', TRUE),
-  ('exam-images', 'exam-images', TRUE),
+  ('theory-files', 'theory-files', FALSE),
+  ('theory-images', 'theory-images', FALSE),
+  ('question-images', 'question-images', FALSE),
+  ('exam-images', 'exam-images', FALSE),
   ('bill-images', 'bill-images', FALSE),
   ('qr-codes', 'qr-codes', TRUE),
   ('announcement-images', 'announcement-images', TRUE),
   ('avatars', 'avatars', TRUE),
   ('news-images', 'news-images', TRUE),
-  ('chat-images', 'chat-images', TRUE)
+  ('chat-images', 'chat-images', TRUE),
+  ('backup-uploads', 'backup-uploads', FALSE)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
 DROP POLICY IF EXISTS "public_read_public_buckets" ON storage.objects;
-CREATE POLICY "public_read_public_buckets" ON storage.objects FOR SELECT USING (bucket_id IN ('thumbnails','theory-files','theory-images','question-images','exam-images','qr-codes','announcement-images','avatars','news-images','chat-images'));
+CREATE POLICY "public_read_public_buckets" ON storage.objects FOR SELECT
+USING (bucket_id = ANY (ARRAY['thumbnails','qr-codes','announcement-images','avatars','news-images','chat-images']));
+
+-- Quyền đọc ảnh câu hỏi / đề thi (có kiểm tra quyền môn học)
+DROP POLICY IF EXISTS "exam_assets_read_authorized" ON storage.objects;
+CREATE POLICY "exam_assets_read_authorized" ON storage.objects FOR SELECT TO authenticated
+USING (
+  bucket_id IN ('question-images', 'exam-images')
+  AND (
+    public.has_role(auth.uid(), 'admin')
+    OR (
+      split_part(name, '/', 1) ~ '^[0-9a-fA-F-]{36}$'
+      AND public.can_access_exam_assets(split_part(name, '/', 1)::uuid)
+    )
+  )
+);
+
+DROP POLICY IF EXISTS "exam_assets_read_free_anon" ON storage.objects;
+CREATE POLICY "exam_assets_read_free_anon" ON storage.objects FOR SELECT TO anon
+USING (
+  bucket_id IN ('question-images', 'exam-images')
+  AND split_part(name, '/', 1) ~ '^[0-9a-fA-F-]{36}$'
+  AND public.can_access_exam_assets(split_part(name, '/', 1)::uuid)
+);
+
+-- Quyền đọc file & ảnh lý thuyết (có kiểm tra quyền môn học)
+DROP POLICY IF EXISTS "theory_assets_read" ON storage.objects;
+CREATE POLICY "theory_assets_read" ON storage.objects FOR SELECT TO authenticated
+USING (
+  bucket_id IN ('theory-files','theory-images')
+  AND (
+    public.has_role(auth.uid(), 'admin')
+    OR public.can_access_theory_asset(name)
+  )
+);
+
+DROP POLICY IF EXISTS "theory_assets_read_free_anon" ON storage.objects;
+CREATE POLICY "theory_assets_read_free_anon" ON storage.objects FOR SELECT TO anon
+USING (
+  bucket_id IN ('theory-files','theory-images')
+  AND EXISTS (
+    SELECT 1
+    FROM public.theories t
+    JOIN public.theory_subjects ts ON ts.theory_id = t.id
+    JOIN public.subjects s ON s.id = ts.subject_id
+    WHERE s.is_active = true
+      AND s.price <= 0
+      AND (t.url LIKE '%/' || storage.objects.name OR t.url LIKE '%/' || storage.objects.name || '?%')
+  )
+);
 
 DROP POLICY IF EXISTS "authenticated_upload_exam_and_question_images" ON storage.objects;
 CREATE POLICY "authenticated_upload_exam_and_question_images" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('question-images', 'exam-images'));
@@ -732,12 +1022,20 @@ CREATE POLICY "users_upload_chat_images" ON storage.objects FOR INSERT TO authen
 DROP POLICY IF EXISTS "users_delete_chat_images" ON storage.objects;
 CREATE POLICY "users_delete_chat_images" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'chat-images' AND auth.uid() = owner);
 
+DROP POLICY IF EXISTS "Admins manage backup uploads" ON storage.objects;
+CREATE POLICY "Admins manage backup uploads" ON storage.objects FOR ALL TO authenticated
+USING (bucket_id = 'backup-uploads' AND public.has_role(auth.uid(), 'admin'))
+WITH CHECK (bucket_id = 'backup-uploads' AND public.has_role(auth.uid(), 'admin'));
+
 DROP POLICY IF EXISTS "admins_manage_all_storage" ON storage.objects;
 CREATE POLICY "admins_manage_all_storage" ON storage.objects FOR ALL USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 -- =========================================
 -- REALTIME
 -- =========================================
+ALTER TABLE public.active_sessions REPLICA IDENTITY FULL;
+ALTER TABLE public.announcements REPLICA IDENTITY FULL;
+
 DO $$
 BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
@@ -762,7 +1060,11 @@ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
-ALTER TABLE public.active_sessions REPLICA IDENTITY FULL;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- =========================================
 -- KHỞI TẠO TÀI KHOẢN ADMIN: admin@gmail.com / tuan0112
@@ -809,4 +1111,3 @@ BEGIN
 
   RAISE NOTICE 'ĐÃ TẠO XONG ADMIN: admin@gmail.com / tuan0112';
 END $$;
-
