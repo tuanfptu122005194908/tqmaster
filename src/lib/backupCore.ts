@@ -318,7 +318,10 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
           `Đang đọc ${table.label} (${loaded} dòng) · ${completedTables}/${selected.length} bảng xong...`
         )
       );
-      zip.file(`data/${table.name}.json`, JSON.stringify(rows, null, 0));
+      zip.file(`data/${table.name}.json`, JSON.stringify(rows, null, 0), {
+        compression: 'DEFLATE',
+        compressionOptions: { level: 1 },
+      });
       tableResults.set(table.name, { name: table.name, label: table.label, rows: rows.length });
     } catch (err) {
       tableResults.set(table.name, { name: table.name, label: table.label, rows: 0, error: String(err) });
@@ -385,26 +388,75 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
     let done = 0;
     await runPool(all, MEDIA_DOWNLOAD_CONCURRENCY, async (file) => {
       const blob = await downloadMedia(file.bucket, file.path);
-      if (blob) zip.file(`media/${file.bucket}/${file.path}`, blob);
-      else manifest.mediaFailed.push(`${file.bucket}/${file.path}`);
+      if (blob) {
+        // Tệp media (ảnh, tài liệu, video) vốn đã nén, dùng STORE để không tốn CPU & RAM
+        zip.file(`media/${file.bucket}/${file.path}`, blob, { compression: 'STORE' });
+      } else {
+        manifest.mediaFailed.push(`${file.bucket}/${file.path}`);
+      }
       done++;
       const pct = dbShare + (done / Math.max(all.length, 1)) * (95 - dbShare);
       onProgress?.(pct, `Đang tải song song ${MEDIA_DOWNLOAD_CONCURRENCY} file · ${done}/${all.length}...`);
     });
   }
 
-  zip.file('manifest.json', JSON.stringify(manifest, null, 2));
-  zip.file('README.txt', buildReadme(manifest));
+  zip.file('manifest.json', JSON.stringify(manifest, null, 2), {
+    compression: 'DEFLATE',
+    compressionOptions: { level: 1 },
+  });
+  zip.file('README.txt', buildReadme(manifest), {
+    compression: 'DEFLATE',
+    compressionOptions: { level: 1 },
+  });
 
-  onProgress?.(96, 'Đang nén gói sao lưu...');
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  onProgress?.(95, 'Đang đóng gói tệp .zip...');
+  const blob = await zip.generateAsync(
+    {
+      type: 'blob',
+      compression: 'STORE',
+    },
+    (meta) => {
+      onProgress?.(
+        95 + Math.round((meta.percent / 100) * 4),
+        `Đang hoàn thiện tệp .zip (${Math.round(meta.percent)}%)...`
+      );
+    }
+  );
+
   const fileName = `TQMaster_Snapshot_${timestamp()}.zip`;
   if (opts.saveToFile !== false) {
-    saveAs(blob, fileName);
+    downloadBlob(blob, fileName);
   }
   onProgress?.(100, 'Hoàn tất!');
 
   return { fileName, manifest, sizeBytes: blob.size, blob };
+}
+
+/** Kích hoạt tải file Blob về máy an toàn, chống bị trình duyệt chặn */
+export function downloadBlob(blob: Blob, fileName: string): boolean {
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch {}
+    }, 2500);
+    return true;
+  } catch {
+    try {
+      saveAs(blob, fileName);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 function buildReadme(m: BackupManifest): string {

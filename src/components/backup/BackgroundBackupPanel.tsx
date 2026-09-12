@@ -13,10 +13,10 @@ import {
   Image as ImageIcon,
   ShieldAlert,
   Copy,
+  Zap,
 } from 'lucide-react';
-import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
-import { BACKUP_TABLES, DEFAULT_TABLES, formatBytes, exportFullSnapshot } from '@/lib/backupCore';
+import { BACKUP_TABLES, DEFAULT_TABLES, formatBytes, exportFullSnapshot, downloadBlob } from '@/lib/backupCore';
 import { useToast } from '@/hooks/use-toast';
 
 const INIT_SQL = `-- Chạy script này trong Supabase Dashboard -> SQL Editor
@@ -86,7 +86,12 @@ CREATE TRIGGER trg_backup_jobs_updated_at
   BEFORE UPDATE ON public.backup_jobs
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
-CREATE INDEX IF NOT EXISTS idx_backup_jobs_created_at ON public.backup_jobs (created_at DESC);`;
+CREATE INDEX IF NOT EXISTS idx_backup_jobs_created_at ON public.backup_jobs (created_at DESC);
+
+-- Khởi tạo bucket backup-uploads nếu chưa có
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('backup-uploads', 'backup-uploads', false)
+ON CONFLICT (id) DO NOTHING;`;
 
 interface BackupJob {
   id: string;
@@ -95,10 +100,13 @@ interface BackupJob {
   file_size: number;
   status: string;
   include_media: boolean;
+  tables: string[] | null;
   progress: number;
   step: string | null;
   error: string | null;
   created_at: string;
+  updated_at?: string | null;
+  heartbeat_at?: string | null;
   finished_at: string | null;
 }
 
@@ -118,12 +126,21 @@ export default function BackgroundBackupPanel() {
   const [jobs, setJobs] = useState<BackupJob[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [resumingId, setResumingId] = useState<string | null>(null);
   const [schemaError, setSchemaError] = useState(false);
+
+  const isJobStale = (job: BackupJob): boolean => {
+    if (job.status !== 'running' && job.status !== 'pending') return false;
+    const lastActive = job.heartbeat_at || job.updated_at || job.created_at;
+    if (!lastActive) return false;
+    // Nếu quá 2.5 phút không có tín hiệu cập nhật thì coi là bị treo/gián đoạn
+    return Date.now() - new Date(lastActive).getTime() > 2.5 * 60 * 1000;
+  };
 
   const loadJobs = useCallback(async () => {
     const { data, error } = await supabase
       .from('backup_jobs')
-      .select('id, file_name, file_path, file_size, status, include_media, progress, step, error, created_at, finished_at')
+      .select('id, file_name, file_path, file_size, status, include_media, tables, progress, step, error, created_at, updated_at, heartbeat_at, finished_at')
       .order('created_at', { ascending: false })
       .limit(6);
 
@@ -161,15 +178,20 @@ export default function BackgroundBackupPanel() {
       const userId = auth?.user?.id;
       if (!userId) throw new Error('Vui lòng đăng nhập lại.');
 
+      // Đảm bảo bucket backup-uploads đã sẵn sàng
+      try {
+        await supabase.storage.createBucket('backup-uploads', { public: false });
+      } catch {}
+
       const { data: job, error: jobErr } = await supabase
         .from('backup_jobs')
         .insert({
           created_by: userId,
           include_media: includeMedia,
           tables: selected,
-          status: 'pending',
-          progress: 0,
-          step: 'Khởi tạo yêu cầu sao lưu máy chủ...',
+          status: 'running',
+          progress: 5,
+          step: 'Khởi tạo sao lưu đám mây...',
         })
         .select('id')
         .single();
@@ -182,40 +204,13 @@ export default function BackgroundBackupPanel() {
         throw new Error(jobErr?.message ?? 'Không thể tạo yêu cầu sao lưu.');
       }
 
-      let invokedServer = false;
-      try {
-        const { error: fnErr } = await supabase.functions.invoke('backup-worker', {
-          body: { jobId: job.id },
-        });
-        if (!fnErr) {
-          invokedServer = true;
-        }
-      } catch {
-        invokedServer = false;
-      }
+      await loadJobs();
 
-      if (invokedServer) {
-        toast({
-          title: '🚀 Đã bắt đầu sao lưu trên máy chủ',
-          description: 'Bạn có thể đóng tab hoặc tắt máy tính ngay bây giờ. Máy chủ Supabase sẽ tự động chạy ngầm và lưu trữ gói sao lưu.',
-        });
-        await loadJobs();
-        return;
-      }
-
-      // Nếu Edge Function chưa được deploy trên Supabase Cloud:
-      // Tự động đóng gói trực tiếp và tải lên Cloud Storage cho người dùng
+      // Đóng gói trực tiếp tốc độ cao & tải lên Cloud Storage (Khuyên dùng, không bị giới hạn 150MB RAM của Edge Function)
       toast({
         title: '⚡ Đang đóng gói dữ liệu và lưu lên đám mây...',
-        description: 'Đang tự động đọc dữ liệu và nén tệp sao lưu lưu trữ trên Cloud Storage...',
+        description: 'Động cơ nén tối ưu (STORE media + fast DEFLATE) đang xử lý...',
       });
-
-      await supabase.from('backup_jobs').update({
-        status: 'running',
-        step: 'Đang đọc và đóng gói dữ liệu...',
-        progress: 10,
-      }).eq('id', job.id);
-      await loadJobs();
 
       const res = await exportFullSnapshot({
         tables: selected,
@@ -223,8 +218,9 @@ export default function BackgroundBackupPanel() {
         saveToFile: false,
         onProgress: async (p, m) => {
           await supabase.from('backup_jobs').update({
-            progress: Math.min(Math.round(p), 90),
+            progress: Math.min(Math.round(p), 94),
             step: m,
+            heartbeat_at: new Date().toISOString(),
           }).eq('id', job.id);
           await loadJobs();
         },
@@ -232,9 +228,11 @@ export default function BackgroundBackupPanel() {
 
       const filePath = `archives/${job.id}/${res.fileName}`;
       await supabase.from('backup_jobs').update({
-        progress: 95,
+        progress: 96,
         step: 'Đang lưu trữ gói sao lưu lên Cloud Storage...',
+        heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
+      await loadJobs();
 
       const { error: upErr } = await supabase.storage
         .from('backup-uploads')
@@ -253,6 +251,7 @@ export default function BackgroundBackupPanel() {
         progress: 100,
         step: 'Hoàn tất! Đã tạo và lưu trữ an toàn trên đám mây.',
         finished_at: new Date().toISOString(),
+        heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
 
       toast({
@@ -272,6 +271,93 @@ export default function BackgroundBackupPanel() {
     }
   };
 
+  const resumeJobWithBrowser = async (job: BackupJob) => {
+    setResumingId(job.id);
+    try {
+      toast({ title: '⚡ Đang tiếp tục đóng gói và lưu tệp lên đám mây...' });
+      await supabase.from('backup_jobs').update({
+        status: 'running',
+        step: 'Đang tiếp tục đọc dữ liệu & hoàn tất tệp sao lưu...',
+        progress: 10,
+        heartbeat_at: new Date().toISOString(),
+      }).eq('id', job.id);
+      await loadJobs();
+
+      const tablesToExport = (job.tables && job.tables.length > 0) ? job.tables : DEFAULT_TABLES;
+      const res = await exportFullSnapshot({
+        tables: tablesToExport,
+        includeMedia: job.include_media,
+        saveToFile: false,
+        onProgress: async (p, m) => {
+          await supabase.from('backup_jobs').update({
+            progress: Math.min(Math.round(p), 94),
+            step: m,
+            heartbeat_at: new Date().toISOString(),
+          }).eq('id', job.id);
+          await loadJobs();
+        },
+      });
+
+      const filePath = `archives/${job.id}/${res.fileName}`;
+      await supabase.from('backup_jobs').update({
+        progress: 96,
+        step: 'Đang lưu trữ gói sao lưu lên Cloud Storage...',
+        heartbeat_at: new Date().toISOString(),
+      }).eq('id', job.id);
+      await loadJobs();
+
+      const { error: upErr } = await supabase.storage
+        .from('backup-uploads')
+        .upload(filePath, res.blob, {
+          contentType: 'application/zip',
+          upsert: true,
+        });
+
+      if (upErr) throw new Error(`Lỗi tải lên Storage: ${upErr.message}`);
+
+      await supabase.from('backup_jobs').update({
+        status: 'done',
+        file_path: filePath,
+        file_name: res.fileName,
+        file_size: res.sizeBytes,
+        progress: 100,
+        step: 'Hoàn tất! Đã hoàn tất và lưu trữ an toàn trên đám mây.',
+        finished_at: new Date().toISOString(),
+        heartbeat_at: new Date().toISOString(),
+      }).eq('id', job.id);
+
+      toast({
+        title: '✅ Đã hoàn tất sao lưu thành công',
+        description: `${res.fileName} (${formatBytes(res.sizeBytes)})`,
+      });
+      await loadJobs();
+    } catch (err) {
+      toast({
+        title: 'Lỗi khi hoàn tất sao lưu',
+        description: String(err instanceof Error ? err.message : err),
+        variant: 'destructive',
+      });
+    } finally {
+      setResumingId(null);
+      await loadJobs();
+    }
+  };
+
+  const markJobFailed = async (job: BackupJob) => {
+    try {
+      await supabase.from('backup_jobs').update({
+        status: 'failed',
+        error: 'Tiến trình bị gián đoạn (do vượt quá giới hạn CPU/RAM Edge Function máy chủ).',
+        step: 'Đã dừng do gián đoạn.',
+        finished_at: new Date().toISOString(),
+      }).eq('id', job.id);
+      toast({ title: 'Đã đánh dấu thất bại' });
+      await loadJobs();
+    } catch (err) {
+      toast({ title: 'Lỗi', description: String(err), variant: 'destructive' });
+    }
+  };
+
   const handleDownload = async (job: BackupJob) => {
     if (!job.file_path) {
       toast({ title: 'File sao lưu không còn tồn tại trên server', variant: 'destructive' });
@@ -284,11 +370,12 @@ export default function BackgroundBackupPanel() {
         .download(job.file_path);
 
       if (error || !data) {
-        throw new Error(error?.message ?? 'Không tải được tệp.');
+        throw new Error(error?.message ?? 'Không tải được tệp từ Storage.');
       }
 
-      saveAs(data, job.file_name || `TQMaster_ServerBackup_${job.id.slice(0, 8)}.zip`);
-      toast({ title: '✅ Bắt đầu tải file về máy' });
+      const fileName = job.file_name || `TQMaster_ServerBackup_${job.id.slice(0, 8)}.zip`;
+      downloadBlob(data, fileName);
+      toast({ title: '✅ Đang tải gói sao lưu về máy...' });
     } catch (err) {
       toast({
         title: 'Lỗi tải file',
@@ -582,12 +669,12 @@ export default function BackgroundBackupPanel() {
           {starting ? (
             <>
               <Loader2 size={18} className="animate-spin" />
-              <span>Đang gửi lệnh tới máy chủ...</span>
+              <span>Đang đóng gói và lưu trữ lên đám mây...</span>
             </>
           ) : (
             <>
               <CloudDownload size={18} />
-              <span>Bắt đầu sao lưu trên máy chủ (Tắt máy thoải mái)</span>
+              <span>Bắt đầu sao lưu máy chủ & Lưu đám mây</span>
             </>
           )}
         </button>
@@ -634,7 +721,10 @@ export default function BackgroundBackupPanel() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {jobs.map((job) => {
-                const meta = STATUS_META[job.status] ?? STATUS_META.pending;
+                const stale = isJobStale(job);
+                const meta = stale
+                  ? { label: 'Gián đoạn', color: '#b45309', bg: '#fef3c7', border: '#fde68a' }
+                  : (STATUS_META[job.status] ?? STATUS_META.pending);
                 const isRunning = job.status === 'running' || job.status === 'pending';
                 const isDone = job.status === 'done';
 
@@ -711,6 +801,60 @@ export default function BackgroundBackupPanel() {
                               transition: 'width 0.3s',
                             }}
                           />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cảnh báo và giải cứu khi tiến trình bị gián đoạn/treo */}
+                    {stale && isRunning && (
+                      <div style={{ padding: '10px 12px', background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 12, fontSize: 11, color: '#92400e', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800 }}>
+                          <ShieldAlert size={15} color="#d97706" />
+                          Tiến trình bị gián đoạn (Dừng tại {job.progress}%: {job.step || 'Đang xử lý'})
+                        </div>
+                        <div style={{ fontSize: 11, color: '#78350f', lineHeight: 1.4 }}>
+                          Máy chủ Edge Function đã bị ngắt (vượt quá giới hạn CPU/RAM 150MB). Bạn có thể bấm nút dưới đây để tiếp tục đóng gói và lưu trữ an toàn ngay lập tức.
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => resumeJobWithBrowser(job)}
+                            disabled={resumingId === job.id}
+                            style={{
+                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: 8,
+                              padding: '6px 12px',
+                              fontSize: 11,
+                              fontWeight: 800,
+                              cursor: resumingId === job.id ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)',
+                            }}
+                          >
+                            {resumingId === job.id ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
+                            Đóng gói & Lưu trữ lên Cloud ngay
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => markJobFailed(job)}
+                            style={{
+                              background: '#f8fafc',
+                              color: '#64748b',
+                              border: '1px solid #cbd5e1',
+                              borderRadius: 8,
+                              padding: '5px 10px',
+                              fontSize: 11,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Đánh dấu Thất bại
+                          </button>
                         </div>
                       </div>
                     )}

@@ -8,6 +8,7 @@ import {
   exportFullSnapshot,
   formatBytes,
   SnapshotExportResult,
+  downloadBlob,
 } from '@/lib/backupCore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -134,20 +135,65 @@ export default function SnapshotExportPanel() {
       )}
 
       {result && !busy && (
-        <div style={{ margin: '0 22px 12px', padding: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#15803d', marginBottom: 6 }}>
-            <CheckCircle2 size={14} style={{ display: 'inline', marginRight: 6 }} />
-            {result.fileName} · {formatBytes(result.sizeBytes)}
+        <div style={{ margin: '0 22px 14px', padding: 16, background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#15803d', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <CheckCircle2 size={18} color="#16a34a" />
+              Đã tạo gói sao lưu thành công!
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#166534', background: '#dcfce7', padding: '3px 10px', borderRadius: 20 }}>
+              {formatBytes(result.sizeBytes)}
+            </span>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+
+          <div style={{ fontSize: 12, color: '#374151', wordBreak: 'break-all', lineHeight: 1.5 }}>
+            Tệp: <b>{result.fileName}</b><br />
+            📊 <b>{result.manifest.totalRows}</b> dòng dữ liệu · 🖼️ <b>{result.manifest.totalMediaFiles}</b> tệp media
+          </div>
+
+          {/* Nút bấm tải trực tiếp 100% an toàn không bị trình duyệt chặn */}
+          <button
+            type="button"
+            onClick={() => {
+              downloadBlob(result.blob, result.fileName);
+              toast({ title: '📥 Đang tải gói sao lưu về máy...' });
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '12px 16px',
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: 14,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+              transition: 'all 0.2s',
+            }}
+          >
+            <Download size={18} />
+            <span>Tải xuống ngay gói sao lưu này (.zip)</span>
+          </button>
+
+          <div style={{ fontSize: 11, color: '#15803d', fontStyle: 'italic', textAlign: 'center' }}>
+            💡 Nếu trình duyệt của bạn chặn tự động tải, hãy bấm nút xanh phía trên để tải về ngay.
+          </div>
+
+          {/* Chi tiết bảng */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 85, overflowY: 'auto', paddingTop: 6, borderTop: '1px dashed #bbf7d0' }}>
             {result.manifest.tables.map((t) => (
               <span
                 key={t.name}
                 title={t.error ? `Chi tiết lỗi: ${t.error}` : `${t.rows} dòng`}
                 style={{
                   ...chip,
-                  background: t.error ? '#fee2e2' : '#dcfce7',
+                  background: t.error ? '#fee2e2' : '#ffffff',
                   color: t.error ? '#dc2626' : '#15803d',
+                  border: `1px solid ${t.error ? '#fca5a5' : '#bbf7d0'}`,
                   cursor: t.error ? 'help' : 'default',
                 }}
               >
@@ -155,10 +201,28 @@ export default function SnapshotExportPanel() {
               </span>
             ))}
             {result.manifest.totalMediaFiles > 0 && (
-              <span style={{ ...chip, background: '#dbeafe', color: '#1d4ed8' }}>
+              <span style={{ ...chip, background: '#dbeafe', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
                 Media: {result.manifest.totalMediaFiles} file
               </span>
             )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setResult(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#64748b',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline',
+              }}
+            >
+              Đóng & Tạo bản sao lưu khác
+            </button>
           </div>
         </div>
       )}

@@ -219,7 +219,10 @@ async function processJob(jobId: string) {
 
       try {
         const rows = await fetchTableRows(table);
-        zip.file(`data/${table.name}.json`, JSON.stringify(rows, null, 0));
+        zip.file(`data/${table.name}.json`, JSON.stringify(rows, null, 0), {
+          compression: 'DEFLATE',
+          compressionOptions: { level: 1 },
+        });
         (manifest.tables as { name: string; label: string; rows: number; error?: string }[]).push({
           name: table.name,
           label: table.label,
@@ -281,7 +284,8 @@ async function processJob(jobId: string) {
             mediaFailed.push(`${file.bucket}/${file.path}`);
           } else {
             const buf = await fileData.arrayBuffer();
-            zip.file(`media/${file.bucket}/${file.path}`, buf);
+            // Tệp media lưu trực tiếp bằng STORE để không tốn CPU và RAM của Edge Function
+            zip.file(`media/${file.bucket}/${file.path}`, buf, { compression: 'STORE' });
             downloadedBytes += buf.byteLength;
           }
         } catch {
@@ -292,7 +296,10 @@ async function processJob(jobId: string) {
     }
 
     // Thêm manifest và readme
-    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2), {
+      compression: 'DEFLATE',
+      compressionOptions: { level: 1 },
+    });
     zip.file('README.txt', [
       'TQMaster — Gói sao lưu tự động tạo trên máy chủ',
       `Thời gian: ${new Date().toLocaleString('vi-VN')}`,
@@ -300,14 +307,16 @@ async function processJob(jobId: string) {
       `Tổng số dòng: ${manifest.totalRows}`,
       `Tổng số file media: ${manifest.totalMediaFiles}`,
       'Khôi phục: Mở mục Admin → Backup & Restore → Khôi phục toàn bộ, chọn đúng file .zip này.',
-    ].join('\n'));
+    ].join('\n'), {
+      compression: 'DEFLATE',
+      compressionOptions: { level: 1 },
+    });
 
-    await updateJob(jobId, { step: 'Đang nén dữ liệu thành tệp .zip...', progress: 90 });
+    await updateJob(jobId, { step: 'Đang đóng gói tệp .zip...', progress: 90 });
 
     const zipBuffer = await zip.generateAsync({
       type: 'uint8array',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 6 },
+      compression: 'STORE',
     });
 
     const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
@@ -315,6 +324,16 @@ async function processJob(jobId: string) {
     const filePath = `archives/${jobId}/${fileName}`;
 
     await updateJob(jobId, { step: 'Đang lưu trữ gói sao lưu lên đám mây...', progress: 95 });
+
+    // Đảm bảo bucket backup-uploads tồn tại
+    try {
+      const { data: bInfo } = await admin.storage.getBucket('backup-uploads');
+      if (!bInfo) {
+        await admin.storage.createBucket('backup-uploads', { public: false });
+      }
+    } catch {
+      // Bỏ qua nếu đã tồn tại
+    }
 
     const { error: uploadError } = await admin.storage
       .from('backup-uploads')
