@@ -181,48 +181,20 @@ export default function AdminUsers() {
     }
     setSavingAdd(true);
     try {
-      // Create a non-persisted client so Admin session is not overwritten or logged out
-      const tempClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false,
-          },
-        }
-      );
-
-      const { data, error } = await tempClient.auth.signUp({
-        email: addForm.email.trim(),
-        password: addForm.password.trim(),
-        options: {
-          data: {
-            username: addForm.username.trim(),
-            full_name: addForm.fullName.trim(),
-            student_code: addForm.studentCode.trim(),
-            created_by_admin: true,
-          }
-        }
+      // Call admin-create-user Edge Function with Service Role permissions
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: addForm.email.trim(),
+          password: addForm.password.trim(),
+          username: addForm.username.trim(),
+          fullName: addForm.fullName.trim(),
+          studentCode: addForm.studentCode.trim(),
+          role: addForm.role,
+        },
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Upsert profile via admin client
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          username: addForm.username.trim(),
-          full_name: addForm.fullName.trim() || addForm.username.trim(),
-          email: addForm.email.trim(),
-          student_code: addForm.studentCode.trim() || null,
-        });
-
-        // Grant role if admin
-        if (addForm.role === 'admin') {
-          await supabase.from('user_roles').insert({ user_id: data.user.id, role: 'admin' });
-        }
+      if (error || data?.error) {
+        throw new Error(data?.error || error?.message || 'Không thể tạo tài khoản');
       }
 
       alert('Tạo tài khoản thành công!');
