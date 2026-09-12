@@ -4,14 +4,24 @@ import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
 // ── Single-device session helper ───────────────────────────
-const DEVICE_KEY = 'tq_device_id';
-function getDeviceId(): string {
-  let id = localStorage.getItem(DEVICE_KEY);
-  if (!id) {
-    id = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    localStorage.setItem(DEVICE_KEY, id);
+const SESSION_KEY = 'tq_session_id';
+function getSessionId(): string {
+  try {
+    let id = sessionStorage.getItem(SESSION_KEY);
+    if (!id) {
+      id = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      sessionStorage.setItem(SESSION_KEY, id);
+    }
+    return id;
+  } catch {
+    // Fallback if sessionStorage is disabled/blocked
+    let id = localStorage.getItem(SESSION_KEY);
+    if (!id) {
+      id = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      localStorage.setItem(SESSION_KEY, id);
+    }
+    return id;
   }
-  return id;
 }
 
 // ── Types ──────────────────────────────────────────────────
@@ -187,43 +197,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const sessionChannelRef = useRef<any>(null);
   const sessionVisibilityHandlerRef = useRef<(() => void) | null>(null);
   const kickSelf = useCallback(() => {
-    toast.error('Tài khoản của bạn vừa đăng nhập trên một thiết bị khác. Bạn đã bị đăng xuất.', { duration: 8000 });
-    supabase.auth.signOut();
-  }, []);
-  const enforceSingleSession = useCallback(async (userId: string) => {
-    const deviceId = getDeviceId();
-    try {
-      // Claim this device as the active one (latest login wins)
-      await (supabase.from('active_sessions' as any) as any).upsert({
-        user_id: userId,
-        session_id: deviceId,
-        user_agent: navigator.userAgent,
-        updated_at: new Date().toISOString(),
-      });
-    } catch (e) {
-      console.error('enforceSingleSession upsert error:', e);
-    }
-
-    // Subscribe to changes; if another device claims the account, sign out here
     if (sessionChannelRef.current) {
       supabase.removeChannel(sessionChannelRef.current);
       sessionChannelRef.current = null;
     }
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+      // ignore
+    }
+    toast.error('Tài khoản của bạn vừa đăng nhập trên một thiết bị khác. Bạn đã bị đăng xuất.', { duration: 8000 });
+    supabase.auth.signOut();
+  }, []);
+
+  const enforceSingleSession = useCallback(async (userId: string) => {
+    const sessionId = getSessionId();
+    try {
+      // Claim this session as the active one (latest login wins)
+      await (supabase.from('active_sessions' as any) as any).upsert({
+        user_id: userId,
+        session_id: sessionId,
+        user_agent: navigator.userAgent,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    } catch (e) {
+      console.error('enforceSingleSession upsert error:', e);
+    }
+
+    // Subscribe to changes; if another device/tab claims the account, sign out here
+    if (sessionChannelRef.current) {
+      await supabase.removeChannel(sessionChannelRef.current);
+      sessionChannelRef.current = null;
+    }
+
+    const channelName = `active-session-${userId}-${sessionId}`;
     const ch = supabase
-      .channel(`active-session-${userId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'active_sessions', filter: `user_id=eq.${userId}` },
         (payload) => {
           const newSid = (payload.new as any)?.session_id;
-          if (newSid && newSid !== getDeviceId()) {
+          if (newSid && newSid !== getSessionId()) {
             kickSelf();
           }
         }
       )
-      .subscribe((status) => {
-
-      });
+      .subscribe();
     sessionChannelRef.current = ch;
 
     // Fallback: in case a realtime event is missed (e.g. background tab),
@@ -240,7 +260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('session_id')
             .eq('user_id', userId)
             .maybeSingle();
-          if (data?.session_id && data.session_id !== getDeviceId()) {
+          if (data?.session_id && data.session_id !== getSessionId()) {
             if (sessionVisibilityHandlerRef.current) {
               document.removeEventListener('visibilitychange', sessionVisibilityHandlerRef.current);
               sessionVisibilityHandlerRef.current = null;
