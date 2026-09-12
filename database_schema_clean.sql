@@ -940,6 +940,10 @@ INSERT INTO storage.buckets (id, name, public) VALUES
   ('backup-uploads', 'backup-uploads', FALSE)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
+GRANT SELECT ON storage.buckets TO authenticated, anon;
+DROP POLICY IF EXISTS "public_select_buckets" ON storage.buckets;
+CREATE POLICY "public_select_buckets" ON storage.buckets FOR SELECT USING (true);
+
 DROP POLICY IF EXISTS "public_read_public_buckets" ON storage.objects;
 CREATE POLICY "public_read_public_buckets" ON storage.objects FOR SELECT
 USING (bucket_id = ANY (ARRAY['thumbnails','qr-codes','announcement-images','avatars','news-images','chat-images']));
