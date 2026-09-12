@@ -481,7 +481,7 @@ export default function ExamPage() {
   };
 
   const submitReport = async () => {
-    const targetQ = isTextExam ? currentQ : reportingQuestion;
+    const targetQ = reportingQuestion || currentQ;
     if (!targetQ || reportOptionIds.length === 0 || !profile) {
       if (!profile) alert('Vui lòng đăng nhập để gửi báo cáo.');
       else if (reportOptionIds.length === 0) alert('Vui lòng chọn ít nhất một đáp án bạn cho là đúng.');
@@ -510,7 +510,13 @@ export default function ExamPage() {
 
   const reportModal = reportingQuestion ? (
     <div 
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReportingQuestion(null); }}
+      onClick={(e) => { 
+        e.preventDefault(); 
+        e.stopPropagation(); 
+        setReportingQuestion(null); 
+        setReportNote(''); 
+        setReportOptionIds([]); 
+      }}
       style={{ 
         position: 'fixed', 
         inset: 0, 
@@ -547,14 +553,31 @@ export default function ExamPage() {
             </div>
             <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Báo cáo đáp án sai</h3>
           </div>
-          <button onClick={() => setReportingQuestion(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+          <button 
+            onClick={() => { setReportingQuestion(null); setReportNote(''); setReportOptionIds([]); }} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+          >
             <X size={24} />
           </button>
         </div>
         
-        <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 120, overflowY: 'auto' }}>
-          <strong style={{ color: '#0f172a' }}>Câu hỏi: </strong>
-          <RichContent content={reportingQuestion.content || ''} />
+        <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0', maxHeight: 150, overflowY: 'auto' }}>
+          <strong style={{ color: '#0f172a' }}>
+            Câu {questions.findIndex(q => q.id === reportingQuestion.id) + 1 || currentIndex + 1}:{' '}
+          </strong>
+          {reportingQuestion.content ? (
+            <RichContent content={reportingQuestion.content} />
+          ) : reportingQuestion.image_url ? (
+            <div style={{ marginTop: 6 }}>
+              <img 
+                src={reportingQuestion.image_url} 
+                alt="Hình ảnh câu hỏi" 
+                style={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain', borderRadius: 6, border: '1px solid #e2e8f0' }} 
+              />
+            </div>
+          ) : (
+            <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Dạng hình ảnh</span>
+          )}
         </div>
 
         <div>
@@ -585,7 +608,11 @@ export default function ExamPage() {
                   </div>
                   <span style={{ fontSize: 14, fontWeight: isChecked ? 700 : 500, color: isChecked ? '#1e40af' : '#334155', flex: 1 }}>
                     <span style={{ fontWeight: 800, marginRight: 6 }}>{opt.label}.</span>
-                    <RichContent content={opt.content || ''} displayMode={false} />
+                    {opt.content?.trim() ? (
+                      <RichContent content={opt.content} displayMode={false} />
+                    ) : (
+                      `Đáp án ${opt.label}`
+                    )}
                   </span>
                   {isAlreadyCorrect && (
                     <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 4 }}>
@@ -610,7 +637,7 @@ export default function ExamPage() {
 
         <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
           <button
-            onClick={() => setReportingQuestion(null)}
+            onClick={() => { setReportingQuestion(null); setReportNote(''); setReportOptionIds([]); }}
             style={{ flex: 1, padding: '12px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#334155', cursor: 'pointer' }}
           >
             Hủy
@@ -1947,6 +1974,39 @@ export default function ExamPage() {
           </div>
 
           <div className="exam-header-right">
+            {examMode === 'practice' && (
+              <button
+                className="touch-target"
+                onClick={() => setReportingQuestion(currentQ)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#fffbeb',
+                  color: '#b45309',
+                  border: '1px solid #fde68a',
+                  borderRadius: 8,
+                  padding: '8px 14px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.15)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#fef3c7';
+                  e.currentTarget.style.borderColor = '#f59e0b';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fffbeb';
+                  e.currentTarget.style.borderColor = '#fde68a';
+                }}
+                title="Báo lỗi câu hỏi này"
+              >
+                <MessageSquareWarning size={16} />
+                <span className="hide-on-mobile">Báo lỗi</span>
+              </button>
+            )}
             {examMode === 'exam' && !submitted && (
               <>
                 <div 
@@ -2143,6 +2203,21 @@ export default function ExamPage() {
                       <RotateCcw size={14} />
                     </button>
                   )}
+
+                  {examMode === 'practice' && (
+                    <button
+                      type="button"
+                      onClick={() => setReportingQuestion(currentQ)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#d97706', borderLeft: '1px solid #e2e8f0', marginLeft: 2
+                      }}
+                      title="Báo lỗi câu này"
+                    >
+                      <MessageSquareWarning size={15} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Main Image */}
@@ -2285,6 +2360,50 @@ export default function ExamPage() {
               );
             })}
           </div>
+
+          {/* Practice Mode: Report Error Section */}
+          {examMode === 'practice' && (
+            <div style={{
+              marginTop: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#fffbeb',
+              padding: '12px 16px',
+              borderRadius: 12,
+              border: '1px solid #fde68a',
+              gap: 12,
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ fontSize: 13, color: '#92400e', lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 280px' }}>
+                <MessageSquareWarning size={18} style={{ flexShrink: 0, color: '#d97706' }} />
+                <span>Trong quá trình nhập liệu đáp án có thể xảy ra sai sót. Nếu bạn thấy đáp án chưa chính xác, có thể phản hồi lại với chúng tôi.</span>
+              </div>
+              <button
+                onClick={() => setReportingQuestion(currentQ)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#f59e0b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                  flexShrink: 0,
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#d97706'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#f59e0b'; }}
+              >
+                <MessageSquareWarning size={16} /> Báo cáo lỗi
+              </button>
+            </div>
+          )}
         </div>
 
         {/* RIGHT COLUMN - Fixed Width Sidebar */}
