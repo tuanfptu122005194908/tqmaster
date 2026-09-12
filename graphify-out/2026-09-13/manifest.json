@@ -516,9 +516,9 @@
     "semantic_hash": ""
   },
   "src/lib/AppContext.tsx": {
-    "mtime": 1789236103.9523952,
-    "seen": 1789238894.905003,
-    "ast_hash": "2984346429a88fc5eb14cbbd9835026d",
+    "mtime": 1789141088.2317126,
+    "seen": 1789149043.780141,
+    "ast_hash": "a3201a990ed3a578c5f62f21b08ddef7",
     "semantic_hash": ""
   },
   "src/lib/groqVision.ts": {
@@ -558,9 +558,9 @@
     "semantic_hash": ""
   },
   "src/pages/AuthPage.tsx": {
-    "mtime": 1789231886.8622692,
-    "seen": 1789238894.9060566,
-    "ast_hash": "494eccfd445ec3eaf047550fee836b51",
+    "mtime": 1788407432.912045,
+    "seen": 1789059066.0059514,
+    "ast_hash": "8874e5fb49b2e9d67345caa187c84fe8",
     "semantic_hash": ""
   },
   "src/pages/CompleteProfilePage.tsx": {
@@ -594,9 +594,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminCoupons.tsx": {
-    "mtime": 1789234700.496623,
-    "seen": 1789238894.906966,
-    "ast_hash": "e6524d83de28c13ceb187a058ef26b31",
+    "mtime": 1788251509.9875154,
+    "seen": 1789059066.0059662,
+    "ast_hash": "eb4532b3b873851455c0b07243efeaf8",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminDashboard.tsx": {
@@ -606,9 +606,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminExams.tsx": {
-    "mtime": 1789234723.5074472,
-    "seen": 1789238894.9071138,
-    "ast_hash": "6ee3858ee148cc953be40e1a5a78d060",
+    "mtime": 1789141088.2349815,
+    "seen": 1789149043.7825742,
+    "ast_hash": "26d013021c19d2dbc7e24673e4500dff",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminNews.tsx": {
@@ -618,9 +618,9 @@
     "semantic_hash": "b078f0b582fbcbb3d5631b581dc3c800"
   },
   "src/pages/admin/AdminOrders.tsx": {
-    "mtime": 1789234661.4510322,
-    "seen": 1789238894.9071834,
-    "ast_hash": "fbfc392b1147b7551e53ac825fa79a20",
+    "mtime": 1788408421.4280963,
+    "seen": 1789059066.0059748,
+    "ast_hash": "e31e9dd750b213624ca90acc89002e55",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminQuestionReports.tsx": {
@@ -642,15 +642,15 @@
     "semantic_hash": "f1eaff903668255ea49c16c81dc901d6"
   },
   "src/pages/admin/AdminTheory.tsx": {
-    "mtime": 1789234711.9390662,
-    "seen": 1789238894.9073858,
-    "ast_hash": "28eaa8ae0bea4c3f34c1bdd3574c46f3",
+    "mtime": 1789141088.2391014,
+    "seen": 1789149043.7830038,
+    "ast_hash": "ee61c6e3b8b3c640ab2617f9a67233d6",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminUsers.tsx": {
-    "mtime": 1789234690.3040075,
-    "seen": 1789238894.907387,
-    "ast_hash": "e8074828f011ea74afb3de2fff5fdda7",
+    "mtime": 1789226384.554901,
+    "seen": 1789228632.0648687,
+    "ast_hash": "2665ae53735eef81f828ea340b5626ed",
     "semantic_hash": ""
   },
   "src/pages/user/CartPage.tsx": {
@@ -2547,24 +2547,6 @@
     "mtime": 1789226223.623482,
     "seen": 1789228632.067001,
     "ast_hash": "e99412f742a970ab36214438bfa47ce0",
-    "semantic_hash": ""
-  },
-  "scripts/import_auth_users_batch.mjs": {
-    "mtime": 1789238487.9428997,
-    "seen": 1789238894.8943481,
-    "ast_hash": "221d7760a2c58e5abb99bb70125d235b",
-    "semantic_hash": ""
-  },
-  "scripts/sync_new_orders.mjs": {
-    "mtime": 1789235963.348634,
-    "seen": 1789238894.8944623,
-    "ast_hash": "c355d1afbfa701637d1f453bb3e64292",
-    "semantic_hash": ""
-  },
-  "scripts/verify_complete_status.mjs": {
-    "mtime": 1789236639.5617201,
-    "seen": 1789238894.894465,
-    "ast_hash": "3a48279598fa58f8bad8109465f880f0",
     "semantic_hash": ""
   }
 }

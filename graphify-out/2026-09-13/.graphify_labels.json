@@ -83,7 +83,7 @@
   "81": "@radix-ui/react-popover",
   "82": "@radix-ui/react-progress",
   "83": "@radix-ui/react-radio-group",
-  "84": "AdminExamStats.tsx",
+  "84": "CenterFocalPoint.tsx",
   "85": "@radix-ui/react-select",
   "86": "@radix-ui/react-separator",
   "87": "@radix-ui/react-slider",
@@ -109,7 +109,7 @@
   "107": "speckit.analyze.agent.md",
   "108": "@testing-library/jest-dom",
   "109": "@testing-library/react",
-  "110": "AdminAnnouncements.tsx",
+  "110": "AppContext.tsx",
   "111": "Prompt: Complete UI Redesign for EduHub - Professional & Modern",
   "112": "FptCampusScene.tsx",
   "113": "typescript-eslint",
@@ -279,11 +279,7 @@
   "277": "richContent.test.ts",
   "278": "export_data.sh",
   "279": "sharp",
-  "280": "CenterFocalPoint.tsx",
+  "280": "home3d/index.ts",
   "281": "@tailwindcss/typography",
-  "282": "typescript",
-  "283": "import_auth_users_batch.mjs",
-  "284": "AdminCoupons.tsx",
-  "285": "verify_complete_status.mjs",
-  "286": "sync_new_orders.mjs"
+  "282": "typescript"
 }
