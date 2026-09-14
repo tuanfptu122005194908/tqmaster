@@ -1632,6 +1632,13 @@
   min-height: 180px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
+.exam-q-split.image-only {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 12px auto;
+  min-height: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 .exam-q-text {
   flex: 1;
   padding: 16px;
@@ -1647,10 +1654,24 @@
   background: white;
   overflow: auto;
 }
+.exam-q-split.image-only .exam-q-image {
+  flex: none;
+  padding: 0;
+  width: fit-content;
+  max-width: 100%;
+}
 @media (max-width: 768px) {
   .exam-q-split {
     flex-direction: column;
     min-height: auto;
+  }
+  .exam-q-split.image-only {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .exam-q-split.image-only .exam-q-image {
+    padding: 0;
+    width: 100%;
   }
   .exam-q-text {
     border-right: none !important;

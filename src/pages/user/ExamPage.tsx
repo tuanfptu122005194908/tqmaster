@@ -2128,9 +2128,18 @@ export default function ExamPage() {
             const cleanedContent = cleanQuestionContent(currentQ.content);
             const hasTextOptions = currentQ.options.some(opt => !!opt.content?.trim());
             const hasSubstantiveText = !!cleanedContent || hasTextOptions;
+            const isImageOnly = !hasSubstantiveText && !!currentQ.image_url;
 
             return (
-              <div className="exam-q-split">
+              <div 
+                className={`exam-q-split ${isImageOnly ? 'image-only' : ''}`}
+                style={isImageOnly ? {
+                  width: 'fit-content',
+                  maxWidth: '100%',
+                  margin: '0 auto 12px auto',
+                  minHeight: imgLoaded ? 'auto' : 200,
+                } : undefined}
+              >
                 {/* Text Side - Chỉ render khi có text câu hỏi thực sự hoặc options có chữ */}
                 {hasSubstantiveText && (
                   <div className="exam-q-text" style={{ 
@@ -2176,23 +2185,25 @@ export default function ExamPage() {
                     style={{
                       position: 'relative',
                       overflow: 'auto',
-                      maxHeight: '62vh',
+                      maxHeight: imageZoom > 100 ? '65vh' : 'calc(100vh - 280px)',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: imageZoom > 100 ? 'flex-start' : 'center',
                       justifyContent: 'flex-start',
-                      padding: '8px 12px',
+                      padding: isImageOnly ? 0 : '8px 12px',
                       background: '#ffffff',
                       cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'default',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      width: isImageOnly ? 'fit-content' : undefined,
+                      maxWidth: '100%',
                     }}
                   >
                     {/* Floating In-Place Zoom Bar - Đặt absolute ở góc phải trên để không chiếm dòng đẩy ảnh xuống */}
                     <div 
                       style={{ 
                         position: 'absolute', 
-                        top: 12, 
-                        right: 12,
+                        top: 10, 
+                        right: 10,
                         zIndex: 20, 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -2202,7 +2213,7 @@ export default function ExamPage() {
                         border: '1px solid #cbd5e1', 
                         borderRadius: 20, 
                         padding: '3px 8px', 
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' 
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' 
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -2289,12 +2300,15 @@ export default function ExamPage() {
                     {currentQ.image_url && (
                       <div style={{ 
                         position: 'relative', 
-                        width: '100%', 
+                        width: isImageOnly ? 'fit-content' : '100%', 
+                        maxWidth: '100%',
                         display: 'flex', 
                         flexDirection: 'column', 
                         alignItems: 'center', 
                         justifyContent: 'flex-start',
-                        flex: 1,
+                        flex: isImageOnly ? 'none' : 1,
+                        minWidth: !imgLoaded && isImageOnly ? 320 : undefined,
+                        minHeight: !imgLoaded && isImageOnly ? 200 : undefined,
                       }}>
                         {/* Skeleton loading placeholder - hiện khi ảnh chưa load xong */}
                         {!imgLoaded && (
@@ -2338,15 +2352,19 @@ export default function ExamPage() {
                           }}
                           style={{ 
                             opacity: imgLoaded ? 1 : 0,
-                            width: imageZoom > 100 ? `${imageZoom}%` : '100%',
+                            display: 'block',
+                            width: imageZoom > 100 ? `${imageZoom}%` : (isImageOnly ? 'auto' : '100%'),
                             maxWidth: imageZoom > 100 ? 'none' : '100%', 
-                            maxHeight: imageZoom > 100 ? 'none' : 'calc(100vh - 300px)', 
+                            height: 'auto',
+                            maxHeight: imageZoom > 100 ? 'none' : 'calc(100vh - 280px)', 
                             objectFit: 'contain', 
                             objectPosition: imageZoom > 100 ? 'top left' : 'top center',
                             cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
-                            borderRadius: 6,
+                            borderRadius: isImageOnly ? 0 : 6,
+                            margin: 0,
+                            padding: 0,
                             alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
-                            transition: isDraggingImage ? 'none' : 'opacity 0.3s ease, width 0.15s ease-out',
+                            transition: isDraggingImage ? 'none' : 'opacity 0.2s ease, width 0.15s ease-out',
                             boxShadow: imageZoom > 100 ? '0 4px 16px rgba(0,0,0,0.06)' : 'none',
                           }}
                           onClick={(e) => {
@@ -2369,12 +2387,14 @@ export default function ExamPage() {
                         draggable={false}
                         onDragStart={(e) => e.preventDefault()}
                         style={{ 
+                          display: 'block',
                           width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
                           maxWidth: imageZoom > 100 ? 'none' : '100%', 
+                          height: 'auto',
                           maxHeight: imageZoom > 100 ? 'none' : '30vh', 
                           objectFit: 'contain', 
-                          marginTop: 12, 
-                          borderRadius: 6, 
+                          marginTop: 8, 
+                          borderRadius: 4, 
                           alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
                           cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
                           transition: isDraggingImage ? 'none' : 'width 0.15s ease-out'
