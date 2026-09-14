@@ -2116,263 +2116,284 @@ export default function ExamPage() {
         {/* LEFT COLUMN - Question & Answers */}
         <div className="exam-main-content">
           {/* Main Question Area */}
-          <div className="exam-q-split">
-            {/* Text Side */}
-            {(!!currentQ.content?.trim() || currentQ.options.some(opt => !!opt.content?.trim())) && (
-              <div className="exam-q-text" style={{ 
-                borderRight: currentQ.image_url ? '2px solid #dc2626' : 'none'
-              }}>
-                {!!currentQ.content?.trim() && (
-                  <div style={{ 
-                    fontSize: 14, 
-                    fontWeight: 500, 
-                    color: '#000', 
-                    lineHeight: '1.6', 
-                    marginBottom: '16px'
+          {(() => {
+            const cleanQuestionContent = (raw?: string | null) => {
+              if (!raw) return '';
+              return raw
+                .replace(/^fuoverflow\s*\d*/i, '')
+                .replace(/\(Choose \d+ answers?\)/gi, '')
+                .replace(/\(See picture\)/gi, '')
+                .trim();
+            };
+            const cleanedContent = cleanQuestionContent(currentQ.content);
+            const hasTextOptions = currentQ.options.some(opt => !!opt.content?.trim());
+            const hasSubstantiveText = !!cleanedContent || hasTextOptions;
+
+            return (
+              <div className="exam-q-split">
+                {/* Text Side - Chỉ render khi có text câu hỏi thực sự hoặc options có chữ */}
+                {hasSubstantiveText && (
+                  <div className="exam-q-text" style={{ 
+                    borderRight: currentQ.image_url ? '1px solid #e2e8f0' : 'none'
                   }}>
-                    <RichContent content={currentQ.content} />
-                  </div>
-                )}
-                
-                {/* Detailed Options */}
-                {currentQ.options.some(opt => !!opt.content?.trim()) && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {currentQ.options.map((opt) => opt.content?.trim() ? (
-                      <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000' }}>
-                        <span style={{ fontWeight: 800 }}>{opt.label}.</span> <RichContent content={opt.content} />
-                        {(opt as any).image_url && (
-                          <img src={(opt as any).image_url} alt={`opt ${opt.label}`} style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 6, marginTop: 4, display: 'block' }} />
-                        )}
-                      </div>
-                    ) : null)}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Image Side with In-Place Zoom & Drag-to-Pan Controls */}
-            {(currentQ.image_url || (((currentQ as any).extra_images as string[] | undefined)?.length ?? 0) > 0) && (
-              <div 
-                ref={imageContainerRef}
-                className="exam-q-image"
-                onMouseDown={handleImageMouseDown}
-                onMouseMove={handleImageMouseMove}
-                onMouseUp={handleImageMouseUp}
-                onMouseLeave={handleImageMouseUp}
-                style={{
-                  position: 'relative',
-                  overflow: 'auto',
-                  maxHeight: '62vh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: imageZoom > 100 ? 'flex-start' : 'center',
-                  justifyContent: imageZoom > 100 ? 'flex-start' : 'center',
-                  padding: '16px',
-                  background: '#ffffff',
-                  cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'default',
-                  userSelect: 'none'
-                }}
-              >
-                {/* Floating In-Place Zoom Bar */}
-                <div 
-                  style={{ 
-                    position: 'sticky', 
-                    top: 0, 
-                    right: 0,
-                    zIndex: 20, 
-                    alignSelf: 'flex-end', 
-                    marginBottom: 8,
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 4, 
-                    background: 'rgba(255, 255, 255, 0.95)', 
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid #cbd5e1', 
-                    borderRadius: 20, 
-                    padding: '3px 8px', 
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' 
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {imageZoom > 100 && (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 12, marginRight: 4 }}>
-                      Kéo rê để xem góc
-                    </span>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setImageZoom(z => Math.max(80, z - 20))}
-                    disabled={imageZoom <= 80}
-                    style={{
-                      background: 'none', border: 'none', cursor: imageZoom <= 80 ? 'not-allowed' : 'pointer',
-                      padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: imageZoom <= 80 ? '#cbd5e1' : '#475569'
-                    }}
-                    title="Thu nhỏ (-20%)"
-                  >
-                    <ZoomOut size={16} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setImageZoom(100)}
-                    style={{
-                      background: imageZoom !== 100 ? '#eff6ff' : 'none',
-                      border: 'none', cursor: 'pointer',
-                      padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 800,
-                      color: imageZoom !== 100 ? '#2563eb' : '#334155'
-                    }}
-                    title="Đặt lại 100%"
-                  >
-                    {imageZoom}%
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setImageZoom(z => Math.min(300, z + 20))}
-                    disabled={imageZoom >= 300}
-                    style={{
-                      background: 'none', border: 'none', cursor: imageZoom >= 300 ? 'not-allowed' : 'pointer',
-                      padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: imageZoom >= 300 ? '#cbd5e1' : '#475569'
-                    }}
-                    title="Phóng to (+20%)"
-                  >
-                    <ZoomIn size={16} />
-                  </button>
-
-                  {imageZoom !== 100 && (
-                    <button
-                      type="button"
-                      onClick={() => setImageZoom(100)}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#64748b', borderLeft: '1px solid #e2e8f0', marginLeft: 2
-                      }}
-                      title="Khôi phục 100%"
-                    >
-                      <RotateCcw size={14} />
-                    </button>
-                  )}
-
-                  {examMode === 'practice' && (
-                    <button
-                      type="button"
-                      onClick={() => setReportingQuestion(currentQ)}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#d97706', borderLeft: '1px solid #e2e8f0', marginLeft: 2
-                      }}
-                      title="Báo lỗi câu này"
-                    >
-                      <MessageSquareWarning size={15} />
-                    </button>
-                  )}
-                </div>
-
-                {/* Main Image */}
-                {currentQ.image_url && (
-                  <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    {/* Skeleton loading placeholder - hiện khi ảnh chưa load xong */}
-                    {!imgLoaded && (
-                      <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        minHeight: '45vh',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 12,
-                        borderRadius: 8,
-                        background: '#f8fafc',
-                        border: '2px dashed #e2e8f0',
-                        zIndex: 1,
+                    {!!cleanedContent && (
+                      <div style={{ 
+                        fontSize: 14, 
+                        fontWeight: 500, 
+                        color: '#000', 
+                        lineHeight: '1.6', 
+                        marginBottom: '16px'
                       }}>
-                        <Loader2 size={32} style={{ color: '#94a3b8', animation: 'spin 1s linear infinite' }} />
-                        <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>Đang tải ảnh câu {currentIndex + 1}...</span>
+                        <RichContent content={cleanedContent} />
                       </div>
                     )}
-                    <img
-                      key={currentQ.image_url}
-                      src={currentQ.image_url}
-                      alt={`câu ${currentIndex + 1}`}
-                      loading="eager"
-                      decoding="async"
-                      draggable={false}
-                      ref={(el) => {
-                        // Nếu ảnh đã cached (complete = true), onLoad sẽ không fire
-                        if (el && el.complete && el.naturalWidth > 0) {
-                          setImgLoaded(true);
-                        }
-                      }}
-                      onDragStart={(e) => e.preventDefault()}
-                      onLoad={() => setImgLoaded(true)}
-                      onError={(e) => {
-                        setImgLoaded(true);
-                        (e.target as HTMLImageElement).style.border = '2px dashed #fecdd3';
-                        (e.target as HTMLImageElement).alt = '⚠️ Không tải được ảnh - thử F5';
-                      }}
-                      style={{ 
-                        opacity: imgLoaded ? 1 : 0,
-                        transition: 'opacity 0.3s ease',
-                        width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
-                        maxWidth: imageZoom > 100 ? 'none' : '100%', 
-                        maxHeight: imageZoom > 100 ? 'none' : '58vh', 
-                        objectFit: 'contain', 
-                        cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
-                        borderRadius: 6,
-                        alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
-                        transition: isDraggingImage ? 'none' : 'opacity 0.3s ease, width 0.15s ease-out',
-                        boxShadow: imageZoom > 100 ? '0 4px 16px rgba(0,0,0,0.06)' : 'none',
-                        minHeight: imgLoaded ? 0 : '45vh',
-                      }}
-                      onClick={(e) => {
-                        if (didDragRef.current) {
-                          e.stopPropagation();
-                          return;
-                        }
-                        setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
-                      }}
-                      title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
-                    />
+                    
+                    {/* Detailed Options */}
+                    {hasTextOptions && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {currentQ.options.map((opt) => opt.content?.trim() ? (
+                          <div key={opt.label} style={{ fontSize: 14, fontWeight: 500, color: '#000' }}>
+                            <span style={{ fontWeight: 800 }}>{opt.label}.</span> <RichContent content={opt.content} />
+                            {(opt as any).image_url && (
+                              <img src={(opt as any).image_url} alt={`opt ${opt.label}`} style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 6, marginTop: 4, display: 'block' }} />
+                            )}
+                          </div>
+                        ) : null)}
+                      </div>
+                    )}
                   </div>
                 )}
-                {/* Extra images below main */}
-                {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
-                  <img 
-                    key={xi} 
-                    src={url} 
-                    alt={`ảnh ${xi + 1}`} 
-                    draggable={false}
-                    onDragStart={(e) => e.preventDefault()}
-                    style={{ 
-                      width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
-                      maxWidth: imageZoom > 100 ? 'none' : '100%', 
-                      maxHeight: imageZoom > 100 ? 'none' : '30vh', 
-                      objectFit: 'contain', 
-                      marginTop: 12, 
-                      borderRadius: 6, 
-                      alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
-                      cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
-                      transition: isDraggingImage ? 'none' : 'width 0.15s ease-out'
-                    }} 
-                    onClick={(e) => {
-                      if (didDragRef.current) {
-                        e.stopPropagation();
-                        return;
-                      }
-                      setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
-                    }} 
-                    title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
-                  />
-                ))}
+
+                {/* Image Side with In-Place Zoom & Drag-to-Pan Controls */}
+                {(currentQ.image_url || (((currentQ as any).extra_images as string[] | undefined)?.length ?? 0) > 0) && (
+                  <div 
+                    ref={imageContainerRef}
+                    className="exam-q-image"
+                    onMouseDown={handleImageMouseDown}
+                    onMouseMove={handleImageMouseMove}
+                    onMouseUp={handleImageMouseUp}
+                    onMouseLeave={handleImageMouseUp}
+                    style={{
+                      position: 'relative',
+                      overflow: 'auto',
+                      maxHeight: '62vh',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: imageZoom > 100 ? 'flex-start' : 'center',
+                      justifyContent: 'flex-start',
+                      padding: '8px 12px',
+                      background: '#ffffff',
+                      cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'default',
+                      userSelect: 'none'
+                    }}
+                  >
+                    {/* Floating In-Place Zoom Bar - Đặt absolute ở góc phải trên để không chiếm dòng đẩy ảnh xuống */}
+                    <div 
+                      style={{ 
+                        position: 'absolute', 
+                        top: 12, 
+                        right: 12,
+                        zIndex: 20, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 4, 
+                        background: 'rgba(255, 255, 255, 0.95)', 
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid #cbd5e1', 
+                        borderRadius: 20, 
+                        padding: '3px 8px', 
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' 
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {imageZoom > 100 && (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 12, marginRight: 4 }}>
+                          Kéo rê để xem góc
+                        </span>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setImageZoom(z => Math.max(80, z - 20))}
+                        disabled={imageZoom <= 80}
+                        style={{
+                          background: 'none', border: 'none', cursor: imageZoom <= 80 ? 'not-allowed' : 'pointer',
+                          padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: imageZoom <= 80 ? '#cbd5e1' : '#475569'
+                        }}
+                        title="Thu nhỏ (-20%)"
+                      >
+                        <ZoomOut size={16} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setImageZoom(100)}
+                        style={{
+                          background: imageZoom !== 100 ? '#eff6ff' : 'none',
+                          border: 'none', cursor: 'pointer',
+                          padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 800,
+                          color: imageZoom !== 100 ? '#2563eb' : '#334155'
+                        }}
+                        title="Đặt lại 100%"
+                      >
+                        {imageZoom}%
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setImageZoom(z => Math.min(300, z + 20))}
+                        disabled={imageZoom >= 300}
+                        style={{
+                          background: 'none', border: 'none', cursor: imageZoom >= 300 ? 'not-allowed' : 'pointer',
+                          padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: imageZoom >= 300 ? '#cbd5e1' : '#475569'
+                        }}
+                        title="Phóng to (+20%)"
+                      >
+                        <ZoomIn size={16} />
+                      </button>
+
+                      {imageZoom !== 100 && (
+                        <button
+                          type="button"
+                          onClick={() => setImageZoom(100)}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#64748b', borderLeft: '1px solid #e2e8f0', marginLeft: 2
+                          }}
+                          title="Khôi phục 100%"
+                        >
+                          <RotateCcw size={14} />
+                        </button>
+                      )}
+
+                      {examMode === 'practice' && (
+                        <button
+                          type="button"
+                          onClick={() => setReportingQuestion(currentQ)}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            padding: '4px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#d97706', borderLeft: '1px solid #e2e8f0', marginLeft: 2
+                          }}
+                          title="Báo lỗi câu này"
+                        >
+                          <MessageSquareWarning size={15} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Main Image */}
+                    {currentQ.image_url && (
+                      <div style={{ 
+                        position: 'relative', 
+                        width: '100%', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'flex-start',
+                        flex: 1,
+                      }}>
+                        {/* Skeleton loading placeholder - hiện khi ảnh chưa load xong */}
+                        {!imgLoaded && (
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            minHeight: 200,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 12,
+                            borderRadius: 8,
+                            background: '#f8fafc',
+                            border: '2px dashed #e2e8f0',
+                            zIndex: 1,
+                          }}>
+                            <Loader2 size={32} style={{ color: '#94a3b8', animation: 'spin 1s linear infinite' }} />
+                            <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>Đang tải ảnh câu {currentIndex + 1}...</span>
+                          </div>
+                        )}
+                        <img
+                          key={currentQ.image_url}
+                          src={currentQ.image_url}
+                          alt={`câu ${currentIndex + 1}`}
+                          loading="eager"
+                          decoding="async"
+                          draggable={false}
+                          ref={(el) => {
+                            // Nếu ảnh đã cached (complete = true), onLoad sẽ không fire
+                            if (el && el.complete && el.naturalWidth > 0) {
+                              setImgLoaded(true);
+                            }
+                          }}
+                          onDragStart={(e) => e.preventDefault()}
+                          onLoad={() => setImgLoaded(true)}
+                          onError={(e) => {
+                            setImgLoaded(true);
+                            (e.target as HTMLImageElement).style.border = '2px dashed #fecdd3';
+                            (e.target as HTMLImageElement).alt = '⚠️ Không tải được ảnh - thử F5';
+                          }}
+                          style={{ 
+                            opacity: imgLoaded ? 1 : 0,
+                            width: imageZoom > 100 ? `${imageZoom}%` : '100%',
+                            maxWidth: imageZoom > 100 ? 'none' : '100%', 
+                            maxHeight: imageZoom > 100 ? 'none' : 'calc(100vh - 300px)', 
+                            objectFit: 'contain', 
+                            objectPosition: imageZoom > 100 ? 'top left' : 'top center',
+                            cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                            borderRadius: 6,
+                            alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
+                            transition: isDraggingImage ? 'none' : 'opacity 0.3s ease, width 0.15s ease-out',
+                            boxShadow: imageZoom > 100 ? '0 4px 16px rgba(0,0,0,0.06)' : 'none',
+                          }}
+                          onClick={(e) => {
+                            if (didDragRef.current) {
+                              e.stopPropagation();
+                              return;
+                            }
+                            setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
+                          }}
+                          title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
+                        />
+                      </div>
+                    )}
+                    {/* Extra images below main */}
+                    {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
+                      <img 
+                        key={xi} 
+                        src={url} 
+                        alt={`ảnh ${xi + 1}`} 
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                        style={{ 
+                          width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
+                          maxWidth: imageZoom > 100 ? 'none' : '100%', 
+                          maxHeight: imageZoom > 100 ? 'none' : '30vh', 
+                          objectFit: 'contain', 
+                          marginTop: 12, 
+                          borderRadius: 6, 
+                          alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
+                          cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                          transition: isDraggingImage ? 'none' : 'width 0.15s ease-out'
+                        }} 
+                        onClick={(e) => {
+                          if (didDragRef.current) {
+                            e.stopPropagation();
+                            return;
+                          }
+                          setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
+                        }} 
+                        title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Answer Options - Grid */}
           <div className="exam-options-grid">
