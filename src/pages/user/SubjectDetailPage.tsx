@@ -23,7 +23,7 @@ export default function SubjectDetailPage() {
   const { id: selectedSubjectId } = useParams();
   const navigate = useNavigate();
   const {
-    isPurchased, isInCart, addToCart, removeFromCart,
+    isPurchased, isInCart, addToCart, removeFromCart, isAdmin,
   } = useApp();
 
   const [activeTab,      setActiveTab]      = useState<Tab>('exams');
@@ -60,7 +60,7 @@ export default function SubjectDetailPage() {
     </div>
   );
 
-  const purchased = isPurchased(subject.id);
+  const purchased = isAdmin || isPurchased(subject.id);
   const inCart    = isInCart(subject.id);
 
   const startExam = (examId: string, mode: 'practice' | 'exam' | 'flashcard') => {

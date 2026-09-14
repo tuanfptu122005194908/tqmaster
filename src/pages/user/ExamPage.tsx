@@ -52,6 +52,9 @@ export default function ExamPage() {
   const [exam,      setExam]      = useState<Exam | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading,   setLoading]   = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers,  setAnswers]  = useState<Record<string, string[]>>({});
@@ -116,6 +119,7 @@ export default function ExamPage() {
     setIsFlipped(false);
     setImageZoom(100);
     setIsDraggingImage(false);
+    setImgLoaded(false);
     didDragRef.current = false;
     if (imageContainerRef.current) {
       imageContainerRef.current.scrollLeft = 0;
@@ -162,6 +166,8 @@ export default function ExamPage() {
   useEffect(() => {
     if (!selectedExamId) return;
     const load = async () => {
+      setLoading(true);
+      setLoadError(null);
       let examData = null;
       try {
         const { data, error } = await supabase
@@ -180,10 +186,23 @@ export default function ExamPage() {
         examData = fallback.data;
       }
 
+      if (!examData) {
+        setLoadError('Không tìm thấy thông tin đề thi hoặc bạn chưa có quyền truy cập đề thi này.');
+        setLoading(false);
+        return;
+      }
+
       const questionsRes = await supabase.from('questions')
         .select('*, question_options(*)')
         .eq('exam_id', selectedExamId)
         .order('order_num');
+
+      if (questionsRes.error) {
+        console.error('Lỗi nạp câu hỏi:', questionsRes.error);
+        setLoadError(questionsRes.error.message || 'Không thể tải danh sách câu hỏi từ máy chủ.');
+        setLoading(false);
+        return;
+      }
 
       setExam(examData ?? null);
       const qs: Question[] = (questionsRes.data ?? []).map((q: any) => ({
@@ -195,7 +214,6 @@ export default function ExamPage() {
       const signedQs = await signQuestionImages(qs as any);
       setQuestions(signedQs as Question[]);
 
-      
       let initialTimeLeft = examData ? examData.duration_min * 60 : 0;
       const draftStr = localStorage.getItem(`exam_draft_${selectedExamId}_${examMode}`);
       if (draftStr) {
@@ -211,22 +229,41 @@ export default function ExamPage() {
       setLoading(false);
     };
     load();
-  }, [selectedExamId, examMode]);
+  }, [selectedExamId, examMode, reloadKey]);
 
-  // Preload ALL question images on load — instant prev/next
+  // Preload upcoming & previous questions in a sliding window (currentIndex +/- 2)
+  // Avoids choking browser connection pool with 50-100 simultaneous downloads
   useEffect(() => {
     if (!questions.length) return;
+    const preloadIndexes = [
+      currentIndex + 1,
+      currentIndex + 2,
+      currentIndex + 3,
+      currentIndex - 1
+    ].filter(i => i >= 0 && i < questions.length);
+
     const imgs: HTMLImageElement[] = [];
-    questions.forEach(q => {
-      if (q.image_url) {
+    preloadIndexes.forEach(idx => {
+      const q = questions[idx];
+      if (q?.image_url) {
         const img = new Image();
         img.decoding = 'async';
         img.src = q.image_url;
         imgs.push(img);
       }
+      if (Array.isArray((q as any)?.extra_images)) {
+        (q as any).extra_images.forEach((url: string) => {
+          if (url) {
+            const img = new Image();
+            img.decoding = 'async';
+            img.src = url;
+            imgs.push(img);
+          }
+        });
+      }
     });
     return () => { imgs.forEach(i => { i.src = ''; }); };
-  }, [questions]);
+  }, [questions, currentIndex]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -330,6 +367,20 @@ export default function ExamPage() {
     </div>
   );
 
+  if (loadError) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--space-4)', padding: 24, textAlign: 'center' }}>
+      <div style={{ width: 56, height: 56, borderRadius: 16, background: '#fee2e2', border: '1px solid #fecdd3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dc2626' }}>
+        <AlertTriangle size={28} />
+      </div>
+      <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: 0 }}>Không thể tải đề thi</h3>
+      <p style={{ color: '#64748b', fontSize: 14, maxWidth: 440, margin: 0, lineHeight: 1.5 }}>{loadError}</p>
+      <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+        <button className="btn-secondary" onClick={() => navigate(-1)}>Quay lại</button>
+        <button className="btn-primary" onClick={() => setReloadKey(k => k + 1)}>Thử lại</button>
+      </div>
+    </div>
+  );
+
   if (!exam || questions.length === 0) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 'var(--space-4)' }}>
       <p style={{ color: 'hsl(var(--muted-fg))' }}>Đề thi chưa có câu hỏi nào.</p>
@@ -345,11 +396,13 @@ export default function ExamPage() {
   const currentAnswers = answers[currentQ.id] ?? [];
   const answeredCount  = Object.values(answers).filter(a => a.length > 0).length;
 
-  // Determine if this is a text-based exam
+  // Determine if this is a text-based exam.
+  // Ưu tiên IMAGE mode nếu ≥50% câu có ảnh. Chỉ dùng TextExam khi phần lớn câu KHÔNG có ảnh.
+  const imageQuestionCount = questions.filter(q => q.image_url).length;
   const isTextExam = questions.length > 0 && (
-    questions.filter(q => q.image_url).length < questions.length / 2 ||
-    questions.some(q => q.options.some(o => o.content?.trim())) ||
-    questions.every(q => !q.image_url)
+    imageQuestionCount === 0 ||                                        // Không có câu nào có ảnh → text exam
+    (imageQuestionCount < questions.length / 2 &&                     // Ít hơn 50% câu có ảnh
+     !questions.some(q => q.options.some(o => o.content?.trim())))    // VÀ options không có text
   );
 
   const toggleAnswer = (label: string) => {
@@ -2222,33 +2275,71 @@ export default function ExamPage() {
 
                 {/* Main Image */}
                 {currentQ.image_url && (
-                  <img
-                    src={currentQ.image_url}
-                    alt={`câu ${currentIndex + 1}`}
-                    loading="eager"
-                    decoding="sync"
-                    draggable={false}
-                    onDragStart={(e) => e.preventDefault()}
-                    style={{ 
-                      width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
-                      maxWidth: imageZoom > 100 ? 'none' : '100%', 
-                      maxHeight: imageZoom > 100 ? 'none' : '58vh', 
-                      objectFit: 'contain', 
-                      cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
-                      borderRadius: 6,
-                      alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
-                      transition: isDraggingImage ? 'none' : 'width 0.15s ease-out',
-                      boxShadow: imageZoom > 100 ? '0 4px 16px rgba(0,0,0,0.06)' : 'none'
-                    }}
-                    onClick={(e) => {
-                      if (didDragRef.current) {
-                        e.stopPropagation();
-                        return;
-                      }
-                      setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
-                    }}
-                    title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
-                  />
+                  <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Skeleton loading placeholder - hiện khi ảnh chưa load xong */}
+                    {!imgLoaded && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        minHeight: '45vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 12,
+                        borderRadius: 8,
+                        background: '#f8fafc',
+                        border: '2px dashed #e2e8f0',
+                        zIndex: 1,
+                      }}>
+                        <Loader2 size={32} style={{ color: '#94a3b8', animation: 'spin 1s linear infinite' }} />
+                        <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>Đang tải ảnh câu {currentIndex + 1}...</span>
+                      </div>
+                    )}
+                    <img
+                      key={currentQ.image_url}
+                      src={currentQ.image_url}
+                      alt={`câu ${currentIndex + 1}`}
+                      loading="eager"
+                      decoding="async"
+                      draggable={false}
+                      ref={(el) => {
+                        // Nếu ảnh đã cached (complete = true), onLoad sẽ không fire
+                        if (el && el.complete && el.naturalWidth > 0) {
+                          setImgLoaded(true);
+                        }
+                      }}
+                      onDragStart={(e) => e.preventDefault()}
+                      onLoad={() => setImgLoaded(true)}
+                      onError={(e) => {
+                        setImgLoaded(true);
+                        (e.target as HTMLImageElement).style.border = '2px dashed #fecdd3';
+                        (e.target as HTMLImageElement).alt = '⚠️ Không tải được ảnh - thử F5';
+                      }}
+                      style={{ 
+                        opacity: imgLoaded ? 1 : 0,
+                        transition: 'opacity 0.3s ease',
+                        width: imageZoom > 100 ? `${imageZoom}%` : 'auto',
+                        maxWidth: imageZoom > 100 ? 'none' : '100%', 
+                        maxHeight: imageZoom > 100 ? 'none' : '58vh', 
+                        objectFit: 'contain', 
+                        cursor: imageZoom > 100 ? (isDraggingImage ? 'grabbing' : 'grab') : 'zoom-in',
+                        borderRadius: 6,
+                        alignSelf: imageZoom > 100 ? 'flex-start' : 'center',
+                        transition: isDraggingImage ? 'none' : 'opacity 0.3s ease, width 0.15s ease-out',
+                        boxShadow: imageZoom > 100 ? '0 4px 16px rgba(0,0,0,0.06)' : 'none',
+                        minHeight: imgLoaded ? 0 : '45vh',
+                      }}
+                      onClick={(e) => {
+                        if (didDragRef.current) {
+                          e.stopPropagation();
+                          return;
+                        }
+                        setImageZoom(prev => (prev === 100 ? 140 : prev === 140 ? 180 : 100));
+                      }}
+                      title={imageZoom > 100 ? "Kéo rê để di chuyển ảnh" : "Click để phóng to trực tiếp"}
+                    />
+                  </div>
                 )}
                 {/* Extra images below main */}
                 {((currentQ as any).extra_images as string[] | undefined)?.map((url: string, xi: number) => (
