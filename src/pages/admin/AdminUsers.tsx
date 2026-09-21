@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import {
   Users, UserPlus, ShieldCheck, BookOpen, Search, Trash2, Shield,
-  ShieldOff, Loader2, X, Plus, ChevronLeft, ChevronRight, Check, Sparkles, Filter
+  ShieldOff, Loader2, X, Plus, ChevronLeft, ChevronRight, Check, Sparkles, Filter,
+  Mail, Download, Copy, FileText
 } from 'lucide-react';
 
 type Profile  = Tables<'profiles'>;
@@ -42,6 +43,12 @@ export default function AdminUsers() {
 
   const [subjectUserModal, setSubjectUserModal] = useState<UserRow | null>(null);
   const [subjSearch, setSubjSearch] = useState('');
+
+  // Export Emails Modal states
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportScope, setExportScope] = useState<'all' | 'filtered'>('all');
+  const [exportSeparator, setExportSeparator] = useState<'newline' | 'comma'>('newline');
+  const [copiedState, setCopiedState] = useState(false);
 
   // Tải toàn bộ dữ liệu, vượt qua giới hạn 1000 dòng mặc định của API
   const fetchAll = async <T,>(table: string, columns: string): Promise<T[]> => {
@@ -115,6 +122,65 @@ export default function AdminUsers() {
     const start = (currentPage - 1) * pageSize;
     return filteredRows.slice(start, start + pageSize);
   }, [filteredRows, currentPage, pageSize]);
+
+  // Trích xuất danh sách email nguyên vẹn, hợp lệ và khử trùng lặp
+  const targetExportUsers = exportScope === 'all' ? rows : filteredRows;
+  const exportedEmails = useMemo(() => {
+    const list: string[] = [];
+    const seen = new Set<string>();
+    targetExportUsers.forEach(u => {
+      const email = (u.email || '').trim();
+      if (email && email.includes('@') && !seen.has(email.toLowerCase())) {
+        seen.add(email.toLowerCase());
+        list.push(email);
+      }
+    });
+    return list;
+  }, [targetExportUsers]);
+
+  const handleCopyEmails = async () => {
+    if (exportedEmails.length === 0) return;
+    const delimiter = exportSeparator === 'newline' ? '\n' : ', ';
+    const text = exportedEmails.join(delimiter);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy emails', e);
+      alert('Không thể sao chép vào bộ nhớ tạm!');
+    }
+  };
+
+  const handleDownloadTxt = () => {
+    if (exportedEmails.length === 0) return;
+    const content = exportedEmails.join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `danh_sach_email_${exportScope}_${dateStr}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadCsv = () => {
+    if (exportedEmails.length === 0) return;
+    const content = '\uFEFFEmail\n' + exportedEmails.map(e => `"${e.replace(/"/g, '""')}"`).join('\n');
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `danh_sach_email_${exportScope}_${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   // Quick stats
   const totalUsers = rows.length;
@@ -228,18 +294,33 @@ export default function AdminUsers() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
-            cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
-            transition: 'transform 0.15s ease'
-          }}
-        >
-          <UserPlus size={18} /> Thêm thành viên
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setShowExportModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+              background: '#ffffff', color: '#1e293b', border: '1.5px solid #cbd5e1',
+              borderRadius: 14, fontSize: 13.5, fontWeight: 700,
+              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Mail size={16} color="#2563eb" /> Xuất email ({rows.length})
+          </button>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
+              cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <UserPlus size={18} /> Thêm thành viên
+          </button>
+        </div>
       </div>
 
       {/* ── TOP 4 PASTEL STAT CARDS GRID ── */}
@@ -842,6 +923,203 @@ export default function AdminUsers() {
                 }}
               >
                 Xác nhận & Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL 3: XUẤT NGUYÊN DANH SÁCH EMAIL ── */}
+      {showExportModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: 520, borderRadius: 24,
+            padding: 28, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
+            maxHeight: '92vh', display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 14, background: '#eff6ff',
+                  color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.12)'
+                }}>
+                  <Mail size={22} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: 19, fontWeight: 900, color: '#0f172a', margin: '0 0 3px 0', letterSpacing: '-0.02em' }}>
+                    Xuất danh sách Email
+                  </h2>
+                  <div style={{ fontSize: 12.5, color: '#64748b' }}>
+                    Tìm thấy <strong style={{ color: '#2563eb', fontWeight: 800 }}>{exportedEmails.length.toLocaleString()}</strong> email hợp lệ duy nhất
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExportModal(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Scope Selection */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Phạm vi trích xuất
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setExportScope('all')}
+                  style={{
+                    padding: '10px 14px', borderRadius: 14, border: '1.5px solid',
+                    borderColor: exportScope === 'all' ? '#3b82f6' : '#e2e8f0',
+                    background: exportScope === 'all' ? '#eff6ff' : '#ffffff',
+                    color: exportScope === 'all' ? '#1d4ed8' : '#475569',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>Tất cả người dùng</div>
+                  <div style={{ fontSize: 11.5, color: exportScope === 'all' ? '#2563eb' : '#94a3b8', marginTop: 2 }}>
+                    Toàn hệ thống ({rows.length})
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setExportScope('filtered')}
+                  style={{
+                    padding: '10px 14px', borderRadius: 14, border: '1.5px solid',
+                    borderColor: exportScope === 'filtered' ? '#3b82f6' : '#e2e8f0',
+                    background: exportScope === 'filtered' ? '#eff6ff' : '#ffffff',
+                    color: exportScope === 'filtered' ? '#1d4ed8' : '#475569',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>Danh sách đang lọc</div>
+                  <div style={{ fontSize: 11.5, color: exportScope === 'filtered' ? '#2563eb' : '#94a3b8', marginTop: 2 }}>
+                    {search || roleFilter !== 'all' ? `Đang lọc (${filteredRows.length})` : `Khớp hiện tại (${filteredRows.length})`}
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Preview Label & Delimiter Switch */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontSize: 11.5, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Xem trước nội dung ({exportedEmails.length} email)
+              </label>
+              <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 2, borderRadius: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setExportSeparator('newline')}
+                  style={{
+                    padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    background: exportSeparator === 'newline' ? '#ffffff' : 'transparent',
+                    color: exportSeparator === 'newline' ? '#0f172a' : '#64748b',
+                    boxShadow: exportSeparator === 'newline' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  Mỗi dòng 1 email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExportSeparator('comma')}
+                  style={{
+                    padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    background: exportSeparator === 'comma' ? '#ffffff' : 'transparent',
+                    color: exportSeparator === 'comma' ? '#0f172a' : '#64748b',
+                    boxShadow: exportSeparator === 'comma' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  Dấu phẩy (BCC)
+                </button>
+              </div>
+            </div>
+
+            {/* Monospace Preview Area */}
+            <textarea
+              readOnly
+              value={exportedEmails.join(exportSeparator === 'newline' ? '\n' : ', ')}
+              placeholder="Không có email nào để hiển thị..."
+              style={{
+                width: '100%', height: 135, padding: 12, borderRadius: 12,
+                border: '1.5px solid #cbd5e1', background: '#f8fafc',
+                fontFamily: 'monospace', fontSize: 12, color: '#0f172a',
+                lineHeight: 1.5, resize: 'none', outline: 'none', boxSizing: 'border-box',
+                marginBottom: 16
+              }}
+              onClick={e => (e.target as HTMLTextAreaElement).select()}
+            />
+
+            {/* Export & Copy Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {/* Download TXT Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadTxt}
+                  disabled={exportedEmails.length === 0}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '11px 16px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800,
+                    cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)', opacity: exportedEmails.length === 0 ? 0.6 : 1
+                  }}
+                >
+                  <Download size={15} /> Tải file .TXT
+                </button>
+
+                {/* Download CSV Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadCsv}
+                  disabled={exportedEmails.length === 0}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '11px 16px', background: '#ffffff', color: '#0f172a',
+                    border: '1.5px solid #cbd5e1', borderRadius: 12, fontSize: 13, fontWeight: 700,
+                    cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)', opacity: exportedEmails.length === 0 ? 0.6 : 1
+                  }}
+                >
+                  <FileText size={15} color="#059669" /> Tải file .CSV
+                </button>
+              </div>
+
+              {/* Copy to Clipboard Button */}
+              <button
+                type="button"
+                onClick={handleCopyEmails}
+                disabled={exportedEmails.length === 0}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '11px 16px',
+                  background: copiedState ? '#16a34a' : '#f1f5f9',
+                  color: copiedState ? '#ffffff' : '#1e293b',
+                  border: copiedState ? 'none' : '1px solid #e2e8f0',
+                  borderRadius: 12, fontSize: 13, fontWeight: 800,
+                  cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease', opacity: exportedEmails.length === 0 ? 0.6 : 1
+                }}
+              >
+                {copiedState ? (
+                  <>
+                    <Check size={16} strokeWidth={3} /> Đã sao chép {exportedEmails.length} email!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={15} /> Sao chép tất cả ({exportedEmails.length} email)
+                  </>
+                )}
               </button>
             </div>
           </div>

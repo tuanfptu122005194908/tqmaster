@@ -256,36 +256,38 @@ export function normalizeExamLines(lines: string[]): string[] {
   // C. Option C
   // ```
   const finalLines: string[] = [];
+  let isFenceOpen = false;
+  let unwrappedOptionFenceOpen = false;
+
   for (let i = 0; i < expanded.length; i++) {
     const line = expanded[i];
     const trimmed = line.trim();
 
-    if (trimmed === '```') {
-      // Look ahead to next non-empty line
-      let nextLine = '';
-      for (let j = i + 1; j < expanded.length; j++) {
-        if (expanded[j].trim()) {
-          nextLine = expanded[j].trim();
-          break;
-        }
-      }
-      // If next line starts with an option marker, this fence is opening around options!
-      if (/^[A-Ha-h][.:)]\s+/.test(nextLine)) {
-        continue;
-      }
-
-      // If next line is followed by an option or answer, and this fence follows an option:
-      if (nextLine && /^(?:[A-Ha-h][.:)]\s+|>\s*|--)/.test(nextLine)) {
-        let prevLine = '';
-        for (let j = finalLines.length - 1; j >= 0; j--) {
-          if (finalLines[j].trim()) {
-            prevLine = finalLines[j].trim();
+    if (trimmed.startsWith('```')) {
+      if (trimmed === '```') {
+        // Look ahead to next non-empty line
+        let nextLine = '';
+        for (let j = i + 1; j < expanded.length; j++) {
+          if (expanded[j].trim()) {
+            nextLine = expanded[j].trim();
             break;
           }
         }
-        if (prevLine) {
+        // If a code fence is not open and next line starts with an option marker, this fence is opening around options
+        if (!isFenceOpen && /^[A-Ha-h][.:)]\s+/.test(nextLine)) {
+          unwrappedOptionFenceOpen = true;
           continue;
         }
+
+        // If an option-wrapping fence was opened and this fence follows an option before another option or answer:
+        if (unwrappedOptionFenceOpen && nextLine && /^(?:[A-Ha-h][.:)]\s+|>\s*|--)/.test(nextLine)) {
+          unwrappedOptionFenceOpen = false;
+          continue;
+        }
+
+        isFenceOpen = !isFenceOpen;
+      } else {
+        isFenceOpen = !isFenceOpen;
       }
     }
     finalLines.push(line);
