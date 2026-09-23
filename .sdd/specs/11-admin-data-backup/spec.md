@@ -1,150 +1,111 @@
-# Feature Specification: 11 - Admin Data Backup (Excel Import / Export)
+# Feature Specification: 11 - Admin Data Backup & Disaster Recovery System
 
-**Feature Branch**: `[main]`
-
-**Status**: Active
-
----
-
-## 1. Background & Problem
-
-Toàn bộ dữ liệu của hệ thống TQMaster (môn học, đề thi, câu hỏi, người dùng, đơn hàng...) đang được lưu trữ 100% trên Supabase PostgreSQL. Nếu xảy ra sự cố mất dữ liệu (xóa nhầm, lỗi migration, gói Supabase hết hạn...) thì không có cách nào khôi phục thủ công. Tính năng này cho phép Admin chủ động **sao lưu và phục hồi dữ liệu** thông qua file Excel (.xlsx), không phụ thuộc vào database.
+**Feature Branch**: `[main]`  
+**Status**: ✅ Implemented (Optimized v2.0)
 
 ---
 
-## 2. Scope (Phạm vi)
+## 1. Overview
+Hệ thống sao lưu và phục hồi thảm họa (`/admin/backup`) là phân hệ an toàn dữ liệu trọng yếu dành riêng cho Quản trị viên cấp cao của TQMaster. 
 
-Tính năng áp dụng cho **trang Admin** (`/admin/backup`), chỉ dành cho người dùng có `role = admin`.
-
-### Các bảng dữ liệu được hỗ trợ (Export & Import):
-
-| STT | Bảng DB            | Mô tả                          | Export | Import |
-|-----|--------------------|--------------------------------|--------|--------|
-| 1   | `subjects`         | Danh sách môn học              | ✅     | ✅     |
-| 2   | `exams`            | Danh sách đề thi               | ✅     | ✅     |
-| 3   | `exam_subjects`    | Mapping đề thi và môn học      | ✅     | ✅     |
-| 4   | `questions`        | Ngân hàng câu hỏi              | ✅     | ✅     |
-| 5   | `question_options` | Các phương án trả lời          | ✅     | ✅     |
-| 5   | `theories`         | Tài liệu lý thuyết             | ✅     | ✅     |
-| 6   | `profiles`         | Thông tin học viên             | ✅     | ❌     |
-| 7   | `orders`           | Danh sách đơn hàng             | ✅     | ❌     |
-| 8   | `order_items`      | Chi tiết đơn hàng              | ✅     | ❌     |
-| 9   | `exam_attempts`    | Lịch sử làm bài               | ✅     | ❌     |
-| 10  | `news_posts`       | Tin tức                        | ✅     | ✅     |
-| 11  | `announcements`    | Thông báo                      | ✅     | ✅     |
-| 12  | `discount_codes`   | Mã giảm giá                    | ✅     | ✅     |
-
-> **Ghi chú Import:** Các bảng `profiles`, `orders`, `order_items`, `exam_attempts` chỉ hỗ trợ **Export** (xem/backup). Việc import các bảng này tiềm ẩn rủi ro bảo mật và tính toàn vẹn dữ liệu cao nên bị giới hạn ở phiên bản đầu.
+Hệ thống cung cấp cơ chế bảo vệ và di chuyển dữ liệu đa tầng toàn diện:
+1. **Excel Backup & Restore** (.xlsx): Xuất nhập dữ liệu theo từng bảng hoặc toàn bộ cơ sở dữ liệu qua SheetJS, hỗ trợ xuất câu hỏi dạng bảng đọc được (Readable Questions Format) và tải file mẫu (Template).
+2. **SQL / ZIP Snapshot Engine**: Tạo bản sao lưu cấu trúc & dữ liệu quan hệ dạng câu lệnh SQL chuẩn (`INSERT ... ON CONFLICT DO UPDATE`) hoặc gói nén `.zip`, cho phép khôi phục toàn vẹn cơ sở dữ liệu trong trường hợp sự cố.
+3. **Background Async Workers**: Thực thi tác vụ sao lưu và phục hồi dung lượng lớn ngầm trên Edge Functions (`backup-worker`, `restore-worker`), theo dõi tiến độ thời gian thực qua bảng `backup_jobs` và `restore_jobs` mà không bị gián đoạn do ngắt kết nối trình duyệt.
 
 ---
 
-## 3. User Stories
+## 2. User Scenarios & Testing
 
-### Story 1 - Export Toàn bộ Database (Full Backup) — P0
-> *Là Admin, tôi muốn tải toàn bộ database về máy trong 1 file Excel nhiều sheet, để tôi có thể lưu trữ dự phòng bất cứ lúc nào.*
+### User Story 1 – Xuất dữ liệu Excel Toàn bộ hoặc Theo bảng chọn (Priority: P1)
+Là một Quản trị viên, tôi muốn tải dữ liệu các bảng về máy tính dưới định dạng file Excel để xem offline hoặc phân tích số liệu.
 
-**Acceptance Scenarios:**
-1. **Given** Admin ở `/admin/backup`, **When** nhấn "Xuất tất cả (Full Backup)", **Then** hệ thống tải về 1 file `.xlsx` với mỗi bảng là 1 sheet riêng, đặt tên theo pattern `TQMaster_Backup_YYYYMMDD_HHmmss.xlsx`.
-2. **Given** quá trình export đang chạy, **When** dữ liệu đang fetch, **Then** nút export hiển thị trạng thái loading với spinner và text "Đang xuất dữ liệu...".
-3. **Given** 1 bảng nào đó rỗng (không có dữ liệu), **When** export, **Then** sheet vẫn được tạo với row tiêu đề (header), không bỏ qua sheet đó.
+**Acceptance Scenarios**:
+1. **Given** Quản trị viên ở `/admin/backup` tab "Xuất Excel", **When** nhấn "Xuất tất cả (Full Backup)", **Then** hệ thống tải về 1 file `.xlsx` với mỗi bảng là 1 sheet riêng, đặt tên theo pattern `TQMaster_Backup_YYYYMMDD_HHmmss.xlsx`.
+2. **Given** Quản trị viên chỉ muốn xuất 1 vài bảng (VD: `subjects`, `questions`), **When** tích chọn các bảng tại `BackupTableSelector` và bấm "Xuất đã chọn", **Then** hệ thống chỉ xuất các bảng được chọn.
+3. **Given** Quản trị viên muốn gửi file ngân hàng câu hỏi cho giáo viên duyệt đề, **When** chọn "Xuất câu hỏi đọc được", **Then** file Excel có các cột A, B, C, D trên cùng 1 hàng và ô đáp án đúng được tô nền màu xanh lá.
 
-### Story 2 - Export theo từng bảng (Selective Export) — P1
-> *Là Admin, tôi muốn có thể chọn lọc export chỉ 1 hoặc vài bảng cụ thể, để việc backup nhanh hơn và file gọn hơn.*
+### User Story 2 – Phục hồi dữ liệu từ file Excel (Priority: P1)
+Là một Quản trị viên, tôi muốn tải file Excel lên để nhập dữ liệu hàng loạt hoặc khôi phục dữ liệu đã sửa đổi.
 
-**Acceptance Scenarios:**
-1. **Given** Admin đã tích chọn các bảng muốn export, **When** nhấn "Xuất đã chọn", **Then** hệ thống chỉ export các bảng được chọn vào file Excel.
-2. **Given** Admin chưa chọn bảng nào, **When** nhấn "Xuất đã chọn", **Then** nút bị disabled và hiển thị tooltip "Vui lòng chọn ít nhất 1 bảng".
+**Acceptance Scenarios**:
+1. **Given** Quản trị viên tải file Excel hợp lệ lên tab "Nhập Excel", **When** bấm "Tiến hành nhập", **Then** hệ thống đọc từng sheet và thực hiện `upsert` theo đúng thứ tự ràng buộc khóa ngoại (FK constraints): `subjects` -> `exams` -> `exam_subjects` -> `questions` -> `question_options`.
+2. **Given** một số dòng trong file Excel bị thiếu trường bắt buộc hoặc sai định dạng, **When** import hoàn tất, **Then** hộp thoại `ImportResultDialog` hiển thị chi tiết số dòng thành công, số dòng lỗi và thông báo lỗi tương ứng mà không làm gián đoạn các dòng hợp lệ khác.
 
-### Story 3 - Export Câu hỏi Readable (Dạng đọc được) — P1
-> *Là Admin, tôi muốn xuất dữ liệu câu hỏi của từng đề thi thành định dạng Excel đọc được cho con người (có đầy đủ đáp án A, B, C, D trên cùng 1 hàng, đáp án đúng tô màu) thay vì raw data.*
+### User Story 3 – Xuất & Khôi phục Snapshot SQL / ZIP (Priority: P0)
+Là một Quản trị viên, tôi muốn tạo bản snapshot dự phòng chuẩn SQL của toàn bộ cơ sở dữ liệu để có thể khôi phục tức thời khi chuyển môi trường hoặc khôi phục thảm họa.
 
-**Acceptance Scenarios:**
-1. **Given** Admin nhấn "Xuất câu hỏi theo môn", **When** file Excel tải xong, **Then** file có sheet tổng quan và các sheet tương ứng với từng đề thi (1 sheet / 1 đề).
-2. **Given** file Excel được mở, **When** xem nội dung, **Then** mỗi câu hỏi nằm trên 1 hàng, các lựa chọn A, B, C, D nằm thành các cột, và lựa chọn đúng được tô nền màu xanh lá.
+**Acceptance Scenarios**:
+1. **Given** Quản trị viên tại tab "Snapshot SQL", **When** nhấn "Tạo Snapshot SQL", **Then** hệ thống truy vấn toàn bộ bản ghi của các bảng nghiệp vụ, biên dịch thành file SQL chứa các câu lệnh `INSERT INTO ... ON CONFLICT DO UPDATE`.
+2. **Given** file snapshot SQL tải về, **When** Quản trị viên tải file vào panel "Phục hồi Snapshot" và nhấn xác nhận, **Then** hệ thống thực thi từng khối lệnh giao dịch an toàn và thông báo kết quả phục hồi thành công.
 
-### Story 3 - Import dữ liệu từ Excel (Restore) — P1
-> *Là Admin, tôi muốn upload file Excel backup lên để khôi phục hoặc import hàng loạt dữ liệu (môn học, câu hỏi...), thay thế việc nhập tay.*
+### User Story 4 – Sao lưu & Phục hồi ngầm qua Background Worker (Priority: P1)
+Là một Quản trị viên đối với cơ sở dữ liệu lớn (> 50.000 câu hỏi), tôi muốn kích hoạt tác vụ sao lưu chạy ngầm trên máy chủ để không phải chờ đợi trên trình duyệt.
 
-**Acceptance Scenarios:**
-1. **Given** Admin upload file Excel đúng định dạng (có sheet `subjects`), **When** xác nhận import, **Then** hệ thống đọc từng row và upsert vào database, hiển thị kết quả (số row thành công / thất bại).
-2. **Given** file Excel có row bị lỗi (thiếu trường bắt buộc, sai kiểu dữ liệu), **When** import, **Then** hệ thống **không dừng** hoàn toàn mà ghi lại lỗi theo dòng và tiếp tục các dòng khác, sau đó báo cáo tổng kết ở cuối.
-3. **Given** file Excel không đúng định dạng (sai tên sheet, thiếu cột bắt buộc), **When** Admin upload, **Then** hệ thống hiển thị thông báo lỗi validation trước khi import thực sự diễn ra.
-4. **Given** hệ thống đang import (batch lớn), **When** import đang chạy, **Then** hiển thị progress bar % hoàn thành.
-
-### Story 4 - Template Download — P2
-> *Là Admin, tôi muốn tải về file Excel mẫu cho từng bảng để biết đúng định dạng khi import.*
-
-**Acceptance Scenarios:**
-1. **Given** Admin nhấn "Tải template" cho bảng `questions`, **When** download, **Then** hệ thống trả về file Excel có 1 row header và 1-2 row ví dụ dữ liệu mẫu.
+**Acceptance Scenarios**:
+1. **Given** Quản trị viên tại panel "Sao lưu ngầm (Background Worker)", **When** nhấn "Khởi tạo tác vụ sao lưu", **Then** hệ thống tạo bản ghi mới trong bảng `backup_jobs` với trạng thái `pending` và gọi Edge Function `backup-worker`.
+2. **Given** tác vụ đang chạy, **When** Quản trị viên theo dõi màn hình, **Then** thanh tiến độ (Progress bar) tăng dần từ 0% đến 100% nhờ kênh Supabase Realtime lắng nghe bảng `backup_jobs`.
+3. **When** tác vụ hoàn tất, **Then** trạng thái chuyển sang `completed` và nút "Tải file backup" xuất hiện kèm link tải trực tiếp từ Storage.
 
 ---
 
-## 4. Functional Requirements
+## 3. Requirements
 
-- **FR-001**: Hệ thống PHẢI sử dụng thư viện `xlsx` (SheetJS) để tạo và đọc file Excel. Không dùng CSV (thiếu hỗ trợ Unicode/Tiếng Việt).
-- **FR-002**: Hệ thống PHẢI xử lý batch khi import (chunk 100 rows/request) để tránh timeout Supabase.
-- **FR-003**: Tất cả thao tác Import/Export PHẢI được bảo vệ bởi RLS policy Admin-only.
-- **FR-004**: File export PHẢI có header row theo đúng tên cột database (snake_case) (Trừ trường hợp Export Câu hỏi Readable).
-- **FR-005**: Import PHẢI dùng chiến lược `upsert`. Cột conflict phải được thiết lập đúng với cấu trúc DB (VD: `exam_subjects` dùng composite PK `exam_id, subject_id`).
-- **FR-006**: Quá trình Import PHẢI tuân thủ thứ tự Foreign Key Constraints (Ví dụ: `subjects` -> `exams` -> `exam_subjects` -> `questions` -> `question_options`).
-- **FR-007**: Sau khi import thành công, PHẢI invalidate TanStack Query cache liên quan.
+### Functional Requirements
+- **FR-001**: Hệ thống PHẢI sử dụng thư viện `xlsx` (SheetJS) để tạo và đọc file Excel định dạng `.xlsx`, đảm bảo hiển thị đúng 100% tiếng Việt UTF-8.
+- **FR-002**: Cơ chế Import Excel PHẢI xử lý theo từng khối (chunk 100 rows/request) và yield luồng để tránh nghẽn UI thread hoặc timeout request.
+- **FR-003**: Quá trình Import PHẢI tuân thủ nghiêm ngặt thứ tự ràng buộc khóa ngoại (Foreign Keys).
+- **FR-004**: Cung cấp tính năng tải file mẫu (Template download) cho tất cả các bảng dữ liệu cho phép import.
+- **FR-005 (SQL Snapshot Engine)**: Modun `backupCore.ts` cung cấp chức năng sinh lệnh SQL chuẩn PostgreSQL với cú pháp `ON CONFLICT` cho phép khôi phục không phá hủy dữ liệu hiện hữu.
+- **FR-006 (Background Async Worker Service)**:
+  - Cung cấp 2 Edge Functions chuyên trách: `backup-worker` (tổng hợp dữ liệu và nén zip tải lên storage ngầm) và `restore-worker` (đọc file backup từ storage và giải phóng dữ liệu theo lô).
+  - Trạng thái công việc được lưu trữ tại `backup_jobs` và `restore_jobs` (`status`: `'pending'` | `'processing'` | `'completed'` | `'failed'`).
+- **FR-007 (Bảo mật truy cập)**: Toàn bộ API và giao diện `/admin/backup` PHẢI được bảo vệ bằng quyền quản trị viên (`role === 'admin'`) và RLS policies nghiêm ngặt.
 
----
+### Key Entities
 
-## 5. Non-Functional Requirements
+**Table: backup_jobs**
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Khóa chính tác vụ sao lưu |
+| `user_id` | uuid | Quản trị viên khởi tạo |
+| `status` | text | `'pending'`, `'processing'`, `'completed'`, `'failed'` |
+| `progress` | int | Tiến độ thực thi (0 - 100%) |
+| `file_url` | text | Đường dẫn tải file sao lưu từ Supabase Storage |
+| `error_message` | text | Ghi nhận lỗi nếu tác vụ thất bại |
+| `created_at` | timestamptz | Thời điểm khởi tạo |
+| `completed_at` | timestamptz | Thời điểm hoàn tất |
 
-- **NFR-001 (Performance)**: Export toàn bộ phải hoàn thành dưới 30 giây với dữ liệu ≤ 10,000 rows/bảng.
-- **NFR-002 (UX)**: Không được chặn UI thread khi xử lý file lớn. Dùng async/await kết hợp `setTimeout` yield.
-- **NFR-003 (Security)**: Page `/admin/backup` PHẢI được bảo vệ bởi `ProtectedRoute` với `requiredRole="admin"`.
+**Table: restore_jobs**
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Khóa chính tác vụ phục hồi |
+| `user_id` | uuid | Quản trị viên thực thi |
+| `status` | text | Trạng thái phục hồi |
+| `progress` | int | Tiến độ thực thi (0 - 100%) |
+| `file_url` | text | Đường dẫn file nguồn phục hồi |
+| `error_message` | text | Ghi nhận lỗi |
+| `created_at` | timestamptz | Thời điểm bắt đầu |
+| `completed_at` | timestamptz | Thời điểm hoàn tất |
 
----
-
-## 6. Key Entities & Data Mapping
-
-### Export Column Mapping (ví dụ cho bảng `questions`)
-
-| Cột Excel Header | Cột DB         | Kiểu      | Bắt buộc |
-|-----------------|----------------|-----------|-----------|
-| id              | id             | uuid      | Auto      |
-| exam_id         | exam_id        | uuid      | ✅        |
-| content         | content        | text      | ✅        |
-| type            | type           | text      | ✅        |
-| order_num       | order_num      | number    | ✅        |
-| chapter_name    | chapter_name   | text      | ❌        |
-| image_url       | image_url      | text      | ❌        |
-| created_at      | created_at     | timestamp | Auto      |
-
----
-
-## 7. Technical Design
-
-### Thư viện
-- **`xlsx` (SheetJS)**: đọc/ghi file Excel (.xlsx) — `npm install xlsx`
-- **`file-saver`**: trigger download trình duyệt — `npm install file-saver` (hoặc dùng native `URL.createObjectURL`)
-
-### Cấu trúc Component
-```
-src/
-├── pages/admin/
-│   └── AdminBackup.tsx          # Trang chính /admin/backup
-├── components/backup/
-│   ├── BackupExportPanel.tsx    # Panel xuất dữ liệu
-│   ├── BackupImportPanel.tsx    # Panel nhập dữ liệu
-│   ├── BackupTableSelector.tsx  # Checkbox chọn bảng
-│   └── ImportResultDialog.tsx   # Dialog kết quả import
-├── lib/
-│   └── excelBackup.ts           # Logic core: export, import, template
-```
-
-### Routing
-- Thêm route `/admin/backup` vào `App.tsx`
-- Thêm menu item "💾 Backup / Restore" vào `AdminSidebar.tsx`
+### Key Files
+- `src/pages/admin/AdminBackup.tsx` — Giao diện quản trị sao lưu & phục hồi đa chế độ
+- `src/components/backup/BackupExportPanel.tsx` — Panel xuất dữ liệu Excel
+- `src/components/backup/BackupImportPanel.tsx` — Panel nhập dữ liệu Excel
+- `src/components/backup/SnapshotExportPanel.tsx` — Panel xuất bản sao lưu SQL Snapshot
+- `src/components/backup/SnapshotRestorePanel.tsx` — Panel phục hồi bản sao lưu SQL
+- `src/components/backup/BackgroundBackupPanel.tsx` — Panel điều khiển và theo dõi tác vụ sao lưu ngầm
+- `src/components/backup/BackgroundRestorePanel.tsx` — Panel điều khiển và theo dõi tác vụ phục hồi ngầm
+- `src/components/backup/BackupTableSelector.tsx` — Thành phần chọn lọc bảng dữ liệu
+- `src/components/backup/ImportResultDialog.tsx` — Hộp thoại báo cáo kết quả chi tiết sau khi import
+- `src/lib/excelBackup.ts` — Thư viện xử lý logic import/export Excel qua SheetJS
+- `src/lib/backupCore.ts` — Động cơ trích xuất dữ liệu, định dạng SQL snapshot và nén ZIP
+- `supabase/functions/backup-worker/index.ts` — Edge function chạy ngầm tổng hợp dữ liệu sao lưu
+- `supabase/functions/restore-worker/index.ts` — Edge function chạy ngầm nạp lại dữ liệu phục hồi
 
 ---
 
-## 8. Success Criteria
-
-- **SC-001**: Admin có thể export full backup thành công ≥ 95% số lần thực hiện.
-- **SC-002**: Admin có thể import file template đã download và thấy dữ liệu xuất hiện trong hệ thống.
-- **SC-003**: Lỗi import từng dòng KHÔNG làm crash toàn bộ quá trình import.
-- **SC-004**: Trang `/admin/backup` KHÔNG accessible bởi user thường (trả về redirect).
+## 4. Success Criteria
+- **SC-001**: Xuất file Excel toàn bộ cơ sở dữ liệu hoàn tất trong < 15 giây với dataset 10.000 dòng.
+- **SC-002**: Tác vụ sao lưu ngầm trên Edge Function tiếp tục chạy đến khi hoàn tất kể cả khi người dùng đóng trình duyệt.
+- **SC-003**: Dữ liệu khôi phục từ snapshot SQL hoặc Excel bảo toàn 100% tính toàn vẹn quan hệ khóa ngoại.
