@@ -5,6 +5,8 @@ import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, formatDate } from '@/lib/mockData';
 import { sortExams } from '@/lib/utils';
 import { signStorageUrls } from '@/lib/signedImage';
+import { parseTheoryDescription } from '@/lib/theoryMetadata';
+import { ExamImageViewerModal } from '@/components/common/ExamImageViewerModal';
 import {
   ArrowLeft, ShoppingCart, CheckCircle, Clock,
   BookOpen, Bell, FileText, ExternalLink,
@@ -29,9 +31,16 @@ export default function SubjectDetailPage() {
   const [activeTab,      setActiveTab]      = useState<Tab>('exams');
   const [subject,        setSubject]        = useState<Subject | null>(null);
   const [exams,          setExams]          = useState<Exam[]>([]);
-  const [theories,       setTheories]       = useState<Theory[]>([]);
+  const [theories,       setTheories]       = useState<any[]>([]);
   const [announcements,  setAnnouncements]  = useState<Announcement[]>([]);
   const [loading,        setLoading]        = useState(true);
+
+  // Full-screen Image Viewer State for PE Exam Images
+  const [viewerImages, setViewerImages] = useState<string[] | null>(null);
+  const [viewerTitle, setViewerTitle] = useState<string>('');
+  const [viewerZipUrl, setViewerZipUrl] = useState<string | undefined>(undefined);
+  const [viewerZipName, setViewerZipName] = useState<string | undefined>(undefined);
+  const [viewerInitialIndex, setViewerInitialIndex] = useState<number>(0);
 
   useEffect(() => {
     if (!selectedSubjectId) return;
@@ -46,8 +55,28 @@ export default function SubjectDetailPage() {
       const examsData = (examRes.data ?? []).map((r: any) => r.exams).filter(Boolean);
       setExams(sortExams(examsData));
       const theoryData = (theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean);
-      const signMap = await signStorageUrls(theoryData.map((t: any) => t.url));
-      setTheories(theoryData.map((t: any) => ({ ...t, url: signMap.get(t.url) ?? t.url })));
+
+      // Collect all storage URLs (file URL + all preview images) for batch signing
+      const urlsToSign: string[] = [];
+      for (const t of theoryData) {
+        if (t.url) urlsToSign.push(t.url);
+        const meta = parseTheoryDescription(t.description);
+        for (const img of meta.preview_images) {
+          urlsToSign.push(img);
+        }
+      }
+
+      const signMap = await signStorageUrls(urlsToSign);
+      setTheories(theoryData.map((t: any) => {
+        const meta = parseTheoryDescription(t.description);
+        const signedPreviewImages = meta.preview_images.map(img => signMap.get(img) ?? img);
+        return {
+          ...t,
+          url: signMap.get(t.url) ?? t.url,
+          clean_description: meta.description,
+          preview_images: signedPreviewImages,
+        };
+      }));
       setAnnouncements(annRes.data ?? []);
       setLoading(false);
     };
@@ -112,9 +141,9 @@ export default function SubjectDetailPage() {
             }}>
               {item.title}
             </div>
-            {item.description && (
+            {((item as any).clean_description || item.description) && (
               <div style={{ fontSize: 'var(--text-sm)', color: 'hsl(var(--muted-fg))', lineHeight: 'var(--lh-base)' }}>
-                {item.description}
+                {(item as any).clean_description || item.description}
               </div>
             )}
           </div>
@@ -132,6 +161,209 @@ export default function SubjectDetailPage() {
           </a>
         </div>
       ))}
+    </div>
+  );
+
+  const renderPeDocs = (list: any[]) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+      {!purchased && (
+        <div className="empty-state">
+          <BookOpen size={40} />
+          <p>Mua môn học để xem tài liệu PE / Video</p>
+        </div>
+      )}
+      {purchased && list.length === 0 && (
+        <div className="empty-state">
+          <BookOpen size={40} />
+          <p>Chưa có tài liệu PE / Video nào</p>
+        </div>
+      )}
+      {purchased && list.map(item => {
+        const hasImages = item.preview_images && item.preview_images.length > 0;
+
+        return (
+          <div
+            key={item.id}
+            className="panel"
+            style={{
+              padding: 'var(--space-5)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-3)',
+              background: '#ffffff',
+              borderRadius: 20,
+              border: hasImages ? '1.5px solid #dbeafe' : '1px solid #e2e8f0',
+              boxShadow: hasImages ? '0 4px 16px rgba(37, 99, 235, 0.05)' : 'none',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {/* Top row: Title, Badges & Download Button */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 260 }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+                  background: hasImages ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'hsl(var(--primary-muted))',
+                  color: hasImages ? '#1d4ed8' : 'hsl(var(--primary))',
+                  border: hasImages ? '1px solid #bfdbfe' : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {hasImages ? <Layers size={18} /> : <TypeIcon type={item.type} />}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                    <h3 style={{
+                      fontWeight: 800, fontSize: '1rem',
+                      lineHeight: 'var(--lh-snug)', color: '#0f172a', margin: 0,
+                    }}>
+                      {item.title}
+                    </h3>
+                    {hasImages && (
+                      <span style={{
+                        background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0',
+                        fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 9999,
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                      }}>
+                        <Layers size={12} /> {item.preview_images.length} ảnh câu hỏi
+                      </span>
+                    )}
+                  </div>
+
+                  {(item.clean_description || item.description) && (
+                    <p style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-fg))', lineHeight: 1.5, margin: 0 }}>
+                      {item.clean_description || item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons: View Exam Images & Download Original ZIP */}
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}>
+                {hasImages && (
+                  <button
+                    onClick={() => {
+                      setViewerImages(item.preview_images);
+                      setViewerTitle(item.title);
+                      setViewerZipUrl(item.url);
+                      setViewerZipName(item.file_name);
+                      setViewerInitialIndex(0);
+                    }}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      color: '#ffffff', padding: '9px 16px', borderRadius: 12,
+                      fontSize: '0.85rem', fontWeight: 800, border: 'none',
+                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                    }}
+                  >
+                    <Eye size={15} /> Xem đề thi ({item.preview_images.length} ảnh)
+                  </button>
+                )}
+
+                {/* Original Download / Link button preserved 100% */}
+                <a
+                  href={item.type === 'link' || !item.file_name
+                    ? item.url
+                    : `${item.url}${item.url.includes('?') ? '&' : '?'}download=${encodeURIComponent(item.file_name)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  download={item.type !== 'link' ? (item.file_name || undefined) : undefined}
+                  className={hasImages ? "btn-ghost" : "btn-primary"}
+                  style={{
+                    textDecoration: 'none', flexShrink: 0,
+                    borderRadius: 12, fontSize: '0.85rem', fontWeight: 700,
+                    border: hasImages ? '1.5px solid #cbd5e1' : undefined,
+                  }}
+                  title="Tải file ZIP gốc về máy"
+                >
+                  {item.type === 'link' ? (
+                    <><ExternalLink size={14} /> Mở link</>
+                  ) : (
+                    <><Download size={14} /> {hasImages ? 'Tải file ZIP gốc' : 'Tải về'}</>
+                  )}
+                </a>
+              </div>
+            </div>
+
+            {/* Bottom: Inline Image Gallery / Filmstrip */}
+            {hasImages && (
+              <div style={{
+                marginTop: 'var(--space-2)',
+                background: '#f8fafc',
+                borderRadius: 14,
+                padding: '12px 14px',
+                border: '1px solid #e2e8f0',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Ảnh xem trước câu hỏi đề thi (Click để phóng to):
+                  </span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3b82f6' }}>
+                    {item.preview_images.length} trang
+                  </span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  gap: 10,
+                  overflowX: 'auto',
+                  paddingBottom: 6,
+                  WebkitOverflowScrolling: 'touch',
+                }}>
+                  {item.preview_images.map((imgUrl: string, imgIdx: number) => (
+                    <div
+                      key={imgIdx}
+                      onClick={() => {
+                        setViewerImages(item.preview_images);
+                        setViewerTitle(item.title);
+                        setViewerZipUrl(item.url);
+                        setViewerZipName(item.file_name);
+                        setViewerInitialIndex(imgIdx);
+                      }}
+                      style={{
+                        width: 100,
+                        height: 72,
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                        border: '1.5px solid #cbd5e1',
+                        background: '#ffffff',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                        transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease',
+                      }}
+                      title={`Câu ${imgIdx + 1} - Bấm để phóng to`}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`Câu ${imgIdx + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        loading="lazy"
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        insetInline: 0,
+                        background: 'linear-gradient(to top, rgba(15,23,42,0.85), transparent)',
+                        padding: '2px 4px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                        <span style={{ color: '#ffffff', fontSize: 9, fontWeight: 800 }}>
+                          Câu {imgIdx + 1}
+                        </span>
+                        <Eye size={10} color="#ffffff" style={{ opacity: 0.8 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -462,11 +694,7 @@ export default function SubjectDetailPage() {
         )}
 
         {/* PE materials / Video */}
-        {activeTab === 'pe' && renderDocs(
-          peDocs,
-          'Mua môn học để xem tài liệu PE / Video',
-          'Chưa có tài liệu PE / Video nào',
-        )}
+        {activeTab === 'pe' && renderPeDocs(peDocs)}
 
         {/* Announcements */}
         {activeTab === 'announcements' && (
@@ -517,6 +745,19 @@ export default function SubjectDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Full-Screen Exam Image Viewer Modal */}
+      {viewerImages && (
+        <ExamImageViewerModal
+          isOpen={Boolean(viewerImages)}
+          onClose={() => setViewerImages(null)}
+          images={viewerImages}
+          initialIndex={viewerInitialIndex}
+          title={viewerTitle}
+          zipDownloadUrl={viewerZipUrl}
+          zipFileName={viewerZipName}
+        />
+      )}
     </div>
   );
 }

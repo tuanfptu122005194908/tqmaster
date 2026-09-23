@@ -1,11 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { useApp } from '@/lib/AppContext';
-import { Plus, Trash2, X, Check, Loader2, FileText, Link as LinkIcon, Image as ImageIcon, Download, Pencil, Search, Filter } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  X,
+  Check,
+  Loader2,
+  FileText,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Download,
+  Pencil,
+  Search,
+  Sparkles,
+  FileArchive,
+  Eye,
+  RefreshCw,
+  Layers,
+  UploadCloud,
+} from 'lucide-react';
 import FileUploader from '@/components/FileUploader';
 import { toast } from 'sonner';
-import { signStorageUrl } from '@/lib/signedImage';
+import { signStorageUrl, signStorageUrls } from '@/lib/signedImage';
+import { parseTheoryDescription, formatTheoryDescription } from '@/lib/theoryMetadata';
+import {
+  inspectZipImages,
+  uploadExtractedZipImages,
+  extractZipImagesFromRemoteUrl,
+} from '@/lib/peZipExtractor';
+import { ExamImageViewerModal } from '@/components/common/ExamImageViewerModal';
 
 type Theory  = Tables<'theories'>;
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
@@ -41,11 +66,18 @@ type FormState = {
   file_name: string;
   category: Category;
   subject_ids: string[];
+  preview_images: string[];
 };
 
 const EMPTY_FORM: FormState = {
-  title: '', description: '', type: 'file',
-  url: '', file_name: '', category: 'theory', subject_ids: [],
+  title: '',
+  description: '',
+  type: 'file',
+  url: '',
+  file_name: '',
+  category: 'theory',
+  subject_ids: [],
+  preview_images: [],
 };
 
 const CAT_LABEL: Record<Category, string> = {
@@ -66,6 +98,25 @@ export default function AdminTheory() {
   const [filterCat,   setFilterCat]   = useState<'all' | Category>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+
+  // ZIP Extraction state
+  const [extractingId, setExtractingId] = useState<string | null>(null);
+  const [extractingProgress, setExtractingProgress] = useState<string | null>(null);
+
+  // Batch Extraction state
+  const [batchExtracting, setBatchExtracting] = useState<boolean>(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; title: string } | null>(null);
+
+  // Full-screen Image Viewer State
+  const [viewerImages, setViewerImages] = useState<string[] | null>(null);
+  const [viewerTitle, setViewerTitle] = useState<string>('');
+  const [viewerZipUrl, setViewerZipUrl] = useState<string | undefined>(undefined);
+  const [viewerZipName, setViewerZipName] = useState<string | undefined>(undefined);
+
+  // Form ZIP upload state
+  const [isProcessingZipInForm, setIsProcessingZipInForm] = useState<boolean>(false);
+  const [zipProgressText, setZipProgressText] = useState<string>('');
+  const zipInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTheories = async () => {
     const { data } = await supabase.from('theories')
@@ -89,24 +140,41 @@ export default function AdminTheory() {
     const matchSubj = filterSubj === 'all' || getSubjectIds(t).includes(filterSubj);
     const matchCat  = filterCat === 'all' || getCat(t) === filterCat;
     const q = searchQuery.toLowerCase();
-    const matchQ = !q || t.title.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q);
+    const meta = parseTheoryDescription(t.description);
+    const matchQ = !q || t.title.toLowerCase().includes(q) || meta.description.toLowerCase().includes(q);
     return matchSubj && matchCat && matchQ;
   });
 
+  // Calculate how many PE zip items haven't been extracted yet
+  const unextractedPeZips = theories.filter(t => {
+    if (getCat(t) !== 'pe') return false;
+    const isZip = (t.file_name && t.file_name.toLowerCase().endsWith('.zip')) ||
+                  (t.url && t.url.toLowerCase().includes('.zip'));
+    const meta = parseTheoryDescription(t.description);
+    return isZip && meta.preview_images.length === 0;
+  });
+
   const openCreate = () => {
-    setForm({ ...EMPTY_FORM, category: filterCat === 'all' ? 'theory' : filterCat });
+    setForm({
+      ...EMPTY_FORM,
+      category: filterCat === 'all' ? 'theory' : filterCat,
+      preview_images: [],
+    });
     setShowForm(true);
   };
+
   const openEdit = (t: any) => {
+    const meta = parseTheoryDescription(t.description);
     setForm({
       id: t.id,
       title: t.title,
-      description: t.description ?? '',
+      description: meta.description,
       type: t.type,
       url: t.url,
       file_name: t.file_name ?? '',
       category: getCat(t),
       subject_ids: getSubjectIds(t),
+      preview_images: meta.preview_images,
     });
     setShowForm(true);
   };
@@ -127,17 +195,28 @@ export default function AdminTheory() {
     setSaving(true);
     let theoryId = form.id;
 
+    // Encode metadata if category is PE
+    const finalDescription = form.category === 'pe'
+      ? formatTheoryDescription(form.description, form.preview_images)
+      : (form.description || null);
+
     if (theoryId) {
       const { error } = await supabase.from('theories').update({
-        title: form.title, description: form.description || null,
-        type: form.type, url: form.url, file_name: form.file_name || null,
+        title: form.title,
+        description: finalDescription,
+        type: form.type,
+        url: form.url,
+        file_name: form.file_name || null,
         category: form.category,
       } as any).eq('id', theoryId);
       if (error) { toast.error('Lỗi cập nhật: ' + error.message); setSaving(false); return; }
     } else {
       const { data, error } = await supabase.from('theories').insert({
-        title: form.title, description: form.description || null,
-        type: form.type, url: form.url, file_name: form.file_name || null,
+        title: form.title,
+        description: finalDescription,
+        type: form.type,
+        url: form.url,
+        file_name: form.file_name || null,
         category: form.category,
         created_by: profile?.id,
       } as any).select().single();
@@ -166,6 +245,180 @@ export default function AdminTheory() {
     else { toast.success('Đã xóa tài liệu'); fetchTheories(); }
   };
 
+  // 1-Click ZIP extraction directly on web for existing theory
+  const handleExtractZipSingle = async (theory: any) => {
+    if (!theory.url) {
+      toast.error('Tài liệu chưa có file đính kèm');
+      return;
+    }
+    setExtractingId(theory.id);
+    setExtractingProgress('Đang chuẩn bị file ZIP...');
+    try {
+      const images = await extractZipImagesFromRemoteUrl(
+        theory.url,
+        theory.id,
+        (status) => setExtractingProgress(status)
+      );
+
+      if (images.length === 0) {
+        toast.warning('Không tìm thấy file ảnh (.png, .jpg, .jpeg, .webp, .gif) trong file ZIP này.');
+        return;
+      }
+
+      const meta = parseTheoryDescription(theory.description);
+      const newDescription = formatTheoryDescription(meta.description, images);
+      const { error } = await supabase.from('theories').update({
+        description: newDescription,
+      } as any).eq('id', theory.id);
+
+      if (error) throw error;
+
+      toast.success(`Đã trích xuất thành công ${images.length} ảnh đề thi từ file ZIP!`);
+      await fetchTheories();
+    } catch (err: any) {
+      console.error('Extract error:', err);
+      toast.error('Lỗi trích xuất ảnh: ' + (err.message || 'Lỗi không xác định'));
+    } finally {
+      setExtractingId(null);
+      setExtractingProgress(null);
+    }
+  };
+
+  // Batch ZIP extraction directly on web for multiple theories
+  const handleBatchExtractZip = async () => {
+    if (unextractedPeZips.length === 0) {
+      toast.info('Không có file ZIP nào cần trích xuất ảnh.');
+      return;
+    }
+
+    if (!confirm(`Tìm thấy ${unextractedPeZips.length} tài liệu PE dạng ZIP chưa trích xuất ảnh. Bạn có muốn chuyển đổi trực tiếp trên web ngay bây giờ?`)) {
+      return;
+    }
+
+    setBatchExtracting(true);
+    let successCount = 0;
+    let emptyCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < unextractedPeZips.length; i++) {
+      const item = unextractedPeZips[i];
+      setBatchProgress({ current: i + 1, total: unextractedPeZips.length, title: item.title });
+      try {
+        const images = await extractZipImagesFromRemoteUrl(
+          item.url,
+          item.id,
+          (status) => setExtractingProgress(status)
+        );
+
+        if (images.length > 0) {
+          const meta = parseTheoryDescription(item.description);
+          const newDescription = formatTheoryDescription(meta.description, images);
+          await supabase.from('theories').update({ description: newDescription } as any).eq('id', item.id);
+          successCount++;
+        } else {
+          emptyCount++;
+        }
+      } catch (err) {
+        console.error(`Batch extract error for ${item.title}:`, err);
+        failedCount++;
+      }
+    }
+
+    setBatchExtracting(false);
+    setBatchProgress(null);
+    setExtractingProgress(null);
+    toast.success(`Hoàn tất chuyển đổi! Thành công: ${successCount}, Không có ảnh: ${emptyCount}, Thất bại: ${failedCount}`);
+    await fetchTheories();
+  };
+
+  // Handle picking a zip file in the Create/Edit form
+  const handleFormZipPicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      toast.error('Vui lòng chọn file có định dạng .zip');
+      return;
+    }
+
+    setIsProcessingZipInForm(true);
+    setZipProgressText('Đang tải file ZIP lên Storage...');
+
+    try {
+      // 1. Upload original zip file to theory-files
+      const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.zip`;
+      const { error: upErr } = await supabase.storage.from('theory-files').upload(safeName, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'application/zip',
+      });
+      if (upErr) throw upErr;
+
+      const { data: { publicUrl: zipUrl } } = supabase.storage.from('theory-files').getPublicUrl(safeName);
+
+      // Auto-populate title if empty
+      const cleanTitle = file.name.replace(/\.zip$/i, '').replace(/[_-]+/g, ' ').trim();
+      setForm(p => ({
+        ...p,
+        url: zipUrl,
+        file_name: file.name,
+        title: p.title.trim() ? p.title : cleanTitle,
+      }));
+
+      // 2. Scan and extract images from zip
+      setZipProgressText('Đang quét và kiểm tra hình ảnh trong file ZIP...');
+      const foundImages = await inspectZipImages(file);
+
+      if (foundImages.length > 0) {
+        setZipProgressText(`Tìm thấy ${foundImages.length} ảnh, đang tải lên hệ thống...`);
+        const uploadedImageUrls = await uploadExtractedZipImages(
+          foundImages,
+          form.id || `pe_${Date.now()}`,
+          (current, total, name) => setZipProgressText(`Đang tải ảnh ${current}/${total}: ${name}`)
+        );
+
+        setForm(p => ({
+          ...p,
+          preview_images: uploadedImageUrls,
+        }));
+        toast.success(`Đã tự động trích xuất ${uploadedImageUrls.length} ảnh đề thi từ file ZIP!`);
+      } else {
+        toast.info('File ZIP đã được tải lên thành công (không tìm thấy file ảnh bên trong).');
+      }
+    } catch (err: any) {
+      console.error('ZIP handling error:', err);
+      toast.error('Lỗi xử lý file ZIP: ' + (err.message || 'Lỗi không xác định'));
+    } finally {
+      setIsProcessingZipInForm(false);
+      setZipProgressText('');
+      if (zipInputRef.current) zipInputRef.current.value = '';
+    }
+  };
+
+  // Open Full-Screen Image Viewer Modal
+  const openViewer = async (images: string[], title: string, zipUrl?: string, zipName?: string) => {
+    if (!images || images.length === 0) return;
+    try {
+      const signMap = await signStorageUrls(images);
+      const signedList = images.map(img => signMap.get(img) ?? img);
+      let signedZip = zipUrl;
+      if (zipUrl) {
+        const zipMap = await signStorageUrls([zipUrl]);
+        signedZip = zipMap.get(zipUrl) ?? zipUrl;
+      }
+      setViewerImages(signedList);
+      setViewerTitle(title);
+      setViewerZipUrl(signedZip);
+      setViewerZipName(zipName);
+    } catch (err) {
+      console.error('Error signing images for viewer:', err);
+      setViewerImages(images);
+      setViewerTitle(title);
+      setViewerZipUrl(zipUrl);
+      setViewerZipName(zipName);
+    }
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -179,24 +432,53 @@ export default function AdminTheory() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 30, fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.03em' }}>
-            Lý thuyết & Tài liệu
+            Lý thuyết & Tài liệu PE
           </h1>
           <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
-            Quản lý tài liệu tham khảo, bài giảng PDF, ảnh và liên kết cho các môn học TQMaster.
+            Quản lý tài liệu tham khảo, bài giảng PDF, video và bộ đề thi PE có hỗ trợ trích xuất ảnh tự động.
           </p>
         </div>
 
-        <button
-          onClick={openCreate}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
-            border: 'none', borderRadius: 14, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
-            boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)', transition: 'transform 0.15s ease'
-          }}
-        >
-          <Plus size={18} /> Thêm tài liệu
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {/* Batch Convert ZIP button for PE */}
+          {unextractedPeZips.length > 0 && (
+            <button
+              onClick={handleBatchExtractZip}
+              disabled={batchExtracting}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#ffffff',
+                border: 'none', borderRadius: 14, fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(5, 150, 105, 0.3)',
+              }}
+              title="Chuyển đổi toàn bộ file ZIP chưa có ảnh trực tiếp trên web"
+            >
+              {batchExtracting ? (
+                <>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span>Đang xử lý ({batchProgress?.current}/{batchProgress?.total})...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={16} />
+                  <span>Trích xuất ảnh ZIP hàng loạt ({unextractedPeZips.length})</span>
+                </>
+              )}
+            </button>
+          )}
+
+          <button
+            onClick={openCreate}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
+              border: 'none', borderRadius: 14, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
+              boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)', transition: 'transform 0.15s ease'
+            }}
+          >
+            <Plus size={18} /> Thêm tài liệu
+          </button>
+        </div>
       </div>
 
       {/* Category Tabs */}
@@ -302,12 +584,19 @@ export default function AdminTheory() {
           <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#475569' }}>Chưa có tài liệu nào</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: 20 }}>
           {filtered.map(t => {
             const attachedSubjects = subjects.filter(s => getSubjectIds(t).includes(s.id));
             const isFile = t.type === 'file';
             const isLink = t.type === 'link';
-            const isImg  = t.type === 'image';
+            const isPE   = getCat(t) === 'pe';
+            const isZip  = (t.file_name && t.file_name.toLowerCase().endsWith('.zip')) || (t.url && t.url.toLowerCase().includes('.zip'));
+
+            // Parse metadata for images
+            const meta = parseTheoryDescription(t.description);
+            const previewImages = meta.preview_images;
+            const hasImages = previewImages.length > 0;
+            const isCurrentlyExtracting = extractingId === t.id;
 
             const badgeBg = isFile ? '#edf5ff' : isLink ? '#eafaf5' : '#f3eefd';
             const badgeColor = isFile ? '#2563eb' : isLink ? '#059669' : '#8b5cf6';
@@ -319,31 +608,42 @@ export default function AdminTheory() {
                 style={{
                   background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22,
                   padding: 22, boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex',
-                  flexDirection: 'column', justifyContent: 'space-between', gap: 14
+                  flexDirection: 'column', justifyContent: 'space-between', gap: 14,
+                  position: 'relative'
                 }}
               >
                 <div>
-                  {/* Top Bar: Icon Type & Action Buttons */}
+                  {/* Top Bar: Icon Type & Badges */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, gap: 8 }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       <div style={{
-                        padding: '6px 14px', borderRadius: 16, background: badgeBg, color: badgeColor,
-                        border: `1px solid ${badgeBorder}`, fontSize: 12, fontWeight: 800,
-                        display: 'inline-flex', alignItems: 'center', gap: 6
+                        padding: '5px 12px', borderRadius: 16, background: badgeBg, color: badgeColor,
+                        border: `1px solid ${badgeBorder}`, fontSize: 11.5, fontWeight: 800,
+                        display: 'inline-flex', alignItems: 'center', gap: 5
                       }}>
                         <TypeIcon type={t.type} />
-                        {t.type === 'file' ? 'File tài liệu' : t.type === 'link' ? 'Liên kết' : 'Hình ảnh'}
+                        {isZip ? 'File ZIP' : t.type === 'file' ? 'File tài liệu' : t.type === 'link' ? 'Liên kết' : 'Hình ảnh'}
                       </div>
                       <div style={{
-                        padding: '6px 14px', borderRadius: 16, fontSize: 12, fontWeight: 800,
-                        background: getCat(t) === 'pe' ? '#fff7ed' : '#f1f5f9',
-                        color: getCat(t) === 'pe' ? '#c2410c' : '#475569',
-                        border: `1px solid ${getCat(t) === 'pe' ? '#fed7aa' : '#e2e8f0'}`,
+                        padding: '5px 12px', borderRadius: 16, fontSize: 11.5, fontWeight: 800,
+                        background: isPE ? '#fff7ed' : '#f1f5f9',
+                        color: isPE ? '#c2410c' : '#475569',
+                        border: `1px solid ${isPE ? '#fed7aa' : '#e2e8f0'}`,
                       }}>
                         {CAT_LABEL[getCat(t)]}
                       </div>
-                    </div>
 
+                      {/* Extracted Images Badge */}
+                      {hasImages && (
+                        <div style={{
+                          padding: '5px 12px', borderRadius: 16, fontSize: 11.5, fontWeight: 800,
+                          background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0',
+                          display: 'inline-flex', alignItems: 'center', gap: 4
+                        }}>
+                          <Layers size={13} /> {previewImages.length} ảnh đề thi
+                        </div>
+                      )}
+                    </div>
 
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
@@ -371,21 +671,61 @@ export default function AdminTheory() {
                     </div>
                   </div>
 
-                  {/* Title & Description */}
+                  {/* Title */}
                   <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0', lineHeight: 1.4 }}>
                     {t.title}
                   </h3>
-                  {t.description && (
-                    <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {t.description}
+
+                  {/* Clean Description */}
+                  {meta.description && (
+                    <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {meta.description}
                     </p>
+                  )}
+
+                  {/* Mini Filmstrip / Thumbnail Previews if has images */}
+                  {hasImages && (
+                    <div style={{ margin: '10px 0 12px 0' }}>
+                      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
+                        {previewImages.slice(0, 4).map((imgUrl, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => openViewer(previewImages, t.title, t.url, t.file_name)}
+                            style={{
+                              width: 58, height: 42, borderRadius: 8, overflow: 'hidden',
+                              border: '1.5px solid #cbd5e1', cursor: 'pointer', flexShrink: 0,
+                              background: '#f8fafc', position: 'relative'
+                            }}
+                            title={`Xem ảnh câu ${idx + 1}`}
+                          >
+                            <img src={imgUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <span style={{ position: 'absolute', bottom: 1, right: 2, background: 'rgba(0,0,0,0.6)', color: 'white', fontSize: 8.5, fontWeight: 800, padding: '0 3px', borderRadius: 3 }}>
+                              {idx + 1}
+                            </span>
+                          </div>
+                        ))}
+                        {previewImages.length > 4 && (
+                          <button
+                            onClick={() => openViewer(previewImages, t.title, t.url, t.file_name)}
+                            style={{
+                              width: 58, height: 42, borderRadius: 8, border: '1.5px dashed #3b82f6',
+                              background: '#eff6ff', color: '#1d4ed8', fontSize: 11, fontWeight: 800,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              flexShrink: 0
+                            }}
+                          >
+                            +{previewImages.length - 4} ảnh
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {/* Bottom: Subject Tags & Open URL */}
+                {/* Bottom Actions */}
                 <div>
                   {attachedSubjects.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                       {attachedSubjects.map(s => (
                         <span key={s.id} style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', background: '#f1f5f9', color: '#475569', borderRadius: 8 }}>
                           {s.name}
@@ -394,25 +734,73 @@ export default function AdminTheory() {
                     </div>
                   )}
 
-                  <a
-                    href={t.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={async (e) => {
-                      if (t.type === 'link') return;
-                      e.preventDefault();
-                      const signed = await signStorageUrl(t.url);
-                      window.open(signed ?? t.url, '_blank', 'noopener');
-                    }}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      width: '100%', padding: '10px', borderRadius: 12, border: '1.5px solid #dbeafe',
-                      background: '#eff6ff', color: '#2563eb', fontSize: 13, fontWeight: 800,
-                      textDecoration: 'none', boxSizing: 'border-box'
-                    }}
-                  >
-                    <Download size={15} /> Mở / Tải tài liệu
-                  </a>
+                  {/* Actions Bar */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    
+                    {/* View Exam Images button if available */}
+                    {hasImages && (
+                      <button
+                        onClick={() => openViewer(previewImages, t.title, t.url, t.file_name)}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          width: '100%', padding: '9px', borderRadius: 12, border: '1.5px solid #a7f3d0',
+                          background: '#ecfdf5', color: '#047857', fontSize: 12.5, fontWeight: 800,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Eye size={15} /> Xem {previewImages.length} ảnh đề thi
+                      </button>
+                    )}
+
+                    {/* Single 1-Click ZIP Extraction button for PE files */}
+                    {isPE && isZip && (
+                      <button
+                        onClick={() => handleExtractZipSingle(t)}
+                        disabled={isCurrentlyExtracting}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          width: '100%', padding: '8px', borderRadius: 12,
+                          border: hasImages ? '1px solid #fed7aa' : '1.5px solid #fdba74',
+                          background: hasImages ? '#fffaf5' : '#fff7ed',
+                          color: '#c2410c', fontSize: 12, fontWeight: 800, cursor: isCurrentlyExtracting ? 'not-allowed' : 'pointer'
+                        }}
+                        title={hasImages ? "Trích xuất lại toàn bộ ảnh từ file ZIP" : "Giải nén và trích xuất ảnh câu hỏi trực tiếp trên web"}
+                      >
+                        {isCurrentlyExtracting ? (
+                          <>
+                            <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                            <span>{extractingProgress || 'Đang xử lý...'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw size={13} />
+                            <span>{hasImages ? 'Trích xuất lại từ ZIP' : '⚡ Trích xuất ảnh từ ZIP'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {/* Open / Download original file link (always preserved) */}
+                    <a
+                      href={t.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={async (e) => {
+                        if (t.type === 'link') return;
+                        e.preventDefault();
+                        const signed = await signStorageUrl(t.url);
+                        window.open(signed ?? t.url, '_blank', 'noopener');
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        width: '100%', padding: '9px', borderRadius: 12, border: '1.5px solid #dbeafe',
+                        background: '#eff6ff', color: '#2563eb', fontSize: 12.5, fontWeight: 800,
+                        textDecoration: 'none', boxSizing: 'border-box'
+                      }}
+                    >
+                      <Download size={14} /> Tải file gốc ({t.file_name || 'Tài liệu'})
+                    </a>
+                  </div>
                 </div>
               </div>
             );
@@ -424,7 +812,7 @@ export default function AdminTheory() {
       {showForm && (
         <>
           <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
-          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 'min(460px, 100vw)', background: '#ffffff', boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 'min(480px, 100vw)', background: '#ffffff', boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
             
             {/* Modal Header */}
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#ffffff', zIndex: 2 }}>
@@ -440,12 +828,12 @@ export default function AdminTheory() {
             <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Tiêu đề tài liệu *</label>
-                <input style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="VD: Slide Bài giảng Chương 1 - Giải tích" />
+                <input style={inputStyle} value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="VD: Đề Thi PE FER202 SP 2025 - Đề số 1" />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Mô tả ngắn</label>
-                <textarea style={{ ...inputStyle, height: 72, resize: 'vertical' }} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Tóm tắt nội dung tài liệu..." />
+                <textarea style={{ ...inputStyle, height: 68, resize: 'vertical' }} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Tóm tắt nội dung tài liệu..." />
               </div>
 
               <div>
@@ -491,9 +879,85 @@ export default function AdminTheory() {
                 </div>
               </div>
 
+              {/* Dedicated PE ZIP upload section */}
+              {form.category === 'pe' && form.type === 'file' && (
+                <div style={{ background: '#f8fafc', border: '1.5px dashed #3b82f6', borderRadius: 14, padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <Sparkles size={16} color="#2563eb" />
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#1d4ed8' }}>
+                      Upload file ZIP đề thi PE (Tự động trích xuất ảnh)
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+                    File ZIP sẽ được lưu nguyên vẹn để sinh viên tải về. Đồng thời các ảnh câu hỏi bên trong sẽ được tự động trích xuất để xem trực tiếp trên web!
+                  </p>
+
+                  <input
+                    ref={zipInputRef}
+                    type="file"
+                    accept=".zip"
+                    onChange={handleFormZipPicked}
+                    style={{ display: 'none' }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => zipInputRef.current?.click()}
+                    disabled={isProcessingZipInForm}
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: 10,
+                      border: '1px solid #2563eb', background: '#eff6ff',
+                      color: '#1d4ed8', fontSize: 13, fontWeight: 800,
+                      cursor: isProcessingZipInForm ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                    }}
+                  >
+                    {isProcessingZipInForm ? (
+                      <>
+                        <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                        <span>{zipProgressText}</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud size={16} />
+                        <span>Chọn file ZIP đề thi (.zip)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Extracted Images Preview within Modal */}
+                  {form.preview_images.length > 0 && (
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#047857' }}>
+                          📸 Đã trích xuất {form.preview_images.length} ảnh xem trước:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setForm(p => ({ ...p, preview_images: [] }))}
+                          style={{ border: 'none', background: 'transparent', color: '#e11d48', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Xóa ảnh
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
+                        {form.preview_images.map((img, i) => (
+                          <div key={i} style={{ width: 50, height: 38, borderRadius: 6, overflow: 'hidden', border: '1px solid #cbd5e1', flexShrink: 0 }}>
+                            <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Standard File Uploaders */}
               {form.type === 'file' ? (
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>File tài liệu (mọi định dạng: PDF, Word, Excel, PPT, Zip, Video...)</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+                    File tài liệu hiện tại (PDF, Word, Excel, PPT, Zip, Video...)
+                  </label>
                   <FileUploader
                     bucket="theory-files"
                     value={form.url}
@@ -502,7 +966,7 @@ export default function AdminTheory() {
                     accept="*/*"
                     maxSizeMB={50}
                     preview="file"
-                    label="Tải file tài liệu"
+                    label="Tải file tài liệu thủ công"
                   />
                 </div>
               ) : form.type === 'image' ? (
@@ -546,13 +1010,25 @@ export default function AdminTheory() {
             {/* Sticky Modal Footer */}
             <div style={{ padding: 20, borderTop: '1px solid #e2e8f0', background: '#ffffff', position: 'sticky', bottom: 0, display: 'flex', gap: 10 }}>
               <button style={{ flex: 1, padding: 12, borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 800, cursor: 'pointer' }} onClick={() => setShowForm(false)}>Hủy</button>
-              <button style={{ flex: 2, padding: 12, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={save} disabled={saving}>
+              <button style={{ flex: 2, padding: 12, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={save} disabled={saving || isProcessingZipInForm}>
                 {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={16} strokeWidth={3} />}
                 {form.id ? 'Lưu thay đổi' : 'Tạo tài liệu'}
               </button>
             </div>
           </div>
         </>
+      )}
+
+      {/* Full-Screen Exam Image Viewer Modal */}
+      {viewerImages && (
+        <ExamImageViewerModal
+          isOpen={Boolean(viewerImages)}
+          onClose={() => setViewerImages(null)}
+          images={viewerImages}
+          title={viewerTitle}
+          zipDownloadUrl={viewerZipUrl}
+          zipFileName={viewerZipName}
+        />
       )}
 
       <style>{`
