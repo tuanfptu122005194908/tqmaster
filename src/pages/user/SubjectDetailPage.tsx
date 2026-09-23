@@ -105,6 +105,11 @@ export default function SubjectDetailPage() {
   const theoryDocs = theories.filter(t => ((t as any).category ?? 'theory') !== 'pe');
   const peDocs     = theories.filter(t => ((t as any).category ?? 'theory') === 'pe');
 
+  const getDisplayDesc = (item: any): string => {
+    if (typeof item.clean_description === 'string') return item.clean_description.trim();
+    return parseTheoryDescription(item?.description).description.trim();
+  };
+
   const renderDocs = (list: Theory[], lockedText: string, emptyText: string) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
       {!purchased && (
@@ -136,16 +141,16 @@ export default function SubjectDetailPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontWeight: 'var(--fw-semibold)', fontSize: 'var(--text-base)',
-              marginBottom: item.description ? 2 : 0,
+              marginBottom: getDisplayDesc(item) ? 2 : 0,
               lineHeight: 'var(--lh-snug)',
             }}>
               {item.title}
             </div>
-            {((item as any).clean_description || item.description) && (
+            {getDisplayDesc(item) ? (
               <div style={{ fontSize: 'var(--text-sm)', color: 'hsl(var(--muted-fg))', lineHeight: 'var(--lh-base)' }}>
-                {(item as any).clean_description || item.description}
+                {getDisplayDesc(item)}
               </div>
-            )}
+            ) : null}
           </div>
           <a
             href={item.type === 'link' || !item.file_name
@@ -229,11 +234,11 @@ export default function SubjectDetailPage() {
                     )}
                   </div>
 
-                  {(item.clean_description || item.description) && (
+                  {getDisplayDesc(item) ? (
                     <p style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-fg))', lineHeight: 1.5, margin: 0 }}>
-                      {item.clean_description || item.description}
+                      {getDisplayDesc(item)}
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
