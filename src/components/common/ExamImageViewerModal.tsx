@@ -9,6 +9,8 @@ import {
   Download,
   Layers,
   FileArchive,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 interface ExamImageViewerModalProps {
@@ -32,14 +34,23 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(initialIndex);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [imgLoading, setImgLoading] = useState<boolean>(true);
+  const [imgError, setImgError] = useState<boolean>(false);
 
   // Reset index & zoom when opening or changing initialIndex
   useEffect(() => {
     if (isOpen) {
       setCurrentIndex(Math.max(0, Math.min(initialIndex, images.length - 1)));
       setZoomLevel(1);
+      setImgLoading(true);
+      setImgError(false);
     }
   }, [isOpen, initialIndex, images.length]);
+
+  useEffect(() => {
+    setImgLoading(true);
+    setImgError(false);
+  }, [currentIndex]);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex(prev => Math.max(0, prev - 1));
@@ -346,6 +357,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
             transform: `scale(${zoomLevel})`,
             transition: 'transform 0.15s ease-out',
             cursor: zoomLevel > 1 ? 'grab' : 'zoom-in',
+            position: 'relative',
           }}
           onClick={e => {
             e.stopPropagation();
@@ -353,18 +365,87 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
             else handleZoomReset();
           }}
         >
-          <img
-            src={currentImage}
-            alt={`Trang ${currentIndex + 1}`}
-            style={{
-              maxWidth: '100%',
-              maxHeight: 'calc(100vh - 200px)',
-              objectFit: 'contain',
-              borderRadius: 8,
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-            }}
-          />
+          {imgLoading && !imgError && (
+            <div style={{
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
+              color: '#94a3b8',
+            }}>
+              <Loader2 size={36} className="spinner" style={{ animation: 'spin 1s linear infinite' }} />
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Đang tải ảnh...</span>
+            </div>
+          )}
+
+          {imgError ? (
+            <div style={{
+              background: 'rgba(30, 41, 59, 0.9)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: 16,
+              padding: '32px 40px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 14,
+              color: '#ffffff',
+              maxWidth: 420,
+              textAlign: 'center',
+            }}>
+              <AlertCircle size={40} color="#ef4444" />
+              <div>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 800 }}>Không thể tải ảnh này</h4>
+                <p style={{ margin: 0, fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>
+                  Đường truyền mạng bị gián đoạn hoặc phiên signed URL đã hết hạn. Bạn có thể tải file ZIP gốc bên dưới để xem offline.
+                </p>
+              </div>
+              {zipDownloadUrl && (
+                <a
+                  href={zipDownloadUrl}
+                  download={zipFileName || true}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: '#ffffff',
+                    padding: '8px 16px',
+                    borderRadius: 10,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    marginTop: 6,
+                  }}
+                >
+                  <Download size={14} /> Tải file ZIP gốc
+                </a>
+              )}
+            </div>
+          ) : (
+            <img
+              src={currentImage}
+              alt={`Trang ${currentIndex + 1}`}
+              onLoad={() => setImgLoading(false)}
+              onError={() => {
+                setImgLoading(false);
+                setImgError(true);
+              }}
+              style={{
+                maxWidth: '100%',
+                maxHeight: 'calc(100vh - 200px)',
+                objectFit: 'contain',
+                borderRadius: 8,
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                opacity: imgLoading ? 0 : 1,
+                transition: 'opacity 0.2s ease',
+              }}
+            />
+          )}
         </div>
 
         {/* Navigation Arrow: Next */}

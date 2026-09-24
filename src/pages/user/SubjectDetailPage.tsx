@@ -102,6 +102,78 @@ export default function SubjectDetailPage() {
     return <Download size={15} />;
   };
 
+  const PeFilmstripThumb = ({
+    imgUrl,
+    imgIdx,
+    onClick,
+  }: {
+    imgUrl: string;
+    imgIdx: number;
+    onClick: () => void;
+  }) => {
+    const [hasError, setHasError] = useState(false);
+
+    return (
+      <div
+        onClick={onClick}
+        style={{
+          width: 100,
+          height: 72,
+          borderRadius: 8,
+          overflow: 'hidden',
+          border: '1.5px solid #cbd5e1',
+          background: '#ffffff',
+          position: 'relative',
+          cursor: 'pointer',
+          flexShrink: 0,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+          transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease',
+        }}
+        title={`Câu ${imgIdx + 1} - Bấm để phóng to`}
+      >
+        {hasError ? (
+          <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#f8fafc',
+            color: '#64748b',
+            gap: 2,
+          }}>
+            <ImageIcon size={18} />
+            <span style={{ fontSize: 10, fontWeight: 700 }}>Ảnh {imgIdx + 1}</span>
+          </div>
+        ) : (
+          <img
+            src={imgUrl}
+            alt={`Câu ${imgIdx + 1}`}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            loading="lazy"
+            onError={() => setHasError(true)}
+          />
+        )}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          insetInline: 0,
+          background: 'linear-gradient(to top, rgba(15,23,42,0.85), transparent)',
+          padding: '2px 4px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <span style={{ color: '#ffffff', fontSize: 9, fontWeight: 800 }}>
+            Câu {imgIdx + 1}
+          </span>
+          <Eye size={10} color="#ffffff" style={{ opacity: 0.8 }} />
+        </div>
+      </div>
+    );
+  };
+
   const theoryDocs = theories.filter(t => ((t as any).category ?? 'theory') !== 'pe');
   const peDocs     = theories.filter(t => ((t as any).category ?? 'theory') === 'pe');
 
@@ -316,8 +388,10 @@ export default function SubjectDetailPage() {
                   WebkitOverflowScrolling: 'touch',
                 }}>
                   {item.preview_images.map((imgUrl: string, imgIdx: number) => (
-                    <div
+                    <PeFilmstripThumb
                       key={imgIdx}
+                      imgUrl={imgUrl}
+                      imgIdx={imgIdx}
                       onClick={() => {
                         setViewerImages(item.preview_images);
                         setViewerTitle(item.title);
@@ -325,43 +399,7 @@ export default function SubjectDetailPage() {
                         setViewerZipName(item.file_name);
                         setViewerInitialIndex(imgIdx);
                       }}
-                      style={{
-                        width: 100,
-                        height: 72,
-                        borderRadius: 8,
-                        overflow: 'hidden',
-                        border: '1.5px solid #cbd5e1',
-                        background: '#ffffff',
-                        position: 'relative',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                        transition: 'transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease',
-                      }}
-                      title={`Câu ${imgIdx + 1} - Bấm để phóng to`}
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`Câu ${imgIdx + 1}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        loading="lazy"
-                      />
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        insetInline: 0,
-                        background: 'linear-gradient(to top, rgba(15,23,42,0.85), transparent)',
-                        padding: '2px 4px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <span style={{ color: '#ffffff', fontSize: 9, fontWeight: 800 }}>
-                          Câu {imgIdx + 1}
-                        </span>
-                        <Eye size={10} color="#ffffff" style={{ opacity: 0.8 }} />
-                      </div>
-                    </div>
+                    />
                   ))}
                 </div>
               </div>
