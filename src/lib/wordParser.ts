@@ -247,47 +247,47 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
     let isOpt = false;
 
     if (optMatch && cur) {
-      if (optMatch.isDefinite) {
-        isOpt = true;
-      } else if (inOption && ['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
-        isOpt = true;
-      }
+      const hasActiveOption = inOption && cur.options.length > 0;
 
-      // Self-healing: Detect when options reset back to 'A'
-      // Example: Matching question where premises are listed as A., B., C.,
-      // followed by actual multiple-choice options A., B., C., D.
-      if (optMatch.label === 'A' && cur.options.length > 0) {
-        const subsequentHasB = lines.slice(lIdx + 1, lIdx + 15).some(sub => {
-          const sm = matchOptionLine(sub.text.trim());
-          return sm && sm.label === 'B';
-        });
-        if (subsequentHasB) {
-          // If previous option A was just started on false sentence (single opt), rollback
-          if (cur.options.length === 1 && currentOptLabel === 'A') {
-            const falseOpt = cur.options.pop()!;
-            const restored = /^(?:A\b|Câu|Question)/i.test(falseOpt.content)
-              ? falseOpt.content
-              : `A ${falseOpt.content}`;
-            cur.content = cur.content ? `${cur.content}\n\n${restored}` : restored;
-          } else {
-            // Previous options (e.g. A, B, C) were actually matching premises!
-            const prevTexts = cur.options.map(o => `${o.label}. ${o.content}`).join('\n');
+      if (!hasActiveOption) {
+        // Options cannot start with B, C, D...
+        if (optMatch.label !== 'A') {
+          isOpt = false;
+        } else if (optMatch.isDefinite) {
+          isOpt = true;
+        } else {
+          // Lookahead for B to confirm it's truly an option and not regular text starting with 'A ...'
+          const subsequentLines = lines.slice(lIdx + 1, lIdx + 15);
+          const subMatches = subsequentLines
+            .map(sub => matchOptionLine(sub.text.trim()))
+            .filter(Boolean);
+          const firstBIdx = subMatches.findIndex(m => m && m.label === 'B');
+          const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m && m.label === 'A');
+
+          if (!anotherAExists && firstBIdx !== -1) {
+            isOpt = true;
+          }
+        }
+      } else {
+        if (optMatch.label === 'A') {
+          const subsequentHasB = lines.slice(lIdx + 1, lIdx + 15).some(sub => {
+            const sm = matchOptionLine(sub.text.trim());
+            return sm && sm.label === 'B';
+          });
+          if (subsequentHasB) {
+            // Previous options (e.g. A, B dialogue or A, B, C premises) were actually matching premises / dialogue!
+            const prevTexts = cur.options.map(o => {
+              const first = o.content.trim();
+              return new RegExp(`^${o.label}[.:\\s-]`, 'i').test(first)
+                ? first
+                : `${o.label}. ${first}`.trim();
+            }).join('\n');
             cur.content = cur.content ? `${cur.content}\n${prevTexts}` : prevTexts;
             cur.options = [];
+            currentOptLabel = 'A';
+            isOpt = true;
           }
-          currentOptLabel = 'A';
-          isOpt = true;
-        }
-      } else if (optMatch.label === 'A' && !inOption) {
-        // Lookahead for B to confirm it's truly an option and not regular text starting with 'A ...'
-        const subsequentLines = lines.slice(lIdx + 1, lIdx + 15);
-        const subMatches = subsequentLines
-          .map(sub => matchOptionLine(sub.text.trim()))
-          .filter(Boolean);
-        const firstBIdx = subMatches.findIndex(m => m && m.label === 'B');
-        const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m && m.label === 'A');
-
-        if (!anotherAExists && firstBIdx !== -1) {
+        } else if (optMatch.isDefinite || ['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
           isOpt = true;
         }
       }

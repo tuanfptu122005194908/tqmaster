@@ -250,7 +250,42 @@ export function normalizeExamLines(lines: string[]): string[] {
     expanded.push(line);
   }
 
-  // 4. Unwrap code fences that wrap options (e.g. Question 21):
+  // 4. Merge standalone single-letter markers (e.g. "B." on its own line followed by blank line and dialogue text)
+  const mergedStandalone: string[] = [];
+  for (let i = 0; i < expanded.length; i++) {
+    const line = expanded[i];
+    const trimmed = line.trim();
+
+    const standaloneMarkerMatch = trimmed.match(/^(?:\*{1,2}|_{1,2})?([A-Ha-h])[.:](?:\*{1,2}|_{1,2})?\s*$/);
+    if (standaloneMarkerMatch) {
+      let nextNonEmptyIdx = -1;
+      for (let j = i + 1; j < expanded.length; j++) {
+        if (expanded[j].trim()) {
+          nextNonEmptyIdx = j;
+          break;
+        }
+      }
+
+      if (nextNonEmptyIdx !== -1) {
+        const nextTrimmed = expanded[nextNonEmptyIdx].trim();
+        const isExcluded =
+          /^(?:\*{1,2}|_{1,2})?[A-Ha-h][.:)]/i.test(nextTrimmed) ||
+          /^(?:câu|cau|question)\b/i.test(nextTrimmed) ||
+          /^(?:đáp án|dap an|answer|key)\b/i.test(nextTrimmed) ||
+          /^(?:>|#{1,6}|```|[-*_]{3,})/.test(nextTrimmed);
+
+        if (!isExcluded) {
+          mergedStandalone.push(`${trimmed} ${nextTrimmed}`);
+          i = nextNonEmptyIdx;
+          continue;
+        }
+      }
+    }
+
+    mergedStandalone.push(line);
+  }
+
+  // 5. Unwrap code fences that wrap options (e.g. Question 21):
   // ```
   // B. Option B
   // C. Option C
@@ -259,8 +294,8 @@ export function normalizeExamLines(lines: string[]): string[] {
   let isFenceOpen = false;
   let unwrappedOptionFenceOpen = false;
 
-  for (let i = 0; i < expanded.length; i++) {
-    const line = expanded[i];
+  for (let i = 0; i < mergedStandalone.length; i++) {
+    const line = mergedStandalone[i];
     const trimmed = line.trim();
 
     if (trimmed.startsWith('```')) {
@@ -369,7 +404,7 @@ export function parseMarkdownExam(
   }
 
   // Regex for Answer line prefix:
-  const ansPrefixRegex = /^(?:>\s*)?\*{0,2}(?:đáp án|dap an|answer|key|chọn|đáp án đúng|dap an dung)\*{0,2}[:\s-]*(.*)$/i;
+  const ansPrefixRegex = /^(?:>\s*)?\*{0,2}(?:đáp án đúng|dap an dung|đáp án|dap an|answer|key|chọn\s*[:=-])\*{0,2}[:\s-]*(.*)$/i;
 
   // Regex for Explanation header (locks answers to prevent overwrites):
   const explanationHeaderRegex = /^(?:>\s*)?\*{0,2}(?:giải thích|giai thich|explanation)\*{0,2}[:\s-]*(.*)$/i;
@@ -555,17 +590,44 @@ export function parseMarkdownExam(
       let isValidOption = false;
 
       if (optMatch) {
-        if (optMatch.isDefinite) {
-          isValidOption = true;
-        } else if (currentSection === 'option' && curOpt) {
-          // Inside option section already, any bare B-H is a subsequent option
-          if (['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
-            isValidOption = true;
-          } else if (curOpt.label === 'A' && optMatch.label === 'A') {
+        const hasActiveOption = (currentSection === 'option' && curOpt !== null) || optionsList.length > 0;
+
+        if (!hasActiveOption) {
+          // We have NOT started the option block yet.
+          // In multiple-choice questions, the options block MUST begin with 'A'.
+          // Any 'B.', 'C.', 'D.' appearing before option 'A' has started is question content (e.g. dialogue Speaker B).
+          if (optMatch.label !== 'A') {
+            isValidOption = false;
+          } else {
+            // It is an 'A'.
+            if (optMatch.isDefinite) {
+              isValidOption = true;
+            } else if (englishArticleWords.test(optMatch.content)) {
+              isValidOption = false;
+            } else {
+              // Bare 'A' without punctuation
+              const subsequentLines = rq.lines.slice(idx + 1);
+              const subMatches = subsequentLines
+                .map(subL => matchOptionLine(subL.trim()))
+                .filter((m): m is NonNullable<typeof m> => Boolean(m));
+
+              const firstBIdx = subMatches.findIndex(m => m.label === 'B');
+              const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m.label === 'A');
+
+              if (!anotherAExists && firstBIdx !== -1) {
+                const hasC = subMatches.some(m => m.label === 'C');
+                if (hasC || !englishArticleWords.test(optMatch.content)) {
+                  isValidOption = true;
+                }
+              }
+            }
+          }
+        } else {
+          // We have already started the option block (hasActiveOption is true)
+          if (optMatch.label === 'A') {
             // CRITICAL SELF-HEALING ROLLBACK:
-            // We are already inside Option A, but we just encountered another Option A line!
-            // (e.g. the first one was a question sentence starting with "A ball is thrown...", and this one is "A 72").
-            // Check if subsequent lines have Option B to verify this is the real option list:
+            // We encountered another 'A' while already inside the option section!
+            // Check if subsequent lines have Option 'B' to verify this is the real option list:
             const subsequentLines = rq.lines.slice(idx + 1);
             const hasSubsequentB = subsequentLines.some(subL => {
               const sm = matchOptionLine(subL.trim());
@@ -573,13 +635,26 @@ export function parseMarkdownExam(
             });
 
             if (hasSubsequentB) {
-              // Roll back the false Option A back into question contentLines!
-              const firstLine = curOpt.contentLines[0] || '';
-              const restoredFirstLine = /^(?:A\b|Câu|Question)/i.test(firstLine)
-                ? firstLine
-                : `A ${firstLine}`;
-              const restoredLines = [restoredFirstLine, ...curOpt.contentLines.slice(1)];
-              contentLines.push(...restoredLines);
+              // Roll back all previous options from optionsList into contentLines
+              for (const prevOpt of optionsList) {
+                const prevLines = prevOpt.content ? prevOpt.content.split('\n') : [];
+                const firstLine = prevLines[0] || '';
+                const restoredFirstLine = new RegExp(`^${prevOpt.label}[.:\\s-]`, 'i').test(firstLine)
+                  ? firstLine
+                  : `${prevOpt.label}. ${firstLine}`.trim();
+                contentLines.push(restoredFirstLine, ...prevLines.slice(1));
+              }
+              optionsList.length = 0;
+
+              // Roll back currently active curOpt into contentLines
+              if (curOpt) {
+                const firstLine = curOpt.contentLines[0] || '';
+                const restoredFirstLine = new RegExp(`^${curOpt.label}[.:\\s-]`, 'i').test(firstLine)
+                  ? firstLine
+                  : `${curOpt.label}. ${firstLine}`.trim();
+                contentLines.push(restoredFirstLine, ...curOpt.contentLines.slice(1));
+                curOpt = null;
+              }
 
               // Reset curOpt to the true Option A:
               curOpt = {
@@ -588,29 +663,11 @@ export function parseMarkdownExam(
               };
               currentSection = 'option';
               continue;
+            } else {
+              isValidOption = false;
             }
-          }
-        } else if (optMatch.label === 'A') {
-          // Starting option A without punctuation
-          if (englishArticleWords.test(optMatch.content)) {
-            isValidOption = false;
-          } else {
-            // Find subsequent candidate lines in this question
-            const subsequentLines = rq.lines.slice(idx + 1);
-            const subMatches = subsequentLines
-              .map(subL => matchOptionLine(subL.trim()))
-              .filter((m): m is NonNullable<typeof m> => Boolean(m));
-
-            // Check if there is another 'A' before the first 'B'
-            const firstBIdx = subMatches.findIndex(m => m.label === 'B');
-            const anotherAExists = firstBIdx > 0 && subMatches.slice(0, firstBIdx).some(m => m.label === 'A');
-
-            if (!anotherAExists && firstBIdx !== -1) {
-              const hasC = subMatches.some(m => m.label === 'C');
-              if (hasC || !englishArticleWords.test(optMatch.content)) {
-                isValidOption = true;
-              }
-            }
+          } else if (['B', 'C', 'D', 'E', 'F', 'G', 'H'].includes(optMatch.label)) {
+            isValidOption = true;
           }
         }
       }
