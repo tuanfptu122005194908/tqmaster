@@ -17,10 +17,13 @@
   - File: `src/lib/examRouting.ts` & `src/pages/user/ExamPage.tsx`
   - Thay thế logic điều kiện bằng `checkIsTextExam`.
 
-- [x] **Task 3: Hỗ trợ Chế độ Luyện tập (Practice Mode) trên Dedicated Text Exam**
+- [x] **Task 3: Khôi phục và chuẩn hóa giao diện Dedicated Text Exam theo commit `ce4d499`**
   - File: `src/pages/user/ExamPage.tsx`
-  - Cho phép học viên chọn đáp án trong practice mode, hiển thị kết quả đúng (xanh)/sai (đỏ) tức thì.
-  - Tách nút Báo lỗi câu hỏi thành nút bấm tiện ích thay vì chiếm trọn sidebar.
+  - Khôi phục chính xác bố cục chuẩn của commit `ce4d49938d86a4f9f9e9b39e02058927bb332b0a`:
+    - Bên trái: Vùng đọc câu hỏi (Reading Mode) gọn gàng, hiển thị công thức/ảnh và các phương án A, B, C, D rõ ràng.
+    - Bên phải (Chế độ Ôn tập / Practice & Review): Hiển thị danh sách đáp án với huy hiệu `[Hiện tại: Đúng]` màu xanh nổi bật cho đáp án chính xác, form ghi chú và nút gửi báo cáo lỗi câu hỏi.
+    - Bên phải (Chế độ Thi thử / Exam): Hiển thị ô chọn checkbox đáp án, đánh dấu câu hỏi, bản đồ câu hỏi 1..50 và nút nộp bài.
+    - Tiêu đề sidebar hiển thị chuẩn `Bộ đề gồm {questions.length} câu`.
 
 - [x] **Task 4: Fallback hiển thị text đáp án trong Image Exam UI**
   - File: `src/pages/user/ExamPage.tsx`
