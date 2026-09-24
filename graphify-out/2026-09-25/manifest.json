@@ -660,9 +660,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/ExamPage.tsx": {
-    "mtime": 1790271575.4511766,
-    "seen": 1790271810.5016396,
-    "ast_hash": "a3a69366f4530a6d9f9ef2cf66291549",
+    "mtime": 1789372056.43725,
+    "seen": 1789372081.2581983,
+    "ast_hash": "b724c002cada4288aef637d7a1d216f9",
     "semantic_hash": ""
   },
   "src/pages/user/HomePage.tsx": {
@@ -2679,36 +2679,6 @@
     "mtime": 1790265789.07945,
     "seen": 1790265871.226923,
     "ast_hash": "c9ca3f1bf99b3470705a6e36bf5fc4cf",
-    "semantic_hash": ""
-  },
-  "src/lib/examRouting.ts": {
-    "mtime": 1790271291.4098456,
-    "seen": 1790271810.4909263,
-    "ast_hash": "9a80948ca659c851bbfc90b440a5881e",
-    "semantic_hash": ""
-  },
-  "src/test/examModeRouting.test.ts": {
-    "mtime": 1790271307.3343482,
-    "seen": 1790271810.5027554,
-    "ast_hash": "5da1c481843cee69e8c84842ae481ff5",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/21-fix-word-exam-text-mode-routing/plan.md": {
-    "mtime": 1790271099.3664384,
-    "seen": 1790271810.5347185,
-    "ast_hash": "f922b2520e19ada458abd3b2cbba5a8f",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/21-fix-word-exam-text-mode-routing/spec.md": {
-    "mtime": 1790271782.434234,
-    "seen": 1790271810.534722,
-    "ast_hash": "b235a5a5d7bb4547bccd6e49c1a6b4aa",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/21-fix-word-exam-text-mode-routing/tasks.md": {
-    "mtime": 1790271773.545696,
-    "seen": 1790271810.5347252,
-    "ast_hash": "3faeb02759022eba45fc1adb78eb4a6e",
     "semantic_hash": ""
   }
 }

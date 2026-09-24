@@ -10,6 +10,7 @@ import {
 import { playSound } from '@/lib/sound';
 import { RichContent } from '@/components/exam/RichContent';
 import { signQuestionImages } from '@/lib/signedImage';
+import { checkIsTextExam } from '@/lib/examRouting';
 
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -396,14 +397,8 @@ export default function ExamPage() {
   const currentAnswers = answers[currentQ.id] ?? [];
   const answeredCount  = Object.values(answers).filter(a => a.length > 0).length;
 
-  // Determine if this is a text-based exam.
-  // Ưu tiên IMAGE mode nếu ≥50% câu có ảnh. Chỉ dùng TextExam khi phần lớn câu KHÔNG có ảnh.
-  const imageQuestionCount = questions.filter(q => q.image_url).length;
-  const isTextExam = questions.length > 0 && (
-    imageQuestionCount === 0 ||                                        // Không có câu nào có ảnh → text exam
-    (imageQuestionCount < questions.length / 2 &&                     // Ít hơn 50% câu có ảnh
-     !questions.some(q => q.options.some(o => o.content?.trim())))    // VÀ options không có text
-  );
+  // Determine if this is a text-based exam (Word, Markdown, Text format vs pure Image exams)
+  const isTextExam = checkIsTextExam(questions);
 
   const toggleAnswer = (label: string) => {
     if (submitted) return;
@@ -1643,19 +1638,47 @@ export default function ExamPage() {
                       ))}
                     </div>
 
-                    {/* Options (Reading Mode) */}
-                    <div className="space-y-3 sm:space-y-3.5 text-sm sm:text-base text-gray-800">
-                      {currentQ.options.map(opt => (
-                        <div key={opt.label} className="leading-relaxed flex items-start gap-2.5 py-0.5">
-                          <span className="font-bold text-gray-900 shrink-0">{opt.label}.</span>
-                          <div className="flex-1">
-                            <RichContent content={opt.content || ''} />
-                            {(opt as any).image_url && (
-                              <img src={(opt as any).image_url} alt={`opt ${opt.label}`} className="max-h-24 rounded mt-1.5 block" />
-                            )}
+                    {/* Options (Reading Mode & Interactive Selection) */}
+                    <div className="space-y-2.5 sm:space-y-3 text-sm sm:text-base text-gray-800">
+                      {currentQ.options.map(opt => {
+                        const isChecked = currentAnswers.includes(opt.label);
+                        const isPractice = examMode === 'practice';
+                        const isAnsweredInPractice = isPractice && currentAnswers.length > 0;
+                        const isCorrectOpt = opt.is_correct;
+                        const isSelectedWrong = isAnsweredInPractice && isChecked && !isCorrectOpt;
+                        const isSelectedCorrect = isAnsweredInPractice && isChecked && isCorrectOpt;
+                        const isRevealedCorrect = isAnsweredInPractice && !isChecked && isCorrectOpt;
+
+                        let optCardStyle = 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/60 bg-white';
+                        if (isSelectedCorrect) {
+                          optCardStyle = 'border-emerald-500 bg-emerald-50/70 text-emerald-950 font-semibold';
+                        } else if (isSelectedWrong) {
+                          optCardStyle = 'border-red-400 bg-red-50/70 text-red-950 font-semibold';
+                        } else if (isRevealedCorrect) {
+                          optCardStyle = 'border-emerald-300 bg-emerald-50/40 text-emerald-900';
+                        } else if (isChecked && !isPractice) {
+                          optCardStyle = 'border-blue-500 bg-blue-50/70 text-blue-950 font-semibold';
+                        }
+
+                        return (
+                          <div 
+                            key={opt.label} 
+                            onClick={() => { if (!submitted) toggleAnswer(opt.label); }}
+                            className={`leading-relaxed flex items-start gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${optCardStyle}`}
+                          >
+                            <span className={`font-bold shrink-0 ${isSelectedCorrect || isRevealedCorrect ? 'text-emerald-700' : isSelectedWrong ? 'text-red-700' : isChecked ? 'text-blue-700' : 'text-gray-900'}`}>{opt.label}.</span>
+                            <div className="flex-1">
+                              <RichContent content={opt.content || ''} />
+                              {(opt as any).image_url && (
+                                <img src={(opt as any).image_url} alt={`opt ${opt.label}`} className="max-h-24 rounded mt-1.5 block" />
+                              )}
+                            </div>
+                            {isSelectedCorrect && <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />}
+                            {isSelectedWrong && <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />}
+                            {isRevealedCorrect && <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">Đáp án đúng</span>}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </section>
                 </div>
@@ -1689,53 +1712,99 @@ export default function ExamPage() {
               </div>
 
               {/* Sidebar Body: Mode Dependent */}
-              {examMode === 'exam' && !submitted ? (
-                /* ─── Taking Exam Mode: Multi-Select Answer Selection & Question Map ─── */
+              {!submitted ? (
+                /* ─── Taking / Practice Mode: Multi-Select Answer Selection & Question Map ─── */
                 <>
                   <div className="flex-1 overflow-y-auto p-3.5 sm:p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-bold text-xs sm:text-sm text-gray-900">
-                        Chọn đáp án của bạn:
+                        {examMode === 'practice' ? 'Luyện tập:' : 'Chọn đáp án của bạn:'}
                       </h4>
                       <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                         Câu {currentIndex + 1}/{questions.length}
                       </span>
                     </div>
 
-                    {/* Options Selection Cards - Checkbox style supporting multi-select */}
+                    {/* Options Selection Cards - Checkbox style supporting multi-select & practice feedback */}
                     <div className="space-y-2.5 mb-4">
                       {currentQ.options.map(opt => {
                         const isChecked = currentAnswers.includes(opt.label);
+                        const isPractice = examMode === 'practice';
+                        const isAnsweredInPractice = isPractice && currentAnswers.length > 0;
+                        const isCorrectOpt = opt.is_correct;
+                        const isSelectedWrong = isAnsweredInPractice && isChecked && !isCorrectOpt;
+                        const isSelectedCorrect = isAnsweredInPractice && isChecked && isCorrectOpt;
+                        const isRevealedCorrect = isAnsweredInPractice && !isChecked && isCorrectOpt;
+
+                        let borderBgCls = 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800';
+                        let boxStyle = 'border-gray-300 bg-white';
+                        let boxIcon = null;
+
+                        if (isSelectedCorrect) {
+                          borderBgCls = 'border-emerald-500 bg-emerald-50 text-emerald-950 font-semibold shadow-xs';
+                          boxStyle = 'bg-emerald-600 border-emerald-600 text-white';
+                          boxIcon = (
+                            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          );
+                        } else if (isSelectedWrong) {
+                          borderBgCls = 'border-red-400 bg-red-50 text-red-950 font-semibold shadow-xs';
+                          boxStyle = 'bg-red-500 border-red-500 text-white';
+                          boxIcon = <X className="w-3.5 h-3.5 text-white" strokeWidth={3} />;
+                        } else if (isRevealedCorrect) {
+                          borderBgCls = 'border-emerald-300 bg-emerald-50/50 text-emerald-900 font-medium';
+                          boxStyle = 'bg-emerald-500 border-emerald-500 text-white';
+                          boxIcon = (
+                            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          );
+                        } else if (isChecked) {
+                          borderBgCls = 'border-blue-500 bg-blue-50/80 text-blue-950 font-semibold shadow-xs';
+                          boxStyle = 'bg-blue-600 border-blue-600 text-white';
+                          boxIcon = (
+                            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          );
+                        }
+
                         return (
                           <div 
                             key={opt.label}
                             onClick={() => toggleAnswer(opt.label)}
-                            className={`flex items-center p-2.5 sm:p-3 border rounded-lg cursor-pointer transition-all select-none ${
-                              isChecked 
-                                ? 'border-blue-500 bg-blue-50/80 text-blue-950 font-semibold shadow-xs' 
-                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800'
-                            }`}
+                            className={`flex items-center p-2.5 sm:p-3 border rounded-lg cursor-pointer transition-all select-none ${borderBgCls}`}
                           >
-                            <div className={`w-5 h-5 rounded flex items-center justify-center mr-2.5 shrink-0 border transition-all ${
-                              isChecked ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300 bg-white'
-                            }`}>
-                              {isChecked && (
-                                <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                              )}
+                            <div className={`w-5 h-5 rounded flex items-center justify-center mr-2.5 shrink-0 border transition-all ${boxStyle}`}>
+                              {boxIcon}
                             </div>
                             <span className="text-xs sm:text-sm flex-1">
                               <span className="font-bold mr-1">{opt.label}.</span>
                               <RichContent content={opt.content || ''} displayMode={false} />
                             </span>
+                            {isSelectedCorrect && (
+                              <span className="ml-2 text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
+                                Đúng
+                              </span>
+                            )}
+                            {isSelectedWrong && (
+                              <span className="ml-2 text-[11px] font-bold text-red-700 bg-red-100/90 px-1.5 py-0.5 rounded border border-red-200 shrink-0">
+                                Sai
+                              </span>
+                            )}
+                            {isRevealedCorrect && (
+                              <span className="ml-2 text-[11px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
+                                Đáp án đúng
+                              </span>
+                            )}
                           </div>
                         );
                       })}
                     </div>
 
-                    {/* Action Row: Flag button + Progress count */}
-                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                    {/* Action Row: Flag button + Báo lỗi + Progress count */}
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap">
                       <button
                         onClick={() => {
                           setFlagged(prev => {
@@ -1754,7 +1823,19 @@ export default function ExamPage() {
                         <Flag className="w-3.5 h-3.5" />
                         <span>{flagged.has(currentIndex) ? 'Đã đánh dấu' : 'Đánh dấu câu hỏi'}</span>
                       </button>
-                      <span className="text-xs text-gray-500 font-medium">
+
+                      {examMode === 'practice' && (
+                        <button
+                          onClick={() => setReportingQuestion(currentQ)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer"
+                          title="Báo lỗi câu hỏi này"
+                        >
+                          <MessageSquareWarning className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Báo lỗi</span>
+                        </button>
+                      )}
+
+                      <span className="text-xs text-gray-500 font-medium ml-auto">
                         Đã làm: <b className="text-gray-900 font-bold">{answeredCount}</b>/{questions.length}
                       </span>
                     </div>
@@ -1794,15 +1875,24 @@ export default function ExamPage() {
                     </div>
                   </div>
 
-                  {/* Bottom Submit Button */}
+                  {/* Bottom Submit / Finish Button */}
                   <div className="p-3.5 sm:p-4 border-t border-gray-100 bg-gray-50 shrink-0">
-                    <button
-                      onClick={() => setShowSubmitConfirm(true)}
-                      className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      <span>NỘP BÀI THI</span>
-                      <span className="bg-emerald-800/40 px-2 py-0.5 rounded text-xs">({answeredCount}/{questions.length})</span>
-                    </button>
+                    {examMode === 'exam' ? (
+                      <button
+                        onClick={() => setShowSubmitConfirm(true)}
+                        className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-lg font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>NỘP BÀI THI</span>
+                        <span className="bg-emerald-800/40 px-2 py-0.5 rounded text-xs">({answeredCount}/{questions.length})</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => navigate(-1)}
+                        className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>HOÀN THÀNH LUYỆN TẬP</span>
+                      </button>
+                    )}
                   </div>
                 </>
               ) : (
@@ -2449,7 +2539,7 @@ export default function ExamPage() {
                 <div
                   key={opt.label}
                   id={`answer-${opt.label}`}
-                  onClick={() => { if (examMode === 'exam' && !submitted) toggleAnswer(opt.label); }}
+                  onClick={() => { if (!submitted) toggleAnswer(opt.label); }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -2458,7 +2548,7 @@ export default function ExamPage() {
                     background: bgColor,
                     border: `2px solid ${borderColor}`,
                     borderRadius: 8,
-                    cursor: examMode === 'exam' && !submitted ? 'pointer' : 'default',
+                    cursor: !submitted ? 'pointer' : 'default',
                     transition: 'all 0.1s ease',
                     boxShadow: isSelected ? '0 0 0 2px rgba(108, 92, 231, 0.3)' : 'none',
                     minHeight: 42,
@@ -2481,7 +2571,13 @@ export default function ExamPage() {
                   >
                     {opt.label}
                   </div>
-                  <div style={{ flex: 1 }} />
+                  {opt.content?.trim() ? (
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: labelBg === 'white' ? '#1e293b' : 'inherit' }}>
+                      <RichContent content={opt.content} displayMode={false} />
+                    </div>
+                  ) : (
+                    <div style={{ flex: 1 }} />
+                  )}
                   {(isCorrect || (examMode === 'practice' && isCorrect)) && (
                     <CheckCircle size={16} style={{ color: '#22c55e', flexShrink: 0 }} />
                   )}
