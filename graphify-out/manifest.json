@@ -2206,9 +2206,9 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1790264808.7868302,
-    "seen": 1790264922.0844412,
-    "ast_hash": "5784a161cd201c947cee2b13e3a5fae8",
+    "mtime": 1790265822.8086982,
+    "seen": 1790265871.2134356,
+    "ast_hash": "9edc6bfb5097da3f07b917d14ba76413",
     "semantic_hash": ""
   },
   "src/test/markdownExamParser.test.ts": {
@@ -2661,6 +2661,24 @@
     "mtime": 1790264668.8830717,
     "seen": 1790264922.1015496,
     "ast_hash": "89f25325f01fe5184cf2016aee8c7774",
+    "semantic_hash": ""
+  },
+  "src/test/jpd123.test.ts": {
+    "mtime": 1790265856.2012117,
+    "seen": 1790265871.2162056,
+    "ast_hash": "3fa8aa456553eb4f6e1a2cfe00737e94",
+    "semantic_hash": ""
+  },
+  "src/test/fixtures/JPD123_SU26_FE.md": {
+    "mtime": 1790265789.0755992,
+    "seen": 1790265871.2269218,
+    "ast_hash": "1dc759d9ebf0436c1b5c1f10b206313a",
+    "semantic_hash": ""
+  },
+  "src/test/fixtures/JPD123_SU26_RE.md": {
+    "mtime": 1790265789.07945,
+    "seen": 1790265871.226923,
+    "ast_hash": "c9ca3f1bf99b3470705a6e36bf5fc4cf",
     "semantic_hash": ""
   }
 }

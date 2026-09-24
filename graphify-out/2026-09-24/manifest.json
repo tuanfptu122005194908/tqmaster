@@ -1024,9 +1024,9 @@
     "semantic_hash": ""
   },
   "src/lib/wordParser.ts": {
-    "mtime": 1788670509.787594,
-    "seen": 1789059066.005948,
-    "ast_hash": "a5c806231a337e3cda28172652054cd9",
+    "mtime": 1790264865.806354,
+    "seen": 1790264922.0852766,
+    "ast_hash": "f6497434f2042756a79a697b83a85475",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminBackup.tsx": {
@@ -2206,9 +2206,9 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1789471422.1125538,
-    "seen": 1790130944.5447807,
-    "ast_hash": "24c68c06826641e20c951e62aa80fc83",
+    "mtime": 1790264808.7868302,
+    "seen": 1790264922.0844412,
+    "ast_hash": "5784a161cd201c947cee2b13e3a5fae8",
     "semantic_hash": ""
   },
   "src/test/markdownExamParser.test.ts": {
@@ -2610,21 +2610,57 @@
     "semantic_hash": ""
   },
   ".sdd/specs/19-fix-user-pe-images-access/plan.md": {
-    "mtime": 1790254544.185769,
-    "seen": 1790254912.3788536,
-    "ast_hash": "6b1032504ed2e063e5b5330a7c61ccb8",
+    "mtime": 1790254943.8558733,
+    "seen": 1790264922.097536,
+    "ast_hash": "6626cfea21216cf902dcf0f60ba2bbda",
     "semantic_hash": ""
   },
   ".sdd/specs/19-fix-user-pe-images-access/spec.md": {
-    "mtime": 1790254533.3244376,
-    "seen": 1790254912.3788555,
-    "ast_hash": "7062e5afe8b48d03439f1c6beacab366",
+    "mtime": 1790254932.7635734,
+    "seen": 1790264922.0975378,
+    "ast_hash": "0c390e1f98c49c9d3975effdd316e084",
     "semantic_hash": ""
   },
   ".sdd/specs/19-fix-user-pe-images-access/tasks.md": {
-    "mtime": 1790254550.6547897,
-    "seen": 1790254912.378857,
-    "ast_hash": "68c775e1c6f72b50f63d8b6bc71ab998",
+    "mtime": 1790254919.7468958,
+    "seen": 1790264922.0975397,
+    "ast_hash": "90049a37a8081a6a0b36c8b765b5d314",
+    "semantic_hash": ""
+  },
+  "src/test/jpd113.test.ts": {
+    "mtime": 1790264853.258844,
+    "seen": 1790264922.08797,
+    "ast_hash": "80a55cb89bc777431a4e59a58918c473",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/20-japanese-dialogue-exam-parser/plan.md": {
+    "mtime": 1790264093.2295868,
+    "seen": 1790264922.0975423,
+    "ast_hash": "c3404ed90976141238c05626aa3bb754",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/20-japanese-dialogue-exam-parser/spec.md": {
+    "mtime": 1790264903.398199,
+    "seen": 1790264922.0975437,
+    "ast_hash": "e7dac3281de455814413e4fdf55f71ea",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/20-japanese-dialogue-exam-parser/tasks.md": {
+    "mtime": 1790264896.1104825,
+    "seen": 1790264922.097546,
+    "ast_hash": "653d35d8debc39cc8e596f28771e3625",
+    "semantic_hash": ""
+  },
+  "src/test/fixtures/JPD113_SU26_FE.md": {
+    "mtime": 1790264668.879569,
+    "seen": 1790264922.1015458,
+    "ast_hash": "7a902b3c5e3efe58ea7f29e637669076",
+    "semantic_hash": ""
+  },
+  "src/test/fixtures/JPD113_SU26_RE.md": {
+    "mtime": 1790264668.8830717,
+    "seen": 1790264922.1015496,
+    "ast_hash": "89f25325f01fe5184cf2016aee8c7774",
     "semantic_hash": ""
   }
 }

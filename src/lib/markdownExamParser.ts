@@ -132,30 +132,33 @@ export function extractAnswerLabels(text: string): string[] {
 export function matchOptionLine(trimmed: string): { label: string; content: string; isDefinite: boolean } | null {
   if (!trimmed) return null;
 
+  // Strip leading bullet point if line is a markdown list item: e.g. "* **A**", "- A.", "* [A]"
+  const cleanTrimmed = trimmed.replace(/^[-*+]\s+(?=(?:\*{1,2}|_{1,2})?[A-Ha-h](?:\b|[.):-]))/i, '');
+
   // 1. Markdown bold/italic with punctuation inside or outside:
   // e.g. **A.**, **A:**, **A)**, **A**, *A.*, *A*, _A._, **A**.
-  let m = trimmed.match(/^(?:\*{1,2}|_{1,2})([A-Ha-h])(?:[.):-](?:\*{1,2}|_{1,2})|(?:\*{1,2}|_{1,2})[.):-]|\*{1,2}|_{1,2})(?:\s+(.*)|\s*$)/);
+  let m = cleanTrimmed.match(/^(?:\*{1,2}|_{1,2})([A-Ha-h])(?:[.):-](?:\*{1,2}|_{1,2})|(?:\*{1,2}|_{1,2})[.):-]|\*{1,2}|_{1,2})(?:\s+(.*)|\s*$)/);
   if (m) {
     return { label: m[1].toUpperCase(), content: (m[2] || '').trim(), isDefinite: true };
   }
 
   // 2. Parenthesized or bracketed:
   // e.g. (A), [A], (A):, (A).
-  m = trimmed.match(/^(?:\(([A-Ha-h])\)|\[([A-Ha-h])\])[.):-]?(?:\s+(.*)|\s*$)/);
+  m = cleanTrimmed.match(/^(?:\(([A-Ha-h])\)|\[([A-Ha-h])\])[.):-]?(?:\s+(.*)|\s*$)/);
   if (m) {
     return { label: (m[1] || m[2]).toUpperCase(), content: (m[3] || '').trim(), isDefinite: true };
   }
 
   // 3. Plain letter with punctuation / dash:
   // e.g. A., A), A:, A -
-  m = trimmed.match(/^([A-Ha-h])(?:\s*[-–—]|[.):])(?:\s+(.*)|\s*$)/);
+  m = cleanTrimmed.match(/^([A-Ha-h])(?:\s*[-–—]|[.):])(?:\s+(.*)|\s*$)/);
   if (m) {
     return { label: m[1].toUpperCase(), content: (m[2] || '').trim(), isDefinite: true };
   }
 
   // 4. Bare letter without punctuation:
   // e.g. A (iii), A 2, A All c values..., or just A on its own line
-  m = trimmed.match(/^([A-Ha-h])(?:\s+(.*)|\s*$)/);
+  m = cleanTrimmed.match(/^([A-Ha-h])(?:\s+(.*)|\s*$)/);
   if (m) {
     return { label: m[1].toUpperCase(), content: (m[2] || '').trim(), isDefinite: false };
   }
