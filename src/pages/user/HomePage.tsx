@@ -4,22 +4,54 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { SEMESTERS, subjectColor, subjectInitials, formatPrice } from '@/lib/mockData';
 import { optimizedImage } from '@/lib/imageOpt';
-import { ShoppingCart, BookOpen, Loader2, Check, Star, ArrowRight, Zap, Sparkles, Award, ShieldCheck, Flame, Layers, Clock } from 'lucide-react';
+import { ShoppingCart, BookOpen, Loader2, Check, Star, ArrowRight, Zap, Sparkles, Award, ShieldCheck, Flame, Layers, Clock, RotateCcw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeroSection from '@/components/home/HeroSection';
 import { SubjectGridSkeleton } from '@/components/Skeleton';
+import ProductFilterBar from '@/components/home/ProductFilterBar';
+import CourseListItem from '@/components/home/CourseListItem';
+import {
+  type FilterState,
+  INITIAL_FILTER_STATE,
+  filterAndSortSubjects,
+} from '@/lib/subjectClassification';
 
 type Subject = Tables<'subjects'>;
 
 export default function HomePage() {
-  const { addToCart, removeFromCart, isInCart, isPurchased, searchQuery, purchasedIds } = useApp();
+  const { addToCart, removeFromCart, isInCart, isPurchased, searchQuery, setSearchQuery, purchasedIds } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isMyCourses = location.pathname === '/my-courses';
   const [subjects,  setSubjects]  = useState<Subject[]>([]);
   const [loading,   setLoading]   = useState(true);
-  const [semFilter, setSemFilter] = useState<number | 'all'>('all');
+  const [filterState, setFilterState] = useState<FilterState>(() => ({
+    ...INITIAL_FILTER_STATE,
+    search: searchQuery || '',
+  }));
   const gridRef = useRef<HTMLDivElement>(null);
+
+  // Đồng bộ hai chiều giữa TopNav searchQuery và local filterState.search
+  useEffect(() => {
+    if (searchQuery !== filterState.search) {
+      setFilterState((prev) => ({ ...prev, search: searchQuery }));
+    }
+  }, [searchQuery]);
+
+  const handleFilterChange = (updates: Partial<FilterState>) => {
+    if ('search' in updates && updates.search !== undefined) {
+      setSearchQuery(updates.search);
+    }
+    setFilterState((prev) => ({ ...prev, ...updates }));
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterState({
+      ...INITIAL_FILTER_STATE,
+      viewMode: filterState.viewMode,
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -55,14 +87,28 @@ export default function HomePage() {
     return () => { active = false; };
   }, []);
 
-  const filtered = useMemo(() => {
-    return subjects.filter(s => {
-      if (isMyCourses && !isPurchased(s.id)) return false;
-      const matchSem = semFilter === 'all' || s.semester === semFilter;
-      const matchSearch = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchSem && matchSearch;
+  const semesterCounts = useMemo(() => {
+    const counts: Record<number | 'all', number> = {
+      all: subjects.length,
+      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0,
+    };
+    subjects.forEach((s) => {
+      if (s.semester >= 1 && s.semester <= 9) {
+        counts[s.semester] = (counts[s.semester] || 0) + 1;
+      }
     });
-  }, [subjects, isMyCourses, isPurchased, semFilter, searchQuery]);
+    return counts;
+  }, [subjects]);
+
+  const filtered = useMemo(() => {
+    return filterAndSortSubjects(
+      subjects,
+      filterState,
+      isPurchased,
+      isInCart,
+      isMyCourses
+    );
+  }, [subjects, filterState, isPurchased, isInCart, isMyCourses]);
 
   const myCoursesCount = useMemo(() => {
     return subjects.filter(s => isPurchased(s.id)).length;
@@ -209,18 +255,17 @@ export default function HomePage() {
       )}
 
       {/* ════════════════════════════════════════
-          SEMESTER SELECTOR (PILLS 1 - 9)
+          PRODUCT FILTER BAR & VIEW TOGGLE
           ════════════════════════════════════════ */}
-      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <SemButton active={semFilter === 'all'} onClick={() => setSemFilter('all')}>
-          Tất cả môn
-        </SemButton>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(s => (
-          <SemButton key={s} active={semFilter === s} onClick={() => setSemFilter(s)}>
-            Học kỳ {s}
-          </SemButton>
-        ))}
-      </div>
+      <ProductFilterBar
+        filterState={filterState}
+        onFilterChange={handleFilterChange}
+        onResetFilters={handleResetFilters}
+        totalCount={subjects.length}
+        filteredCount={filtered.length}
+        semesterCounts={semesterCounts}
+        isMyCourses={isMyCourses}
+      />
 
       {/* ════════════════════════════════════════
           EMPTY STATE
@@ -244,36 +289,48 @@ export default function HomePage() {
             <BookOpen size={32} />
           </div>
           <h3 style={{ fontWeight: 800, marginBottom: 8, fontSize: '1.25rem', color: '#0f172a' }}>
-            {searchQuery
-              ? `Không tìm thấy khóa học nào khớp với từ khóa "${searchQuery}"`
-              : isMyCourses
-                ? 'Bạn chưa sở hữu khóa học nào trong học kỳ này'
-                : 'Không tìm thấy môn học nào trong học kỳ này'}
+            {filterState.search
+              ? `Không tìm thấy khóa học nào khớp với từ khóa "${filterState.search}"`
+              : filterState.semester !== 'all'
+                ? `Không tìm thấy môn học nào trong Học kỳ ${filterState.semester}`
+                : isMyCourses
+                  ? 'Bạn chưa sở hữu khóa học nào phù hợp với bộ lọc'
+                  : 'Không tìm thấy môn học nào phù hợp với bộ lọc hiện tại'}
           </h3>
-          <p style={{ fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '440px', margin: '0 auto 20px auto' }}>
-            {searchQuery
-              ? 'Hãy kiểm tra lại từ khóa tìm kiếm hoặc chọn lọc tất cả học kỳ.'
-              : isMyCourses
-                ? 'Hãy đăng ký các môn học phù hợp để bắt đầu quá trình ôn thi.'
-                : 'Thử chọn học kỳ khác hoặc khám phá các môn học đang có sẵn.'}
+          <p style={{ fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '460px', margin: '0 auto 24px auto' }}>
+            Hãy thử kiểm tra lại từ khóa tìm kiếm hoặc bấm nút đặt lại bên dưới để khám phá tất cả các môn học.
           </p>
-          {isMyCourses && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
-              onClick={() => navigate('/')}
+              onClick={handleResetFilters}
               style={{
                 padding: '10px 20px', borderRadius: 12, border: 'none',
                 background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff',
                 fontWeight: 800, fontSize: 13.5, cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)'
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
+                display: 'flex', alignItems: 'center', gap: 6
               }}
             >
-              Khám phá môn học ngay
+              <RotateCcw size={14} />
+              <span>Đặt lại bộ lọc để xem tất cả</span>
             </button>
-          )}
+            {isMyCourses && (
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  padding: '10px 20px', borderRadius: 12, border: '1px solid #cbd5e1',
+                  background: '#ffffff', color: '#334155',
+                  fontWeight: 700, fontSize: 13.5, cursor: 'pointer'
+                }}
+              >
+                Khám phá môn học mới
+              </button>
+            )}
+          </div>
         </div>
-      ) : (
+      ) : filterState.viewMode === 'grid' ? (
         /* ════════════════════════════════════════
-            SUBJECTS GRID
+            SUBJECTS GRID VIEW (CARD 3D)
             ════════════════════════════════════════ */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
           {filtered.map((subject, idx) => {
@@ -284,6 +341,36 @@ export default function HomePage() {
 
             return (
               <CourseCard
+                key={subject.id}
+                subject={subject}
+                color={color}
+                initials={initials}
+                owned={owned}
+                inCart={inCart}
+                idx={idx}
+                onOpen={() => openDetail(subject)}
+                onCart={(e) => {
+                  e.stopPropagation();
+                  if (inCart) removeFromCart(subject.id);
+                  else addToCart(subject);
+                }}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        /* ════════════════════════════════════════
+            SUBJECTS LIST VIEW (COMPACT ROWS)
+            ════════════════════════════════════════ */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {filtered.map((subject, idx) => {
+            const color    = subjectColor(subject.name);
+            const initials = subjectInitials(subject.name);
+            const owned    = isPurchased(subject.id);
+            const inCart   = isInCart(subject.id);
+
+            return (
+              <CourseListItem
                 key={subject.id}
                 subject={subject}
                 color={color}
@@ -410,34 +497,6 @@ function StatCard({
   );
 }
 
-/* ─── Semester Filter Button ───────────────────────────── */
-
-function SemButton({ active, onClick, children }: {
-  active: boolean; onClick: () => void; children: React.ReactNode;
-}) {
-  const [hov, setHov] = useState(false);
-  return (
-    <button
-      style={{
-        padding: '8px 18px', borderRadius: 20, cursor: 'pointer',
-        fontSize: 13, fontWeight: 700,
-        background: active
-          ? 'linear-gradient(135deg, #2563eb, #1d4ed8)'
-          : hov ? '#f1f5f9' : '#ffffff',
-        color: active ? '#ffffff' : hov ? '#1d4ed8' : '#475569',
-        boxShadow: active ? '0 4px 14px rgba(37, 99, 235, 0.35)' : 'none',
-        border: active ? 'none' : '1px solid #cbd5e1',
-        transition: 'all 0.18s ease',
-        transform: (hov && !active) ? 'scale(1.03)' : 'scale(1)',
-      }}
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-    >
-      {children}
-    </button>
-  );
-}
 
 /* ─── Course Card Component ────────────────────────────── */
 

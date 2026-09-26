@@ -666,9 +666,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/HomePage.tsx": {
-    "mtime": 1790388565.482514,
-    "seen": 1790388641.874329,
-    "ast_hash": "b97ecea970288f90ba74f4e5a5915f49",
+    "mtime": 1789141088.2425067,
+    "seen": 1789149043.7832267,
+    "ast_hash": "99289eed024bb2cbf4d143d2442b3a8e",
     "semantic_hash": ""
   },
   "src/pages/user/NewsPage.tsx": {
@@ -2709,48 +2709,6 @@
     "mtime": 1790274529.4971278,
     "seen": 1790274560.5348003,
     "ast_hash": "312882ad9780f09814f4feffcc9cbb2d",
-    "semantic_hash": ""
-  },
-  "src/components/home/CourseListItem.tsx": {
-    "mtime": 1790388464.75764,
-    "seen": 1790388641.856125,
-    "ast_hash": "e7d3b5521662ecfd4a32c633ee5d87f2",
-    "semantic_hash": ""
-  },
-  "src/components/home/ProductFilterBar.tsx": {
-    "mtime": 1790388449.3776674,
-    "seen": 1790388641.856324,
-    "ast_hash": "397badd6fb1e65739ad6964993fd7b51",
-    "semantic_hash": ""
-  },
-  "src/lib/subjectClassification.ts": {
-    "mtime": 1790388394.6888514,
-    "seen": 1790388641.8718958,
-    "ast_hash": "b39ad20dc696bbce1fe9570d95043b5b",
-    "semantic_hash": ""
-  },
-  "src/test/productFilter.test.ts": {
-    "mtime": 1790388406.9683506,
-    "seen": 1790388641.875534,
-    "ast_hash": "0929229c020d1b360dca3a780e4cbd45",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/22-product-filter-redesign/plan.md": {
-    "mtime": 1790388618.1378198,
-    "seen": 1790388641.8879917,
-    "ast_hash": "0a3632b1a8ce2c7e8de9a910eda1904a",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/22-product-filter-redesign/spec.md": {
-    "mtime": 1790388612.3725426,
-    "seen": 1790388641.8879938,
-    "ast_hash": "ed4abee52cfd1544f04894d545eab534",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/22-product-filter-redesign/tasks.md": {
-    "mtime": 1790388604.5702746,
-    "seen": 1790388641.8879952,
-    "ast_hash": "f2e1804399c30de9a670452f6e4f4b7d",
     "semantic_hash": ""
   }
 }
