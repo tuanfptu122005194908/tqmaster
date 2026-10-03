@@ -37,6 +37,7 @@ const AdminExamStats = lazy(() => import("@/pages/admin/AdminExamStats"));
 
 import ChatWidget from "@/components/chat/ChatWidget";
 import { BootScreen, PageSkeleton } from "@/components/Skeleton";
+import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import { Loader2, Menu, X } from "lucide-react";
 
 const queryClient = new QueryClient({
@@ -257,11 +258,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <AppProvider>
-          <Toaster />
-          <Sonner />
-          <AppShell />
-        </AppProvider>
+        <GlobalErrorBoundary>
+          <AppProvider>
+            <Toaster />
+            <Sonner />
+            <AppShell />
+          </AppProvider>
+        </GlobalErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
