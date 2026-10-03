@@ -150,9 +150,9 @@
     "semantic_hash": "1fafcaae4de291dd10f9b76c95aefdff"
   },
   "src/App.tsx": {
-    "mtime": 1791013642.2391114,
-    "seen": 1791013732.6909413,
-    "ast_hash": "4845d4d9c0497ef7dd6ee11d3d9a7dc0",
+    "mtime": 1788376049.4438741,
+    "seen": 1789059066.00574,
+    "ast_hash": "9f9cc89aceb7d6977045172c193811a4",
     "semantic_hash": ""
   },
   "src/components/AdminSidebar.tsx": {
@@ -2751,30 +2751,6 @@
     "mtime": 1790388604.5702746,
     "seen": 1790388641.8879952,
     "ast_hash": "f2e1804399c30de9a670452f6e4f4b7d",
-    "semantic_hash": ""
-  },
-  "src/components/GlobalErrorBoundary.tsx": {
-    "mtime": 1791013631.0638528,
-    "seen": 1791013732.691151,
-    "ast_hash": "1bd38400c84f8eb5b9af97d1af306f08",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/23-global-error-boundary-fix/plan.md": {
-    "mtime": 1791013586.4024732,
-    "seen": 1791013732.71018,
-    "ast_hash": "c3cac2e364c40c57fd4c582582cb0b57",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/23-global-error-boundary-fix/spec.md": {
-    "mtime": 1791013565.1911738,
-    "seen": 1791013732.710182,
-    "ast_hash": "2da6d62dadd0e49840907a779c46e46b",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/23-global-error-boundary-fix/tasks.md": {
-    "mtime": 1791013592.0862355,
-    "seen": 1791013732.7101831,
-    "ast_hash": "af7a03f57437f7c25f45d0e6d176a48d",
     "semantic_hash": ""
   }
 }
