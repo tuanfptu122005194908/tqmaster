@@ -1,0 +1,1014 @@
+    <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/fontawesome/css/all.min.css">
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/fontawesome/css/v4-shims.min.css">
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/css/bootstrap_print.css" />
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/fontawesome/css/all.min.css" />
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/fontawesome/css/v4-shims.min.css" />
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/assets/css/ace.css" class="ace-main-stylesheet" id="main-ace-style" />
+            <link rel="stylesheet" href="https://app.pentest-tools.com/template/assets/css/ace-fonts.css" />
+                <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/css/ace.css?id=2d6dad6e91d042d07180d230a5c912be" />
+                <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/css/inter-fonts.css?id=8b517117ed33e13e2cce8737382ddc44" />
+                <link rel="stylesheet" href="https://app.pentest-tools.com/template/myassets/css/utilities.css?id=c2cf4036173b6c8b63c391cf2fe308ae" />
+                <link rel="preload" as="style" href="https://app.pentest-tools.com/build/assets/tailwind-DZoyT-3x.css" /><link rel="stylesheet" href="https://app.pentest-tools.com/build/assets/tailwind-DZoyT-3x.css" />
+            <!-- Google Tag Manager -->
+            <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+                    f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-5R4Z3P6');
+            </script>
+            <!-- End Google Tag Manager -->
+            <script src="https://app.pentest-tools.com/template/assets/js/jquery.js"></script>
+            <script src="https://app.pentest-tools.com/template/assets/js/bootstrap.js"></script>
+            <title>Website Vulnerability Scanner Report </title>
+        </head>
+    
+        <body class="no-skin report-body report-export inside-iframe">
+            <!-- Google Tag Manager (noscript) -->
+            <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5R4Z3P6"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+            <!-- End Google Tag Manager (noscript) -->
+            <div class="main-container" id="main-container">
+                <div class="main-content">
+                    <div class="main-content-inner">
+                        <div class="page-content">
+                            <div class="row no-margin">
+                                <div class="col-xs-12 col-md-9 col-lg-9 page-area page-area-unauth">
+                                    <img alt="Logo Pentest-Tools.com" style="height: 100px; margin-top: -20px; margin-bottom: -10px;" src="https://app.pentest-tools.com/images/logo-reports.png">
+                                    <div class="page-header page-header2">
+                                        <h1>Website Vulnerability Scanner Report </h1>
+                                    </div>
+                                    <div class="row result-area" id="result-area">
+
+                                
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <h5 class="header bigger result-target no-padding-bottom show-clipboard !ptt-flex !ptt-flex-col !ptt-items-center !ptt-justify-center">
+                                            <div class="!ptt-flex !ptt-items-center !ptt-mb-1">
+                                                <i class="ace-icon fa fa-check green margin-right-4"></i>
+                                                <span>https://tqmaster.vercel.app/</span>
+                                                <button data-placement="top" data-toggle="popover"  class="margin-left-2 hide-clipboard clipboard-icon-position clipboard-icon-color hide" data-clipboard="https://tqmaster.vercel.app/" onclick="copyToClipboard(event)">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 7V15C8 16.1046 8.89543 17 10 17H16M8 7V5C8 3.89543 8.89543 3 10 3H14.5858C14.851 3 15.1054 3.10536 15.2929 3.29289L19.7071 7.70711C19.8946 7.89464 20 8.149 20 8.41421V15C20 16.1046 19.1046 17 18 17H16M8 7H6C4.89543 7 4 7.89543 4 9V19C4 20.1046 4.89543 21 6 21H14C15.1046 21 16 20.1046 16 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
+                                                </button>
+                                            </div>
+                                
+                                        </h5>
+                                    </div>
+                                </div><div data-ui-flash="warning" role="alertdialog">
+            <svg data-ui-flash-icon="info" class="heroicon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+  <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd"/>
+</svg>        <svg data-ui-flash-icon="warning" class="heroicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+  <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd"/>
+</svg>        <svg data-ui-flash-icon="error" class="heroicon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+  <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clip-rule="evenodd"/>
+</svg>        <svg data-ui-flash-icon="success" class="heroicon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+  <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd"/>
+</svg>    
+    <div data-ui-flash-message>
+        The Light Website Scanner didn&#39;t check for critical issues like SQLi, XSS, Command Injection, XXE, etc. <a
+                    href="https://app.pentest-tools.com/account/plans?source=Website%20Scanner%20-%20scan%20result">Upgrade to run Deep scans with 40+ tests</a>
+                and detect more vulnerabilities.
+    </div>
+</div>
+
+<style>
+    [data-ui-flash] {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: start;
+        -ms-flex-align: start;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding: 16px 8px;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    [data-ui-flash].hidden {
+        display: none;
+    }
+
+    [data-ui-flash='info'] {
+        background: #DDECF6;
+        color: #426F8C;
+        border: 1px solid #C5E7F0;
+    }
+
+    [data-ui-flash='success'] {
+        background: #E2F0DA;
+        color: #4A7543;
+        border: 1px solid #D9E9C9;
+    }
+
+    [data-ui-flash='error'] {
+        background: #EFDFDE;
+        color: #9D4C45;
+        border: 1px solid #E6CED1;
+    }
+
+    [data-ui-flash='warning'] {
+        background: #FEF9E7;
+        color: #766007;
+        border: 1px solid #F7EBCF;
+    }
+
+    [data-ui-flash-icon] {
+        margin-right: 8px;
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+    }
+
+    [data-ui-flash-icon='info'] {
+        color: #3E94FF;
+    }
+
+    [data-ui-flash-icon='success'] {
+        color: #00CA82;
+    }
+
+    [data-ui-flash-icon='error'] {
+        color: #FB5454;
+    }
+
+    [data-ui-flash-icon='warning'] {
+        color: #FF9B26;
+    }
+
+    [data-ui-flash-icon].hidden {
+        display: none;
+    }
+
+    [data-ui-flash-message] {
+        margin-right: 8px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        min-width: 0;
+        flex: 1 1 0%;
+        max-width: 100%;
+        hyphens: auto;
+    }
+
+    [data-ui-flash-message] a {
+        white-space: nowrap;
+        display: inline;
+        margin-right: 0.40em;
+    }
+</style>
+
+                                <div class="row unauth-iphone-hide " id="summary-area">
+                                    <div class="col-xs-12">
+                                        <h4 class="header header-title smaller bolder">Summary</h4>
+
+                                        <div class="col-xs-12 col-sm-3 pull-left summary-box">
+                                            <span class="blue bolder summary-subheading">Overall risk level:</span><br>
+                                            <div class="white bolder smaller center background-blue overall-risk">
+                                                Low
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-5 pull-left summary-box">
+                                            <span class="blue bolder summary-subheading">Risk ratings:</span><br>
+                                            <div class="bar-chart">
+                                                <table>
+                                                    <tr>
+                                                        <td>Critical:</td>
+                                                        <td><div class="background-maroon" data-selenium=risk-critical style="width: 0%;">0</div></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>High:</td>
+                                                        <td><div class="background-red" data-selenium=risk-high style="width: 0%;">0</div></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Medium: </td>
+                                                        <td><div class="background-orange" data-selenium=risk-medium style="width: 0%;">0</div></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Low:</td>
+                                                        <td><div class="background-blue" data-selenium=risk-low style="width: 100%;">5</div></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Info:</td>
+                                                        <td><div class="background-green" data-selenium=risk-info style="width: 0%;">0</div></td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-4 pull-left summary-box">
+                                            <span class="blue bolder summary-subheading">Scan information:</span><br>
+                                            <div class="scan-info">
+                                                <table>
+                                                    <tr>
+                                                        <td>Start time: </td>
+                                                        <td id="start-time">Oct 03, 2026 / 14:56:39 UTC+07</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Finish time: </td>
+                                                        <td id="end-time">Oct 03, 2026 / 14:56:58 UTC+07</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Scan duration: </td>
+                                                        <td id="scan-duration">19 sec</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Tests performed: </td>
+                                                        <td id="num-tests">40</td>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                        <td>Scan status: </td>
+                                                        <td id="scan-status">
+                                                            <span class="label label-success" id="status-label">
+                                                            Finished
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                
+                                <div class="row unauth-iphone-hide" id="findings-area">
+                                    <div class="col-xs-12">
+                                        <h4 class="header header-title smaller bolder">Findings</h4>
+                                        <div class='accordion-style3 panel-group'>
+                    <div class='panel panel-default'>
+                        <div class='panel-heading'>
+                            
+
+                            <div class='panel-title'>
+                                <h4 class='vuln-title display-inline-block' style='margin: 0px;'>
+                                    <i class='fa fa-flag blue risk-flag'></i>Missing security header: X-Content-Type-Options
+                                </h4>
+                                    
+                                </span>
+                                <div style='display: block; float: right; margin-top: 3px; padding-left:10px;'>
+                        <span class='finding-label finding-label-success'>
+                            Confirmed
+                        </span>
+                    </div>
+                                
+                            </div>
+
+                            <p style='font-size: 14px; color: #737373'>
+                                port 443/tcp
+                            </p>
+                            <div class='finding-details '>
+                                <table class='table my-table-striped table-bordered evidence-table'><tr><td class=' !ptt-w-3/12'><b>URL</b></td><td class=''><b>Evidence</b></td></tr><tr><td class=''><a href='https://tqmaster.vercel.app/' target='_blank' rel='external noopener noreferrer nofollow'>https://tqmaster.vercel.app/</a></td><td class=''>Response headers do not include the X-Content-Type-Options HTTP security header<br><a style="font-size:12px" href='https://ptt.eu-central-1.linodeobjects.com/ptt/f531e4675c62205a.txt' target='_blank' rel='external noopener noreferrer nofollow'>Request / Response</a></td></tr></table>
+                            </div>
+
+                            <a
+                                class='accordion-toggle collapsed '
+                                data-toggle='collapse'
+                                data-parent='#accordion'
+                                href='#risk_details0'
+                            >
+                                <i
+                                    class='ace-icon bigger-110 fa fa-angle-down' id='risk_anchor0'
+                                    data-icon-hide='ace-icon fa fa-angle-down'
+                                    data-icon-show='ace-icon fa fa-angle-right'
+                                >
+                                </i>&nbsp;Details
+                            </a>
+                        </div>
+
+                        <div class='panel-collapse risk-details  collapse in' id='risk_details0'>
+                            <div class='panel-body break-word-wrapper'>
+                                
+                <h5 class='risk-details-title'>Risk description:</h5>
+                <div class='risk-details-body'>
+                    The risk is that lack of this header could make possible attacks such as Cross-Site Scripting or phishing in Internet Explorer browsers.
+                </div>
+            
+                <h5 class='risk-details-title'>Recommendation:</h5>
+                <div class='risk-details-body'>
+                    We recommend setting the X-Content-Type-Options header such as <code>X-Content-Type-Options: nosniff</code>.
+                </div>
+            
+                <h5 class='risk-details-title'>References:</h5>
+                <div class='risk-details-body'>
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options" target="_blank" rel="external noopener noreferrer nofollow">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options</a>
+                </div>
+            
+                <h5 class='risk-details-title'>Classification:</h5>
+                <div class='risk-details-body'>
+                    CWE : <a href="https://cwe.mitre.org/data/definitions/693.html" target="_blank" rel="external noopener noreferrer nofollow">CWE-693</a><br>OWASP Top 10 - 2017  : <a href="https://owasp.org/search/?searchString=A6 - Security Misconfiguration%202017" target="_blank" rel="external noopener noreferrer nofollow">A6 - Security Misconfiguration</a><br>OWASP Top 10 - 2021  : <a href="https://owasp.org/search/?searchString=A5 - Security Misconfiguration%202021" target="_blank" rel="external noopener noreferrer nofollow">A5 - Security Misconfiguration</a><br>OWASP Top 10 - 2025  : <a href="https://owasp.org/search/?searchString=A02 - Security Misconfiguration%202025" target="_blank" rel="external noopener noreferrer nofollow">A02 - Security Misconfiguration</a><br>SOC 2 : CC6.6 - Security configuration, boundary protection, and exposure hardening<br>
+                </div>
+            
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='hr dotted findings-separator'></div>
+                
+
+                    <div class='panel panel-default'>
+                        <div class='panel-heading'>
+                            
+
+                            <div class='panel-title'>
+                                <h4 class='vuln-title display-inline-block' style='margin: 0px;'>
+                                    <i class='fa fa-flag blue risk-flag'></i>Missing security header: Referrer-Policy
+                                </h4>
+                                    
+                                </span>
+                                <div style='display: block; float: right; margin-top: 3px; padding-left:10px;'>
+                        <span class='finding-label finding-label-success'>
+                            Confirmed
+                        </span>
+                    </div>
+                                
+                            </div>
+
+                            <p style='font-size: 14px; color: #737373'>
+                                port 443/tcp
+                            </p>
+                            <div class='finding-details '>
+                                <table class='table my-table-striped table-bordered evidence-table'><tr><td class=' !ptt-w-3/12'><b>URL</b></td><td class=''><b>Evidence</b></td></tr><tr><td class=''><a href='https://tqmaster.vercel.app/' target='_blank' rel='external noopener noreferrer nofollow'>https://tqmaster.vercel.app/</a></td><td class=''>Response headers do not include the Referrer-Policy HTTP security header as well as the &lt;meta&gt; tag with name &apos;referrer&apos; is not present in the response.<br><a style="font-size:12px" href='https://ptt.eu-central-1.linodeobjects.com/ptt/869758a8f20b13ab.txt' target='_blank' rel='external noopener noreferrer nofollow'>Request / Response</a></td></tr></table>
+                            </div>
+
+                            <a
+                                class='accordion-toggle collapsed '
+                                data-toggle='collapse'
+                                data-parent='#accordion'
+                                href='#risk_details1'
+                            >
+                                <i
+                                    class='ace-icon bigger-110 fa fa-angle-down' id='risk_anchor1'
+                                    data-icon-hide='ace-icon fa fa-angle-down'
+                                    data-icon-show='ace-icon fa fa-angle-right'
+                                >
+                                </i>&nbsp;Details
+                            </a>
+                        </div>
+
+                        <div class='panel-collapse risk-details  collapse in' id='risk_details1'>
+                            <div class='panel-body break-word-wrapper'>
+                                
+                <h5 class='risk-details-title'>Risk description:</h5>
+                <div class='risk-details-body'>
+                    The risk is that if a user visits a web page (e.g. "http://example.com/pricing/") and clicks on a link from that page going to e.g. "https://www.google.com", the browser will send to Google the full originating URL in the <code>Referer</code> header, assuming the Referrer-Policy header is not set. The originating URL could be considered sensitive information and it could be used for user tracking.
+                </div>
+            
+                <h5 class='risk-details-title'>Recommendation:</h5>
+                <div class='risk-details-body'>
+                    The Referrer-Policy header should be configured on the server side to avoid user tracking and inadvertent information leakage. The value <code>no-referrer</code> of this header instructs the browser to omit the Referer header entirely.
+                </div>
+            
+                <h5 class='risk-details-title'>References:</h5>
+                <div class='risk-details-body'>
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Referer_header:_privacy_and_security_concerns" target="_blank" rel="external noopener noreferrer nofollow">https://developer.mozilla.org/en-US/docs/Web/Security/Referer_header:_privacy_and_security_concerns</a>
+                </div>
+            
+                <h5 class='risk-details-title'>Classification:</h5>
+                <div class='risk-details-body'>
+                    CWE : <a href="https://cwe.mitre.org/data/definitions/693.html" target="_blank" rel="external noopener noreferrer nofollow">CWE-693</a><br>OWASP Top 10 - 2017  : <a href="https://owasp.org/search/?searchString=A6 - Security Misconfiguration%202017" target="_blank" rel="external noopener noreferrer nofollow">A6 - Security Misconfiguration</a><br>OWASP Top 10 - 2021  : <a href="https://owasp.org/search/?searchString=A5 - Security Misconfiguration%202021" target="_blank" rel="external noopener noreferrer nofollow">A5 - Security Misconfiguration</a><br>OWASP Top 10 - 2025  : <a href="https://owasp.org/search/?searchString=A02 - Security Misconfiguration%202025" target="_blank" rel="external noopener noreferrer nofollow">A02 - Security Misconfiguration</a><br>SOC 2 : CC6.6 - Security configuration, boundary protection, and exposure hardening<br>
+                </div>
+            
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='hr dotted findings-separator'></div>
+                
+
+                    <div class='panel panel-default'>
+                        <div class='panel-heading'>
+                            
+
+                            <div class='panel-title'>
+                                <h4 class='vuln-title display-inline-block' style='margin: 0px;'>
+                                    <i class='fa fa-flag blue risk-flag'></i>Missing security header: Content-Security-Policy
+                                </h4>
+                                    
+                                </span>
+                                <div style='display: block; float: right; margin-top: 3px; padding-left:10px;'>
+                        <span class='finding-label finding-label-success'>
+                            Confirmed
+                        </span>
+                    </div>
+                                
+                            </div>
+
+                            <p style='font-size: 14px; color: #737373'>
+                                port 443/tcp
+                            </p>
+                            <div class='finding-details '>
+                                <table class='table my-table-striped table-bordered evidence-table'><tr><td class=' !ptt-w-3/12'><b>URL</b></td><td class=''><b>Evidence</b></td></tr><tr><td class=''><a href='https://tqmaster.vercel.app/' target='_blank' rel='external noopener noreferrer nofollow'>https://tqmaster.vercel.app/</a></td><td class=''>Response does not include the HTTP Content-Security-Policy security header or meta tag<br><a style="font-size:12px" href='https://ptt.eu-central-1.linodeobjects.com/ptt/46d27170571d314.txt' target='_blank' rel='external noopener noreferrer nofollow'>Request / Response</a></td></tr></table>
+                            </div>
+
+                            <a
+                                class='accordion-toggle collapsed '
+                                data-toggle='collapse'
+                                data-parent='#accordion'
+                                href='#risk_details2'
+                            >
+                                <i
+                                    class='ace-icon bigger-110 fa fa-angle-down' id='risk_anchor2'
+                                    data-icon-hide='ace-icon fa fa-angle-down'
+                                    data-icon-show='ace-icon fa fa-angle-right'
+                                >
+                                </i>&nbsp;Details
+                            </a>
+                        </div>
+
+                        <div class='panel-collapse risk-details  collapse in' id='risk_details2'>
+                            <div class='panel-body break-word-wrapper'>
+                                
+                <h5 class='risk-details-title'>Risk description:</h5>
+                <div class='risk-details-body'>
+                    The risk is that if the target application is vulnerable to XSS, lack of this header makes it easily exploitable by attackers.
+                </div>
+            
+                <h5 class='risk-details-title'>Recommendation:</h5>
+                <div class='risk-details-body'>
+                    Configure the Content-Security-Header to be sent with each HTTP response in order to apply the specific policies needed by the application.
+                </div>
+            
+                <h5 class='risk-details-title'>References:</h5>
+                <div class='risk-details-body'>
+                    <a href="https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html" target="_blank" rel="external noopener noreferrer nofollow">https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html</a><br><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy" target="_blank" rel="external noopener noreferrer nofollow">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy</a>
+                </div>
+            
+                <h5 class='risk-details-title'>Classification:</h5>
+                <div class='risk-details-body'>
+                    CWE : <a href="https://cwe.mitre.org/data/definitions/1021.html" target="_blank" rel="external noopener noreferrer nofollow">CWE-1021</a><br>OWASP Top 10 - 2017  : <a href="https://owasp.org/search/?searchString=A6 - Security Misconfiguration%202017" target="_blank" rel="external noopener noreferrer nofollow">A6 - Security Misconfiguration</a><br>OWASP Top 10 - 2021  : <a href="https://owasp.org/search/?searchString=A5 - Security Misconfiguration%202021" target="_blank" rel="external noopener noreferrer nofollow">A5 - Security Misconfiguration</a><br>OWASP Top 10 - 2025  : <a href="https://owasp.org/search/?searchString=A02 - Security Misconfiguration%202025" target="_blank" rel="external noopener noreferrer nofollow">A02 - Security Misconfiguration</a><br>SOC 2 : CC6.6 - Security configuration, boundary protection, and exposure hardening<br>
+                </div>
+            
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='hr dotted findings-separator'></div>
+                
+
+                    <div class='panel panel-default'>
+                        <div class='panel-heading'>
+                            
+
+                            <div class='panel-title'>
+                                <h4 class='vuln-title display-inline-block' style='margin: 0px;'>
+                                    <i class='fa fa-flag blue risk-flag'></i>Robots.txt file found
+                                </h4>
+                                    
+                                </span>
+                                <div style='display: block; float: right; margin-top: 3px; padding-left:10px;'>
+                        <span class='finding-label finding-label-success'>
+                            Confirmed
+                        </span>
+                    </div>
+                                
+                            </div>
+
+                            <p style='font-size: 14px; color: #737373'>
+                                port 443/tcp
+                            </p>
+                            <div class='finding-details '>
+                                <table class='table my-table-striped table-bordered evidence-table'>
+                            <tr>
+                                <td colspan='1' class='wordwrap2'><b>URL</b></td>
+                        </tr>
+                            <tr>
+                                <td colspan='1' class='wordwrap2'><a href='https://tqmaster.vercel.app/robots.txt' target='_blank' rel='external noopener noreferrer nofollow'>https://tqmaster.vercel.app/robots.txt</a></td>
+                        </tr></table>
+                            </div>
+
+                            <a
+                                class='accordion-toggle collapsed '
+                                data-toggle='collapse'
+                                data-parent='#accordion'
+                                href='#risk_details4'
+                            >
+                                <i
+                                    class='ace-icon bigger-110 fa fa-angle-down' id='risk_anchor4'
+                                    data-icon-hide='ace-icon fa fa-angle-down'
+                                    data-icon-show='ace-icon fa fa-angle-right'
+                                >
+                                </i>&nbsp;Details
+                            </a>
+                        </div>
+
+                        <div class='panel-collapse risk-details  collapse in' id='risk_details4'>
+                            <div class='panel-body break-word-wrapper'>
+                                
+                <h5 class='risk-details-title'>Risk description:</h5>
+                <div class='risk-details-body'>
+                    There is no particular security risk in having a robots.txt file. However, it's important to note that adding endpoints in it should not be considered a security measure, as this file can be directly accessed and read by anyone.
+                </div>
+            
+                <h5 class='risk-details-title'>Recommendation:</h5>
+                <div class='risk-details-body'>
+                    We recommend you to manually review the entries from robots.txt and remove the ones which lead to sensitive locations in the website (ex. administration panels, configuration files, etc).
+                </div>
+            
+                <h5 class='risk-details-title'>References:</h5>
+                <div class='risk-details-body'>
+                    <a href="https://www.theregister.co.uk/2015/05/19/robotstxt/" target="_blank" rel="external noopener noreferrer nofollow">https://www.theregister.co.uk/2015/05/19/robotstxt/</a>
+                </div>
+            
+                <h5 class='risk-details-title'>Classification:</h5>
+                <div class='risk-details-body'>
+                    OWASP Top 10 - 2017  : <a href="https://owasp.org/search/?searchString=A6 - Security Misconfiguration%202017" target="_blank" rel="external noopener noreferrer nofollow">A6 - Security Misconfiguration</a><br>OWASP Top 10 - 2021  : <a href="https://owasp.org/search/?searchString=A5 - Security Misconfiguration%202021" target="_blank" rel="external noopener noreferrer nofollow">A5 - Security Misconfiguration</a><br>OWASP Top 10 - 2025  : <a href="https://owasp.org/search/?searchString=A06 - Insecure Design%202025" target="_blank" rel="external noopener noreferrer nofollow">A06 - Insecure Design</a><br>SOC 2 : CC6.6 - Security configuration, boundary protection, and exposure hardening<br>
+                </div>
+            
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='hr dotted findings-separator'></div>
+                
+
+                    <div class='panel panel-default'>
+                        <div class='panel-heading'>
+                            
+
+                            <div class='panel-title'>
+                                <h4 class='vuln-title display-inline-block' style='margin: 0px;'>
+                                    <i class='fa fa-flag blue risk-flag'></i>Server software and technology found
+                                </h4>
+                                    
+                                </span>
+                                <div style='display: block; float: right; margin-top: 3px; padding-left:10px;'>
+                        <span class='finding-label'>
+                            Unconfirmed
+                        </span>
+                        <span
+                            class='margin-left-2'
+                            custom-tooltip='This finding needs manual validation.'
+                            custom-tooltip-position='left'
+                        >
+                            <i class='fas fa-info-circle !ptt-text-neutral-400 hover:!ptt-text-neutral-800 !ptt-text-sm !ptt-transform' style='color: #737373'></i>
+                        </span>
+                    </div>
+                                
+                            </div>
+
+                            <p style='font-size: 14px; color: #737373'>
+                                port 443/tcp
+                            </p>
+                            <div class='finding-details '>
+                                <table class='table my-table-striped table-bordered evidence-table'><tr><td class=''><b>Software / Version</b></td><td class=''><b>Category</b></td></tr><tr><td class=''><a href='https://developers.google.com/identity/sign-in/web' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/Google.svg' class='wappalyzer_icon'/>   Google Sign-in </a></td><td class=''>Authentication</td></tr><tr><td class=''><a href='https://lucide.dev' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/Lucide.svg' class='wappalyzer_icon'/>   Lucide </a></td><td class=''>Font scripts</td></tr><tr><td class=''><a href='https://motion.dev' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/FramerMotion.svg' class='wappalyzer_icon'/>   Framer Motion </a></td><td class=''>JavaScript libraries</td></tr><tr><td class=''><a href='https://ogp.me' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/Open Graph.svg' class='wappalyzer_icon'/>   Open Graph </a></td><td class=''>Miscellaneous</td></tr><tr><td class=''><a href='https://reactjs.org' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/React.svg' class='wappalyzer_icon'/>   React </a></td><td class=''>JavaScript frameworks</td></tr><tr><td class=''><a href='https://reactrouter.com' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/React Router.svg' class='wappalyzer_icon'/>   React Router 6</a></td><td class=''>JavaScript frameworks</td></tr><tr><td class=''><a href='https://supabase.com' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/Supabase.svg' class='wappalyzer_icon'/>   Supabase </a></td><td class=''>Development</td></tr><tr><td class=''><a href='https://threejs.org' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/Three.js.svg' class='wappalyzer_icon'/>   Three.js 169</a></td><td class=''>JavaScript graphics</td></tr><tr><td class=''><a href='https://vercel.com' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/vercel.svg' class='wappalyzer_icon'/>   Vercel </a></td><td class=''>PaaS</td></tr><tr><td class=''><a href='https://www.postgresql.org/' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/PostgreSQL.svg' class='wappalyzer_icon'/>   PostgreSQL </a></td><td class=''>Databases</td></tr><tr><td class=''><a href='https://www.rfc-editor.org/rfc/rfc6797#section-6.1' target='_blank' rel='external noopener noreferrer nofollow'><img src='https://app.pentest-tools.com/images/apps/wappalyzer/default.svg' class='wappalyzer_icon'/>   HSTS </a></td><td class=''>Security</td></tr></table>
+                            </div>
+
+                            <a
+                                class='accordion-toggle collapsed '
+                                data-toggle='collapse'
+                                data-parent='#accordion'
+                                href='#risk_details3'
+                            >
+                                <i
+                                    class='ace-icon bigger-110 fa fa-angle-down' id='risk_anchor3'
+                                    data-icon-hide='ace-icon fa fa-angle-down'
+                                    data-icon-show='ace-icon fa fa-angle-right'
+                                >
+                                </i>&nbsp;Details
+                            </a>
+                        </div>
+
+                        <div class='panel-collapse risk-details  collapse in' id='risk_details3'>
+                            <div class='panel-body break-word-wrapper'>
+                                
+                <h5 class='risk-details-title'>Risk description:</h5>
+                <div class='risk-details-body'>
+                    The risk is that an attacker could use this information to mount specific attacks against the identified software type and version.
+                </div>
+            
+                <h5 class='risk-details-title'>Recommendation:</h5>
+                <div class='risk-details-body'>
+                    We recommend you to eliminate the information which permits the identification of software platform, technology, server and operating system: HTTP server headers, HTML meta information, etc.
+                </div>
+            
+                <h5 class='risk-details-title'>References:</h5>
+                <div class='risk-details-body'>
+                    <a href="https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server/" target="_blank" rel="external noopener noreferrer nofollow">https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server/</a>
+                </div>
+            
+                <h5 class='risk-details-title'>Classification:</h5>
+                <div class='risk-details-body'>
+                    CWE : <a href="https://cwe.mitre.org/data/definitions/200.html" target="_blank" rel="external noopener noreferrer nofollow">CWE-200</a><br>OWASP Top 10 - 2017  : <a href="https://owasp.org/search/?searchString=A6 - Security Misconfiguration%202017" target="_blank" rel="external noopener noreferrer nofollow">A6 - Security Misconfiguration</a><br>OWASP Top 10 - 2021  : <a href="https://owasp.org/search/?searchString=A5 - Security Misconfiguration%202021" target="_blank" rel="external noopener noreferrer nofollow">A5 - Security Misconfiguration</a><br>OWASP Top 10 - 2025  : <a href="https://owasp.org/search/?searchString=A02 - Security Misconfiguration%202025" target="_blank" rel="external noopener noreferrer nofollow">A02 - Security Misconfiguration</a><br>SOC 2 : CC7.1 - Vulnerability identification and analysis<br>
+                </div>
+            
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='hr dotted findings-separator'></div>
+                
+</div>
+                                    </div>
+                                </div>
+                            
+                <div class="row unauth-iphone-hide">
+                    <div class="col-xs-12">
+                        <h4 class="header header-title smaller bolder">Scan coverage information</h4>
+                        <div class="space-12"></div>
+            <div data-ui-performed-tests>
+    <h5>List of tests performed (40)</h5>
+
+    <ul>
+                    <li>
+                <div>Port 443</div>
+
+                                    <ul>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for missing HTTP header - Content Security Policy
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for missing HTTP header - Referrer
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for missing HTTP header - X-Content-Type-Options
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for robots.txt file
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for website technologies
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for version-based vulnerabilities of server-side software
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for client access policies
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for absence of the security.txt file
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for use of untrusted certificates
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for enabled HTTP debug methods
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for enabled HTTP OPTIONS method
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for secure communication
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for directory listing
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for passwords submitted unencrypted
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for error messages
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for debug messages
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for code comments
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for missing HTTP header - Strict-Transport-Security
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for passwords submitted in URLs
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for domain too loose set for cookies
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for mixed content between HTTP and HTTPS
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for cross domain file inclusion
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for internal error code
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for HttpOnly flag of cookie
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for Secure flag of cookie
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for login interfaces
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for secure password submission
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for sensitive data
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for unsafe HTTP header Content Security Policy
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for OpenAPI files
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for file upload
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for SQL statement in request parameter
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for password returned in later response
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for Path Disclosure
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for Session Token in URL
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for API endpoints
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for emails
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for missing HTTP header - Rate Limit
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for PEM-encoded private key material
+                                </div>
+
+                                                            </li>
+                                                    <li>
+                                <div>
+                                    <i class="ace-icon fa fa-check green"></i>
+                                    Scanned for partial PEM-encoded private key material
+                                </div>
+
+                                                            </li>
+                                            </ul>
+                            </li>
+            </ul>
+</div>
+
+<style>
+    [data-ui-performed-tests] h5 {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
+    [data-ui-performed-tests] ul {
+        padding-left: 0;
+        list-style: none;
+        margin-top: 6px;
+        margin-bottom: 6px;
+    }
+
+    [data-ui-performed-tests] li {
+        margin-bottom: 4px;
+    }
+
+    [data-ui-performed-tests] > ul {
+        margin-left: 0;
+    }
+
+
+    [data-ui-performed-tests] > ul > li > div {
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    [data-ui-performed-tests] > ul > li > ul {
+        margin-left: 0px;
+    }
+
+    [data-ui-performed-tests] > ul > li > ul > li {
+        padding-right: 24px;
+    }
+
+    [data-ui-performed-tests] table {
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    [data-ui-performed-tests] table thead td {
+        color: #212121;
+        font-weight: 700;
+        border-bottom-width: 0px;
+    }
+</style>
+
+                <div class="space-12"></div>
+                <h5 class="bolder">Scan parameters</h5>
+                <table class="params-table">
+                 <tr>
+                                                <td>target: </td><td class="">https://tqmaster.vercel.app/</td>
+                                            </tr>
+                                         <tr>
+                                                <td>scan_type: </td><td class="">Light</td>
+                                            </tr>
+                                         <tr>
+                                                <td>authentication: </td><td class="">False</td>
+                                            </tr>
+                                     </table>
+                        
+                            <div class="space-12"></div>
+                            <h5 class="bolder">Scan stats</h5>
+                            <table class="params-table">
+                         <tr>
+                                                        <td>Unique Injection Points Detected: </td><td>1</td>
+                                                    </tr>
+                                                 <tr>
+                                                        <td>URLs spidered: </td><td>3</td>
+                                                    </tr>
+                                                 <tr>
+                                                        <td>Total number of HTTP requests: </td><td>15</td>
+                                                    </tr>
+                                                 <tr>
+                                                        <td>Average time until a response was received: </td><td>62ms</td>
+                                                    </tr>
+                                            
+                            </table>
+                    
+                                        </div>
+                                    </div>
+                                    
+                                        <script>
+                                            if (window.location.href.endsWith('?run&auth') == true) {
+                                                try {
+                                                    var trackerName = ga.getAll()[0].get('name');
+                                                    ga(trackerName + '.send', { 'hitType': 'pageview', 'page': '/website-vulnerability-scanning/website-scanner?finished&auth', 'title': 'Website Scanner' });
+                                                } catch(err) {
+                                                    console.log('GA error');
+                                                }
+
+                                                window.dataLayer = window.dataLayer || [];
+                                                window.dataLayer.push({
+                                                    'event': 'VirtualPageview',
+                                                    'page': '/website-vulnerability-scanning/website-scanner?finished&auth',
+                                                    'title': 'Website Scanner'
+                                                });
+                                            }
+                                        </script>
+                                    
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div class="hr dotted"></div>
+                                </div>
+                            </div>
+                        
