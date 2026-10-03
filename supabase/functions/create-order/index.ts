@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
     if (subjectIds.length === 0)    return json({ error: 'Cart is empty' }, 400);
     if (subjectIds.length > 50)     return json({ error: 'Too many items' }, 400);
     if (!fullName || !studentCode)  return json({ error: 'Missing customer info' }, 400);
+    if (!billImagePath)             return json({ error: 'Bắt buộc phải có ảnh bill chuyển khoản' }, 400);
 
     // Dedup
     const uniqueIds = [...new Set(subjectIds)];

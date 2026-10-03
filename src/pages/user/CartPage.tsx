@@ -145,7 +145,16 @@ export default function CartPage() {
         const ext = billFile.name.split('.').pop();
         const path = `${profile.id}/${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('bill-images').upload(path, billFile);
-        if (!upErr) billImagePath = path;
+        if (upErr) {
+          alert('Lỗi tải ảnh bill lên hệ thống. Vui lòng thử lại sau.');
+          setSubmitting(false);
+          return;
+        }
+        billImagePath = path;
+      } else {
+        alert('Vui lòng tải lên ảnh bill chuyển khoản.');
+        setSubmitting(false);
+        return;
       }
 
       // Server-authoritative order creation. Prices/discount are recomputed from DB.
