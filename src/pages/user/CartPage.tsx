@@ -131,7 +131,7 @@ export default function CartPage() {
     setTimeout(() => setCopied(null), 1400);
   };
 
-  const transferContent = ('[name] + giúp mua tài liệu')
+  const transferContent = ('[name] + mua tài liệu')
     .replace('[MaSV]', studentCode || '[MaSV]')
     .replace('[HoTen]', fullName || '[HoTen]')
     .replace('[name]', fullName || '[name]');
@@ -478,9 +478,9 @@ export default function CartPage() {
                 {(bankInfo['bank_name'] && bankInfo['bank_account']) && (
                   <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-white border border-slate-200 rounded-xl mb-6 shadow-sm">
                     <div className="bg-white p-2 rounded-xl border-2 border-cyan-100 shadow-md shrink-0">
-                      <img src={`https://img.vietqr.io/image/${bankInfo['bank_name']}-${bankInfo['bank_account']}-compact.png?amount=${total}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankInfo['bank_owner'] || '')}`} alt="VietQR" className="w-40 h-40 object-contain" />
+                      <img src={`https://img.vietqr.io/image/${bankInfo['bank_name']}-${bankInfo['bank_account']}-compact.png?amount=${total}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankInfo['bank_owner'] || '')}`} alt="VietQR" className="w-64 h-64 object-contain" />
                     </div>
-                    <div>
+                    <div className="flex-1 w-full">
                       <h3 className="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <Sparkles size={18} className="text-cyan-500" /> Quét mã QR thanh toán nhanh
                       </h3>
