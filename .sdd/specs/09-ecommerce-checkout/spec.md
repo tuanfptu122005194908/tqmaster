@@ -26,7 +26,8 @@ Là một học viên, tôi muốn xem lại các môn học đã chọn, xóa m
 Là một học viên chuyển sang bước thanh toán, tôi muốn quét mã QR trên ứng dụng ngân hàng để chuyển khoản nhanh mà không sợ gõ sai số tài khoản hoặc nội dung.
 
 **Acceptance Scenarios**:
-1. **Given** học viên nhấn "Tiến hành thanh toán", **When** sang bước 2 (`checkout`), **Then** hệ thống lấy thông tin tài khoản từ `system_settings` và sinh mã VietQR chuẩn NAPAS chứa sẵn: Số tài khoản, Ngân hàng, Số tiền chính xác (đã trừ khuyến mãi) và Cú pháp nội dung chuyển khoản: `TQMASTER [Mã_Đơn_Hàng]`.
+1. **Given** học viên nhấn "Tiến hành thanh toán", **When** sang bước 2 (`checkout`), **Then** hệ thống yêu cầu nhập Họ tên và Mã sinh viên.
+2. **Given** học viên nhập đủ thông tin và chuyển sang bước `confirm`, **Then** hệ thống lấy thông tin tài khoản từ `system_settings` và tự động sinh mã VietQR chuẩn NAPAS chứa sẵn: Số tài khoản, Ngân hàng, Số tiền và Cú pháp nội dung chuyển khoản tự động: `[Tên Học Viên] + mua tài liệu`.
 2. **Given** học viên chuyển khoản bằng web/app ngân hàng khác máy, **When** click nút "Copy" cạnh Số tài khoản hoặc Nội dung, **Then** văn bản được sao chép vào clipboard và icon hiển thị trạng thái "Đã chép".
 
 ### User Story 3 – Tải lên ảnh Bill & Tạo đơn hàng Server-Authoritative (Priority: P1)
@@ -53,7 +54,7 @@ Là một học viên đã chuyển khoản thành công, tôi muốn gửi ản
 - **FR-003**: Áp dụng mã giảm giá:
   - Hỗ trợ loại chiết khấu phần trăm (`percent`) hoặc số tiền cố định (`fixed`).
   - Kiểm tra điều kiện `is_active = true`, ngày hết hạn `expires_at > now()`, số lượt dùng `used_count < max_uses`, và giá trị đơn tối thiểu `min_order_value`.
-- **FR-004**: Lấy cấu hình tài khoản ngân hàng động từ bảng `system_settings` (`bank_name`, `bank_account`, `bank_owner`, `bank_content`, `bank_qr_url`).
+- **FR-004**: Lấy cấu hình tài khoản ngân hàng động từ bảng `system_settings` (`bank_name`, `bank_account`, `bank_owner`) và tự động sinh mã VietQR qua API `img.vietqr.io` thay vì tải ảnh QR tĩnh. Nội dung chuyển khoản tự động điền `[Họ tên] + mua tài liệu` và có cảnh báo màu đỏ không được sửa.
 - **FR-005**: Tải ảnh biên lai lên bucket `order-bills` với định dạng jpg/png/webp, kích thước tối đa 10MB.
 - **FR-006 (Server-Authoritative Order Creation)**:
   - Tạo đơn hàng bắt buộc thông qua Edge Function `create-order` (Deno).
@@ -81,3 +82,103 @@ Là một học viên đã chuyển khoản thành công, tôi muốn gửi ản
 - **SC-002**: Chặn đứng 100% các hành vi sửa giá từ devtools phía client.
 - **SC-003**: Email thông báo đơn hàng gửi tới Admin trong vòng < 5 giây sau khi học viên xác nhận chuyển khoản.
 - **SC-004**: VietQR quét chính xác 100% thông tin tài khoản và cú pháp chuyển khoản trên các ứng dụng Mobile Banking tại Việt Nam.
+
+
+---
+
+## Merged from 15-admin-coupons
+
+# Feature Specification: Coupon & Discount Code Administration
+
+**Feature Branch**: `[main]`  
+**Status**: ✅ Implemented
+
+---
+
+## 1. Overview
+Hệ thống quản lý mã giảm giá (`/admin/coupons`) cung cấp công cụ tạo lập và kiểm soát các chương trình khuyến mãi, kích cầu học viên đăng ký môn học trên nền tảng TQMaster. 
+
+Quản trị viên có thể thiết lập mã giảm giá theo tỷ lệ phần trăm hoặc số tiền cố định, giới hạn thời hạn sử dụng, số lượt dùng tối đa, giá trị đơn hàng tối thiểu và theo dõi số lượt đã sử dụng thực tế.
+
+---
+
+## 2. User Scenarios & Testing
+
+### User Story 1 – Tạo mã giảm giá mới (Priority: P1)
+Là một Quản trị viên, tôi muốn tạo mã giảm giá mới với các điều kiện ràng buộc rõ ràng.
+
+**Acceptance Scenarios**:
+1. **Given** Quản trị viên tại `/admin/coupons`, **When** click "Thêm mã giảm giá", nhập mã (VD: `CHAOKY2026`), chọn loại giảm giá (`percent`: % hoặc `fixed`: Số tiền VNĐ), giá trị giảm, hạn sử dụng, giá trị đơn tối thiểu và số lượt tối đa, **Then** mã được lưu vào bảng `discount_codes` và sẵn sàng áp dụng tại giỏ hàng.
+2. **Given** một mã giảm giá đang hoạt động, **When** học viên nhập mã tại trang `/cart`, **Then** hệ thống giảm trừ đúng theo thiết lập của mã.
+
+### User Story 2 – Quản lý & Theo dõi hiệu quả mã khuyến mãi (Priority: P2)
+Là một Quản trị viên, tôi muốn biết mã nào đang được dùng nhiều nhất và nhanh chóng vô hiệu hóa các mã hết hạn.
+
+**Acceptance Scenarios**:
+1. **Given** bảng danh sách mã giảm giá, **When** trang tải, **Then** các thẻ thống kê hiển thị: Tổng số mã, Số mã đang chạy (`is_active = true`), Tổng lượt đã dùng (`used_count`) và Tổng số tiền đã chiết khấu.
+2. **Given** một mã giảm giá cần tạm dừng khẩn cấp, **When** Quản trị viên bấm nút toggle chuyển sang Tắt, **Then** mã lập tức bị vô hiệu hóa, học sinh nhập vào giỏ hàng sẽ nhận thông báo mã không còn khả dụng.
+
+---
+
+## 3. Requirements
+
+### Functional Requirements
+- **FR-001**: Quản trị viên có toàn quyền CRUD trên bảng `discount_codes`.
+- **FR-002**: Mã code PHẢI tự động chuyển thành chữ in hoa (`toUpperCase()`) và loại bỏ khoảng trắng thừa.
+- **FR-003**: Hỗ trợ 2 hình thức chiết khấu:
+  - `percent`: Giảm theo % giá trị đơn hàng (tối đa 100%).
+  - `fixed`: Giảm số tiền cụ thể bằng VNĐ.
+- **FR-004**: Thiết lập các điều kiện hạn mức tùy chọn:
+  - `min_order_value`: Đơn hàng đạt tối thiểu X đồng mới được áp dụng.
+  - `expires_at`: Thời điểm hết hiệu lực (ngày giờ).
+  - `max_uses`: Giới hạn tổng số lượt sử dụng trên toàn hệ thống.
+  - `is_active`: Bật/Tắt hiệu lực tức thời.
+- **FR-005**: Tự động tăng trường `used_count` mỗi khi một đơn hàng áp dụng mã được hoàn tất thành công.
+- **FR-006**: Cung cấp nút sao chép nhanh (Copy) mã giảm giá vào clipboard.
+
+### Key Entities
+- **discount_codes**: `id` (uuid), `code` (text unique), `discount_type` (`percent` | `fixed`), `value` (numeric), `min_order_value` (numeric), `expires_at` (timestamptz), `max_uses` (int), `used_count` (int), `is_active` (bool), `created_at` (timestamptz).
+
+---
+
+## 4. Success Criteria
+- **SC-001**: Lưu mã giảm giá mới trong < 500ms.
+- **SC-002**: Không bao giờ xảy ra lỗi giảm quá 100% giá trị đơn hàng hoặc chiết khấu âm.
+- **SC-003**: Ngay khi tắt mã (`is_active = false`), giỏ hàng học viên từ chối mã đó ngay lập tức.
+
+
+---
+
+## Merged from 25-enforce-bill-image-upload
+
+---
+status: "approved"
+---
+
+# Feature: Bắt buộc tải ảnh bill khi thanh toán
+
+## 1. Overview
+Hiện tại hệ thống cho phép tạo đơn hàng ngay cả khi việc upload ảnh bill thất bại (silent failure) và API `create-order` không bắt buộc field này. Tính năng này sẽ khắc phục lỗ hổng đó bằng cách ép buộc ảnh bill phải được tải lên thành công thì mới được phép tạo đơn hàng.
+
+## 2. User Scenarios (Given-When-Then)
+- **Given** người dùng ở trang thanh toán (CartPage)
+- **When** người dùng bấm "Xác nhận thanh toán"
+- **Then** nếu quá trình upload ảnh bill lỗi, hệ thống phải báo lỗi và chặn không gọi API tạo đơn.
+- **Given** một request gọi đến Edge Function `create-order`
+- **When** request không chứa `billImagePath`
+- **Then** API trả về lỗi 400 "Bắt buộc phải có ảnh bill chuyển khoản".
+
+## 3. Functional Requirements
+- **FR-01**: Bắt lỗi upload file trong `CartPage.tsx` và dừng luồng thanh toán nếu lỗi.
+- **FR-02**: Thêm kiểm tra `billImagePath` trong Edge Function `create-order/index.ts`, từ chối tạo đơn nếu thiếu field này.
+
+## 4. Key Entities / Data Models
+- Không thay đổi Data Models.
+
+## 5. Key Files
+- `src/pages/user/CartPage.tsx`
+- `supabase/functions/create-order/index.ts`
+
+## 6. Success Criteria
+- **SC-01**: Người dùng không thể tạo đơn nếu cố ý bỏ qua ảnh bill hoặc quá trình upload ảnh bị lỗi.
+- **SC-02**: Đơn hàng mới tạo ra luôn có `bill_image_url`.

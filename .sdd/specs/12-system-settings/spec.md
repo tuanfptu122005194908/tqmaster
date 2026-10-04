@@ -10,7 +10,7 @@ Trang Cài đặt hệ thống (`/admin/settings`) cung cấp cho Quản trị v
 
 Hệ thống quản lý 9 cấu hình cốt lõi:
 1. **Thông tin nhận diện website**: Tên nền tảng (`site_name`).
-2. **Thông tin thanh toán ngân hàng (VietQR)**: Tên ngân hàng (`bank_name`), Số tài khoản (`bank_account`), Tên chủ tài khoản (`bank_owner`), Cú pháp chuyển khoản (`bank_content`), và Ảnh mã QR dự phòng (`bank_qr_url`).
+2. **Thông tin thanh toán ngân hàng (VietQR)**: Tên ngân hàng (`bank_name`), Số tài khoản (`bank_account`), Tên chủ tài khoản (`bank_owner`). Nội dung CK và mã QR nay được sinh tự động bằng mã phía frontend.
 3. **Kênh hỗ trợ & Mạng xã hội động**: Thông tin liên hệ/hotline (`contact_info`), Đường dẫn Facebook Fanpage/Admin (`facebook_url`), và Kênh YouTube học tập (`youtube_url`).
 
 Toàn bộ dữ liệu cấu hình được lưu trữ linh hoạt theo cặp khóa-giá trị (Key-Value) trong bảng `system_settings`, được nạp vào bộ nhớ dùng chung qua `AppContext` (`siteSettings`) để phục vụ thanh toán tại `/cart`, liên kết điều hướng tại `TopNav` và hỗ trợ tại `ProfilePage`.
@@ -41,7 +41,7 @@ Là một Quản trị viên, tôi muốn thay đổi đường dẫn Fanpage Fa
 ## 3. Requirements
 
 ### Functional Requirements
-- **FR-001**: Quản trị viên có toàn quyền xem và cập nhật 9 khóa cấu hình hệ thống (`site_name`, `contact_info`, `bank_name`, `bank_account`, `bank_owner`, `bank_content`, `bank_qr_url`, `facebook_url`, `youtube_url`).
+- **FR-001**: Quản trị viên có toàn quyền xem và cập nhật cấu hình hệ thống (`site_name`, `contact_info`, `bank_name`, `bank_account`, `bank_owner`, `facebook_url`, `youtube_url`).
 - **FR-002**: Cơ chế lưu cấu hình PHẢI sử dụng phương thức `upsert` trên bảng `system_settings` với khóa chính `key`, tự động ghi nhận `updated_by` và `updated_at`.
 - **FR-003**: Hỗ trợ tải ảnh mã QR tĩnh thông qua component `FileUploader`, lưu trữ trên Supabase Storage bucket `materials` hoặc bucket cấu hình công khai.
 - **FR-004 (Global State Sharing)**: `AppContext` cung cấp trạng thái `siteSettings: Record<string, string>` và hàm `refreshSiteSettings()` nạp dữ liệu ngay khi khởi tạo ứng dụng để phục vụ toàn bộ các trang con:
