@@ -1,184 +1,97 @@
-# Feature Specification: Core Authentication & Profile
+# Feature Specification: Core Authentication & Security Platform
 
 **Feature Branch**: `[main]`  
-**Status**: ✅ Implemented (Optimized v2.0)
+**Status**: ✅ Implemented (Optimized v2.1)
 
 ---
 
 ## 1. Overview
 
-TQMaster sử dụng Supabase Auth làm nền tảng xác thực kết hợp hệ thống kiểm soát quyền truy cập và bảo mật tài khoản học viên. Hệ thống hỗ trợ 3 luồng đăng nhập chính:
-1. **Email/Password** (dành cho tài khoản do Admin tạo thủ công, có cơ chế bắt buộc đổi mật khẩu lần đầu).
-2. **Google OAuth** (Google One Tap + Redirect với bộ xử lý điều hướng callback tự động về production domain `tqmaster.vercel.app`).
-3. **OTP qua Email** (Magic link / mã xác thực 6 số gửi qua Edge Function).
+TQMaster Platform cung cấp một hệ thống Authentication & Security đồng nhất, kết hợp xác thực Supabase Auth, kiểm soát phân quyền (RBAC), kiểm soát phiên duy nhất (Single-Device Session Enforcement), giới hạn tài nguyên, cũng như bảo vệ toàn cục bằng Global Error Boundary và Vercel Security Headers.
 
-Đặc biệt, hệ thống tích hợp **Cơ chế chống chia sẻ tài khoản (Single-Device Session Enforcement / Anti-Account Sharing)** cấp tab trình duyệt, sử dụng Supabase Realtime để ngăn chặn việc nhiều người dùng cùng lúc trên 1 tài khoản học phí.
+Hệ thống cốt lõi (Core Platform) này giải quyết 3 bài toán chính:
+1. **Xác thực đa kênh (Multi-channel Auth):** Email/Password, Google OAuth 2.0 (One Tap + Redirect), OTP Magic Link.
+2. **Bảo mật bản quyền tài nguyên (Anti-Account Sharing):** Ép duy nhất 1 phiên đăng nhập tại một thời điểm qua Supabase Realtime `active_sessions`.
+3. **An toàn hệ thống (System Safety):** Đảm bảo website không bị crash trắng trang nhờ `GlobalErrorBoundary` và ngăn chặn tấn công mạng bằng các Headers bảo mật trên Vercel.
 
 ---
 
 ## 2. User Scenarios & Testing
 
-### User Story 1 – Đăng nhập Email/Password (Priority: P1)
-Là một user được Admin tạo tài khoản, tôi muốn đăng nhập bằng email + mật khẩu.
+### User Story 1 – Đăng nhập đa phương thức & Bắt buộc đổi mật khẩu (Priority: P1)
+Là một học viên, tôi muốn có thể đăng nhập linh hoạt nhưng vẫn đảm bảo tính bảo mật khi tài khoản được cấp từ Admin.
 
 **Acceptance Scenarios**:
-1. **Given** user chưa đăng nhập trên `/auth`, **When** nhập email + password hợp lệ, **Then** được redirect vào `/` với session active.
-2. **Given** user mới được admin tạo lần đầu (`must_change_password: true`), **When** đăng nhập thành công, **Then** bị bắt đổi mật khẩu (forced reset via `ResetPasswordPage` với thuộc tính `forced={true}`).
+1. **Given** học viên sử dụng Google OAuth, **When** hoàn tất quy trình, **Then** hệ thống tự tạo tài khoản (nếu chưa có) và chuyển hướng về trang chủ với session hợp lệ.
+2. **Given** học viên sử dụng tài khoản do Admin cấp (`must_change_password: true`), **When** đăng nhập lần đầu thành công, **Then** hệ thống khóa toàn bộ các route và ép buộc chuyển sang `ResetPasswordPage` (chế độ forced).
 
-### User Story 2 – Đăng nhập Google OAuth (Priority: P1)
-Là một user, tôi muốn đăng nhập bằng Google để không cần nhớ mật khẩu.
-
-**Acceptance Scenarios**:
-1. **Given** user nhấn "Đăng nhập bằng Google", **When** hoàn tất OAuth flow, **Then** session được tạo và redirect về `/`.
-2. **Given** Google OAuth callback trên domain phụ/sai (redirect_uri mismatch), **When** URL hash chứa `access_token`, **Then** script tự động redirect về `tqmaster.vercel.app` để bảo toàn token và session.
-
-### User Story 3 – Xác thực Email OTP (Priority: P1)
-Là một user, tôi muốn xác thực email để kích hoạt tài khoản trước khi đặt hàng hoặc làm bài thi.
+### User Story 2 – Cổng xác thực Email OTP (Priority: P1)
+Là hệ thống, tôi muốn đảm bảo tất cả email đều là thật trước khi cho phép mua tài liệu.
 
 **Acceptance Scenarios**:
-1. **Given** user vừa đăng ký, **When** email chưa xác thực (`email_confirmed_at` null), **Then** giao diện bị chặn bởi `VerifyEmailPage` với giới hạn gửi lại mã OTP (cooldown 60s, tối đa 5 lần/giờ).
-2. **Given** user nhập đúng OTP hoặc click link xác thực, **When** token hợp lệ, **Then** email được đánh dấu `emailVerified = true` và cho phép truy cập toàn bộ ứng dụng.
+1. **Given** học viên vừa đăng ký bằng email, **When** `email_confirmed_at` null, **Then** người dùng bị khóa ở `VerifyEmailPage` và phải nhập đúng mã 6 số gửi qua OTP.
+2. **Given** người dùng nhập đúng mã, **Then** cờ `emailVerified` được kích hoạt ở `AppContext` và mở khóa các tính năng hệ thống.
 
-### User Story 4 – Đặt lại mật khẩu (Priority: P2)
-Là một user quên mật khẩu, tôi muốn nhận email khôi phục mật khẩu để lấy lại tài khoản.
-
-**Acceptance Scenarios**:
-1. **Given** user nhấn "Quên mật khẩu", **When** nhập email, **Then** Supabase gửi link reset qua email.
-2. **Given** user click link reset, **When** nhận sự kiện `PASSWORD_RECOVERY` trong `AppContext`, **Then** `ResetPasswordPage` hiển thị ngay lập tức (ưu tiên trước toàn bộ router thông thường).
-
-### User Story 5 – Quản lý Hồ sơ cá nhân (Profile) (Priority: P2)
-Là một user, tôi muốn cập nhật thông tin cá nhân và ảnh đại diện.
+### User Story 3 – Chống chia sẻ tài khoản (Single-Session Enforcement) (Priority: P1)
+Là hệ thống, tôi muốn bảo vệ tài liệu bằng cách chỉ cho phép mỗi tài khoản đăng nhập trên 1 thiết bị/tab trình duyệt.
 
 **Acceptance Scenarios**:
-1. **Given** user tại trang `/profile`, **When** cập nhật Họ tên, Số điện thoại hoặc Mã sinh viên, **Then** bảng `profiles` được UPDATE thành công.
-2. **Given** user chọn ảnh đại diện mới, **When** tải file ảnh (jpg, png, webp), **Then** ảnh được upload lên Supabase Storage bucket `avatars` và URL được ghi nhận vào `profiles.avatar_url`.
+1. **Given** học viên A đang mở web ở tab 1, **When** học viên A đăng nhập trên tab 2 (hoặc chia sẻ cho bạn B đăng nhập ở máy khác), **Then** Tab 2 ghi đè `active_sessions` (latest login wins).
+2. **Given** bảng `active_sessions` bị ghi đè, **When** Supabase Realtime gửi broadcast, **Then** Tab 1 nhận tín hiệu, tự động gọi `kickSelf()` đăng xuất, hiển thị thông báo "Tài khoản của bạn vừa đăng nhập trên một thiết bị khác" và đá về trang đăng nhập.
+3. **Given** Tab 1 ở trạng thái ngủ (background), **When** người dùng quay lại tab (`visibilitychange`), **Then** hệ thống lập tức check lại `session_id` để kick.
 
-### User Story 6 – Kiểm soát phiên duy nhất & Chống chia sẻ tài khoản (Priority: P1)
-Là hệ thống TQMaster, tôi muốn chỉ cho phép 1 thiết bị/tab đăng nhập tại một thời điểm để bảo vệ bản quyền tài liệu ôn thi.
+### User Story 4 – An toàn giao diện (Global Error Boundary) (Priority: P2)
+Là một người dùng, khi gặp lỗi ứng dụng, tôi muốn thấy giao diện thông báo thân thiện thay vì màn hình trắng tinh.
 
 **Acceptance Scenarios**:
-1. **Given** học viên A đang học trên Thiết bị 1 (hoặc Tab 1), **When** tài khoản của A đăng nhập trên Thiết bị 2 (hoặc Tab 2), **Then** Thiết bị 2 upsert bản ghi mới vào bảng `active_sessions` (`latest login wins`).
-2. **Given** bản ghi `active_sessions` bị thay đổi, **When** kênh Realtime `active-session-${userId}-${sessionId}` nhận payload, **Then** Thiết bị 1 tự động bị đá (`kickSelf`), hiển thị thông báo: *"Tài khoản của bạn vừa đăng nhập trên một thiết bị khác. Bạn đã bị đăng xuất."* và chuyển hướng về màn hình đăng nhập.
-3. **Given** học viên chuyển qua lại các tab trình duyệt, **When** quay lại tab sau một thời gian dài, **Then** sự kiện `visibilitychange` tự động đối soát `session_id` hiện tại với bảng `active_sessions` để xử lý ngay nếu đã bị đăng xuất ở tab khác.
+1. **Given** một Component bất kỳ quăng lỗi (throw Error), **When** React bắt đầu render, **Then** `GlobalErrorBoundary` bắt được lỗi, hiển thị Fallback UI "Đã xảy ra sự cố!" với nút "Tải lại trang" và "Về trang chủ".
+
+### User Story 5 – Bảo mật Header (Vercel Security) (Priority: P2)
+Là một chuyên gia bảo mật, tôi muốn ứng dụng chống lại các lỗ hổng Scanner (XSS, Clickjacking, MIME sniffing).
+
+**Acceptance Scenarios**:
+1. **Given** một request HTTP tới `tqmaster.vercel.app`, **Then** server response trả về các header `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy`, và `X-Frame-Options: DENY`.
 
 ---
 
 ## 3. Requirements
 
 ### Functional Requirements
-- **FR-001**: Hỗ trợ 3 luồng xác thực linh hoạt: Email/Password, Google OAuth 2.0 và Email OTP.
-- **FR-002**: Tài khoản tạo bởi admin có metadata `created_by_admin: true` → bypass trigger chặn đăng ký email tự do trong PostgreSQL.
-- **FR-003**: Ép đổi mật khẩu lần đầu: Khi `must_change_password: true`, router chặn mọi đường dẫn và hiển thị `ResetPasswordPage` ở chế độ `forced`.
-- **FR-004**: Luồng `passwordRecovery` được ưu tiên xử lý trước router khi nhận event `SIGNED_IN` / `PASSWORD_RECOVERY`.
-- **FR-005**: Cổng xác thực email (Email verification gate): Nếu người dùng có `userEmail` nhưng `emailVerified = false`, hệ thống khóa toàn bộ view và hiển thị `VerifyEmailPage`.
-- **FR-006**: Tải ảnh đại diện người dùng lên bucket `avatars` với cơ chế sinh tên file UUID an toàn.
-- **FR-007**: `AppContext` đóng vai trò Single Source of Truth, cung cấp: `profile`, `isAdmin`, `authLoading`, `emailVerified`, `userEmail`, `passwordRecovery`, `mustChangePassword`, `refreshAuthUser`.
-- **FR-008 (Single-Session Enforcement)**: Tạo định danh phiên `sessionId` duy nhất trong `sessionStorage` (fallback `localStorage` nếu bị chặn) bằng `crypto.randomUUID()`.
-- **FR-009 (Realtime Collision Detection)**: Khi user đăng nhập, upsert vào bảng `active_sessions` với `onConflict: 'user_id'`. Đăng ký kênh Supabase Realtime với bộ lọc `user_id=eq.${userId}` và tên kênh độc nhất `active-session-${userId}-${sessionId}`.
-- **FR-010 (Tab Visibility Check)**: Lắng nghe sự kiện `document.addEventListener('visibilitychange')` để kiểm tra tức thì tính hợp lệ của phiên khi user quay lại tab.
+- **FR-001 (Auth flows)**: Hỗ trợ luồng `signInWithPassword`, `signInWithOAuth` (Google), và `verifyOtp`.
+- **FR-002 (Context API)**: `AppContext` là Nguồn Chân Lý (SSOT) chứa state `profile`, `isAdmin`, `authLoading`, `emailVerified`, `mustChangePassword`, và khởi tạo các listener Realtime.
+- **FR-003 (Single-Session)**: Sử dụng `crypto.randomUUID()` để định danh `session_id` trên client. Khi login, upsert vào `active_sessions`. Kênh Realtime `active-session-${userId}-${sessionId}` luôn rình rập để `kickSelf`.
+- **FR-004 (Error Boundary)**: Component `GlobalErrorBoundary` (kế thừa `React.Component`) bọc ngoài cùng `<App />` trong `main.tsx` hoặc cấp cao nhất `App.tsx`.
+- **FR-005 (Security Headers)**: Cấu hình `vercel.json` định nghĩa mảng `headers` với CSP chặt chẽ (`default-src 'self'`), chặn iframe (`DENY`), và chặn mime sniffing (`nosniff`).
 
 ### Key Entities
 
 **Table: profiles**
 | Column | Type | Notes |
 |---|---|---|
-| `id` | uuid | Khóa chính, tham chiếu `auth.users.id` |
+| `id` | uuid | PK, ref `auth.users.id` |
 | `role` | text | `'user'` hoặc `'admin'` |
-| `full_name` | text | Họ và tên học viên |
-| `avatar_url` | text | Đường dẫn ảnh từ bucket `avatars` |
-| `phone_number` | text | Số điện thoại liên hệ |
+| `full_name` | text | Họ và tên |
 | `email` | text | Email tài khoản |
-| `student_code` | text | Mã sinh viên FPT (VD: SE180000) |
-| `username` | text | Tên đăng nhập |
+| `must_change_password`| bool | Ép đổi mật khẩu (tùy chọn custom metadata) |
 
 **Table: active_sessions**
 | Column | Type | Notes |
 |---|---|---|
-| `user_id` | uuid | Khóa chính (Primary Key), tham chiếu `auth.users.id` |
-| `session_id` | text | Chuỗi UUID phiên làm việc hiện tại của tab/thiết bị |
-| `user_agent` | text | Thông tin trình duyệt/thiết bị đăng nhập |
-| `updated_at` | timestamptz | Thời điểm phiên được cập nhật mới nhất |
+| `user_id` | uuid | PK, ref `auth.users.id` |
+| `session_id` | text | Chuỗi UUID của tab/thiết bị đăng nhập gần nhất |
+| `user_agent` | text | Thông tin thiết bị |
+| `updated_at` | timestamptz | Cập nhật tự động khi upsert |
 
 ### Key Files
-- `src/lib/AppContext.tsx` — Global auth state, single-session enforcement (`getSessionId`, `enforceSingleSession`, `kickSelf`)
-- `src/pages/AuthPage.tsx` — Giao diện đăng nhập (Tab Email, Google OAuth, OTP)
-- `src/pages/VerifyEmailPage.tsx` — Màn hình bắt buộc xác thực mã OTP email
-- `src/pages/ResetPasswordPage.tsx` — Màn hình đặt lại mật khẩu (chế độ bình thường và forced)
-- `src/pages/user/ProfilePage.tsx` — Quản lý thông tin cá nhân và upload avatar
-- `src/App.tsx` — Điều phối router, Auth guards (`ProtectedRoute`), bảo vệ quyền admin
+- `src/lib/AppContext.tsx`: Xử lý logic Auth, Session Enforcement, Realtime Subscription.
+- `src/App.tsx`: Điều phối Router, Guard (`ProtectedRoute`, Forced Password Reset).
+- `src/pages/AuthPage.tsx`, `VerifyEmailPage.tsx`, `ResetPasswordPage.tsx`: Cụm trang xác thực.
+- `src/components/GlobalErrorBoundary.tsx`: Bắt lỗi Fallback UI.
+- `vercel.json`: Chứa cấu hình Security Headers.
 
 ---
 
 ## 4. Success Criteria
-- **SC-001**: Thời gian hoàn tất quy trình đăng nhập < 30 giây.
-- **SC-002**: Google OAuth hoạt động ổn định trên production domain `tqmaster.vercel.app`.
-- **SC-003**: Cổng xác thực email ngăn chặn 100% học viên chưa verify truy cập vào các tính năng mua tài liệu hoặc thi thử.
-- **SC-004**: Ép đổi mật khẩu ngăn chặn học viên truy cập vào các tính năng khác cho đến khi hoàn thành đổi mật khẩu.
-- **SC-005**: Cơ chế Single-Session phản hồi và đăng xuất thiết bị cũ trong vòng < 500ms khi phát hiện phiên đăng nhập mới.
-
-
----
-
-## Merged from 23-global-error-boundary-fix
-
----
-title: Fix White Screen Error (Trắng trang)
-status: draft
----
-
-# 1. Overview
-Gần đây hệ thống ghi nhận tình trạng người dùng đôi khi gặp lỗi "trang trắng tinh" (White screen of death) khi tiến hành thanh toán hoặc truy cập vào một số trang nhất định. Nguyên nhân gốc là do các lỗi runtime trong quá trình render (ví dụ: null pointer, truy cập property của undefined) không được bắt (catch) bởi React Error Boundary, dẫn đến toàn bộ ứng dụng bị unmount.
-
-# 2. User Scenarios
-- **Given** người dùng đang ở trang thanh toán (Cart) hoặc một trang bất kỳ.
-- **When** một component nội bộ gặp lỗi Javascript trong quá trình render (ví dụ data trả về bị thiếu một field bắt buộc).
-- **Then** ứng dụng KHÔNG bị unmount hoàn toàn để hiện trang trắng, mà sẽ hiển thị một Fallback UI thông báo "Đã xảy ra lỗi hệ thống", kèm nút "Tải lại trang" và "Về trang chủ".
-
-# 3. Functional Requirements
-- **FR-1**: Tạo component `GlobalErrorBoundary` kế thừa từ `React.Component` để bắt lỗi rendering.
-- **FR-2**: Thiết kế Fallback UI cho Error Boundary đồng bộ với TQMaster Dashboard Theme, thân thiện với người dùng.
-- **FR-3**: Bọc toàn bộ các route hoặc `AppShell` trong `App.tsx` bằng `GlobalErrorBoundary`.
-
-# 4. Success Criteria
-- **SC-1**: Cố tình quăng lỗi (throw error) trong một trang bất kỳ, hệ thống sẽ hiện Fallback UI thay vì trang trắng.
-- **SC-2**: Các trang hiện tại (CartPage, HomePage...) vẫn hoạt động bình thường, ErrorBoundary chỉ kích hoạt khi có lỗi xảy ra.
-
-# 5. Key Files
-- `src/components/GlobalErrorBoundary.tsx` (Tạo mới)
-- `src/App.tsx` (Chỉnh sửa để tích hợp ErrorBoundary)
-
-
----
-
-## Merged from 24-fix-vercel-security-headers
-
----
-status: "draft"
----
-
-# Feature: Fix Vercel Security Headers
-
-## 1. Overview
-The Pentest-Tools Website Vulnerability Scanner reported several missing security headers and informational leaks on the `tqmaster.vercel.app` deployment. This spec defines the necessary fixes to apply to `vercel.json` and `public/robots.txt` to pass the vulnerability scan.
-
-## 2. User Scenarios (Given-When-Then)
-- **Given** a user or scanner accesses any route on the application
-- **When** the server responds
-- **Then** the response should include `X-Content-Type-Options`, `Referrer-Policy`, and `Content-Security-Policy` security headers.
-
-## 3. Functional Requirements
-- **FR-01**: Configure Vercel to append `X-Content-Type-Options: nosniff` to all routes.
-- **FR-02**: Configure Vercel to append `Referrer-Policy: strict-origin-when-cross-origin` (or `no-referrer`) to all routes.
-- **FR-03**: Configure Vercel to append a baseline `Content-Security-Policy` header to all routes.
-- **FR-04**: Review and ensure `robots.txt` does not leak sensitive endpoints.
-
-## 4. Key Entities / Data Models
-- None. This is a configuration-level change.
-
-## 5. Key Files
-- `vercel.json`: Define global headers for Vercel deployment.
-- `public/robots.txt`: Search engine crawling rules.
-
-## 6. Success Criteria
-- **SC-01**: `vercel.json` successfully includes the required security headers in its `headers` array.
-- **SC-02**: The application passes the vulnerability scanner checks for missing security headers.
+- **SC-001**: 100% các phiên đăng nhập bị trùng lặp bị đăng xuất lập tức (<500ms) nhờ Supabase Realtime.
+- **SC-002**: Không tồn tại bất kỳ trường hợp nào lỗi UI làm crash toàn bộ web hiện trang trắng.
+- **SC-003**: Vượt qua các công cụ quét bảo mật Web Header (Pentest-Tools Scanner) không bị cảnh báo X-Frame hay CSP.
