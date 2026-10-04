@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, Reply, Verified, Shield, Zap, RotateCcw, HelpCircle, Smartphone, Headset } from 'lucide-react';
 
 export interface Review {
