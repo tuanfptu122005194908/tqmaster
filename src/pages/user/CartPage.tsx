@@ -131,7 +131,7 @@ export default function CartPage() {
     setTimeout(() => setCopied(null), 1400);
   };
 
-  const transferContent = ('[name] + tiền quỹ mua tài liệu')
+  const transferContent = ('[name] + giúp mua tài liệu')
     .replace('[MaSV]', studentCode || '[MaSV]')
     .replace('[HoTen]', fullName || '[HoTen]')
     .replace('[name]', fullName || '[name]');
@@ -434,24 +434,36 @@ export default function CartPage() {
                     { label: 'Chủ tài khoản', value: bankInfo['bank_owner']   || '—', icon: User,        key: 'owner' },
                     { label: 'Nội dung CK',   value: transferContent,                  icon: ShieldCheck, key: 'note', mono: true, highlight: true },
                   ].map((row, i) => (
-                    <div key={row.key} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 ${i !== 0 ? 'border-t border-slate-200' : ''}`}>
-                      <div className="flex items-center gap-3 text-slate-500">
-                        <row.icon size={18} className={row.highlight ? 'text-cyan-600' : ''} />
-                        <span className="text-sm font-medium">{row.label}</span>
+                    <div key={row.key} className={`flex flex-col ${i !== 0 ? 'border-t border-slate-200' : ''}`}>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3">
+                        <div className="flex items-center gap-3 text-slate-500">
+                          <row.icon size={18} className={row.highlight ? 'text-cyan-600' : ''} />
+                          <span className="text-sm font-medium">{row.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3 sm:justify-end">
+                          <strong className={`text-base font-bold text-slate-900 ${row.mono ? 'font-mono tracking-wide' : ''} ${row.highlight ? 'text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded' : ''}`}>
+                            {row.value}
+                          </strong>
+                          <button
+                            type="button"
+                            onClick={() => copyText(row.value, row.key)}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${copied === row.key ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                            title="Sao chép"
+                          >
+                            {copied === row.key ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 sm:justify-end">
-                        <strong className={`text-base font-bold text-slate-900 ${row.mono ? 'font-mono tracking-wide' : ''} ${row.highlight ? 'text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded' : ''}`}>
-                          {row.value}
-                        </strong>
-                        <button
-                          type="button"
-                          onClick={() => copyText(row.value, row.key)}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${copied === row.key ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                          title="Sao chép"
-                        >
-                          {copied === row.key ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                        </button>
-                      </div>
+                      {row.key === 'note' && (
+                        <div className="px-4 pb-4 -mt-1 sm:text-right">
+                          <span className="text-[11px] sm:text-xs text-rose-500 font-semibold bg-rose-50 px-2.5 py-1 rounded-md border border-rose-100 inline-flex items-center gap-1.5">
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Lưu ý: Đã tự động điền nội dung CK, vui lòng không chỉnh sửa
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 border-t border-slate-200 bg-cyan-50/50 rounded-b-xl">
