@@ -69,7 +69,7 @@ export function SubjectCard({
                   src={subject.thumbnail_url}
                   alt={subject.name}
                   loading={idx < 4 ? 'eager' : 'lazy'}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-40 mix-blend-multiply"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
                 <div style={{ color }} className="opacity-20 flex items-center justify-center font-black text-6xl tracking-widest drop-shadow-md transition-transform duration-500 group-hover:scale-110">
@@ -79,19 +79,21 @@ export function SubjectCard({
           </div>
 
           {/* Stylized Brand Banner Mockup */}
-          <div className="z-10 flex flex-col items-center justify-center text-center py-2 mt-auto">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-7 h-7 rounded-lg bg-iba-surface-container-lowest shadow-sm flex items-center justify-center">
-                <span className="material-symbols-outlined text-iba-secondary text-[18px]">menu_book</span>
+          {!subject.thumbnail_url && (
+            <div className="z-10 flex flex-col items-center justify-center text-center py-2 mt-auto">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-iba-surface-container-lowest shadow-sm flex items-center justify-center">
+                  <span className="material-symbols-outlined text-iba-secondary text-[18px]">menu_book</span>
+                </div>
+                <span className="font-iba-headline-sm text-iba-headline-sm font-bold text-iba-secondary drop-shadow-sm">
+                  FPT University
+                </span>
               </div>
-              <span className="font-iba-headline-sm text-iba-headline-sm font-bold text-iba-secondary drop-shadow-sm">
-                FPT University
-              </span>
+              <div className="font-iba-label-badge text-iba-label-badge font-extrabold uppercase tracking-wider text-iba-primary bg-iba-primary/10 px-2 py-0.5 rounded backdrop-blur">
+                Tài liệu & Đề thi chuẩn
+              </div>
             </div>
-            <div className="font-iba-label-badge text-iba-label-badge font-extrabold uppercase tracking-wider text-iba-primary bg-iba-primary/10 px-2 py-0.5 rounded backdrop-blur">
-              Tài liệu & Đề thi chuẩn
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Product Details Body */}
