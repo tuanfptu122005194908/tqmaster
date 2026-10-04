@@ -437,10 +437,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (sid && freeSubjectIds.includes(sid)) return; // môn miễn phí: không cần giỏ hàng
     if (typeof s === 'string') {
       supabase.from('subjects').select('*').eq('id', s).maybeSingle().then(({ data }) => {
-        if (data) setCart(c => c.find(i => (typeof i === 'string' ? i : i?.id) === data.id) ? c : [...c, data as any]);
+        if (data) setCart(c => {
+          const isExist = c.find(i => (typeof i === 'string' ? i : i?.id) === data.id);
+          if (!isExist) toast.success(`Đã thêm ${data.name} vào giỏ hàng`);
+          return isExist ? c : [...c, data as any];
+        });
       });
     } else if (s && s.id) {
-      setCart(c => c.find(i => (typeof i === 'string' ? i : i?.id) === s.id) ? c : [...c, s]);
+      setCart(c => {
+        const isExist = c.find(i => (typeof i === 'string' ? i : i?.id) === s.id);
+        if (!isExist) toast.success(`Đã thêm ${s.name} vào giỏ hàng`);
+        return isExist ? c : [...c, s];
+      });
     }
   };
   const removeFromCart = (id: string) => setCart(c => c.filter(i => (typeof i === 'string' ? i : i?.id) !== id));

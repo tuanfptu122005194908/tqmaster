@@ -84,14 +84,22 @@ export default function SubjectDetailPage() {
     load();
   }, [selectedSubjectId]);
 
+  const [tabInitialized, setTabInitialized] = useState(false);
+  const purchased = isAdmin || (subject ? isPurchased(subject.id) : false);
+  const inCart    = subject ? isInCart(subject.id) : false;
+
+  useEffect(() => {
+    if (!loading && subject && !tabInitialized) {
+      if (!purchased) setActiveTab('reviews');
+      setTabInitialized(true);
+    }
+  }, [loading, subject, purchased, tabInitialized]);
+
   if (loading || !subject) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-16)' }}>
       <Loader2 size={28} className="spinner" />
     </div>
   );
-
-  const purchased = isAdmin || isPurchased(subject.id);
-  const inCart    = isInCart(subject.id);
 
   const startExam = (examId: string, mode: 'practice' | 'exam' | 'flashcard') => {
     navigate(`/exams/${examId}?mode=${mode}`);
