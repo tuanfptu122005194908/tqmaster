@@ -9,7 +9,7 @@ export default function FacebookWidget() {
   if (isAdmin) return null;
 
   const handleClick = () => {
-    const link = siteSettings.facebookUrl || 'https://www.facebook.com';
+    const link = siteSettings['facebook_url'] || 'https://www.facebook.com';
     window.open(link, '_blank');
   };
 

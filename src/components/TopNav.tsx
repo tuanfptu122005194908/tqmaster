@@ -154,7 +154,10 @@ export default function TopNav() {
           {/* Nhắn tin Admin */}
           {!isAdmin && (
             <button
-              onClick={() => window.dispatchEvent(new Event('open-chat-widget'))}
+              onClick={() => {
+                const link = siteSettings?.['facebook_url'] || 'https://www.facebook.com';
+                window.open(link, '_blank');
+              }}
               style={{
                 border: 'none',
                 background: 'linear-gradient(135deg, #16a34a 0%, #146c43 100%)',
@@ -173,7 +176,7 @@ export default function TopNav() {
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
-              <MessageCircle size={15} /> Nhắn tin Admin
+              <MessageCircle size={15} /> Liên hệ Admin
             </button>
           )}
         </div>
