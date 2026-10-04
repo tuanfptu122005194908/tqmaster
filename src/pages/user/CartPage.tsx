@@ -722,7 +722,7 @@ export default function CartPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs h-full flex flex-col justify-between" data-purpose="security-guarantee">
               <div className="space-y-3.5">
                 <div className="flex items-center gap-3 text-xs text-slate-700 font-medium">
@@ -744,15 +744,6 @@ export default function CartPage() {
                   Tiếp tục tìm kiếm môn học khác
                 </button>
               </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl border border-slate-700 shadow-lg text-white flex flex-col justify-center text-center">
-              <Sparkles size={32} className="mx-auto mb-3 text-yellow-400" />
-              <h3 className="font-bold text-lg mb-2">Ưu đãi độc quyền</h3>
-              <p className="text-sm text-slate-300 mb-4 opacity-90">Nhập mã giảm giá ở bước tiếp theo để nhận ưu đãi lên đến 50% cho đơn hàng của bạn.</p>
-              <button onClick={() => setStep('checkout')} className="bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 px-4 rounded-xl transition-colors border border-white/10 text-sm">
-                Tiến hành thanh toán ngay
-              </button>
             </div>
           </div>
         </section>
