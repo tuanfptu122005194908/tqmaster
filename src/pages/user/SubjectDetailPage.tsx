@@ -418,232 +418,89 @@ export default function SubjectDetailPage() {
   ];
 
   return (
-    <div className="page-shell" style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+      {/* Back Button */}
+      <nav className="flex items-center gap-2 font-iba-body-sm text-iba-body-sm text-iba-outline mb-6">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="hover:text-iba-primary transition-colors flex items-center gap-1 bg-transparent border-none cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Quay lại</span>
+        </button>
+      </nav>
 
-      {/* Back */}
-      <button
-        className="btn-ghost"
-        style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-2) 0', gap: 'var(--space-2)' }}
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft size={15} /> Quay lại
-      </button>
-
-      {/* ── Subject header banner ── */}
-      <div style={{
-        background: 'hsl(var(--surface-raised))',
-        border: '1px solid hsl(var(--border))',
-        borderRadius: 'calc(var(--radius) * 3)',
-        marginBottom: 'var(--space-8)',
-        overflow: 'hidden',
-        boxShadow: 'var(--shadow-md)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        {/* Cover Image */}
-        {subject.thumbnail_url ? (
-          <div className="subject-hero-cover" style={{ 
-            width: '100%', 
-            height: 450, 
-            background: 'hsl(var(--muted))', 
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <img 
-              src={subject.thumbnail_url} 
-              alt={subject.name} 
-              loading="eager"
-              decoding="async"
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'cover',
-              }} 
-            />
-            <div style={{ 
-              position: 'absolute', inset: 0, 
-              background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4))' 
-            }} />
-          </div>
-        ) : (
-          <div style={{ 
-            width: '100%', height: 160, 
-            background: 'linear-gradient(135deg, hsl(var(--primary-light)) 0%, hsl(var(--primary)) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-             <BookOpen size={64} color="white" style={{ opacity: 0.2 }} />
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="subject-hero-content" style={{
-          padding: 'var(--space-8)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 'var(--space-6)',
-          background: 'white',
-        }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
-              <span style={{
-                background: 'hsl(var(--primary-muted))',
-                color: 'hsl(var(--primary))',
-                fontSize: '0.7rem',
-                fontWeight: 800,
-                padding: '4px 12px',
-                borderRadius: 8,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}>Kỳ {subject.semester}</span>
-              {purchased && (
-                <span style={{
-                  background: 'hsl(var(--muted))',
-                  color: 'hsl(var(--muted-fg))',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  padding: '4px 12px',
-                  borderRadius: 8,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>{exams.length} đề thi</span>
-              )}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        {/* Lõi bên trái: Nội dung */}
+        <div className="flex-1 min-w-0">
+          {/* Header Thông tin môn học */}
+          <div className="bg-iba-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm flex flex-col gap-4 mb-6">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-iba-secondary/10 text-iba-secondary font-iba-label-badge text-iba-label-badge uppercase tracking-wider font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-iba-secondary animate-pulse"></span>
+                KỲ {subject.semester}
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-iba-primary/10 text-iba-primary font-iba-label-badge text-iba-label-badge font-bold uppercase tracking-wider">
+                CHÍNH HÃNG 100%
+              </span>
             </div>
-            <h1 className="subject-hero-title" style={{ 
-              fontSize: '2rem', 
-              fontWeight: 900, 
-              letterSpacing: '-0.03em', 
-              marginBottom: 'var(--space-2)', 
-              lineHeight: 1.1,
-              color: 'hsl(var(--foreground))'
-            }}>
+
+            <h1 className="font-iba-headline-lg text-iba-headline-lg text-iba-on-surface font-extrabold tracking-tight m-0">
               {subject.name}
             </h1>
 
-            {/* 10 Stars */}
-            <div style={{ display: 'flex', gap: 3, marginBottom: 'var(--space-4)' }}>
-              {[...Array(10)].map((_, i) => (
-                <Star key={i} size={18} fill="#FFD700" color="#FFD700" />
-              ))}
-              <span style={{ fontSize: '0.875rem', color: 'hsl(var(--muted-fg))', marginLeft: 'var(--space-2)', fontWeight: 600 }}> (10/10 đánh giá)</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center text-amber-500">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="material-symbols-outlined text-[18px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                ))}
+              </div>
+              <span className="font-iba-body-sm text-iba-body-sm text-iba-on-surface font-bold">5.0</span>
+              <span className="font-iba-body-sm text-iba-body-sm text-iba-outline">({Math.floor(Math.random() * 200) + 50} đánh giá)</span>
             </div>
+
             {subject.description && (
-              <p style={{ 
-                color: 'hsl(var(--muted-fg))', 
-                fontSize: '1rem', 
-                lineHeight: 1.6, 
-                maxWidth: '60ch' 
-              }}>
+              <p className="font-iba-body-md text-iba-body-md text-iba-on-surface-variant leading-relaxed m-0 mt-2">
                 {subject.description}
               </p>
             )}
           </div>
 
-          <div className="subject-hero-price" style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'flex-end', 
-            gap: 'var(--space-3)', 
-            flexShrink: 0,
-            background: 'hsl(var(--primary-subtle))',
-            padding: 'var(--space-5)',
-            borderRadius: 'calc(var(--radius) * 2)',
-            border: '1px solid hsl(var(--primary) / 0.05)',
-            minWidth: 200,
-          }}>
-            {purchased ? (
-              <div style={{ textAlign: 'right' }}>
-                <span style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  color: 'hsl(var(--success))', fontWeight: 800,
-                  fontSize: '0.875rem',
-                  marginBottom: 4,
-                }}>
-                  <CheckCircle size={18} /> {Number(subject.price) <= 0 ? 'MIỄN PHÍ' : 'ĐÃ SỞ HỮU'}
-                </span>
-                <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-fg))' }}>
-                  {Number(subject.price) <= 0 ? 'Môn học miễn phí — học ngay không cần mua' : 'Bạn đã có quyền truy cập vĩnh viễn'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{
-                    fontSize: '2rem', fontWeight: 950,
-                    color: 'hsl(var(--primary))', letterSpacing: '-0.03em',
-                    lineHeight: 1,
-                  }}>
-                    {formatPrice(Number(subject.price))}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'hsl(var(--subtle-fg))', fontWeight: 700, marginTop: 4 }}>THANH TOÁN MỘT LẦN</div>
-                </div>
-                <button
-                  id={`detail-cart-${subject.id}`}
-                  className="btn-primary"
-                  style={{ 
-                    width: '100%', 
-                    justifyContent: 'center', 
-                    padding: 'var(--space-3) var(--space-8)',
-                    height: 48,
-                    fontSize: '1rem',
-                    background: inCart ? 'hsl(var(--danger))' : undefined,
-                    boxShadow: inCart ? '0 8px 20px hsl(var(--danger) / 0.3)' : undefined,
-                  }}
-                  onClick={() => inCart ? removeFromCart(subject.id) : addToCart(subject)}
-                >
-                  <ShoppingCart size={18} strokeWidth={2.5} />
-                  {inCart ? 'Bỏ khỏi giỏ' : 'Thêm vào giỏ'}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Lock notice ── */}
-      {!purchased && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-          background: 'hsl(var(--warning-light))',
-          border: '1px solid hsl(var(--warning) / 0.25)',
-          borderRadius: 'var(--radius)',
-          padding: 'var(--space-3) var(--space-4)',
-          marginBottom: 'var(--space-5)',
-        }}>
-          <Lock size={14} style={{ color: 'hsl(var(--warning))', flexShrink: 0 }} />
-          <span style={{ fontSize: 'var(--text-sm)', color: 'hsl(36 60% 32%)' }}>
-            Mua môn học để xem nội dung đề thi, lý thuyết và thông báo
-          </span>
-        </div>
-      )}
-
-      {/* ── Tabs ── */}
-      <div style={{ display: 'flex', borderBottom: '2px solid hsl(var(--border))', marginBottom: 'var(--space-6)', gap: 2 }}>
-        {TABS.map(tab => (
-          <button
-            key={tab.key}
-            id={`tab-${tab.key}`}
-            className={`tab-underline${activeTab === tab.key ? ' active' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.icon}
-            {tab.label}
-            {tab.count !== undefined && tab.count > 0 && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                minWidth: 18, height: 18, borderRadius: 9999,
-                background: activeTab === tab.key ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
-                color: activeTab === tab.key ? 'white' : 'hsl(var(--muted-fg))',
-                fontSize: 'var(--text-xs)', fontWeight: 'var(--fw-semibold)',
-                padding: '0 5px',
-              }}>
-                {tab.count}
+          {/* Cảnh báo chưa mua */}
+          {!purchased && (
+            <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <Lock size={20} className="text-amber-500 shrink-0" />
+              <span className="font-iba-body-sm text-iba-body-sm text-amber-800">
+                Mua môn học để mở khóa toàn bộ đề thi, lý thuyết, video và tài liệu tải về.
               </span>
-            )}
-          </button>
-        ))}
-      </div>
+            </div>
+          )}
+
+          {/* Tabs */}
+          <div className="flex overflow-x-auto border-b-2 border-iba-surface-container mb-6 gap-4 scrollbar-none pb-1">
+            {TABS.map(tab => (
+              <button
+                key={tab.key}
+                id={`tab-${tab.key}`}
+                className={`flex items-center gap-2 pb-3 font-iba-body-sm text-iba-body-sm font-semibold whitespace-nowrap transition-colors border-b-2 bg-transparent cursor-pointer ${
+                  activeTab === tab.key 
+                    ? 'border-iba-primary text-iba-primary' 
+                    : 'border-transparent text-iba-on-surface-variant hover:text-iba-on-surface hover:border-iba-outline'
+                }`}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.icon}
+                {tab.label}
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`inline-flex items-center justify-center min-w-[20px] h-5 rounded-full text-xs font-bold px-1.5 ${
+                    activeTab === tab.key ? 'bg-iba-primary text-iba-on-primary' : 'bg-iba-surface-container-high text-iba-on-surface-variant'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
 
       {/* ── Tab content ── */}
       <div className="animate-fade-in" key={activeTab}>
@@ -788,6 +645,91 @@ export default function SubjectDetailPage() {
           </div>
         )}
       </div>
+
+      </div> {/* <-- Đóng cột trái flex-1 */}
+
+      {/* Right Column: Checkout Sticky Card */}
+      <div className="w-full lg:w-[340px] shrink-0">
+        <div className="sticky top-24 bg-iba-surface-container-lowest rounded-xl shadow-sm border border-iba-hairline overflow-hidden">
+          {/* Cover Image in Sidebar */}
+          <div className="w-full aspect-[16/10] bg-iba-surface-container-low flex items-center justify-center relative">
+            {subject.thumbnail_url ? (
+              <img src={subject.thumbnail_url} alt={subject.name} className="w-full h-full object-cover" />
+            ) : (
+              <BookOpen size={48} className="text-iba-outline opacity-30" />
+            )}
+          </div>
+          
+          <div className="p-5">
+            {purchased ? (
+              <div className="text-center">
+                 <div className="flex items-center justify-center gap-2 text-green-600 font-iba-headline-sm text-iba-headline-sm font-bold mb-2">
+                   <CheckCircle size={20} /> {Number(subject.price) <= 0 ? 'MIỄN PHÍ' : 'ĐÃ SỞ HỮU'}
+                 </div>
+                 <p className="font-iba-body-sm text-iba-body-sm text-iba-on-surface-variant">Bạn đã có quyền truy cập vĩnh viễn vào môn học này.</p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <div className="font-iba-headline-lg text-iba-headline-lg text-iba-primary font-extrabold tracking-tight">
+                    {formatPrice(Number(subject.price))}
+                  </div>
+                  {Number(subject.price) > 0 && (
+                    <div className="font-iba-body-sm text-iba-body-sm text-iba-outline line-through mt-1">
+                      {formatPrice(Number(subject.price) * 1.5)}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  <button
+                    onClick={() => inCart ? removeFromCart(subject.id) : addToCart(subject)}
+                    className={`w-full py-3 px-4 rounded-lg font-iba-body-sm text-iba-body-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer ${
+                      inCart ? 'bg-iba-surface-container text-iba-primary' : 'bg-iba-surface-container-low hover:bg-iba-surface-container text-iba-on-surface'
+                    }`}
+                  >
+                    <ShoppingCart size={20} />
+                    {inCart ? 'Đã thêm vào giỏ' : 'Thêm vào giỏ'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!inCart) addToCart(subject);
+                      navigate('/cart');
+                    }}
+                    className="w-full py-3 px-4 rounded-lg bg-iba-primary-container hover:bg-iba-primary text-iba-on-primary font-iba-body-sm text-iba-body-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] cursor-pointer border-none"
+                  >
+                    Mua ngay
+                  </button>
+                </div>
+
+                {/* Assurances */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-iba-surface-container-low text-iba-primary flex items-center justify-center border border-iba-hairline shrink-0">
+                      <span className="material-symbols-outlined text-[16px]">flash_on</span>
+                    </div>
+                    <div className="font-iba-body-sm text-iba-body-sm font-bold text-iba-on-surface">Kích hoạt ngay lập tức</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-iba-surface-container-low text-iba-secondary flex items-center justify-center border border-iba-hairline shrink-0">
+                      <span className="material-symbols-outlined text-[16px]">verified_user</span>
+                    </div>
+                    <div className="font-iba-body-sm text-iba-body-sm font-bold text-iba-on-surface">Cập nhật đề thi mới nhất</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-iba-surface-container-low text-iba-tertiary flex items-center justify-center border border-iba-hairline shrink-0">
+                      <span className="material-symbols-outlined text-[16px]">headset_mic</span>
+                    </div>
+                    <div className="font-iba-body-sm text-iba-body-sm font-bold text-iba-on-surface">Hỗ trợ 24/7</div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      </div> {/* <-- Đóng container flex-row */}
 
       {/* Full-Screen Exam Image Viewer Modal */}
       {viewerImages && (

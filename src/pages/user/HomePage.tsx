@@ -10,6 +10,7 @@ import HeroSection from '@/components/home/HeroSection';
 import { SubjectGridSkeleton } from '@/components/Skeleton';
 import ProductFilterBar from '@/components/home/ProductFilterBar';
 import CourseListItem from '@/components/home/CourseListItem';
+import { SubjectCard } from '@/components/SubjectCard';
 import {
   type FilterState,
   INITIAL_FILTER_STATE,
@@ -340,7 +341,7 @@ export default function HomePage() {
             const inCart   = isInCart(subject.id);
 
             return (
-              <CourseCard
+              <SubjectCard
                 key={subject.id}
                 subject={subject}
                 color={color}
@@ -353,6 +354,11 @@ export default function HomePage() {
                   e.stopPropagation();
                   if (inCart) removeFromCart(subject.id);
                   else addToCart(subject);
+                }}
+                onBuyNow={(e) => {
+                  e.stopPropagation();
+                  if (!inCart) addToCart(subject);
+                  navigate('/cart');
                 }}
               />
             );

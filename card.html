@@ -1,0 +1,838 @@
+<div class="flex flex-col w-full">
+ <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <!-- Breadcrumbs -->
+  <nav class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+   <a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+    <span class="material-symbols-outlined text-[16px]">
+     home
+    </span>
+    <span>
+     Trang chủ
+    </span>
+   </a>
+   <span class="text-outline-variant font-label-code">
+    /
+   </span>
+   <a class="hover:text-primary transition-colors" href="#">
+    Dịch vụ số
+   </a>
+   <span class="text-outline-variant font-label-code">
+    /
+   </span>
+   <span class="text-primary font-semibold">
+    Sản phẩm nổi bật
+   </span>
+  </nav>
+  <!-- Header & Interactive Category Banner -->
+  <div class="bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-6">
+   <div class="max-w-2xl space-y-2">
+    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-label-badge text-label-badge uppercase tracking-wider">
+     <span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse">
+     </span>
+     Tuyển chọn cao cấp • Kích hoạt tự động
+    </div>
+    <h1 class="font-headline-lg text-headline-lg text-on-surface font-extrabold tracking-tight">
+     Sản phẩm nổi bật &amp; Bán chạy nhất tại IBACUU
+    </h1>
+    <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+     Các giải pháp phần mềm, tài khoản số và bản quyền chính hãng được người dùng bình chọn và tin dùng nhiều nhất. Bàn giao tức thì qua cổng tự động.
+    </p>
+   </div>
+   <!-- Quick Metrics Counter Mini-card -->
+   <div class="flex items-center gap-4 bg-surface-container-low px-4 py-3 rounded-lg shrink-0">
+    <div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+     <span class="material-symbols-outlined text-[24px]">
+      verified
+     </span>
+    </div>
+    <div>
+     <div class="font-headline-sm text-headline-sm font-bold text-primary">
+      100% Chính hãng
+     </div>
+     <div class="font-body-sm text-body-sm text-on-surface-variant">
+      Bảo hành 1 đổi 1 trọn đời dịch vụ
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- Filter Pills & Sorting Controls -->
+  <div class="space-y-3">
+   <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <!-- Category Pills (Horizontal scroll on mobile) -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1.5 lg:pb-0 scrollbar-none" id="categoryFilterContainer">
+     <button class="filter-btn px-3.5 py-2 rounded-lg font-body-sm text-body-sm font-semibold transition-all whitespace-nowrap bg-surface-container-lowest text-on-surface-variant shadow-sm hover:text-primary" type="button">
+      Tất cả sản phẩm
+     </button>
+     <button class="filter-btn px-3.5 py-2 rounded-lg font-body-sm text-body-sm font-semibold transition-all whitespace-nowrap bg-primary text-on-primary shadow-sm" type="button">
+      Tài khoản Google / Cloud
+     </button>
+     <button class="filter-btn px-3.5 py-2 rounded-lg font-body-sm text-body-sm font-semibold transition-all whitespace-nowrap bg-surface-container-lowest text-on-surface-variant shadow-sm hover:text-primary" type="button">
+      Học tập &amp; Khóa học
+     </button>
+     <button class="filter-btn px-3.5 py-2 rounded-lg font-body-sm text-body-sm font-semibold transition-all whitespace-nowrap bg-surface-container-lowest text-on-surface-variant shadow-sm hover:text-primary" type="button">
+      Giải trí &amp; Nghe nhạc
+     </button>
+     <button class="filter-btn px-3.5 py-2 rounded-lg font-body-sm text-body-sm font-semibold transition-all whitespace-nowrap bg-surface-container-lowest text-on-surface-variant shadow-sm hover:text-primary" type="button">
+      Đồ họa &amp; Thiết kế
+     </button>
+     <button class="filter-btn px-3.5 py-2 rounded-lg font-body-sm text-body-sm font-semibold transition-all whitespace-nowrap bg-surface-container-lowest text-on-surface-variant shadow-sm hover:text-primary" type="button">
+      Công cụ &amp; Tool tự động
+     </button>
+    </div>
+    <!-- Sorting Menu -->
+    <div class="flex items-center gap-2 self-end lg:self-auto shrink-0">
+     <span class="font-body-sm text-body-sm text-outline">
+      Sắp xếp:
+     </span>
+     <div class="relative inline-block text-left">
+      <select class="bg-surface-container-lowest text-on-surface font-body-sm text-body-sm font-semibold rounded-lg px-3 py-2 pr-8 shadow-sm focus:outline-none appearance-none cursor-pointer" id="sortDropdown">
+       <option value="popular">
+        Phổ biến nhất
+       </option>
+       <option selected="" value="best-seller">
+        Bán chạy nhất
+       </option>
+       <option value="price-asc">
+        Giá tăng dần
+       </option>
+       <option value="price-desc">
+        Giá giảm dần
+       </option>
+      </select>
+      <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[18px]">
+       expand_more
+      </span>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- Product Grid (4 Columns Desktop, 2 Tablet, 1 Mobile) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+   <!-- Card 1: Link GG Pro Jio 18tháng -->
+   <article class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+    <div>
+     <!-- Thumbnail Graphic Wrapper -->
+     <div class="relative w-full aspect-[16/10] bg-gradient-to-br from-surface-container-low to-secondary-container/20 p-4 flex flex-col justify-between overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-primary/10 rounded-full blur-xl pointer-events-none">
+      </div>
+      <div class="flex items-center justify-between z-10">
+       <span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-badge text-label-badge font-bold">
+        -20% GIẢM
+       </span>
+       <button aria-label="Yêu thích" class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur text-outline hover:text-error transition-colors flex items-center justify-center" type="button">
+        <span class="material-symbols-outlined text-[18px]">
+         favorite
+        </span>
+       </button>
+      </div>
+      <!-- Stylized Brand Banner Mockup -->
+      <div class="z-10 flex flex-col items-center justify-center text-center py-2">
+       <div class="flex items-center gap-2 mb-1">
+        <div class="w-7 h-7 rounded-lg bg-surface-container-lowest shadow-sm flex items-center justify-center">
+         <span class="material-symbols-outlined text-secondary text-[18px]">
+          cloud
+         </span>
+        </div>
+        <span class="font-headline-sm text-headline-sm font-bold text-secondary">
+         Google One
+        </span>
+       </div>
+       <div class="font-label-badge text-label-badge font-extrabold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
+        Gói Kích Hoạt Jio 18 Tháng
+       </div>
+      </div>
+      <!-- Perks Micro Pills -->
+      <div class="flex items-center justify-between text-on-surface-variant font-label-badge text-label-badge z-10 bg-surface-container-lowest/70 backdrop-blur px-2 py-1 rounded">
+       <span class="flex items-center gap-0.5">
+        <span class="material-symbols-outlined text-[12px] text-primary">
+         check_circle
+        </span>
+        Chính hãng
+       </span>
+       <span class="flex items-center gap-0.5">
+        <span class="material-symbols-outlined text-[12px] text-secondary">
+         bolt
+        </span>
+        Cấp tốc
+       </span>
+       <span class="flex items-center gap-0.5">
+        <span class="material-symbols-outlined text-[12px] text-tertiary">
+         support_agent
+        </span>
+        24/7
+       </span>
+      </div>
+     </div>
+     <!-- Product Details Body -->
+     <div class="p-4 space-y-3">
+      <div>
+       <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+        Link GG Pro Jio 18tháng
+       </h2>
+       <div class="flex items-baseline gap-2 mt-1">
+        <span class="font-headline-md text-headline-md font-extrabold text-error">
+         28.000 đ
+        </span>
+        <span class="font-body-sm text-body-sm line-through text-outline">
+         35.000 đ
+        </span>
+       </div>
+      </div>
+      <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+       Link GG Pro Jio 18tháng dung lượng mở rộng, kích hoạt tự động theo mã liên kết độc quyền.
+      </p>
+      <!-- Rating & Sales Status -->
+      <div class="space-y-1.5 pt-1">
+       <div class="flex items-center justify-between font-body-sm text-body-sm">
+        <div class="flex items-center gap-1 text-tertiary">
+         <div class="flex items-center text-amber-500">
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star_half
+          </span>
+         </div>
+         <span class="font-bold text-on-surface text-[13px]">
+          4.5
+         </span>
+         <span class="text-outline text-[12px]">
+          (101)
+         </span>
+        </div>
+        <div class="flex items-center gap-1 font-label-code text-label-code text-outline">
+         <span class="material-symbols-outlined text-[14px]">
+          inventory_2
+         </span>
+         <span>
+          Đã bán 168 / ∞
+         </span>
+        </div>
+       </div>
+       <!-- Product Tags -->
+       <div class="flex flex-wrap gap-1">
+        <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-badge text-label-badge">
+         Google
+        </span>
+        <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-badge text-label-badge">
+         Pro
+        </span>
+        <span class="px-2 py-0.5 rounded bg-error-container/60 text-error font-label-badge text-label-badge font-bold">
+         18 Tháng
+        </span>
+        <span class="px-2 py-0.5 rounded bg-primary-fixed/50 text-on-primary-fixed-variant font-label-badge text-label-badge">
+         Account
+        </span>
+        <span class="px-2 py-0.5 rounded bg-surface-container text-outline font-label-badge text-label-badge">
+         Đặt trước
+        </span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <!-- Action Buttons -->
+    <div class="p-4 pt-0 grid grid-cols-2 gap-2 mt-2">
+     <button class="w-full py-2 px-3 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm text-body-sm font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px] text-secondary">
+       shopping_cart
+      </span>
+      <span>
+       Giỏ hàng
+      </span>
+     </button>
+     <button class="w-full py-2 px-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-sm text-body-sm font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px]">
+       shopping_bag
+      </span>
+      <span>
+       Mua ngay
+      </span>
+     </button>
+    </div>
+   </article>
+   <!-- Card 2: Auto Cousera Blueprint -->
+   <article class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+    <div>
+     <!-- Blueprint Style Thumbnail -->
+     <div class="relative w-full aspect-[16/10] bg-primary p-4 flex flex-col justify-between overflow-hidden text-on-primary">
+      <!-- Grid Matrix Overlay Background -->
+      <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px] pointer-events-none">
+      </div>
+      <div class="flex items-center justify-between z-10">
+       <span class="px-2 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-label-badge text-label-badge font-bold">
+        TOOL VIP
+       </span>
+       <button aria-label="Yêu thích" class="w-8 h-8 rounded-full bg-surface-container-lowest/20 backdrop-blur text-surface-container-lowest hover:text-error transition-colors flex items-center justify-center" type="button">
+        <span class="material-symbols-outlined text-[18px]">
+         favorite
+        </span>
+       </button>
+      </div>
+      <!-- Stylized Technical IBACUU Blueprint Text -->
+      <div class="z-10 flex flex-col items-center justify-center text-center my-auto">
+       <div class="font-label-code text-[26px] font-black tracking-[0.25em] text-primary-fixed drop-shadow-md">
+        IBACUU
+       </div>
+       <div class="font-label-badge text-label-badge uppercase tracking-widest text-on-primary-container opacity-90 mt-1">
+        AUTOMATION SYSTEM 2.4
+       </div>
+      </div>
+      <!-- Status Indicator -->
+      <div class="flex items-center justify-between font-label-badge text-label-badge z-10 bg-on-primary-fixed-variant/40 backdrop-blur px-2 py-1 rounded">
+       <span class="flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container">
+        </span>
+        Sẵn sàng giao
+       </span>
+       <span class="font-label-code">
+        v2.1.0
+       </span>
+      </div>
+     </div>
+     <!-- Product Details Body -->
+     <div class="p-4 space-y-3">
+      <div>
+       <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+        Auto cousera
+       </h2>
+       <div class="flex items-baseline gap-2 mt-1">
+        <span class="font-headline-md text-headline-md font-extrabold text-error">
+         50.000 đ
+        </span>
+        <span class="font-body-sm text-body-sm line-through text-outline">
+         80.000 đ
+        </span>
+       </div>
+      </div>
+      <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+       Auto cousera làm cousera siêu nhanh trong vài phút, tiện lợi cho việc hoàn thành chứng chỉ online.
+      </p>
+      <!-- Rating & Sales Status -->
+      <div class="space-y-1.5 pt-1">
+       <div class="flex items-center justify-between font-body-sm text-body-sm">
+        <div class="flex items-center gap-1 text-tertiary">
+         <div class="flex items-center text-amber-500">
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+         </div>
+         <span class="font-bold text-on-surface text-[13px]">
+          5.0
+         </span>
+         <span class="text-outline text-[12px]">
+          (28)
+         </span>
+        </div>
+        <div class="flex items-center gap-1 font-label-code text-label-code text-outline">
+         <span class="material-symbols-outlined text-[14px]">
+          inventory_2
+         </span>
+         <span>
+          Đã bán 214 / 408
+         </span>
+        </div>
+       </div>
+       <!-- Product Tags -->
+       <div class="flex flex-wrap gap-1">
+        <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-badge text-label-badge">
+         Cousera
+        </span>
+        <span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-badge text-label-badge font-bold">
+         Tool
+        </span>
+        <span class="px-2 py-0.5 rounded bg-primary-fixed/50 text-on-primary-fixed-variant font-label-badge text-label-badge">
+         Dùng key
+        </span>
+        <span class="px-2 py-0.5 rounded bg-surface-container text-outline font-label-badge text-label-badge">
+         Tệp số
+        </span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <!-- Action Buttons -->
+    <div class="p-4 pt-0 grid grid-cols-2 gap-2 mt-2">
+     <button class="w-full py-2 px-3 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm text-body-sm font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px] text-secondary">
+       shopping_cart
+      </span>
+      <span>
+       Giỏ hàng
+      </span>
+     </button>
+     <button class="w-full py-2 px-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-sm text-body-sm font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px]">
+       shopping_bag
+      </span>
+      <span>
+       Mua ngay
+      </span>
+     </button>
+    </div>
+   </article>
+   <!-- Card 3: YouTube Premium 1 Năm -->
+   <article class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+    <div>
+     <!-- YouTube Premium Banner -->
+     <div class="relative w-full aspect-[16/10] bg-gradient-to-br from-error/90 to-tertiary-container p-4 flex flex-col justify-between overflow-hidden text-on-primary">
+      <div class="absolute -right-4 -top-4 w-28 h-28 bg-on-primary/10 rounded-full blur-xl pointer-events-none">
+      </div>
+      <div class="flex items-center justify-between z-10">
+       <span class="px-2 py-0.5 rounded bg-surface-container-lowest text-error font-label-badge text-label-badge font-extrabold uppercase">
+        BÁN CHẠY #1
+       </span>
+       <button aria-label="Yêu thích" class="w-8 h-8 rounded-full bg-surface-container-lowest/20 backdrop-blur text-surface-container-lowest hover:text-on-primary transition-colors flex items-center justify-center" type="button">
+        <span class="material-symbols-outlined text-[18px]">
+         favorite
+        </span>
+       </button>
+      </div>
+      <!-- Brand Iconography -->
+      <div class="z-10 flex flex-col items-center justify-center text-center my-auto">
+       <div class="w-12 h-12 rounded-2xl bg-surface-container-lowest text-error flex items-center justify-center shadow-lg mb-1">
+        <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">
+         play_circle
+        </span>
+       </div>
+       <div class="font-headline-sm text-headline-sm font-bold tracking-tight">
+        YouTube Premium
+       </div>
+       <div class="font-label-badge text-label-badge uppercase tracking-wider text-surface-container-high">
+        Gói 12 Tháng Riêng Tư
+       </div>
+      </div>
+      <!-- Footer Badge inside Card Thumbnail -->
+      <div class="flex items-center justify-between font-label-badge text-label-badge z-10 bg-on-background/30 backdrop-blur px-2 py-1 rounded">
+       <span class="flex items-center gap-1">
+        <span class="material-symbols-outlined text-[12px]">
+         headphones
+        </span>
+        YouTube Music
+       </span>
+       <span>
+        Gia hạn chính chủ
+       </span>
+      </div>
+     </div>
+     <!-- Product Details Body -->
+     <div class="p-4 space-y-3">
+      <div>
+       <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+        YouTube Premium 1 Năm
+       </h2>
+       <div class="flex items-baseline gap-2 mt-1">
+        <span class="font-headline-md text-headline-md font-extrabold text-error">
+         280.000 đ
+        </span>
+        <span class="font-body-sm text-body-sm line-through text-outline">
+         420.000 đ
+        </span>
+       </div>
+      </div>
+      <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+       Kích hoạt email chính chủ, hoàn toàn không quảng cáo, chạy nền khi tắt màn hình, tích hợp Music.
+      </p>
+      <!-- Rating & Sales Status -->
+      <div class="space-y-1.5 pt-1">
+       <div class="flex items-center justify-between font-body-sm text-body-sm">
+        <div class="flex items-center gap-1 text-tertiary">
+         <div class="flex items-center text-amber-500">
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+         </div>
+         <span class="font-bold text-on-surface text-[13px]">
+          4.9
+         </span>
+         <span class="text-outline text-[12px]">
+          (412)
+         </span>
+        </div>
+        <div class="flex items-center gap-1 font-label-code text-label-code text-outline">
+         <span class="material-symbols-outlined text-[14px]">
+          inventory_2
+         </span>
+         <span>
+          Đã bán 890 / ∞
+         </span>
+        </div>
+       </div>
+       <!-- Product Tags -->
+       <div class="flex flex-wrap gap-1">
+        <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-badge text-label-badge">
+         YouTube
+        </span>
+        <span class="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-badge text-label-badge">
+         Music
+        </span>
+        <span class="px-2 py-0.5 rounded bg-surface-container text-outline font-label-badge text-label-badge">
+         Email chính chủ
+        </span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <!-- Action Buttons -->
+    <div class="p-4 pt-0 grid grid-cols-2 gap-2 mt-2">
+     <button class="w-full py-2 px-3 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm text-body-sm font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px] text-secondary">
+       shopping_cart
+      </span>
+      <span>
+       Giỏ hàng
+      </span>
+     </button>
+     <button class="w-full py-2 px-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-sm text-body-sm font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px]">
+       shopping_bag
+      </span>
+      <span>
+       Mua ngay
+      </span>
+     </button>
+    </div>
+   </article>
+   <!-- Card 4: Canva Pro Vĩnh Viễn -->
+   <article class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+    <div>
+     <!-- Canva Thumbnail Gradient -->
+     <div class="relative w-full aspect-[16/10] bg-gradient-to-br from-secondary via-primary to-inverse-surface p-4 flex flex-col justify-between overflow-hidden text-on-primary">
+      <div class="absolute right-0 bottom-0 w-36 h-36 bg-secondary-container/20 rounded-full blur-2xl pointer-events-none">
+      </div>
+      <div class="flex items-center justify-between z-10">
+       <span class="px-2 py-0.5 rounded bg-surface-container-lowest/90 text-primary font-label-badge text-label-badge font-bold">
+        TIẾT KIỆM 50%
+       </span>
+       <button aria-label="Yêu thích" class="w-8 h-8 rounded-full bg-surface-container-lowest/20 backdrop-blur text-surface-container-lowest hover:text-error transition-colors flex items-center justify-center" type="button">
+        <span class="material-symbols-outlined text-[18px]">
+         favorite
+        </span>
+       </button>
+      </div>
+      <!-- Canva Visual Mockup -->
+      <div class="z-10 flex flex-col items-center justify-center text-center my-auto">
+       <div class="w-11 h-11 rounded-full bg-surface-container-lowest text-secondary flex items-center justify-center shadow mb-1">
+        <span class="material-symbols-outlined text-[26px]">
+         palette
+        </span>
+       </div>
+       <div class="font-headline-sm text-headline-sm font-bold tracking-tight">
+        Canva Pro VIP
+       </div>
+       <div class="font-label-badge text-label-badge uppercase tracking-wider text-secondary-fixed">
+        Mở khóa tất cả tài nguyên
+       </div>
+      </div>
+      <!-- Feature Tags Inside Image -->
+      <div class="flex items-center justify-between font-label-badge text-label-badge z-10 bg-on-background/30 backdrop-blur px-2 py-1 rounded">
+       <span class="flex items-center gap-1">
+        <span class="material-symbols-outlined text-[12px]">
+         auto_fix_high
+        </span>
+        Magic Studio
+       </span>
+       <span>
+        100M+ Tài sản Pro
+       </span>
+      </div>
+     </div>
+     <!-- Product Details Body -->
+     <div class="p-4 space-y-3">
+      <div>
+       <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+        Canva Pro Vĩnh Viễn
+       </h2>
+       <div class="flex items-baseline gap-2 mt-1">
+        <span class="font-headline-md text-headline-md font-extrabold text-error">
+         99.000 đ
+        </span>
+        <span class="font-body-sm text-body-sm line-through text-outline">
+         199.000 đ
+        </span>
+       </div>
+      </div>
+      <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+       Mở khóa mọi template, kho ảnh đồ họa VIP không giới hạn tính năng, font chữ và lưu trữ không giới hạn.
+      </p>
+      <!-- Rating & Sales Status -->
+      <div class="space-y-1.5 pt-1">
+       <div class="flex items-center justify-between font-body-sm text-body-sm">
+        <div class="flex items-center gap-1 text-tertiary">
+         <div class="flex items-center text-amber-500">
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+          <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">
+           star
+          </span>
+         </div>
+         <span class="font-bold text-on-surface text-[13px]">
+          4.8
+         </span>
+         <span class="text-outline text-[12px]">
+          (95)
+         </span>
+        </div>
+        <div class="flex items-center gap-1 font-label-code text-label-code text-outline">
+         <span class="material-symbols-outlined text-[14px]">
+          inventory_2
+         </span>
+         <span>
+          Đã bán 520 / ∞
+         </span>
+        </div>
+       </div>
+       <!-- Product Tags -->
+       <div class="flex flex-wrap gap-1">
+        <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-badge text-label-badge">
+         Design
+        </span>
+        <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-badge text-label-badge">
+         Canva
+        </span>
+        <span class="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-badge text-label-badge">
+         Tự động
+        </span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <!-- Action Buttons -->
+    <div class="p-4 pt-0 grid grid-cols-2 gap-2 mt-2">
+     <button class="w-full py-2 px-3 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm text-body-sm font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px] text-secondary">
+       shopping_cart
+      </span>
+      <span>
+       Giỏ hàng
+      </span>
+     </button>
+     <button class="w-full py-2 px-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-sm text-body-sm font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]" type="button">
+      <span class="material-symbols-outlined text-[18px]">
+       shopping_bag
+      </span>
+      <span>
+       Mua ngay
+      </span>
+     </button>
+    </div>
+   </article>
+  </div>
+  <!-- Assurance Highlights Bar -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-5 bg-surface-container-low rounded-xl">
+   <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-surface-container-lowest text-primary flex items-center justify-center shrink-0 shadow-sm">
+     <span class="material-symbols-outlined text-[22px]">
+      flash_on
+     </span>
+    </div>
+    <div>
+     <div class="font-body-md text-body-md font-bold text-on-surface">
+      Bàn giao sau 30s
+     </div>
+     <div class="font-body-sm text-body-sm text-on-surface-variant">
+      Tự động qua email &amp; đơn hàng
+     </div>
+    </div>
+   </div>
+   <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-surface-container-lowest text-primary flex items-center justify-center shrink-0 shadow-sm">
+     <span class="material-symbols-outlined text-[22px]">
+      verified_user
+     </span>
+    </div>
+    <div>
+     <div class="font-body-md text-body-md font-bold text-on-surface">
+      Bảo hành 1 đổi 1
+     </div>
+     <div class="font-body-sm text-body-sm text-on-surface-variant">
+      Cam kết hoàn tiền khi gặp sự cố
+     </div>
+    </div>
+   </div>
+   <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-surface-container-lowest text-secondary flex items-center justify-center shrink-0 shadow-sm">
+     <span class="material-symbols-outlined text-[22px]">
+      qr_code_scanner
+     </span>
+    </div>
+    <div>
+     <div class="font-body-md text-body-md font-bold text-on-surface">
+      Quét mã QR tiện lợi
+     </div>
+     <div class="font-body-sm text-body-sm text-on-surface-variant">
+      Hỗ trợ mọi ngân hàng &amp; ví điện tử
+     </div>
+    </div>
+   </div>
+   <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-surface-container-lowest text-tertiary flex items-center justify-center shrink-0 shadow-sm">
+     <span class="material-symbols-outlined text-[22px]">
+      headset_mic
+     </span>
+    </div>
+    <div>
+     <div class="font-body-md text-body-md font-bold text-on-surface">
+      Hỗ trợ Ultraview 24/7
+     </div>
+     <div class="font-body-sm text-body-sm text-on-surface-variant">
+      Kỹ thuật viên cài đặt tận nơi
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- Bottom Advisory & Bulk Order Consultation Banner -->
+  <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary via-primary-container to-secondary p-6 sm:p-8 text-on-primary shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+   <!-- Decorative Backdrop Element -->
+   <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-on-primary/10 rounded-full blur-2xl pointer-events-none">
+   </div>
+   <div class="relative z-10 flex items-start gap-4">
+    <div class="w-12 h-12 rounded-xl bg-surface-container-lowest/15 backdrop-blur flex items-center justify-center shrink-0 text-on-primary">
+     <span class="material-symbols-outlined text-[28px]">
+      contact_support
+     </span>
+    </div>
+    <div class="space-y-1">
+     <h3 class="font-headline-sm text-headline-sm font-bold tracking-tight">
+      Cần tìm sản phẩm chuyên biệt hoặc đặt hàng số lượng lớn?
+     </h3>
+     <p class="font-body-sm text-body-sm text-surface-container-high max-w-2xl leading-relaxed">
+      Liên hệ hotline &amp; Zalo IBACUU để nhận chiết khấu đại lý tốt nhất. Chúng tôi cung cấp giải pháp bản quyền cho cá nhân, doanh nghiệp và đội nhóm với hợp đồng minh bạch.
+     </p>
+    </div>
+   </div>
+   <div class="relative z-10 flex items-center gap-3 shrink-0 w-full sm:w-auto">
+    <a class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-surface-container-lowest text-primary hover:bg-surface-container-low font-body-sm text-body-sm font-bold flex items-center justify-center gap-2 shadow transition-all active:scale-[0.98]" href="#">
+     <span class="material-symbols-outlined text-[18px]">
+      chat
+     </span>
+     <span>
+      Chat Zalo CSKH
+     </span>
+    </a>
+    <a class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-surface-container-lowest/20 hover:bg-surface-container-lowest/30 text-on-primary font-body-sm text-body-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]" href="#">
+     <span class="material-symbols-outlined text-[18px]">
+      call
+     </span>
+     <span>
+      0988.xxx.xxx
+     </span>
+    </a>
+   </div>
+  </div>
+ </div>
+ <!-- Interactive Filter Logic -->
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+      const filterButtons = document.querySelectorAll('#categoryFilterContainer .filter-btn');
+
+      
+
+      filterButtons.forEach(btn => {
+
+        btn.addEventListener('click', () => {
+
+          // Reset styles
+
+          filterButtons.forEach(b => {
+
+            b.classList.remove('bg-primary', 'text-on-primary');
+
+            b.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+
+          });
+
+          // Activate clicked
+
+          btn.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+
+          btn.classList.add('bg-primary', 'text-on-primary');
+
+        });
+
+      });
+
+
+
+      // Quick Favorite Toggles
+
+      const favButtons = document.querySelectorAll('button[aria-label="Yêu thích"]');
+
+      favButtons.forEach(btn => {
+
+        btn.addEventListener('click', (e) => {
+
+          e.stopPropagation();
+
+          const icon = btn.querySelector('.material-symbols-outlined');
+
+          if (icon) {
+
+            const isFilled = icon.style.fontVariationSettings?.includes("'FILL' 1");
+
+            if (isFilled) {
+
+              icon.style.fontVariationSettings = "'FILL' 0";
+
+              btn.classList.remove('text-error');
+
+            } else {
+
+              icon.style.fontVariationSettings = "'FILL' 1";
+
+              btn.classList.add('text-error');
+
+            }
+
+          }
+
+        });
+
+      });
+
+    });
+ </script>
+</div>
