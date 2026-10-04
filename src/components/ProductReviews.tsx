@@ -99,7 +99,7 @@ export const MOCK_REVIEWS: Review[] = [
 ];
 
 export function ProductReviews({ purchased }: { purchased: boolean }) {
-  const { profile, isAdmin } = useApp();
+  const { profile, isAdmin, siteSettings } = useApp();
   const [filter, setFilter] = useState<'all' | '5' | '4' | '3' | 'verified'>('all');
   const [hoverStar, setHoverStar] = useState<number>(0);
   const [rating, setRating] = useState<number>(0);
@@ -494,7 +494,7 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
             </div>
 
             {/* Quick Support Help Card */}
-            <a href="https://www.facebook.com/tqmaster" target="_blank" rel="noopener noreferrer" className="mt-4 p-4 bg-iba-primary-container text-iba-on-primary-container rounded-xl flex items-center gap-4 no-underline hover:opacity-90 transition-opacity cursor-pointer">
+            <a href={siteSettings?.['facebook_url'] || "https://www.facebook.com/tuanvaquan"} target="_blank" rel="noopener noreferrer" className="mt-4 p-4 bg-iba-primary-container text-iba-on-primary-container rounded-xl flex items-center gap-4 no-underline hover:opacity-90 transition-opacity cursor-pointer">
               <div className="w-10 h-10 rounded-lg bg-iba-surface-container-lowest text-iba-primary flex items-center justify-center shrink-0 shadow-sm">
                 <Headset size={24} />
               </div>
