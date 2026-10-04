@@ -469,8 +469,8 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                 <button 
                   className="w-full py-2 rounded-lg text-iba-primary font-iba-body-sm text-iba-body-sm font-semibold flex items-center justify-center gap-1 bg-iba-surface-container-low hover:bg-iba-surface-container transition-colors cursor-pointer border-none"
                 >
-                  <span className="material-symbols-outlined text-[16px]">login</span>
-                  Đăng nhập & Mua hàng để đánh giá
+                  <span className="material-symbols-outlined text-[16px]">shopping_cart</span>
+                  Mua hàng rồi đánh giá
                 </button>
               </div>
             )}
