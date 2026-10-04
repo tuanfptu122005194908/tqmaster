@@ -2862,21 +2862,21 @@
     "semantic_hash": ""
   },
   "src/components/ProductReviews.tsx": {
-    "mtime": 1791088657.2536838,
-    "seen": 1791088755.095291,
-    "ast_hash": "54316ebbf86bceee45d652700113c794",
+    "mtime": 1791089749.854292,
+    "seen": 1791089794.5951834,
+    "ast_hash": "ff9e2a2f75919f78e87e35df2da12a5f",
     "semantic_hash": ""
   },
   ".sdd/specs/27-product-reviews-feature/plan.md": {
-    "mtime": 1791087565.343367,
-    "seen": 1791087866.434182,
-    "ast_hash": "a98a9cfe6a692db43a3abbe2a15195af",
+    "mtime": 1791089660.657437,
+    "seen": 1791089794.643095,
+    "ast_hash": "4f8c35b0003e3c5cd7aa1770efefc0ba",
     "semantic_hash": ""
   },
   ".sdd/specs/27-product-reviews-feature/spec.md": {
-    "mtime": 1791087552.6992474,
-    "seen": 1791087866.434186,
-    "ast_hash": "8d371e88ec64fa5eee49c298fca564d5",
+    "mtime": 1791089633.4333525,
+    "seen": 1791089794.6430979,
+    "ast_hash": "557536667205cdc036f804c30e9225f1",
     "semantic_hash": ""
   },
   ".sdd/specs/27-product-reviews-feature/tasks.md": {
@@ -2886,15 +2886,15 @@
     "semantic_hash": ""
   },
   "src/lib/reviewsStore.ts": {
-    "mtime": 1791088640.89053,
-    "seen": 1791088755.1193368,
-    "ast_hash": "8dd8599cabea57c955f5cabc435bd979",
+    "mtime": 1791089713.1726549,
+    "seen": 1791089794.6161785,
+    "ast_hash": "2ec68443bb0655378046e9d23fc15e1e",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminReviews.tsx": {
-    "mtime": 1791088677.4485135,
-    "seen": 1791088755.1240711,
-    "ast_hash": "090328a523779c1cb3837b961049831f",
+    "mtime": 1791089763.0796194,
+    "seen": 1791089794.6199772,
+    "ast_hash": "cfffe3880c4eda6edde572259d8023e5",
     "semantic_hash": ""
   }
 }

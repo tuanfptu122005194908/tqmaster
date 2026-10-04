@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ThumbsUp, Reply, Verified, Shield, Zap, RotateCcw, HelpCircle, Smartphone, Headset } from 'lucide-react';
+import { Star, ThumbsUp, Reply, Verified, Shield, Zap, RotateCcw, HelpCircle, Smartphone, Headset, Trash2 } from 'lucide-react';
+import { useApp } from '@/lib/AppContext';
 
 export interface Review {
   id: string;
@@ -133,6 +134,15 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
     setReviews(newReviews);
   };
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Admin: Bạn có chắc chắn muốn xoá đánh giá này khỏi hệ thống?")) {
+      const { getFakeReviews, saveFakeReviews } = await import('@/lib/reviewsStore');
+      const newReviews = getFakeReviews().filter(r => r.id !== id);
+      saveFakeReviews(newReviews);
+      setReviews(newReviews);
+    }
+  };
+
   // Dynamic calculations
   const totalReviews = approvedReviews.length;
   const averageRating = totalReviews > 0 
@@ -164,9 +174,9 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
       const { getFakeReviews, saveFakeReviews } = await import('@/lib/reviewsStore');
       const newReview: Review = {
         id: crypto.randomUUID(),
-        userId: 'me',
-        userName: 'Guest User',
-        userInitial: 'G',
+        userId: profile?.id || 'me',
+        userName: profile?.full_name || 'Học viên ẩn danh',
+        userInitial: (profile?.full_name || 'H')[0].toUpperCase(),
         userColorClass: 'bg-iba-secondary text-iba-on-secondary',
         badges: purchased ? ['verified'] : [],
         rating,
@@ -384,6 +394,16 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                       <ThumbsUp size={16} className={r.upvoted ? 'text-iba-primary fill-iba-primary' : ''} />
                       <span>Hữu ích ({r.helpfulCount})</span>
                     </button>
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleDelete(r.id)}
+                        className="flex items-center gap-1 transition-colors cursor-pointer border-none bg-transparent font-medium text-rose-500 hover:text-rose-600 ml-2"
+                        title="Xoá (Quyền Admin)"
+                      >
+                        <Trash2 size={16} />
+                        <span>Xoá</span>
+                      </button>
+                    )}
                   </div>
                 </article>
               ))
@@ -471,15 +491,15 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
             </div>
 
             {/* Quick Support Help Card */}
-            <div className="mt-4 p-4 bg-iba-primary-container text-iba-on-primary-container rounded-xl flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-iba-surface-container-lowest text-iba-primary flex items-center justify-center shrink-0">
+            <a href="https://www.facebook.com/tqmaster" target="_blank" rel="noopener noreferrer" className="mt-4 p-4 bg-iba-primary-container text-iba-on-primary-container rounded-xl flex items-center gap-4 no-underline hover:opacity-90 transition-opacity cursor-pointer">
+              <div className="w-10 h-10 rounded-lg bg-iba-surface-container-lowest text-iba-primary flex items-center justify-center shrink-0 shadow-sm">
                 <Headset size={24} />
               </div>
               <div>
-                <div className="font-iba-body-sm text-iba-body-sm font-bold text-iba-on-primary">Cần hỗ trợ đơn hàng?</div>
-                <div className="font-iba-body-sm text-iba-body-sm text-iba-on-primary-container leading-tight mt-1">Nhắn Zalo CSKH để được trợ giúp 24/7</div>
+                <div className="font-iba-body-sm text-iba-body-sm font-bold text-iba-primary">Cần hỗ trợ đơn hàng?</div>
+                <div className="font-iba-body-sm text-iba-body-sm text-iba-on-primary-container leading-tight mt-1">Nhắn Facebook CSKH để được trợ giúp 24/7</div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>

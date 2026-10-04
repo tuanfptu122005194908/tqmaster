@@ -1,7 +1,7 @@
 import { Review } from '@/components/ProductReviews';
 import { MOCK_REVIEWS } from '@/components/ProductReviews';
 
-const STORAGE_KEY = 'ibacuu_fake_reviews';
+const STORAGE_KEY = 'ibacuu_fake_reviews_v2';
 
 export function getFakeReviews(): Review[] {
   try {

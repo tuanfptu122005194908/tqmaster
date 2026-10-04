@@ -52,7 +52,8 @@ export default function AdminReviews() {
     setReplyText(prev => ({ ...prev, [id]: '' }));
   };
 
-  const pendingCount = reviews.filter(r => r.status === 'pending').length;
+  const displayReviews = reviews.filter(r => r.status !== 'approved');
+  const pendingCount = displayReviews.filter(r => r.status === 'pending').length;
 
   return (
     <div style={{ padding: '24px 32px', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
@@ -94,10 +95,10 @@ export default function AdminReviews() {
             </div>
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
-            Tổng Đánh Giá
+            Tổng Đánh Giá Cần Xử Lý
           </div>
           <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {reviews.length}
+            {displayReviews.length}
           </div>
         </div>
 
@@ -148,8 +149,8 @@ export default function AdminReviews() {
               </tr>
             </thead>
             <tbody>
-              {reviews.map((r, i) => (
-                <tr key={r.id} style={{ borderBottom: i === reviews.length - 1 ? 'none' : '1px solid #f1f5f9', transition: 'background 0.2s ease' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+              {displayReviews.map((r, i) => (
+                <tr key={r.id} style={{ borderBottom: i === displayReviews.length - 1 ? 'none' : '1px solid #f1f5f9', transition: 'background 0.2s ease' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <td style={{ padding: '16px 20px' }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{r.userName}</div>
                     <div style={{ fontSize: 12, color: '#64748b', marginTop: 2, fontWeight: 500 }}>{r.date}</div>
@@ -242,10 +243,10 @@ export default function AdminReviews() {
                   </td>
                 </tr>
               ))}
-              {reviews.length === 0 && (
+              {displayReviews.length === 0 && (
                 <tr>
                   <td colSpan={6} style={{ padding: '40px 20px', textAlign: 'center', color: '#64748b', fontSize: 14, fontWeight: 500 }}>
-                    Chưa có đánh giá nào.
+                    Không có đánh giá nào cần xử lý.
                   </td>
                 </tr>
               )}

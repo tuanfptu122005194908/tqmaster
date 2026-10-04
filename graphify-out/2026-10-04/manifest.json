@@ -150,15 +150,15 @@
     "semantic_hash": "1fafcaae4de291dd10f9b76c95aefdff"
   },
   "src/App.tsx": {
-    "mtime": 1791013642.2391114,
-    "seen": 1791013732.6909413,
-    "ast_hash": "4845d4d9c0497ef7dd6ee11d3d9a7dc0",
+    "mtime": 1791088687.896321,
+    "seen": 1791088755.093981,
+    "ast_hash": "42a8788d5a177afc44d3712393456773",
     "semantic_hash": ""
   },
   "src/components/AdminSidebar.tsx": {
-    "mtime": 1788173864.0999632,
-    "seen": 1789059066.005742,
-    "ast_hash": "091d982559ce830f61a547f9f49296da",
+    "mtime": 1791088723.87763,
+    "seen": 1791088755.0939858,
+    "ast_hash": "8c4ce3cf6fb7eeba39ac9c75bcbfa42e",
     "semantic_hash": ""
   },
   "src/components/AnnouncementPopup.tsx": {
@@ -2862,9 +2862,9 @@
     "semantic_hash": ""
   },
   "src/components/ProductReviews.tsx": {
-    "mtime": 1791087758.8300223,
-    "seen": 1791087866.3301368,
-    "ast_hash": "acb303c708bc156cb858d3c01c806598",
+    "mtime": 1791088657.2536838,
+    "seen": 1791088755.095291,
+    "ast_hash": "54316ebbf86bceee45d652700113c794",
     "semantic_hash": ""
   },
   ".sdd/specs/27-product-reviews-feature/plan.md": {
@@ -2883,6 +2883,18 @@
     "mtime": 1791087578.3004222,
     "seen": 1791087866.4341888,
     "ast_hash": "3159f67a93eb7e1f3cc28af3cdd181ad",
+    "semantic_hash": ""
+  },
+  "src/lib/reviewsStore.ts": {
+    "mtime": 1791088640.89053,
+    "seen": 1791088755.1193368,
+    "ast_hash": "8dd8599cabea57c955f5cabc435bd979",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/AdminReviews.tsx": {
+    "mtime": 1791088677.4485135,
+    "seen": 1791088755.1240711,
+    "ast_hash": "090328a523779c1cb3837b961049831f",
     "semantic_hash": ""
   }
 }

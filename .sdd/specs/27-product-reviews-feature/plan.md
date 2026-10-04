@@ -1,19 +1,22 @@
 # Kế hoạch Kỹ thuật: Product Reviews (Đánh giá Sản phẩm)
 
 ## 1. Data Model (DB)
-- Sẽ cần cập nhật Supabase Database trong tương lai (tạo bảng `reviews` có cột `status` kiểu enum). 
-- Trong giai đoạn này (front-end mockup): Fake dữ liệu ngay trong file React để đảm bảo giao diện lên hình ngay lập tức (chứa 4 review 5 sao như bản tham khảo).
-- Bắt buộc các object trong mảng fake data phải có trường `status: 'approved'` hoặc `status: 'pending'`, khi render sẽ dùng `Array.filter(r => r.status === 'approved')`.
+- Hiện tại dùng Fake dữ liệu (localStorage) thông qua `reviewsStore.ts`. Đã chuẩn bị sẵn file `26_reviews.sql` để migrate trong tương lai.
+- Thêm fake data: các review 5 sao khen sản phẩm.
+- Khi user gửi bài, lấy `profile.full_name` từ Context (useApp) làm tên.
 
-## 2. Component Structure
-- `SubjectDetailPage.tsx` (hoặc tạo component con `ReviewSection.tsx` tuỳ độ dài code):
-  - **Summary & Scoreboard**: Khối điểm trung bình bên trái, các thanh tiến trình 5, 4, 3, 2, 1 sao bên phải.
-  - **Review Toolbar**: Nút lọc (Tất cả, 5 sao, Đã mua, v.v.), Nút sắp xếp.
-  - **Review Stream**: Render danh sách review. Các review sẽ gồm tên người dùng, huy hiệu (IBACUU biên soạn / Đã mua hàng), nội dung, số sao, hình ảnh (nếu có) và cả khối admin reply (nesting div).
-  - **Review Sidebar (Sticky)**: Nằm trong cột phải hoặc khối dưới, khối "Chia sẻ trải nghiệm" gồm 5 sao có thể hover, nút "Viết đánh giá ngay".
+## 2. Component Structure & Logic Updates
+- **ProductReviews.tsx**:
+  - `Facebook Link`: Sửa link nút "Hỗ trợ đơn hàng" thành link Facebook thay vì Zalo.
+  - `Quyền Review`: Nếu `purchased = false`, thì ẩn hẳn khối "Viết đánh giá". 
+  - `Xoá Review từ Admin`: Lấy biến `isAdmin` từ `useApp()`, nếu là true, hiển thị thêm nút "Xóa" cạnh mỗi review trên giao diện user.
+  - Lấy `profile` từ `useApp()` để gán tên user (và avatar) khi submit review.
+
+- **AdminReviews.tsx**:
+  - Ẩn bài: Chỉ render những review có trạng thái là `pending` hoặc `rejected`. Đánh giá `approved` sẽ KHÔNG hiển thị ở trang Admin nữa.
 
 ## 3. Workflow
-1. Bổ sung `status` logic và fake data vào component hiển thị trang chi tiết.
-2. Dịch HTML mẫu được cấp thành mã React/Tailwind kết hợp các token của IBACUU như `bg-iba-surface-container-lowest`, `text-iba-primary`, v.v.
-3. Liên kết luồng hiển thị (bấm tab "Đánh giá & Phản hồi" thì sẽ cuộn xuống / hiển thị khối Review).
-4. Phê duyệt SDD trước khi code (Bước hiện tại).
+1. Bổ sung các mock review 5 sao khen ngợi.
+2. Cập nhật giao diện `AdminReviews.tsx` (Lọc ẩn `approved`).
+3. Sửa `ProductReviews.tsx` (Lọc quyền mua, link FB, Xóa by Admin, Tên thực tế).
+4. Xác nhận spec & code & đẩy lên 2 remote.
