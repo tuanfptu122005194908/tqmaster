@@ -13,6 +13,7 @@ export interface Review {
   content: string;
   images?: string[];
   helpfulCount: number;
+  upvoted?: boolean;
   adminReply?: {
     date: string;
     content: string;
@@ -20,7 +21,7 @@ export interface Review {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-const MOCK_REVIEWS: Review[] = [
+export const MOCK_REVIEWS: Review[] = [
   {
     id: '1',
     userId: 'u1',
@@ -100,10 +101,37 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
   const [filter, setFilter] = useState<'all' | '5' | '4' | '3' | 'verified'>('all');
   const [hoverStar, setHoverStar] = useState<number>(0);
   const [rating, setRating] = useState<number>(0);
+  const [reviewContent, setReviewContent] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
 
-  const approvedReviews = MOCK_REVIEWS.filter(r => r.status === 'approved');
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    // Dynamic import to avoid circular dependency loop if any
+    import('@/lib/reviewsStore').then(module => {
+      setReviews(module.getFakeReviews());
+    });
+  }, []);
+
+  const approvedReviews = reviews.filter(r => r.status === 'approved');
+
+  const handleUpvote = async (id: string) => {
+    const { getFakeReviews, saveFakeReviews } = await import('@/lib/reviewsStore');
+    const newReviews = getFakeReviews().map(r => {
+      if (r.id === id) {
+        const isUpvoted = !!r.upvoted;
+        return {
+          ...r,
+          upvoted: !isUpvoted,
+          helpfulCount: isUpvoted ? r.helpfulCount - 1 : r.helpfulCount + 1
+        };
+      }
+      return r;
+    });
+    saveFakeReviews(newReviews);
+    setReviews(newReviews);
+  };
 
   // Dynamic calculations
   const totalReviews = approvedReviews.length;
@@ -129,10 +157,29 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
   if (filter === '3') filteredReviews = approvedReviews.filter(r => r.rating === 3);
   if (filter === 'verified') filteredReviews = approvedReviews.filter(r => r.badges.includes('verified'));
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (rating === 0) {
       setToastMsg("Vui lòng chọn số sao để đánh giá!");
     } else {
+      const { getFakeReviews, saveFakeReviews } = await import('@/lib/reviewsStore');
+      const newReview: Review = {
+        id: crypto.randomUUID(),
+        userId: 'me',
+        userName: 'Guest User',
+        userInitial: 'G',
+        userColorClass: 'bg-iba-secondary text-iba-on-secondary',
+        badges: purchased ? ['verified'] : [],
+        rating,
+        date: new Date().toLocaleDateString('vi-VN'),
+        content: reviewContent || 'Không có nội dung',
+        helpfulCount: 0,
+        status: 'pending'
+      };
+      const newReviews = [newReview, ...getFakeReviews()];
+      saveFakeReviews(newReviews);
+      setReviews(newReviews);
+      setRating(0);
+      setReviewContent("");
       setToastMsg("Đánh giá của bạn đã được gửi đi và đang chờ kiểm duyệt.");
     }
     setShowToast(true);
@@ -330,13 +377,12 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                   )}
 
                   <div className="flex items-center justify-end gap-4 mt-2 pl-14 text-iba-on-surface-variant font-iba-body-sm text-iba-body-sm">
-                    <button className="flex items-center gap-1 hover:text-iba-primary transition-colors cursor-pointer border-none bg-transparent text-iba-on-surface-variant font-medium">
-                      <ThumbsUp size={16} className={r.helpfulCount > 20 ? 'text-iba-primary fill-iba-primary' : ''} />
-                      <span className={r.helpfulCount > 20 ? 'text-iba-primary' : ''}>Hữu ích ({r.helpfulCount})</span>
-                    </button>
-                    <button className="hover:text-iba-primary transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent text-iba-on-surface-variant font-medium">
-                      <Reply size={16} />
-                      <span>Chia sẻ</span>
+                    <button 
+                      onClick={() => handleUpvote(r.id)}
+                      className={`flex items-center gap-1 transition-colors cursor-pointer border-none bg-transparent font-medium ${r.upvoted ? 'text-iba-primary' : 'text-iba-on-surface-variant hover:text-iba-primary'}`}
+                    >
+                      <ThumbsUp size={16} className={r.upvoted ? 'text-iba-primary fill-iba-primary' : ''} />
+                      <span>Hữu ích ({r.helpfulCount})</span>
                     </button>
                   </div>
                 </article>
@@ -382,6 +428,8 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
               {purchased ? (
                 <>
                   <textarea 
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
                     className="w-full bg-iba-surface-container rounded-lg p-3 font-iba-body-sm text-iba-body-sm text-iba-on-surface focus:outline-none focus:ring-2 focus:ring-iba-primary/50 resize-none" 
                     rows={3} 
                     placeholder="Viết cảm nhận của bạn về chất lượng đề thi, bài tập..."

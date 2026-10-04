@@ -34,6 +34,7 @@ const AdminQuestionReports = lazy(() => import("@/pages/admin/AdminQuestionRepor
 const AdminBackup = lazy(() => import("@/pages/admin/AdminBackup"));
 const AdminChat = lazy(() => import("@/pages/admin/AdminChat"));
 const AdminExamStats = lazy(() => import("@/pages/admin/AdminExamStats"));
+const AdminReviews = lazy(() => import("@/pages/admin/AdminReviews"));
 
 import ChatWidget from "@/components/chat/ChatWidget";
 import { BootScreen, PageSkeleton } from "@/components/Skeleton";
@@ -246,6 +247,7 @@ function AppShell() {
       <Route path="/admin/backup" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBackup /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminLayout><AdminChat /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/exam-stats" element={<ProtectedRoute requireAdmin><AdminLayout><AdminExamStats /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/reviews" element={<ProtectedRoute requireAdmin><AdminLayout><AdminReviews /></AdminLayout></ProtectedRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
