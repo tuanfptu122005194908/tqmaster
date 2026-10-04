@@ -7,7 +7,7 @@ import { formatPrice, generateOrderId, subjectColor, subjectInitials } from '@/l
 import {
   ShoppingCart, Trash2, ArrowRight, ArrowLeft, Upload, CheckSquare, Copy,
   Loader2, X, ShieldCheck, Building2, CreditCard, User, Banknote, Lock,
-  Tag, Package, Receipt, CheckCircle2, Sparkles, BadgeCheck,
+  Tag, Package, Receipt, CheckCircle2, Sparkles, BadgeCheck, Zap
 } from 'lucide-react';
 
 type Step = 'cart' | 'checkout' | 'confirm';
