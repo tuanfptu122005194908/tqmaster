@@ -86,7 +86,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [mustChangePassword, setMustChangePassword] = useState(false);
 
-  const [cart,          setCart]          = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const savedCart = localStorage.getItem('tqmaster_cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tqmaster_cart', JSON.stringify(cart));
+  }, [cart]);
+
   const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
   const [freeSubjectIds, setFreeSubjectIds] = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
