@@ -1,60 +1,90 @@
 # Feature Specification: Subject Catalog & Theory Management
 
 **Feature Branch**: `[main]`  
-**Status**: ✅ Implemented
+**Status**: ✅ Implemented (Optimized v2.1)
 
 ---
 
 ## 1. Overview
-Hệ thống quản trị môn học (`/admin/subjects`) và tài liệu lý thuyết/PE (`/admin/theory`) cho phép Quản trị viên xây dựng lộ trình học tập chuẩn hóa cho sinh viên Đại học FPT từ Kỳ 1 đến Kỳ 9. 
+Hệ thống quản trị môn học (`/admin/subjects`) và tài liệu lý thuyết/PE (`/admin/theory`) là trung tâm tổ chức nội dung số của TQMaster. Quản trị viên sử dụng hệ thống này để xây dựng lộ trình học tập từ Kỳ 1 đến Kỳ 9, thiết lập giá bán (học phí), và đăng tải tài liệu học tập.
 
-Môn học được gắn liền với giá bán, trạng thái kích hoạt, phân loại học kỳ và thống kê doanh thu thực tế. Tài liệu học tập hỗ trợ nhiều định dạng (tài liệu tải về, hình ảnh, liên kết ngoài, video thực hành PE) và có thể chia sẻ đa môn học (`theory_subjects`).
+Đặc biệt, module quản trị tài liệu PE được tích hợp công cụ giải nén ZIP trực tiếp trên trình duyệt (Web-based ZIP Extraction), cho phép admin tự động giải nén file đề thi PE (.zip), đọc file ảnh bên trong, tải lên Supabase Storage và lưu trữ mảng URL ảnh dạng JSON metadata vào trường `description` để học viên có thể xem trước.
 
 ---
 
 ## 2. User Scenarios & Testing
 
-### User Story 1 – Quản trị danh mục môn học (Priority: P1)
-Là một Quản trị viên, tôi muốn thêm, sửa, xóa, nhân bản và bật/tắt hiển thị môn học theo từng học kỳ.
+### User Story 1 – Quản trị và Deep-Copy Môn học (Priority: P1)
+Là một Quản trị viên, tôi muốn tạo, sửa, ẩn/hiện môn học và đặc biệt là có khả năng sao chép toàn bộ bộ đề thi của một môn học sang một bản sao mới để tái sử dụng.
 
 **Acceptance Scenarios**:
-1. **Given** Quản trị viên ở `/admin/subjects`, **When** nhấn "Thêm môn học", điền tên, học kỳ (1-9), giá tiền (VD: 79.000đ), mô tả và ảnh đại diện, **Then** môn học được lưu vào bảng `subjects` và xuất hiện trên catalog người dùng.
-2. **Given** một môn học hiện có, **When** Quản trị viên nhấn nút toggle kích hoạt (`is_active`), **Then** môn học lập tức ẩn/hiện đối với học viên mà không làm mất dữ liệu liên quan.
-3. **Given** danh sách môn học, **When** chọn sắp xếp theo "Doanh thu cao nhất", **Then** danh sách tính toán từ `order_items` (đơn `approved`) và sắp xếp giảm dần.
+1. **Given** Quản trị viên ở `/admin/subjects`, **When** nhấn "Nhân bản" (Copy) một môn học, **Then** hệ thống thực hiện sao chép sâu (deep-copy): tạo môn học mới (thêm hậu tố "Bản sao"), đồng thời sao chép toàn bộ các Đề thi (Exams), Câu hỏi (Questions), và Đáp án (Options) của môn học đó sang bộ đề mới.
+2. **Given** danh sách môn học, **When** Quản trị viên nhấn nút toggle kích hoạt (`is_active`), **Then** môn học lập tức ẩn/hiện trên trang chủ của học viên.
+3. **Given** thẻ thống kê tổng quan ở trên cùng, **Then** hiển thị tổng số môn học, số môn đang hoạt động, số môn đã ẩn, và số kỳ học trung bình, cùng với doanh thu tính toán real-time theo mỗi môn.
 
-### User Story 2 – Quản trị tài liệu Lý thuyết & Tài liệu thực hành PE (Priority: P1)
-Là một Quản trị viên, tôi muốn tải lên giáo trình, tóm tắt công thức hoặc video/link thực hành PE gắn với một hoặc nhiều môn học.
-
-**Acceptance Scenarios**:
-1. **Given** Quản trị viên ở `/admin/theory`, **When** nhấn "Thêm tài liệu", chọn phân loại (`theory`: Lý thuyết hoặc `pe`: Thực hành PE / Video), tải file PDF/Word/Video hoặc dán Link Drive/YouTube, **Then** tài liệu được lưu và liên kết với các môn học được chọn trong `theory_subjects`.
-2. **Given** tài liệu đã được tải lên, **When** học viên đã mua môn học tương ứng truy cập trang môn học, **Then** tài liệu mở khóa cho phép xem/tải trực tiếp.
-
-### User Story 3 – Tìm kiếm và lọc tài liệu nhanh (Priority: P2)
-Là một Quản trị viên, tôi muốn lọc tài liệu theo môn học và loại tài liệu.
+### User Story 2 – Quản trị Tài liệu & Giải nén ZIP PE (Priority: P1)
+Là một Quản trị viên, tôi muốn tải lên các file tài liệu, link video hoặc file ZIP đề thi PE và liên kết chúng với các môn học tương ứng.
 
 **Acceptance Scenarios**:
-1. **Given** Quản trị viên chọn lọc theo Môn học cụ thể và tab "Tài liệu PE / Video", **Then** bảng tài liệu chỉ hiển thị các mục tương ứng.
+1. **Given** Quản trị viên ở `/admin/theory`, **When** thêm tài liệu mới phân loại "Tài liệu PE / Video" và dán URL hoặc tải lên file `.zip`, **Then** tài liệu được lưu với mảng `preview_images` rỗng trong `description`.
+2. **Given** danh sách tài liệu PE dạng ZIP chưa được giải nén, **When** Quản trị viên nhấn nút "Trích xuất ảnh (1-Click)", **Then** hệ thống tải file ZIP về bộ nhớ trình duyệt, đọc danh sách file, lọc ra các file ảnh (png, jpg, webp), upload chúng lên Supabase, và cập nhật tự động `preview_images` vào metadata của tài liệu đó.
+3. **Given** một file ZIP đã giải nén xong, **When** nhấn nút xem trước, **Then** modal `ExamImageViewerModal` hiện lên với danh sách ảnh chất lượng cao để admin kiểm tra.
+
+### User Story 3 – Tìm kiếm và lọc tài liệu (Priority: P2)
+Là một Quản trị viên, tôi muốn tìm kiếm tài liệu nhanh chóng bằng cách lọc theo môn học hoặc theo phân loại (Lý thuyết / PE).
+
+**Acceptance Scenarios**:
+1. **Given** thanh công cụ tìm kiếm, **When** chọn môn "Ngoại ngữ" và tab "Tài liệu PE", **Then** danh sách ngay lập tức hiển thị chỉ các tài liệu thuộc môn đó.
+2. **When** nhập từ khóa vào ô tìm kiếm, **Then** hệ thống tìm trong cả tiêu đề và nội dung description metadata.
 
 ---
 
 ## 3. Requirements
 
 ### Functional Requirements
-- **FR-001**: Quản trị viên có toàn quyền CRUD trên bảng `subjects` (`name`, `semester`, `price`, `description`, `thumbnail_url`, `is_active`, `sort_order`).
-- **FR-002**: Hệ thống PHẢI tự động tính toán tổng số lượt bán (`salesCount`) và doanh thu (`revenue`) của từng môn học dựa trên các đơn hàng đã được duyệt (`orders.status = 'approved'`).
-- **FR-003**: Cho phép nhân bản nhanh môn học (duplicate) để tiết kiệm thời gian khởi tạo cấu trúc cho kỳ mới.
-- **FR-004**: Quản trị tài liệu hỗ trợ 3 loại định dạng (`file`: File tải về/Video, `link`: Đường dẫn ngoài, `image`: Hình ảnh sơ đồ/mindmap) và 2 phân loại (`theory`: Lý thuyết, `pe`: Thực hành PE).
-- **FR-005**: Một tài liệu có thể liên kết đồng thời với nhiều môn học thông qua bảng trung gian `theory_subjects`.
-- **FR-006**: Tải file lên Supabase Storage bucket `materials` hoặc `theory-files`, hỗ trợ dung lượng tối đa 50MB.
+- **FR-001 (Subject Deep Copy)**: Hàm `copy(subject)` trong `AdminSubjects.tsx` PHẢI thực hiện chuỗi giao dịch: `INSERT subject` -> lấy `exam_subjects` -> `INSERT exams` -> `INSERT exam_subjects` -> `INSERT questions` -> `INSERT question_options`.
+- **FR-002 (Web-ZIP Extraction)**: Sử dụng module `peZipExtractor.ts` (dựa trên thư viện `jszip`) để tải, giải nén ZIP in-memory, lọc các file MIME type image, tạo tên UUID an toàn và đưa lên storage bucket.
+- **FR-003 (Theory Metadata Structure)**: Vì bảng `theories` không có cột mảng ảnh, ứng dụng PHẢI lưu trữ cấu trúc JSON vào trường `description` thông qua hàm `formatTheoryDescription(desc, preview_images)` và đọc bằng `parseTheoryDescription(desc)`.
+- **FR-004 (Real-time Subject Stats)**: Doanh thu của từng môn học (`salesCount` và `revenue`) được tính toán động (client-side) bằng cách ghép nối với bảng `order_items` từ các đơn hàng có trạng thái `approved`.
+- **FR-005 (Theory Types)**: Hỗ trợ 3 định dạng hiển thị: `file` (File/Video), `link` (Liên kết ngoài), `image` (Hình ảnh/Sơ đồ). Một tài liệu có thể mapping nhiều môn học qua bảng `theory_subjects`.
 
 ### Key Entities
-- **subjects**: `id` (uuid), `name` (text), `semester` (int), `price` (numeric), `description` (text), `thumbnail_url` (text), `is_active` (bool), `sort_order` (int).
-- **theories**: `id` (uuid), `title` (text), `description` (text), `type` (`file` | `link` | `image`), `category` (`theory` | `pe`), `url` (text), `file_name` (text), `created_by` (uuid).
-- **theory_subjects**: `id` (uuid), `theory_id` (uuid -> theories), `subject_id` (uuid -> subjects).
+
+**Table: subjects**
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK |
+| `name` | text | Tên môn học |
+| `semester` | int | Kỳ học (1-9) |
+| `price` | numeric | Học phí / Giá gốc |
+| `is_active` | bool | Ẩn/Hiện trên ứng dụng |
+
+**Table: theories**
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | PK |
+| `title` | text | Tên tài liệu |
+| `description` | text | Nội dung mô tả + Chứa Metadata mảng `preview_images` JSON |
+| `type` | text | `file`, `link`, `image` |
+| `category`| text | `theory`, `pe` |
+| `url` | text | Đường dẫn file hoặc liên kết gốc |
+
+**Table: theory_subjects**
+| Column | Type | Notes |
+|---|---|---|
+| `theory_id` | uuid | Tham chiếu `theories.id` |
+| `subject_id` | uuid | Tham chiếu `subjects.id` |
+
+### Key Files
+- `src/pages/admin/AdminSubjects.tsx`: Chứa logic deep-copy (nhân bản môn học, đề thi) và tính toán doanh thu.
+- `src/pages/admin/AdminTheory.tsx`: Quản lý tài liệu, tích hợp luồng xử lý Web-ZIP Extraction bằng `peZipExtractor`.
+- `src/lib/peZipExtractor.ts`: Hàm hỗ trợ tải file `.zip` từ URL, giải nén và lọc ảnh.
+- `src/components/common/ExamImageViewerModal.tsx`: Xem trước ảnh trích xuất từ đề thi PE.
 
 ---
 
 ## 4. Success Criteria
-- **SC-001**: Lưu và cập nhật thông tin môn học/tài liệu trong < 1 giây.
-- **SC-002**: File tài liệu tải lên storage an toàn, URL công khai hoặc ký token hợp lệ.
-- **SC-003**: Dữ liệu tài liệu hiển thị đúng phân quyền (chỉ học viên sở hữu môn học mới truy cập được nội dung tài liệu bản quyền).
+- **SC-001**: Tính năng "Nhân bản môn học" hoạt động chính xác, đảm bảo 100% câu hỏi và đáp án của môn cũ được đưa sang môn mới nguyên vẹn.
+- **SC-002**: Tính năng trích xuất ảnh từ file ZIP PE trên trình duyệt thành công đối với các file < 50MB mà không làm sập (crash/OOM) trình duyệt.
+- **SC-003**: Dữ liệu mảng hình ảnh `preview_images` được chuỗi hóa (serialize) thành công vào trường `description` dưới dạng JSON ẩn và giải mã chính xác khi load lên UI.
+- **SC-004**: Tốc độ tải trang quản trị < 1500ms. Mọi hành động ẩn/hiện, sửa, xóa đều có cảnh báo rủi ro xác nhận (confirm).
