@@ -52,7 +52,7 @@ Là một Quản trị viên, tôi muốn biết ngay lập tức nếu có ngư
 - **FR-001 (Optimized Counts)**: Tổng Sinh viên, Môn học, Đề thi, Câu hỏi và Trạng thái đơn hàng (Pending, Approved, Rejected) PHẢI được lấy bằng query `count: 'exact', head: true` để tránh tải toàn bộ record về client.
 - **FR-002 (Chart Rendering Limit)**: Dữ liệu đơn hàng chi tiết để vẽ biểu đồ và phân tích (Orders & Order Items) chỉ truy vấn tối đa `1000` dòng và cắt ngọn `400` ngày gần nhất.
 - **FR-003 (Real-time Sync)**: Component phải subscribe vào kênh `admin-dashboard-realtime-<timestamp>`, bảng `orders`. Khi có event (INSERT, UPDATE), kích hoạt fetch lại data sau một khoảng `clearTimeout/setTimeout(500ms)`.
-- **FR-004 (Top Sales Logic)**: Top môn bán chạy dựa vào bảng `order_items`, chỉ tính các item thuộc những đơn hàng có trạng thái `approved`, giới hạn tối đa top 5 môn.
+- **FR-004 (Top Sales Logic)**: Top môn bán chạy dựa vào bảng `order_items`, chỉ tính các item thuộc những đơn hàng có trạng thái `approved`, giới hạn tối đa top 5 môn. Để tránh giới hạn URL Length của PostgREST, `order_items` phải được fetch theo từng cụm nhỏ (chunkSize = 150 `order_id` mỗi lần) cho TẤT CẢ các đơn hàng đã duyệt, đảm bảo tính toán xếp hạng chính xác cho mọi khung thời gian.
 - **FR-005 (Recent Orders Table)**: Hiển thị 10 đơn hàng gần nhất (chưa bị phân trang), hiển thị Mã đơn, Khách hàng, Mã SV, Ngày tạo, Số tiền và Trạng thái (hiển thị dưới dạng Status Badge).
 - **FR-006 (Responsiveness)**: Các view bảng (table) tự động ẩn trên màn hình di động (`hidden-mobile`) và chuyển sang giao diện List thẻ (`visible-mobile`).
 
