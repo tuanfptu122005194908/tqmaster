@@ -105,6 +105,24 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
 
   const approvedReviews = MOCK_REVIEWS.filter(r => r.status === 'approved');
 
+  // Dynamic calculations
+  const totalReviews = approvedReviews.length;
+  const averageRating = totalReviews > 0 
+    ? (approvedReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1) 
+    : '0.0';
+    
+  const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  approvedReviews.forEach(r => {
+    if (r.rating >= 1 && r.rating <= 5) {
+      starCounts[r.rating as keyof typeof starCounts]++;
+    }
+  });
+
+  const getStarPercentage = (stars: number) => {
+    if (totalReviews === 0) return '0%';
+    return `${((starCounts[stars as keyof typeof starCounts] / totalReviews) * 100).toFixed(1)}%`;
+  };
+
   let filteredReviews = approvedReviews;
   if (filter === '5') filteredReviews = approvedReviews.filter(r => r.rating === 5);
   if (filter === '4') filteredReviews = approvedReviews.filter(r => r.rating === 4);
@@ -152,38 +170,32 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
           <div className="lg:col-span-4 flex flex-col items-center justify-center p-8 bg-iba-surface-container-low rounded-xl text-center border border-iba-hairline">
             <span className="font-iba-body-sm text-iba-body-sm text-iba-on-surface-variant uppercase tracking-wider font-semibold mb-1">Điểm tổng hợp</span>
             <div className="flex items-baseline gap-1 my-1">
-              <span className="font-iba-headline-xl text-iba-headline-xl text-iba-on-surface font-extrabold tracking-tighter">5.0</span>
+              <span className="font-iba-headline-xl text-iba-headline-xl text-iba-on-surface font-extrabold tracking-tighter">{averageRating}</span>
               <span className="font-iba-headline-sm text-iba-headline-sm text-iba-outline font-medium">/ 5</span>
             </div>
             <div className="flex items-center gap-1 text-amber-500 my-2">
               {[1, 2, 3, 4, 5].map(i => (
-                <span key={i} className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                <span key={i} className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: i <= Math.round(parseFloat(averageRating)) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
               ))}
             </div>
             <div className="font-iba-label-code text-iba-label-code text-iba-primary font-semibold flex items-center gap-1 bg-iba-surface-container-lowest px-4 py-1 rounded-full shadow-sm mt-1">
               <span className="material-symbols-outlined text-[15px]">rate_review</span>
-              <span>101 đánh giá tổng hợp</span>
+              <span>{totalReviews} đánh giá tổng hợp</span>
             </div>
           </div>
 
           {/* Rating Progress Bars Breakdown */}
           <div className="lg:col-span-8 space-y-2.5">
-            {[
-              { stars: 5, pct: '100%', count: 101 },
-              { stars: 4, pct: '0%', count: 0 },
-              { stars: 3, pct: '0%', count: 0 },
-              { stars: 2, pct: '0%', count: 0 },
-              { stars: 1, pct: '0%', count: 0 },
-            ].map(row => (
-              <div key={row.stars} className="flex items-center gap-4 text-iba-on-surface">
+            {[5, 4, 3, 2, 1].map(stars => (
+              <div key={stars} className="flex items-center gap-4 text-iba-on-surface">
                 <div className="flex items-center gap-1 w-14 shrink-0 font-iba-body-sm text-iba-body-sm font-semibold">
-                  <span>{row.stars}</span>
+                  <span>{stars}</span>
                   <span className="material-symbols-outlined text-[16px] text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                 </div>
                 <div className="flex-1 h-3 bg-iba-surface-container rounded-full overflow-hidden">
-                  <div className="h-full bg-iba-primary rounded-full transition-all duration-700 ease-out" style={{ width: row.pct }}></div>
+                  <div className="h-full bg-iba-primary rounded-full transition-all duration-700 ease-out" style={{ width: getStarPercentage(stars) }}></div>
                 </div>
-                <div className="w-12 text-right font-iba-label-code text-iba-label-code text-iba-on-surface-variant font-bold">{row.count}</div>
+                <div className="w-12 text-right font-iba-label-code text-iba-label-code text-iba-on-surface-variant font-bold">{starCounts[stars as keyof typeof starCounts]}</div>
               </div>
             ))}
           </div>
@@ -201,20 +213,32 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                 onClick={() => setFilter('all')}
                 className={`px-3 py-1.5 rounded-lg font-iba-body-sm text-iba-body-sm font-semibold transition-all border-none cursor-pointer ${filter === 'all' ? 'bg-iba-primary text-iba-on-primary shadow-sm' : 'bg-iba-surface-container hover:bg-iba-surface-container-high text-iba-on-surface'}`}
               >
-                Tất cả (101)
+                Tất cả ({totalReviews})
               </button>
               <button 
                 onClick={() => setFilter('5')}
                 className={`px-3 py-1.5 rounded-lg font-iba-body-sm text-iba-body-sm font-medium transition-all border-none cursor-pointer ${filter === '5' ? 'bg-iba-primary text-iba-on-primary shadow-sm' : 'bg-iba-surface-container hover:bg-iba-surface-container-high text-iba-on-surface'}`}
               >
-                5 sao (101)
+                5 sao ({starCounts[5]})
+              </button>
+              <button 
+                onClick={() => setFilter('4')}
+                className={`px-3 py-1.5 rounded-lg font-iba-body-sm text-iba-body-sm font-medium transition-all border-none cursor-pointer ${filter === '4' ? 'bg-iba-primary text-iba-on-primary shadow-sm' : 'bg-iba-surface-container hover:bg-iba-surface-container-high text-iba-on-surface'}`}
+              >
+                4 sao ({starCounts[4]})
+              </button>
+              <button 
+                onClick={() => setFilter('3')}
+                className={`px-3 py-1.5 rounded-lg font-iba-body-sm text-iba-body-sm font-medium transition-all border-none cursor-pointer ${filter === '3' ? 'bg-iba-primary text-iba-on-primary shadow-sm' : 'bg-iba-surface-container hover:bg-iba-surface-container-high text-iba-on-surface'}`}
+              >
+                3 sao ({starCounts[3]})
               </button>
               <button 
                 onClick={() => setFilter('verified')}
                 className={`px-3 py-1.5 rounded-lg font-iba-body-sm text-iba-body-sm font-medium flex items-center gap-1 transition-all border-none cursor-pointer ${filter === 'verified' ? 'bg-iba-primary text-iba-on-primary shadow-sm' : 'bg-iba-surface-container hover:bg-iba-surface-container-high text-iba-on-surface'}`}
               >
                 <Verified size={15} className={filter === 'verified' ? 'text-iba-on-primary' : 'text-iba-primary'} />
-                Đã mua hàng
+                Đã mua hàng ({approvedReviews.filter(r => r.badges.includes('verified')).length})
               </button>
             </div>
             {/* Sort dropdown */}
