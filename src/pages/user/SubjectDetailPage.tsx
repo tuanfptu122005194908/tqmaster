@@ -17,7 +17,8 @@ type Subject       = Tables<'subjects'>;
 type Exam          = Tables<'exams'>;
 type Theory        = Tables<'theories'>;
 type Announcement  = Tables<'announcements'>;
-type Tab = 'exams' | 'theory' | 'pe' | 'announcements';
+import { ProductReviews } from '@/components/ProductReviews';
+type Tab = 'exams' | 'theory' | 'pe' | 'announcements' | 'reviews';
 
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -415,6 +416,7 @@ export default function SubjectDetailPage() {
     { key: 'theory',        label: 'Lý thuyết', icon: <BookOpen size={14} />,   count: purchased ? theoryDocs.length : undefined },
     { key: 'pe',            label: 'Tài liệu PE / Video', icon: <Layers size={14} />, count: purchased ? peDocs.length : undefined },
     { key: 'announcements', label: 'Thông báo', icon: <Bell size={14} />,       count: announcements.length },
+    { key: 'reviews',       label: 'Đánh giá & Phản hồi', icon: <Star size={14} />, count: 101 },
   ];
 
   return (
@@ -643,6 +645,10 @@ export default function SubjectDetailPage() {
               </div>
             ))}
           </div>
+        )}
+        
+        {activeTab === 'reviews' && (
+          <ProductReviews purchased={purchased} />
         )}
       </div>
 
