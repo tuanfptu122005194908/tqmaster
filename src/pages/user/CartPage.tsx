@@ -131,9 +131,10 @@ export default function CartPage() {
     setTimeout(() => setCopied(null), 1400);
   };
 
-  const transferContent = (bankInfo['bank_content'] || 'TQMASTER [MaSV] [HoTen]')
+  const transferContent = ('[name] + tiền quỹ mua tài liệu')
     .replace('[MaSV]', studentCode || '[MaSV]')
-    .replace('[HoTen]', fullName || '[HoTen]');
+    .replace('[HoTen]', fullName || '[HoTen]')
+    .replace('[name]', fullName || '[name]');
 
   const handleSubmit = async () => {
     if (!profile) return;
@@ -462,19 +463,19 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                {bankInfo['bank_qr_url'] && (
+                {(bankInfo['bank_name'] && bankInfo['bank_account']) && (
                   <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-white border border-slate-200 rounded-xl mb-6 shadow-sm">
                     <div className="bg-white p-2 rounded-xl border-2 border-cyan-100 shadow-md shrink-0">
-                      <img src={bankInfo['bank_qr_url']} alt="QR" className="w-40 h-40 object-contain" />
+                      <img src={`https://img.vietqr.io/image/${bankInfo['bank_name']}-${bankInfo['bank_account']}-compact.png?amount=${total}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(bankInfo['bank_owner'] || '')}`} alt="VietQR" className="w-40 h-40 object-contain" />
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <Sparkles size={18} className="text-cyan-500" /> Quét mã QR thanh toán nhanh
                       </h3>
-                      <p className="text-sm text-slate-500 leading-relaxed mb-4">Mở ứng dụng ngân hàng trên điện thoại, chọn tính năng quét mã QR và quét mã bên cạnh để thanh toán tự động.</p>
+                      <p className="text-sm text-slate-500 leading-relaxed mb-4">Mở ứng dụng ngân hàng trên điện thoại, chọn tính năng quét mã VietQR để thanh toán tự động với số tiền và nội dung đã được điền sẵn.</p>
                       <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg text-sm text-amber-800 border border-amber-200">
                         <Lock size={16} className="shrink-0 mt-0.5" />
-                        <span>Vui lòng kiểm tra kỹ <strong>Nội dung chuyển khoản</strong> và <strong>Số tiền</strong> trước khi xác nhận để hệ thống duyệt tự động.</span>
+                        <span>Vui lòng kiểm tra lại <strong>Nội dung chuyển khoản</strong> và <strong>Số tiền</strong> trên ứng dụng ngân hàng trước khi xác nhận.</span>
                       </div>
                     </div>
                   </div>

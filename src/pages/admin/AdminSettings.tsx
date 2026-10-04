@@ -127,21 +127,15 @@ export default function AdminSettings() {
             <input style={{ ...inputStyle, textTransform: 'uppercase', fontWeight: 800 }} value={settings['bank_owner'] ?? ''} onChange={e => set('bank_owner', e.target.value.toUpperCase())} placeholder="VD: NGUYEN VAN A" />
           </div>
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Nội dung chuyển khoản mẫu</label>
-          <input id="transfer-content-input" style={inputStyle} value={settings['bank_content'] ?? ''} onChange={e => set('bank_content', e.target.value)} placeholder="TQMASTER [MaSV] [HoTen]" />
-          <p style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>Dùng [MaSV] và [HoTen] làm placeholder tự động điền</p>
-        </div>
+
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>QR Code nhận thanh toán</label>
-          <FileUploader
-            bucket="qr-codes"
-            value={settings['bank_qr_url'] ?? ''}
-            onChange={url => set('bank_qr_url', url)}
-            accept="image/*"
-            preview="image"
-            label="Tải ảnh QR Code"
-          />
+          <p style={{ fontSize: 13, color: '#64748b', marginBottom: 12 }}>Hệ thống hiện đang sử dụng <strong>VietQR</strong> để tự động tạo mã QR thanh toán dựa trên Tên ngân hàng và Số tài khoản phía trên.</p>
+          {settings['bank_name'] && settings['bank_account'] && (
+             <div style={{ padding: 12, border: '1px solid #e2e8f0', borderRadius: 12, display: 'inline-block', background: '#f8fafc' }}>
+               <img src={`https://img.vietqr.io/image/${settings['bank_name']}-${settings['bank_account']}-compact.png?accountName=${encodeURIComponent(settings['bank_owner'] ?? '')}`} alt="VietQR Preview" style={{ width: 160, height: 160, objectFit: 'contain' }} />
+             </div>
+          )}
         </div>
       </Section>
 
