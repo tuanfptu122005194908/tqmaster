@@ -213,7 +213,7 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
           <div>
             <h2 className="font-iba-headline-lg text-iba-headline-lg text-iba-on-surface font-extrabold tracking-tight">Đánh giá & thông tin từ khách hàng</h2>
             <p className="font-iba-body-sm text-iba-body-sm text-iba-on-surface-variant mt-1">
-              Các mục gắn nhãn <span className="bg-iba-surface-container-high px-1.5 py-0.5 rounded font-semibold text-iba-on-surface">IBACUU biên soạn</span> có nội dung do ban quản trị tổng hợp thực tế.
+              Các mục gắn nhãn <span className="bg-iba-surface-container-high px-1.5 py-0.5 rounded font-semibold text-iba-on-surface">TQMaster biên soạn</span> có nội dung do ban quản trị tổng hợp thực tế.
             </p>
           </div>
           <div className="flex items-center gap-2 bg-iba-surface-container-low px-4 py-2 rounded-lg text-iba-primary shrink-0 font-iba-body-sm text-iba-body-sm">
@@ -337,7 +337,7 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                               'bg-iba-secondary-fixed text-iba-on-secondary-fixed'
                             }`}>
                               {b === 'verified' && <span className="material-symbols-outlined text-[13px]">verified</span>}
-                              {b === 'verified' ? 'Đã mua hàng' : b === 'ibacuu' ? 'IBACUU biên soạn' : b}
+                              {b === 'verified' ? 'Đã mua hàng' : b === 'ibacuu' ? 'TQMaster biên soạn' : b}
                             </span>
                           ))}
                         </div>
@@ -377,7 +377,7 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                           <div className="w-5 h-5 rounded bg-iba-primary text-iba-on-primary flex items-center justify-center">
                             <span className="material-symbols-outlined text-[14px]">support_agent</span>
                           </div>
-                          <span className="font-iba-body-sm text-iba-body-sm font-bold text-iba-primary">Phản hồi từ Quản trị viên IBACUU</span>
+                          <span className="font-iba-body-sm text-iba-body-sm font-bold text-iba-primary">Phản hồi từ Quản trị viên TQMaster</span>
                         </div>
                         <span className="font-iba-label-code text-iba-label-code text-iba-outline">{r.adminReply.date}</span>
                       </div>
@@ -423,7 +423,7 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
             </div>
             
             <p className="font-iba-body-sm text-iba-body-sm text-iba-on-surface-variant leading-relaxed mb-4">
-              Chỉ tài khoản đã thanh toán và đang sở hữu sản phẩm mới có thể gửi đánh giá xác thực trên hệ thống IBACUU. Mọi đánh giá phải qua Admin kiểm duyệt trước khi hiển thị.
+              Chỉ tài khoản đã thanh toán và đang sở hữu sản phẩm mới có thể gửi đánh giá xác thực trên hệ thống. Mọi đánh giá phải qua Admin kiểm duyệt trước khi hiển thị.
             </p>
 
             {purchased ? (
