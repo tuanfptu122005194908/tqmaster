@@ -99,6 +99,7 @@ export const MOCK_REVIEWS: Review[] = [
 ];
 
 export function ProductReviews({ purchased }: { purchased: boolean }) {
+  const { profile, isAdmin } = useApp();
   const [filter, setFilter] = useState<'all' | '5' | '4' | '3' | 'verified'>('all');
   const [hoverStar, setHoverStar] = useState<number>(0);
   const [rating, setRating] = useState<number>(0);
