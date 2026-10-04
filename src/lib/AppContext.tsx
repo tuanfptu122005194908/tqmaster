@@ -435,18 +435,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addToCart = (s: Subject | string) => {
     const sid = typeof s === 'string' ? s : s?.id;
     if (sid && freeSubjectIds.includes(sid)) return; // môn miễn phí: không cần giỏ hàng
+    
+    const showToast = (name: string) => {
+      toast.success(`Đã thêm ${name} vào giỏ hàng`, {
+        position: 'top-center',
+        duration: 3000,
+        style: {
+          padding: '16px 24px',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          background: '#10b981',
+          color: '#ffffff',
+          border: 'none',
+          boxShadow: '0 10px 25px rgba(16, 185, 129, 0.4)'
+        }
+      });
+    };
+
     if (typeof s === 'string') {
       supabase.from('subjects').select('*').eq('id', s).maybeSingle().then(({ data }) => {
         if (data) setCart(c => {
           const isExist = c.find(i => (typeof i === 'string' ? i : i?.id) === data.id);
-          if (!isExist) toast.success(`Đã thêm ${data.name} vào giỏ hàng`);
+          if (!isExist) showToast(data.name);
           return isExist ? c : [...c, data as any];
         });
       });
     } else if (s && s.id) {
       setCart(c => {
         const isExist = c.find(i => (typeof i === 'string' ? i : i?.id) === s.id);
-        if (!isExist) toast.success(`Đã thêm ${s.name} vào giỏ hàng`);
+        if (!isExist) showToast(s.name);
         return isExist ? c : [...c, s];
       });
     }

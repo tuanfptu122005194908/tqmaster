@@ -230,13 +230,14 @@ export default function TopNav() {
         >
           <ShoppingCart size={18} />
           {cart.length > 0 && (
-            <span style={{
-              position: 'absolute', top: -3, right: -3,
-              width: 17, height: 17, borderRadius: '50%',
-              background: '#2563eb', color: 'white',
-              fontSize: 10, fontWeight: 800,
+            <span className="animate-bounce" style={{
+              position: 'absolute', top: -6, right: -6,
+              width: 20, height: 20, borderRadius: '50%',
+              background: '#ef4444', color: 'white',
+              fontSize: 11, fontWeight: 900,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '2px solid #ffffff',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>{cart.length}</span>
           )}
         </button>

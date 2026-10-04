@@ -5,7 +5,7 @@ import { useApp } from '@/lib/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function MobileNav() {
-  const { isAdmin } = useApp();
+    const { isAdmin, cart } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -53,10 +53,24 @@ export default function MobileNav() {
               border: 'none',
               width: '20%',
               padding: '8px 0',
+              position: 'relative'
             }}
             className="touch-target"
           >
-            <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+            <div style={{ position: 'relative' }}>
+              <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+              {item.id === 'cart' && cart.length > 0 && (
+                <span className="animate-bounce" style={{
+                  position: 'absolute', top: -6, right: -8,
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: '#ef4444', color: 'white',
+                  fontSize: 10, fontWeight: 900,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '2px solid #ffffff',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+                }}>{cart.length}</span>
+              )}
+            </div>
             <span style={{ fontSize: '10px', fontWeight: isActive ? 600 : 500 }}>
               {item.label}
             </span>
