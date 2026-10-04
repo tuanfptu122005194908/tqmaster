@@ -1,4 +1,4 @@
-# Feature Specification: Admin Dashboard & Analytics
+# Feature Specification: Admin Analytics Dashboard
 
 **Feature Branch**: `[main]`  
 **Status**: ✅ Implemented (Optimized v2.1)
@@ -6,77 +6,76 @@
 ---
 
 ## 1. Overview
-Admin Dashboard (`/admin/dashboard`) là trung tâm giám sát hoạt động kinh doanh và học tập của nền tảng TQMaster. Trang cung cấp các chỉ số doanh thu tức thời, biểu đồ xu hướng theo mốc thời gian, tỷ lệ phân bổ môn học, danh sách đơn hàng gần đây và lối tắt quản trị.
 
-Được thiết kế theo **TQMaster Dashboard Theme** với cơ chế truy vấn dữ liệu hiệu năng cao: sử dụng truy vấn Server-side HEAD Count và giới hạn dữ liệu biểu đồ trong khoảng thời gian có điều kiện (400 ngày gần nhất) nhằm tối ưu thời gian tải trang dưới 500ms.
+Admin Dashboard (`/admin`) là trung tâm phân tích và điều hành toàn bộ hệ thống TQMaster. Trang này cung cấp cái nhìn tổng quan theo thời gian thực (Real-time) về doanh thu, tình trạng đơn hàng, môn học bán chạy và tài nguyên hệ thống.
+
+Dashboard được thiết kế theo giao diện thẻ Pastel hiện đại (TQMaster Theme) để giảm tải căng thẳng cho người quản trị, với cơ chế lấy dữ liệu được tối ưu cực hạn qua `exact count` queries và giới hạn dữ liệu vẽ biểu đồ, tránh hiện tượng nghẽn cổ chai (bottleneck) khi dữ liệu phình to.
 
 ---
 
 ## 2. User Scenarios & Testing
 
-### User Story 1 – Xem số liệu thống kê tổng quan (Priority: P1)
-Là một Quản trị viên, tôi muốn theo dõi ngay lập tức 4 chỉ số cốt lõi: Doanh thu, Đơn hàng, Giá trị trung bình đơn và Tổng số học viên khi vừa mở trang quản trị.
+### User Story 1 – Thống kê thẻ số liệu (Priority: P1)
+Là một Quản trị viên, tôi muốn nhìn thấy ngay các chỉ số sinh lời cốt lõi (Doanh thu, số đơn) ngay khi vừa đăng nhập.
 
 **Acceptance Scenarios**:
-1. **Given** Quản trị viên đã đăng nhập và truy cập `/admin` hoặc `/admin/dashboard`.
-2. **When** trang tải xong,
-3. **Then**:
-   - Card 1 (Doanh thu): hiển thị tổng tiền các đơn `status = 'approved'`, định dạng VNĐ kèm tỷ lệ tăng trưởng.
-   - Card 2 (Đơn hàng): hiển thị tổng số đơn từ server-side exact count, kèm badge số đơn đang chờ duyệt (`pending`).
-   - Card 3 (Giá trị TB đơn): hiển thị trung bình doanh thu trên mỗi đơn duyệt thành công.
-   - Card 4 (Học viên): hiển thị tổng số học sinh đã đăng ký (`role != 'admin'`).
+1. **Given** admin truy cập `/admin`, **When** trang tải xong, **Then** 4 thẻ số liệu hiển thị: Tổng doanh thu (thực tế từ các đơn Đã duyệt), Tổng đơn hàng, Giá trị trung bình/đơn, và Tổng sinh viên.
+2. **Given** thẻ "Tổng đơn hàng", **Then** hiển thị thêm một con số nhắc nhở: "Có X đơn đang chờ admin duyệt" bằng màu cam.
 
-### User Story 2 – Phân tích biểu đồ doanh thu theo chu kỳ (Priority: P1)
-Là một Quản trị viên, tôi muốn chuyển đổi giữa các khung thời gian (Hôm nay, 7 ngày, 30 ngày, 12 tháng) để nắm bắt biến động dòng tiền.
+### User Story 2 – Phân tích Doanh thu động (Priority: P1)
+Là một Quản trị viên, tôi muốn xem biểu đồ doanh thu thay đổi theo Ngày, Tuần, Tháng, hoặc Năm để phân tích xu hướng mua tài liệu.
 
 **Acceptance Scenarios**:
-1. **Given** Quản trị viên đang ở mục Biểu đồ doanh thu,
-2. **When** chọn tab `Hôm nay` (Day), `7 ngày` (Week), `30 ngày` (Month) hoặc `12 tháng` (Year),
-3. **Then** biểu đồ SVG tương tác cập nhật ngay trục thời gian và đường dốc tương ứng, kèm tổng doanh thu của kỳ đó.
+1. **Given** biểu đồ "Phân Tích Doanh Thu", **When** tôi bấm vào tab "Ngày", **Then** hệ thống render Area Chart (màu xanh dương) hiển thị doanh thu theo 14 ngày gần nhất.
+2. **Given** tôi chuyển sang tab "Tháng", **Then** biểu đồ tự động group dữ liệu và vẽ doanh thu của 12 tháng trong năm.
+3. **When** di chuột qua các điểm trên biểu đồ, **Then** hiển thị Tooltip nổi với định dạng tiền VND và nhãn "Doanh thu thực tế từ Supabase".
 
-### User Story 3 – Theo dõi tỷ lệ môn học & tình trạng duyệt đơn (Priority: P2)
-Là một Quản trị viên, tôi muốn biết môn học nào đang được mua nhiều nhất và tỷ lệ duyệt đơn hiện tại.
-
-**Acceptance Scenarios**:
-1. **Given** dữ liệu đơn hàng đã tải,
-2. **When** cuộn xuống khu vực phân tích cơ cấu,
-3. **Then**:
-   - Danh sách top môn học hiển thị thanh tiến độ %, doanh thu và số lượng bán.
-   - Widget "Tỷ lệ duyệt đơn" hiển thị phần trăm đơn Đã duyệt, Chờ xử lý, Đã hủy.
-
-### User Story 4 – Thao tác nhanh trên đơn hàng gần đây (Priority: P2)
-Là một Quản trị viên, tôi muốn duyệt hoặc từ chối nhanh đơn hàng mới nhất mà không cần chuyển toàn bộ qua trang đơn hàng.
+### User Story 3 – Xếp hạng Môn học (Priority: P2)
+Là một Quản trị viên, tôi muốn biết môn học nào đang mang lại nhiều doanh thu nhất.
 
 **Acceptance Scenarios**:
-1. **Given** có đơn hàng mới với trạng thái `pending` trong bảng "Đơn hàng gần đây",
-2. **When** Quản trị viên click "Duyệt",
-3. **Then** trạng thái đơn chuyển sang `approved`, quyền học môn học được cấp ngay cho học viên, và số liệu thống kê tự động cập nhật.
+1. **Given** bảng xếp hạng "Top Môn Bán Chạy", **When** tôi lọc theo "Tuần", **Then** hệ thống tính toán doanh thu của các `order_items` từ các đơn hàng Đã duyệt trong 7 ngày qua.
+2. **Then** render một Donut Chart (biểu đồ tròn lõm giữa) với số tổng lượng bán ra nằm ở chính giữa, cùng danh sách 5 môn đứng đầu xếp theo tỷ trọng doanh thu `%`.
+
+### User Story 4 – Theo dõi đơn hàng theo thời gian thực (Priority: P1)
+Là một Quản trị viên, tôi muốn biết ngay lập tức nếu có người mua tài liệu để vào duyệt đơn.
+
+**Acceptance Scenarios**:
+1. **Given** trang Dashboard đang mở, **When** một sinh viên đặt đơn hàng mới, **Then** Supabase Realtime gửi broadcast.
+2. **Then** Dashboard tự động làm mới dữ liệu (debounce 500ms) để biểu đồ và danh sách 10 đơn hàng gần nhất được cập nhật mà không cần F5.
 
 ---
 
 ## 3. Requirements
 
 ### Functional Requirements
-- **FR-001**: Hệ thống PHẢI kiểm tra quyền admin (`role === 'admin'`). Người dùng không có quyền admin truy cập `/admin/*` sẽ bị chuyển hướng về `/`.
-- **FR-002**: Chỉ số Tổng học viên PHẢI được lấy qua query HEAD count (`{ count: 'exact', head: true }`) lọc theo `role != 'admin'`.
-- **FR-003**: Số lượng đơn Chờ duyệt, Đã duyệt, Đã hủy PHẢI được lấy độc lập qua query HEAD count để tránh tải toàn bộ record về client.
-- **FR-004**: Dữ liệu vẽ biểu đồ PHẢI được giới hạn theo mốc thời gian (mặc định lấy đơn trong 400 ngày gần nhất, tối đa 1000 record) để tối ưu băng thông và bộ nhớ.
-- **FR-005**: Hệ thống PHẢI cung cấp bảng "Đơn hàng mới nhất" (top 6 đơn) cho phép xem mã đơn, học viên, số tiền, ngày tạo, trạng thái và nút duyệt nhanh.
-- **FR-006**: Đăng ký kênh Supabase Realtime lắng nghe thay đổi trên bảng `orders` để làm mới dữ liệu tự động với debounce 400ms.
-
-### Non-Functional Requirements
-- **NFR-001**: Tốc độ render lần đầu không quá 1000ms với dataset > 10,000 orders.
-- **NFR-002**: Giao diện tuân thủ tuyệt đối quy chuẩn TQMaster: Canvas `#f4f7fc`, Card `#ffffff` bo góc 20-24px, Font chữ `Inter` kết hợp `Be Vietnam Pro`.
-- **NFR-003**: Hỗ trợ responsive đa màn hình (Desktop 2-3 cột, Mobile 1 cột xếp chồng mượt mà).
+- **FR-001 (Optimized Counts)**: Tổng Sinh viên, Môn học, Đề thi, Câu hỏi và Trạng thái đơn hàng (Pending, Approved, Rejected) PHẢI được lấy bằng query `count: 'exact', head: true` để tránh tải toàn bộ record về client.
+- **FR-002 (Chart Rendering Limit)**: Dữ liệu đơn hàng chi tiết để vẽ biểu đồ và phân tích (Orders & Order Items) chỉ truy vấn tối đa `1000` dòng và cắt ngọn `400` ngày gần nhất.
+- **FR-003 (Real-time Sync)**: Component phải subscribe vào kênh `admin-dashboard-realtime-<timestamp>`, bảng `orders`. Khi có event (INSERT, UPDATE), kích hoạt fetch lại data sau một khoảng `clearTimeout/setTimeout(500ms)`.
+- **FR-004 (Top Sales Logic)**: Top môn bán chạy dựa vào bảng `order_items`, chỉ tính các item thuộc những đơn hàng có trạng thái `approved`, giới hạn tối đa top 5 môn.
+- **FR-005 (Recent Orders Table)**: Hiển thị 10 đơn hàng gần nhất (chưa bị phân trang), hiển thị Mã đơn, Khách hàng, Mã SV, Ngày tạo, Số tiền và Trạng thái (hiển thị dưới dạng Status Badge).
+- **FR-006 (Responsiveness)**: Các view bảng (table) tự động ẩn trên màn hình di động (`hidden-mobile`) và chuyển sang giao diện List thẻ (`visible-mobile`).
 
 ### Key Entities
-- **orders**: `id`, `created_at`, `final_amount`, `status`, `full_name`, `email`, `order_items(subject_id, subjects(name, id))`
-- **profiles**: `id`, `role`, `created_at`
-- **subjects**: `id`, `name`, `price`
+
+**Table: orders**
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | Khóa chính |
+| `status` | enum | `'pending'`, `'approved'`, `'rejected'` |
+| `final_amount` | numeric | Tổng số tiền đã thanh toán / cần thanh toán |
+| `created_at` | timestamptz | Ngày tạo đơn (Dùng để nhóm theo ngày/tuần/tháng) |
+| `full_name` | text | Tên khách hàng |
+| `student_code` | text | Mã sinh viên FPT |
+
+### Key Files
+- `src/pages/admin/AdminDashboard.tsx`: Component chứa toàn bộ UI và Logic dashboard.
+- `src/lib/mockData.ts`: Sử dụng hàm `formatPrice` để định dạng tiền tệ (VND).
 
 ---
 
 ## 4. Success Criteria
-- **SC-001**: Thời gian tải số liệu dashboard dưới 800ms trên mạng 4G/Wifi tiêu chuẩn.
-- **SC-002**: Không xảy ra hiện tượng tràn RAM trình duyệt khi cơ sở dữ liệu có hàng chục nghìn đơn hàng.
-- **SC-003**: Trạng thái thống kê khớp 100% với dữ liệu thực trong PostgreSQL.
+- **SC-001**: Thời gian render giao diện Dashboard lần đầu < 1500ms ngay cả khi hệ thống có > 50,000 bản ghi nhờ query count (head).
+- **SC-002**: Biểu đồ hiển thị mượt mà, đúng logic thời gian.
+- **SC-003**: Cập nhật Realtime hoạt động chính xác khi có người đặt đơn trên một tab khác (dữ liệu nhảy ngay lập tức trên dashboard).
+- **SC-004**: Giao diện tuân thủ quy chuẩn UI TQMaster: Card bo góc 20-22px, màu Pastel dịu mắt, chữ font Inter.
