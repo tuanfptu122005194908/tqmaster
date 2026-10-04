@@ -108,18 +108,26 @@ export default function AdminDashboard() {
           });
         }
 
-        // Only fetch items for recent approved orders (max 60) to prevent huge IN-queries
-        const recentApprovedIds = allOrders
+        // Fetch items for ALL recent approved orders (chunked to prevent huge IN-queries limit)
+        const approvedOrderIds = allOrders
           .filter(o => o.status === 'approved')
-          .slice(0, 60)
           .map(o => o.id);
 
-        if (recentApprovedIds.length > 0) {
-          const { data: itemsData } = await supabase
-            .from('order_items')
-            .select('id, order_id, price, subject_id, subjects(name)')
-            .in('order_id', recentApprovedIds);
-          const allItems = (itemsData ?? []) as any[];
+        if (approvedOrderIds.length > 0) {
+          const chunkSize = 150;
+          let allItems: any[] = [];
+          
+          for (let i = 0; i < approvedOrderIds.length; i += chunkSize) {
+            const chunkIds = approvedOrderIds.slice(i, i + chunkSize);
+            const { data: itemsData } = await supabase
+              .from('order_items')
+              .select('id, order_id, price, subject_id, subjects(name)')
+              .in('order_id', chunkIds);
+              
+            if (itemsData) {
+              allItems = [...allItems, ...itemsData];
+            }
+          }
           if (isMounted) setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
         }
       } catch (err) {
