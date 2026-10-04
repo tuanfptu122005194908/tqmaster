@@ -1,184 +1,79 @@
-# Feature Specification: Student Cart, Checkout & VietQR Payment
+---
+id: "09-ecommerce-checkout"
+title: "User Story 9 - Hệ Thống Giỏ Hàng & Checkout VietQR (E-Commerce Checkout)"
+status: "IMPLEMENTED"
+created_date: "2026-03-05"
+---
 
-**Feature Branch**: `[main]`  
-**Status**: ✅ Implemented (Optimized v2.1)
+# 1. Overview
+Phân hệ Thanh toán và E-Commerce (`/cart`) cung cấp trải nghiệm mua sắm tài liệu khóa học tự động 3 bước: **Quản lý giỏ hàng** -> **Thanh toán VietQR** -> **Xác nhận đơn hàng**. 
+
+Kiến trúc cốt lõi của tính năng này là **Server-Authoritative Order Creation** (Tạo đơn hàng bảo mật từ phía Server). Toàn bộ quá trình tính giá, kiểm tra mã giảm giá và khởi tạo mã đơn hàng đều được xử lý ngầm trên Edge Function. Điều này ngăn chặn hoàn toàn rủi ro thao túng giá từ phía Client (Inspect Element), đồng thời bắt buộc học viên tải lên ảnh biên lai chuyển khoản thì mới có thể đặt hàng.
 
 ---
 
-## 1. Overview
-Hệ thống thanh toán và giỏ hàng của học viên (`/cart`) cung cấp quy trình mua tài liệu ôn thi tự động hóa 3 bước: Quản lý giỏ hàng (`cart`), Thanh toán & Chuyển khoản VietQR (`checkout`), và Xác nhận đơn hàng (`confirm`).
+# 2. User Scenarios
 
-Hệ thống hoạt động theo mô hình **Server-Authoritative Order Creation**: toàn bộ việc kiểm tra giá môn học, thẩm định mã giảm giá, kiểm tra xác thực email và sinh mã đơn hàng đều được thực thi trên Edge Function bảo mật (`create-order`). Đồng thời tích hợp cấu hình tài khoản ngân hàng động từ `system_settings`, tạo mã VietQR tự động theo chuẩn NAPAS và gửi thông báo đơn hàng mới tức thì cho Quản trị viên qua Edge Function `notify-admin-new-order`.
-
----
-
-## 2. User Scenarios & Testing
-
-### User Story 1 – Quản lý giỏ hàng & Áp dụng mã giảm giá (Priority: P1)
-Là một học viên, tôi muốn xem lại các môn học đã chọn, xóa môn không cần thiết và nhập mã khuyến mãi.
+### User Story 1 – Quản lý Giỏ hàng & Áp dụng Mã giảm giá (Priority: P1)
+Là một học viên, tôi muốn xem lại các môn học đã chọn và nhập mã khuyến mãi để được giảm giá.
 
 **Acceptance Scenarios**:
-1. **Given** học viên đã thêm môn học vào giỏ và truy cập `/cart`, **When** trang tải, **Then** danh sách môn học hiển thị chi tiết (Tên môn, Học kỳ, Giá tiền).
-2. **Given** học viên có mã giảm giá (VD: `CHAOKYMOI` giảm 20%), **When** nhập mã và nhấn "Áp dụng", **Then** hệ thống kiểm tra tính hợp lệ trong `discount_codes` (hạn dùng, số lượt dùng tối đa, giá trị đơn tối thiểu) và trừ trực tiếp vào tổng tiền thanh toán hiển thị tạm tính.
-3. **Given** mã giảm giá hết hạn hoặc không đủ điều kiện đơn tối thiểu, **Then** thông báo lỗi màu đỏ xuất hiện giải thích rõ ràng.
+1. **Given** học viên truy cập `/cart`, **When** trang tải, **Then** hệ thống tự động đối chiếu `subject_id` trong giỏ hàng với CSDL để hiển thị chính xác tên môn và giá cập nhật mới nhất (đề phòng giá bị đổi khi đang nằm trong giỏ).
+2. **Given** học viên có mã giảm giá (VD: `CHAOKYMOI` giảm 20%), **When** nhập mã và nhấn "Áp dụng", **Then** hệ thống kiểm tra logic hợp lệ (hạn dùng, số lượt dùng tối đa, giá trị đơn tối thiểu) và trừ trực tiếp vào tổng tiền tạm tính.
+3. **Given** một mã giảm giá hết hạn hoặc đơn hàng không đủ tiền tối thiểu, **When** áp dụng, **Then** hiển thị thông báo lỗi rõ ràng.
 
 ### User Story 2 – Chuyển khoản qua mã VietQR thông minh (Priority: P1)
-Là một học viên chuyển sang bước thanh toán, tôi muốn quét mã QR trên ứng dụng ngân hàng để chuyển khoản nhanh mà không sợ gõ sai số tài khoản hoặc nội dung.
+Là một học viên, tôi muốn quét mã QR trên ứng dụng ngân hàng để chuyển tiền nhanh, không cần tự gõ số tài khoản hay nội dung.
 
 **Acceptance Scenarios**:
-1. **Given** học viên nhấn "Tiến hành thanh toán", **When** sang bước 2 (`checkout`), **Then** hệ thống yêu cầu nhập Họ tên và Mã sinh viên.
-2. **Given** học viên nhập đủ thông tin và chuyển sang bước `confirm`, **Then** hệ thống lấy thông tin tài khoản từ `system_settings` và tự động sinh mã VietQR chuẩn NAPAS chứa sẵn: Số tài khoản, Ngân hàng, Số tiền và Cú pháp nội dung chuyển khoản tự động: `[Tên Học Viên] + mua tài liệu`.
-2. **Given** học viên chuyển khoản bằng web/app ngân hàng khác máy, **When** click nút "Copy" cạnh Số tài khoản hoặc Nội dung, **Then** văn bản được sao chép vào clipboard và icon hiển thị trạng thái "Đã chép".
+1. **Given** học viên nhấn "Tiến hành thanh toán", **When** sang bước 2, **Then** yêu cầu nhập Họ tên và Mã sinh viên.
+2. **Given** điền đủ thông tin, **When** chuyển sang bước xác nhận, **Then** hệ thống lấy cấu hình tài khoản từ bảng `system_settings` để tự động sinh mã VietQR chuẩn NAPAS.
+3. **Then** mã QR nhúng sẵn: Số tài khoản, Ngân hàng, Số tiền, và cú pháp tự động `[Họ tên] + mua tài liệu`. Kèm theo các nút "Copy" để học sinh sao chép số tài khoản nếu không quét được QR.
 
-### User Story 3 – Tải lên ảnh Bill & Tạo đơn hàng Server-Authoritative (Priority: P1)
-Là một học viên đã chuyển khoản thành công, tôi muốn gửi ảnh biên lai để hệ thống tạo đơn hàng bảo mật và gửi thông báo tới admin phê duyệt.
+### User Story 3 – Bắt buộc Upload Bill & Tạo đơn hàng Server-Authoritative (Priority: P0)
+Là một quản trị viên, tôi muốn đảm bảo không có đơn hàng ảo nào được tạo ra nếu chưa có ảnh biên lai chuyển khoản.
 
 **Acceptance Scenarios**:
-1. **Given** học viên đã chụp màn hình giao dịch, **When** chọn file ảnh biên lai, **Then** ảnh hiển thị xem trước trực tiếp trên giao diện và được tải lên Supabase Storage bucket `order-bills`.
-2. **Given** học viên chưa xác thực email, **When** nhấn xác nhận đặt hàng, **Then** Edge Function trả về lỗi 403: *"Bạn cần xác thực email trước khi đặt hàng"*.
-3. **Given** email đã xác thực và thông tin hợp lệ, **When** học viên click "Tôi đã chuyển khoản & Xác nhận đơn", **Then**:
-   - Client gọi Edge Function `create-order`.
-   - Server tính toán lại toàn bộ giá gốc và mã giảm giá trực tiếp từ database (loại bỏ hoàn toàn rủi ro can thiệp giá từ client).
-   - Server sinh mã đơn ngẫu nhiên chuẩn bảo mật `ORD-XXXXXX`.
-   - Đơn hàng được lưu vào `orders` (`status = 'pending'`) và `order_items`.
-   - Edge Function tự động kích hoạt `notify-admin-new-order` gửi email thông báo qua Resend API.
-   - Giỏ hàng phía client tự động làm trống và chuyển sang màn hình 3 (`confirm`).
+1. **Given** học viên chưa xác thực email, **When** xác nhận đặt hàng, **Then** Edge Function chặn lại và trả về lỗi 403: "Bạn cần xác thực email trước khi đặt hàng".
+2. **Given** học viên cố tình không tải ảnh bill lên, **When** nhấn xác nhận đặt hàng, **Then** frontend chặn lại và hiển thị lỗi "Bắt buộc phải có ảnh bill chuyển khoản".
+3. **Given** thông tin hợp lệ và bill đã tải lên `bill-images`, **When** gọi tạo đơn, **Then**:
+   - Client truyền `subjectIds` và `billImagePath` lên Edge Function `create-order`.
+   - Server lấy lại giá gốc các môn học trực tiếp từ Database (Bỏ qua hoàn toàn giá client gửi).
+   - Kiểm tra xem user đã sở hữu môn đó chưa (Ngăn mua trùng).
+   - Sinh mã đơn hàng ngẫu nhiên (Ví dụ `ORD-241592`).
+   - Lưu đơn vào bảng `orders` (trạng thái pending) và gửi email qua webhook `notify-admin-new-order`.
+   - Xóa giỏ hàng client và chuyển màn hình báo thành công.
 
 ---
 
 ## 3. Requirements
 
 ### Functional Requirements
-- **FR-001**: Giỏ hàng lưu trữ liên tục qua React Context và đồng bộ vào `localStorage`.
-- **FR-002**: Tự động đối soát và khôi phục thông tin môn học nếu giỏ hàng chỉ lưu danh sách `subject_id` dạng chuỗi.
-- **FR-003**: Áp dụng mã giảm giá:
-  - Hỗ trợ loại chiết khấu phần trăm (`percent`) hoặc số tiền cố định (`fixed`).
-  - Kiểm tra điều kiện `is_active = true`, ngày hết hạn `expires_at > now()`, số lượt dùng `used_count < max_uses`, và giá trị đơn tối thiểu `min_order_value`.
-- **FR-004**: Lấy cấu hình tài khoản ngân hàng động từ bảng `system_settings` (`bank_name`, `bank_account`, `bank_owner`) và tự động sinh mã VietQR qua API `img.vietqr.io` thay vì tải ảnh QR tĩnh. Nội dung chuyển khoản tự động điền `[Họ tên] + mua tài liệu` và có cảnh báo màu đỏ không được sửa.
-- **FR-005**: Tải ảnh biên lai lên bucket `order-bills` với định dạng jpg/png/webp, kích thước tối đa 10MB.
-- **FR-006 (Server-Authoritative Order Creation)**:
-  - Tạo đơn hàng bắt buộc thông qua Edge Function `create-order` (Deno).
-  - Xác thực token người dùng qua JWT. Kiểm tra cờ `email_confirmed_at`.
-  - Giá từng môn học lấy trực tiếp từ bảng `subjects` phía server, không nhận giá gửi từ client.
-  - Sinh mã đơn hàng ngẫu nhiên `ORD-XXXXXX` (với 6 chữ số) sử dụng `crypto.getRandomValues()`.
-- **FR-007 (Admin Notification Service)**: Sau khi tạo đơn, Edge Function gọi microservice `notify-admin-new-order` để gửi email báo cáo đơn hàng mới cho quản trị viên qua cổng Resend API / Lovable Connector Gateway.
+- **FR-001 (Cart Persistence)**: Trạng thái giỏ hàng lưu bằng React Context và đồng bộ `localStorage`, tự động mapping từ chuỗi ID sang Object hiển thị đầy đủ (SubjectName, Price).
+- **FR-002 (Coupon Logic)**: Hệ thống mã giảm giá hỗ trợ hai loại (`percent` và `fixed`). Có thể kích hoạt/tắt khẩn cấp (`is_active`), giới hạn số lượt (`max_uses`) và hạn chót (`expires_at`).
+- **FR-003 (VietQR Generator)**: Tự động ghép nối chuỗi query VietQR từ các Key trong `system_settings` (`bank_name`, `bank_account`, `bank_owner`) và lấy avatar QR thông qua API `img.vietqr.io`.
+- **FR-004 (Bill Image Enforcement)**: Upload bill bắt buộc. File ảnh upload lên bucket `bill-images` (giới hạn 10MB, định dạng ảnh). URL phải tồn tại trước khi gọi Edge Function.
+- **FR-005 (Server Edge Function `create-order`)**:
+  - Không truyền giá trị Total lên server. Server TỰ TÍNH.
+  - Sử dụng Deno `crypto.getRandomValues()` để tạo chuỗi `ORD-XXXXXX`.
+  - Thực thi bảo mật qua JWT `Authorization` header để lấy định danh User.
+- **FR-006 (Admin Notification)**: Gọi tự động hook `notify-admin-new-order` để bắn email thông báo cho Admin ngay khi tạo đơn thành công.
 
 ### Key Entities
-- **orders**: `id` (chuỗi dạng `ORD-XXXXXX`), `user_id`, `original_amount`, `discount_amount`, `final_amount`, `discount_code`, `status` (`'pending'`), `bill_image_url`, `student_code`, `full_name`, `email`, `created_at`.
+- **orders**: `id` (Varchar ORD-XXXXXX), `user_id`, `original_amount`, `discount_amount`, `final_amount`, `status` (`pending`|`approved`|`rejected`), `bill_image_url`, `student_code`, `full_name`.
 - **order_items**: `id`, `order_id`, `subject_id`, `price`.
-- **discount_codes**: `id`, `code`, `discount_type`, `value`, `min_order_value`, `max_uses`, `used_count`, `expires_at`, `is_active`.
-- **system_settings**: `key`, `value`.
+- **discount_codes**: `id`, `code`, `discount_type`, `value`, `min_order_value`, `max_uses`, `used_count`, `is_active`.
+- **system_settings**: Lưu cấu hình ngân hàng.
 
 ### Key Files
-- `src/pages/user/CartPage.tsx` — Giao diện 3 bước: Giỏ hàng, Chuyển khoản VietQR, Xác nhận đơn hàng
-- `supabase/functions/create-order/index.ts` — Edge function thẩm định giá, mã giảm giá và tạo đơn hàng an toàn
-- `supabase/functions/notify-admin-new-order/index.ts` — Edge function gửi email thông báo đơn mới cho ban quản trị
-- `src/lib/AppContext.tsx` — Quản lý trạng thái giỏ hàng (`cart`, `addToCart`, `removeFromCart`, `clearCart`)
+- `src/pages/user/CartPage.tsx`: Chứa toàn bộ Stepper UI, form nhập liệu, upload ảnh, tạo QR và call Edge Function.
+- `supabase/functions/create-order/index.ts`: Lõi Server-authoritative logic.
+- `supabase/functions/notify-admin-new-order/index.ts`: Webhook thông báo.
 
 ---
 
 ## 4. Success Criteria
-- **SC-001**: Toàn bộ quá trình tạo đơn server-authoritative và upload ảnh hoàn thành trong < 2 giây.
-- **SC-002**: Chặn đứng 100% các hành vi sửa giá từ devtools phía client.
-- **SC-003**: Email thông báo đơn hàng gửi tới Admin trong vòng < 5 giây sau khi học viên xác nhận chuyển khoản.
-- **SC-004**: VietQR quét chính xác 100% thông tin tài khoản và cú pháp chuyển khoản trên các ứng dụng Mobile Banking tại Việt Nam.
-
-
----
-
-## Merged from 15-admin-coupons
-
-# Feature Specification: Coupon & Discount Code Administration
-
-**Feature Branch**: `[main]`  
-**Status**: ✅ Implemented
-
----
-
-## 1. Overview
-Hệ thống quản lý mã giảm giá (`/admin/coupons`) cung cấp công cụ tạo lập và kiểm soát các chương trình khuyến mãi, kích cầu học viên đăng ký môn học trên nền tảng TQMaster. 
-
-Quản trị viên có thể thiết lập mã giảm giá theo tỷ lệ phần trăm hoặc số tiền cố định, giới hạn thời hạn sử dụng, số lượt dùng tối đa, giá trị đơn hàng tối thiểu và theo dõi số lượt đã sử dụng thực tế.
-
----
-
-## 2. User Scenarios & Testing
-
-### User Story 1 – Tạo mã giảm giá mới (Priority: P1)
-Là một Quản trị viên, tôi muốn tạo mã giảm giá mới với các điều kiện ràng buộc rõ ràng.
-
-**Acceptance Scenarios**:
-1. **Given** Quản trị viên tại `/admin/coupons`, **When** click "Thêm mã giảm giá", nhập mã (VD: `CHAOKY2026`), chọn loại giảm giá (`percent`: % hoặc `fixed`: Số tiền VNĐ), giá trị giảm, hạn sử dụng, giá trị đơn tối thiểu và số lượt tối đa, **Then** mã được lưu vào bảng `discount_codes` và sẵn sàng áp dụng tại giỏ hàng.
-2. **Given** một mã giảm giá đang hoạt động, **When** học viên nhập mã tại trang `/cart`, **Then** hệ thống giảm trừ đúng theo thiết lập của mã.
-
-### User Story 2 – Quản lý & Theo dõi hiệu quả mã khuyến mãi (Priority: P2)
-Là một Quản trị viên, tôi muốn biết mã nào đang được dùng nhiều nhất và nhanh chóng vô hiệu hóa các mã hết hạn.
-
-**Acceptance Scenarios**:
-1. **Given** bảng danh sách mã giảm giá, **When** trang tải, **Then** các thẻ thống kê hiển thị: Tổng số mã, Số mã đang chạy (`is_active = true`), Tổng lượt đã dùng (`used_count`) và Tổng số tiền đã chiết khấu.
-2. **Given** một mã giảm giá cần tạm dừng khẩn cấp, **When** Quản trị viên bấm nút toggle chuyển sang Tắt, **Then** mã lập tức bị vô hiệu hóa, học sinh nhập vào giỏ hàng sẽ nhận thông báo mã không còn khả dụng.
-
----
-
-## 3. Requirements
-
-### Functional Requirements
-- **FR-001**: Quản trị viên có toàn quyền CRUD trên bảng `discount_codes`.
-- **FR-002**: Mã code PHẢI tự động chuyển thành chữ in hoa (`toUpperCase()`) và loại bỏ khoảng trắng thừa.
-- **FR-003**: Hỗ trợ 2 hình thức chiết khấu:
-  - `percent`: Giảm theo % giá trị đơn hàng (tối đa 100%).
-  - `fixed`: Giảm số tiền cụ thể bằng VNĐ.
-- **FR-004**: Thiết lập các điều kiện hạn mức tùy chọn:
-  - `min_order_value`: Đơn hàng đạt tối thiểu X đồng mới được áp dụng.
-  - `expires_at`: Thời điểm hết hiệu lực (ngày giờ).
-  - `max_uses`: Giới hạn tổng số lượt sử dụng trên toàn hệ thống.
-  - `is_active`: Bật/Tắt hiệu lực tức thời.
-- **FR-005**: Tự động tăng trường `used_count` mỗi khi một đơn hàng áp dụng mã được hoàn tất thành công.
-- **FR-006**: Cung cấp nút sao chép nhanh (Copy) mã giảm giá vào clipboard.
-
-### Key Entities
-- **discount_codes**: `id` (uuid), `code` (text unique), `discount_type` (`percent` | `fixed`), `value` (numeric), `min_order_value` (numeric), `expires_at` (timestamptz), `max_uses` (int), `used_count` (int), `is_active` (bool), `created_at` (timestamptz).
-
----
-
-## 4. Success Criteria
-- **SC-001**: Lưu mã giảm giá mới trong < 500ms.
-- **SC-002**: Không bao giờ xảy ra lỗi giảm quá 100% giá trị đơn hàng hoặc chiết khấu âm.
-- **SC-003**: Ngay khi tắt mã (`is_active = false`), giỏ hàng học viên từ chối mã đó ngay lập tức.
-
-
----
-
-## Merged from 25-enforce-bill-image-upload
-
----
-status: "approved"
----
-
-# Feature: Bắt buộc tải ảnh bill khi thanh toán
-
-## 1. Overview
-Hiện tại hệ thống cho phép tạo đơn hàng ngay cả khi việc upload ảnh bill thất bại (silent failure) và API `create-order` không bắt buộc field này. Tính năng này sẽ khắc phục lỗ hổng đó bằng cách ép buộc ảnh bill phải được tải lên thành công thì mới được phép tạo đơn hàng.
-
-## 2. User Scenarios (Given-When-Then)
-- **Given** người dùng ở trang thanh toán (CartPage)
-- **When** người dùng bấm "Xác nhận thanh toán"
-- **Then** nếu quá trình upload ảnh bill lỗi, hệ thống phải báo lỗi và chặn không gọi API tạo đơn.
-- **Given** một request gọi đến Edge Function `create-order`
-- **When** request không chứa `billImagePath`
-- **Then** API trả về lỗi 400 "Bắt buộc phải có ảnh bill chuyển khoản".
-
-## 3. Functional Requirements
-- **FR-01**: Bắt lỗi upload file trong `CartPage.tsx` và dừng luồng thanh toán nếu lỗi.
-- **FR-02**: Thêm kiểm tra `billImagePath` trong Edge Function `create-order/index.ts`, từ chối tạo đơn nếu thiếu field này.
-
-## 4. Key Entities / Data Models
-- Không thay đổi Data Models.
-
-## 5. Key Files
-- `src/pages/user/CartPage.tsx`
-- `supabase/functions/create-order/index.ts`
-
-## 6. Success Criteria
-- **SC-01**: Người dùng không thể tạo đơn nếu cố ý bỏ qua ảnh bill hoặc quá trình upload ảnh bị lỗi.
-- **SC-02**: Đơn hàng mới tạo ra luôn có `bill_image_url`.
+- **SC-001**: Cấm hoàn toàn khả năng can thiệp giá (Inspect Element Price đổi thành 0đ) vì Edge Function luôn tính lại giá theo DB.
+- **SC-002**: Không thể tạo đơn nếu bỏ trống bill.
+- **SC-003**: VietQR quét thành công trên mọi app ngân hàng với nội dung chuyển khoản khớp cấu trúc tên.
+- **SC-004**: Đơn hàng tạo xong, mã giảm giá sẽ được tự động `used_count + 1`.
