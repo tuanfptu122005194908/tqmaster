@@ -654,9 +654,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/CartPage.tsx": {
-    "mtime": 1788251448.9975388,
-    "seen": 1789059066.0059845,
-    "ast_hash": "7bf31a3273dc479b3695ec572f9b9701",
+    "mtime": 1791016346.3308225,
+    "seen": 1791087085.3484259,
+    "ast_hash": "d437d5a49cd24be971afd28fbb16c658",
     "semantic_hash": ""
   },
   "src/pages/user/ExamPage.tsx": {
@@ -666,9 +666,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/HomePage.tsx": {
-    "mtime": 1790388565.482514,
-    "seen": 1790388641.874329,
-    "ast_hash": "b97ecea970288f90ba74f4e5a5915f49",
+    "mtime": 1791086770.4322462,
+    "seen": 1791087085.3486013,
+    "ast_hash": "cb89f98c2a31cb1fc54f142d753e35fb",
     "semantic_hash": ""
   },
   "src/pages/user/NewsPage.tsx": {
@@ -690,9 +690,9 @@
     "semantic_hash": "bb1b240c5cc5d24d499c99bcc5076571"
   },
   "src/pages/user/SubjectDetailPage.tsx": {
-    "mtime": 1790254822.2822373,
-    "seen": 1790254912.3708346,
-    "ast_hash": "628c21a8c35f8af69594eee3de3f8669",
+    "mtime": 1791086946.5485995,
+    "seen": 1791087085.3491938,
+    "ast_hash": "ff1ba38d4a26152454622ea754160b25",
     "semantic_hash": ""
   },
   "src/test/example.test.ts": {
@@ -714,9 +714,9 @@
     "semantic_hash": "8f68c27c3fc38817b2726b20e2d4f1ee"
   },
   "supabase/functions/create-order/index.ts": {
-    "mtime": 1788251419.3197155,
-    "seen": 1789059066.00601,
-    "ast_hash": "94a83064c43ce4ef3981050cca059e67",
+    "mtime": 1791016348.4758022,
+    "seen": 1791087085.3515754,
+    "ast_hash": "f2a2d166d113ed4eb2f33728304aebe1",
     "semantic_hash": ""
   },
   "supabase/functions/forgot-password/index.ts": {
@@ -838,10 +838,10 @@
     "semantic_hash": ""
   },
   "tailwind.config.ts": {
-    "mtime": 1784571148.142548,
-    "seen": 1789059066.0060167,
-    "ast_hash": "20d05c4efa3a84d275f45da55c0cc4bd",
-    "semantic_hash": "20d05c4efa3a84d275f45da55c0cc4bd"
+    "mtime": 1791086581.5201397,
+    "seen": 1791087085.352202,
+    "ast_hash": "426fea1a730adc7905be016f6bc5b443",
+    "semantic_hash": ""
   },
   "tool vi\u1ebft l\u1ea1i \u0111\u1ec1/check_models.py": {
     "mtime": 1785942583.7128901,
@@ -886,10 +886,10 @@
     "semantic_hash": "ea3b5c2d9c1cc5d2b3fb3af706f2ca1a"
   },
   "vercel.json": {
-    "mtime": 1785523724.2135289,
-    "seen": 1789059066.0060337,
-    "ast_hash": "6411d2fbb5f0e00aaff0ca0ded84e0b6",
-    "semantic_hash": "6411d2fbb5f0e00aaff0ca0ded84e0b6"
+    "mtime": 1791014898.1694524,
+    "seen": 1791087085.3535619,
+    "ast_hash": "a592d9b1009f82c2d3bb60608c62df9c",
+    "semantic_hash": ""
   },
   "vite.config.ts": {
     "mtime": 1786099207.2174764,
@@ -1636,15 +1636,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1788376049.4416537,
-    "seen": 1789059066.0062027,
-    "ast_hash": "64187a879deea577ec03d2e589ae9fc6",
+    "mtime": 1791086599.666193,
+    "seen": 1791087085.375672,
+    "ast_hash": "3d7783ce9284f9ef3f01ca87cbe3c81f",
     "semantic_hash": ""
   },
   "public/robots.txt": {
-    "mtime": 1784571147.9357698,
-    "seen": 1789059066.0062041,
-    "ast_hash": "a9b03494151fe90e5decd2405400e106",
+    "mtime": 1791014887.5322752,
+    "seen": 1791087085.375674,
+    "ast_hash": "69d0c6a135785b795910c90d47787062",
     "semantic_hash": ""
   },
   "spec-driven-&-agent-driven-development (2).md": {
@@ -2775,6 +2775,90 @@
     "mtime": 1791013592.0862355,
     "seen": 1791013732.7101831,
     "ast_hash": "af7a03f57437f7c25f45d0e6d176a48d",
+    "semantic_hash": ""
+  },
+  "src/components/SubjectCard.tsx": {
+    "mtime": 1791087176.3567357,
+    "seen": 1791087234.5302806,
+    "ast_hash": "c1f1648213e9f80aa8539cb339815fe1",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/24-fix-vercel-security-headers/plan.md": {
+    "mtime": 1791014630.360318,
+    "seen": 1791087085.3704658,
+    "ast_hash": "0bc3d55b4957cf0d0e98cb1048fbb1de",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/24-fix-vercel-security-headers/spec.md": {
+    "mtime": 1791014628.1784437,
+    "seen": 1791087085.3704693,
+    "ast_hash": "cf2818d93da3301f48af77a2c1ad69f4",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/24-fix-vercel-security-headers/tasks.md": {
+    "mtime": 1791014979.236572,
+    "seen": 1791087085.3704715,
+    "ast_hash": "e3b27fc8c449357f241d1d670feca6a5",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/25-enforce-bill-image-upload/plan.md": {
+    "mtime": 1791016329.256543,
+    "seen": 1791087085.3704731,
+    "ast_hash": "a2379914c8a0c91e968bc15da19ea50f",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/25-enforce-bill-image-upload/spec.md": {
+    "mtime": 1791016327.006524,
+    "seen": 1791087085.3704755,
+    "ast_hash": "150ac1a193037ad078715773614b3bac",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/25-enforce-bill-image-upload/tasks.md": {
+    "mtime": 1791016394.0487292,
+    "seen": 1791087085.3704772,
+    "ast_hash": "b1193d2324862788783a0f4b63f280da",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/26-product-interface-redesign/plan.md": {
+    "mtime": 1791086506.6619852,
+    "seen": 1791087085.370479,
+    "ast_hash": "b88b034314ec4c217d42f0279f6a2525",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/26-product-interface-redesign/spec.md": {
+    "mtime": 1791086504.5924754,
+    "seen": 1791087085.3704805,
+    "ast_hash": "8aa44877393b945e252c16f6da30b6f9",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/26-product-interface-redesign/tasks.md": {
+    "mtime": 1791086293.3694432,
+    "seen": 1791087085.3704834,
+    "ast_hash": "2a5737956f9de0b15229d7d6eaf1d3df",
+    "semantic_hash": ""
+  },
+  "Website_Scanner-https___tqmaster.vercel.app-20261003-1057.html": {
+    "mtime": 1791014246.8404765,
+    "seen": 1791087085.3750172,
+    "ast_hash": "4ed29d5dc0e4b371c90d3a32d1e948c7",
+    "semantic_hash": ""
+  },
+  "card.html": {
+    "mtime": 1791086698.8013573,
+    "seen": 1791087085.375341,
+    "ast_hash": "ca5ba8c067e86e7f43b27d62b20f9a2b",
+    "semantic_hash": ""
+  },
+  "html_dump.txt": {
+    "mtime": 1791086684.065463,
+    "seen": 1791087085.3756666,
+    "ast_hash": "f9916f883688fd091af091d202048cdd",
+    "semantic_hash": ""
+  },
+  "ibacuu.store-DESIGN.md": {
+    "mtime": 1791015905.7358615,
+    "seen": 1791087085.3756692,
+    "ast_hash": "0db8b65405267d04b61cb9ddf0293454",
     "semantic_hash": ""
   }
 }
