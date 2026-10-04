@@ -32,11 +32,10 @@ const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
 const AdminQuestionReports = lazy(() => import("@/pages/admin/AdminQuestionReports"));
 const AdminBackup = lazy(() => import("@/pages/admin/AdminBackup"));
-const AdminChat = lazy(() => import("@/pages/admin/AdminChat"));
 const AdminExamStats = lazy(() => import("@/pages/admin/AdminExamStats"));
 const AdminReviews = lazy(() => import("@/pages/admin/AdminReviews"));
 
-import ChatWidget from "@/components/chat/ChatWidget";
+import FacebookWidget from "@/components/FacebookWidget";
 import { BootScreen, PageSkeleton } from "@/components/Skeleton";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import { Loader2, Menu, X } from "lucide-react";
@@ -74,7 +73,7 @@ function UserLayout({ children }: { children: React.ReactNode }) {
       <main style={{ flex: 1 }}>{children}</main>
       <MobileNav />
       {!isAdmin && <AnnouncementPopup />}
-      <ChatWidget />
+      <FacebookWidget />
     </div>
   );
 }
@@ -245,7 +244,6 @@ function AppShell() {
       <Route path="/admin/news" element={<ProtectedRoute requireAdmin><AdminLayout><AdminNews /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute requireAdmin><AdminLayout><AdminQuestionReports /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/backup" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBackup /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminLayout><AdminChat /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/exam-stats" element={<ProtectedRoute requireAdmin><AdminLayout><AdminExamStats /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/reviews" element={<ProtectedRoute requireAdmin><AdminLayout><AdminReviews /></AdminLayout></ProtectedRoute>} />
 

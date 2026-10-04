@@ -67,8 +67,6 @@ interface AppContextValue {
   refreshPendingOrdersCount: () => Promise<void>;
   pendingReportsCount: number;
   refreshPendingReportsCount: () => Promise<void>;
-  unreadChatCount: number;
-  refreshUnreadChatCount: () => Promise<void>;
 
   // Site Settings
   siteSettings: Record<string, string>;
@@ -103,7 +101,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [freeSubjectIds, setFreeSubjectIds] = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
@@ -380,11 +377,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isAdmin) return;
 
-    // Fetch all 3 admin counts in parallel
+    // Fetch admin counts in parallel
     Promise.allSettled([
       refreshPendingOrdersCount(),
       refreshPendingReportsCount(),
-      refreshUnreadChatCount(),
     ]);
 
     let ordersTimer: any = null;
@@ -420,28 +416,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       )
       .subscribe();
 
-    let chatTimer: any = null;
-    const chatChannel = supabase
-      .channel('admin-chat-unread-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'chat_messages' },
-        () => {
-          clearTimeout(chatTimer);
-          chatTimer = setTimeout(() => refreshUnreadChatCount(), 300);
-        }
-      )
-      .subscribe();
-
     return () => {
       clearTimeout(ordersTimer);
       clearTimeout(reportsTimer);
-      clearTimeout(chatTimer);
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(reportsChannel);
-      supabase.removeChannel(chatChannel);
     };
-  }, [isAdmin, refreshPendingOrdersCount, refreshPendingReportsCount, refreshUnreadChatCount]);
+  }, [isAdmin, refreshPendingOrdersCount, refreshPendingReportsCount]);
 
   // ── Cart helpers ─────────────────────────────────────────
   const addToCart = (s: Subject | string) => {
@@ -528,7 +509,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     purchasedIds, freeSubjectIds, isFree, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
-    unreadChatCount, refreshUnreadChatCount,
     siteSettings, refreshSiteSettings,
   };
 
