@@ -161,11 +161,11 @@ export default function AdminReviews() {
                     </div>
                   </td>
                   <td style={{ padding: '16px 20px', maxWidth: 300 }}>
-                    <div style={{ fontSize: 14, color: '#334155', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 14, color: '#334155', fontWeight: 500 }}>
                       {r.content}
                     </div>
                     {r.adminReply && (
-                      <div style={{ marginTop: 6, fontSize: 12, color: '#2563eb', fontWeight: 600, borderLeft: '2px solid #bfdbfe', paddingLeft: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ marginTop: 6, fontSize: 12, color: '#2563eb', fontWeight: 600, borderLeft: '2px solid #bfdbfe', paddingLeft: 8 }}>
                         Admin: {r.adminReply.content}
                       </div>
                     )}

@@ -426,28 +426,28 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
               Chỉ tài khoản đã thanh toán và đang sở hữu sản phẩm mới có thể gửi đánh giá xác thực trên hệ thống IBACUU. Mọi đánh giá phải qua Admin kiểm duyệt trước khi hiển thị.
             </p>
 
-            {/* Interactive Rating Prompt */}
-            <div className="bg-iba-surface-container-low p-4 rounded-xl mb-4 text-center">
-              <span className="font-iba-body-sm text-iba-body-sm text-iba-on-surface-variant font-medium block mb-2">Bạn đánh giá gói dịch vụ này thế nào?</span>
-              <div className="flex justify-center items-center gap-1.5 cursor-pointer">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <button 
-                    key={star}
-                    type="button" 
-                    className={`transition-transform hover:scale-125 border-none bg-transparent cursor-pointer p-0 ${star <= (hoverStar || rating) ? 'text-amber-500' : 'text-iba-outline'}`}
-                    onMouseEnter={() => setHoverStar(star)}
-                    onMouseLeave={() => setHoverStar(0)}
-                    onClick={() => setRating(star)}
-                  >
-                    <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: star <= (hoverStar || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {purchased ? (
+              <>
+                {/* Interactive Rating Prompt */}
+                <div className="bg-iba-surface-container-low p-4 rounded-xl mb-4 text-center">
+                  <span className="font-iba-body-sm text-iba-body-sm text-iba-on-surface-variant font-medium block mb-2">Bạn đánh giá gói dịch vụ này thế nào?</span>
+                  <div className="flex justify-center items-center gap-1.5 cursor-pointer">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button 
+                        key={star}
+                        type="button" 
+                        className={`transition-transform hover:scale-125 border-none bg-transparent cursor-pointer p-0 ${star <= (hoverStar || rating) ? 'text-amber-500' : 'text-iba-outline'}`}
+                        onMouseEnter={() => setHoverStar(star)}
+                        onMouseLeave={() => setHoverStar(0)}
+                        onClick={() => setRating(star)}
+                      >
+                        <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: star <= (hoverStar || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              {purchased ? (
-                <>
+                <div className="space-y-2">
                   <textarea 
                     value={reviewContent}
                     onChange={(e) => setReviewContent(e.target.value)}
@@ -462,16 +462,18 @@ export function ProductReviews({ purchased }: { purchased: boolean }) {
                     <span className="material-symbols-outlined text-[18px]">rate_review</span>
                     Gửi đánh giá (Chờ duyệt)
                   </button>
-                </>
-              ) : (
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2 mt-4">
                 <button 
                   className="w-full py-2 rounded-lg text-iba-primary font-iba-body-sm text-iba-body-sm font-semibold flex items-center justify-center gap-1 bg-iba-surface-container-low hover:bg-iba-surface-container transition-colors cursor-pointer border-none"
                 >
                   <span className="material-symbols-outlined text-[16px]">login</span>
                   Đăng nhập & Mua hàng để đánh giá
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Trust signals widget */}
             <div className="mt-6 pt-4 bg-iba-surface-container-lowest space-y-2 border-t border-iba-surface-container text-iba-on-surface-variant font-iba-body-sm text-iba-body-sm">
