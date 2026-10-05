@@ -26,7 +26,7 @@ export default function SubjectDetailPage() {
   const { id: selectedSubjectId } = useParams();
   const navigate = useNavigate();
   const {
-    isPurchased, isInCart, addToCart, removeFromCart, isAdmin,
+    isPurchased, isInCart, addToCart, removeFromCart,
   } = useApp();
 
   const [activeTab,      setActiveTab]      = useState<Tab>('exams');
@@ -85,7 +85,7 @@ export default function SubjectDetailPage() {
   }, [selectedSubjectId]);
 
   const [tabInitialized, setTabInitialized] = useState(false);
-  const purchased = isAdmin || (subject ? isPurchased(subject.id) : false);
+  const purchased = subject ? isPurchased(subject.id) : false;
   const inCart    = subject ? isInCart(subject.id) : false;
 
   useEffect(() => {
