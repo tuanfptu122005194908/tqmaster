@@ -1,7 +1,9 @@
-- [ ] 1. Viết spec.md, plan.md, tasks.md cho chức năng hỗ trợ file word trong zip.
-- [ ] 2. Người dùng duyệt spec (Review Gate).
-- [ ] 3. Sửa hàm `extractExamsFromZip` trong `src/lib/markdownExamParser.ts`.
-- [ ] 4. Sửa text/ui nếu cần ở `src/components/admin/BulkExamZipModal.tsx`.
-- [ ] 5. Kiểm tra compile / debug clean code.
-- [ ] 6. Xoá file `CEA201_PT1_SEB_FALL26.zip` ở thư mục gốc.
-- [ ] 7. Đẩy code lên 2 kho chứa (origin và tqmaster) theo đúng luồng SDD.
+- [x] 1. Viết spec.md, plan.md, tasks.md cho chức năng hỗ trợ file word trong zip.
+- [x] 2. Người dùng duyệt spec (Review Gate).
+- [x] 3. Sửa hàm `extractExamsFromZip` trong `src/lib/markdownExamParser.ts`.
+- [x] 4. Sửa text/ui nếu cần ở `src/components/admin/BulkExamZipModal.tsx`.
+- [x] 5. Kiểm tra compile / debug clean code.
+- [x] 6. Xoá file `CEA201_PT1_SEB_FALL26.zip` ở thư mục gốc.
+- [x] 7. Cập nhật `ParsedExamQuestion` để hỗ trợ parse image URL từ Word.
+- [x] 8. Cập nhật `BulkExamZipModal.tsx` để upload Base64 images lên Supabase Storage qua `batchUploadImages`.
+- [x] 9. Đẩy code lên 2 kho chứa (origin và tqmaster) theo đúng luồng SDD.
