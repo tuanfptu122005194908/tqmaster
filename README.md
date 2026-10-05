@@ -1,66 +1,67 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/graduation-cap.svg" width="100" height="100" alt="TQMaster Logo" />
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/graduation-cap.svg" width="90" height="90" alt="TQMaster Logo" />
   
-  # TQMaster - Hệ thống Học tập & Ôn thi Toàn diện
+  # TQMaster
 
-  **Nền tảng quản lý học tập, làm bài thi trắc nghiệm và ôn luyện trực tuyến chuyên nghiệp.**
+  **Hệ thống Quản lý Học tập & Ôn thi Trực tuyến**
 
   <p align="center">
-    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
-    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+    <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Vite-B73BFE?style=flat-square&logo=vite&logoColor=FFD62E" alt="Vite" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+    <img src="https://img.shields.io/badge/Supabase-181818?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   </p>
 </div>
 
 ---
 
-## 🌟 Giới thiệu chung
+## Tổng quan
 
-**TQMaster** là một nền tảng học tập trực tuyến (E-Learning) hiện đại, tập trung vào trải nghiệm người dùng với tốc độ cao, giao diện tối giản, sang trọng và hệ thống bài thi trắc nghiệm tương tác thời gian thực. Hệ thống được phát triển tuân thủ nghiêm ngặt theo mô hình **Spec-Driven Development (SDD)**.
+**TQMaster** là nền tảng E-Learning được xây dựng nhằm cung cấp giải pháp quản lý khóa học, tài liệu và tổ chức thi trắc nghiệm trực tuyến. Hệ thống tập trung vào hiệu năng (performance), trải nghiệm làm bài thi mượt mà, và quy trình quản trị nội dung linh hoạt.
 
----
-
-## 🚀 Tính năng nổi bật (10 Core Features)
-
-Hệ thống được thiết kế theo kiến trúc Module hóa với 10 phân hệ tính năng độc lập, đáp ứng trọn vẹn nhu cầu của học viên và quản trị viên.
-
-### 🎓 Dành cho Học viên (Student Portal)
-- 🛒 **StudyHub & Giỏ hàng**: Khám phá khóa học, xem chi tiết môn học, thêm vào giỏ hàng và thanh toán trực tuyến.
-- 📝 **Hệ thống Thi Tương tác**: Trải nghiệm làm bài trắc nghiệm mượt mà với hiệu ứng Swipe (Carousel), đồng hồ bấm giờ và hệ thống chấm điểm tự động tức thì.
-- 📰 **Bảng tin & Thông báo**: Cập nhật tin tức học thuật và nhận thông báo (Banner) trực tiếp từ ban quản trị.
-- 🔐 **Bảo mật & Cá nhân hóa**: Đăng ký/Đăng nhập an toàn qua Email OTP (Không cần nhớ mật khẩu). Tùy chỉnh hồ sơ cá nhân và ảnh đại diện.
-- 🚩 **Góp ý học thuật**: Tính năng "Report" trực tiếp các câu hỏi có lỗi để giáo viên khắc phục.
-
-### 🛡️ Dành cho Quản trị viên (Admin Dashboard)
-- 📊 **Dashboard Thống kê Live**: Báo cáo doanh thu, số lượng đơn hàng và người dùng. Tích hợp WebSockets nhận thông báo nổ đơn hàng *Real-time*.
-- 📚 **Quản lý Nội dung (CMS)**: Toàn quyền thao tác (CRUD) đối với Môn học, Đề thi, Ngân hàng câu hỏi và Tài liệu lý thuyết.
-- 👥 **Quản lý Đơn hàng & User**: Xét duyệt đơn mua khóa học, phân quyền tài khoản (User/Admin).
-- 📢 **Quản lý Tin tức**: Trực tiếp biên tập, xuất bản tin tức và thông báo nổi bật tới toàn bộ học viên.
+Dự án được phát triển theo tiêu chuẩn **Spec-Driven Development (SDD)**, đảm bảo tính chặt chẽ từ khâu đặc tả yêu cầu đến triển khai mã nguồn.
 
 ---
 
-## 🛠️ Công nghệ sử dụng (Tech Stack)
+## Tính năng chính
 
-### Frontend
-- **Core Framework**: React 18, Vite, TypeScript
-- **Styling & UI**: Tailwind CSS, Shadcn UI, Radix UI, Lucide Icons
-- **State & Data Fetching**: React Context, TanStack Query (React Query)
-- **Routing**: React Router DOM v6
-- **Forms & Validation**: React Hook Form, Zod
+### Dành cho Học viên (Student Portal)
+- **StudyHub & E-commerce**: Duyệt danh mục khóa học, xem chi tiết, tích hợp giỏ hàng và thanh toán.
+- **Hệ thống Test Engine**: Làm bài thi trắc nghiệm với giao diện tối ưu (hiệu ứng swipe/carousel), tính giờ tự động, và chấm điểm/đáp án realtime.
+- **Bảng tin**: Nhận thông báo hệ thống và tin tức học thuật.
+- **Xác thực an toàn**: Đăng nhập bằng Email OTP (Passwordless auth).
+- **Phản hồi**: Tính năng báo lỗi (Report) câu hỏi trực tiếp trong quá trình làm bài.
 
-### Backend (BaaS)
-- **Database & Auth**: Supabase (PostgreSQL, Row Level Security, OTP Auth)
-- **Real-time**: Supabase Channels (WebSockets)
-- **Functions**: Deno-based Supabase Edge Functions (`create-order`, v.v.)
-- **Storage**: Supabase Storage Buckets (Avatars, Tài liệu)
+### Dành cho Quản trị viên (Admin Dashboard)
+- **Live Dashboard**: Báo cáo thống kê đơn hàng, doanh thu và người dùng (Tích hợp WebSocket để cập nhật realtime).
+- **Quản trị Nội dung (CMS)**: Quản lý (CRUD) môn học, đề thi, câu hỏi và tài liệu lý thuyết.
+- **Quản lý Đơn hàng & Người dùng**: Duyệt/hủy đơn hàng, kiểm soát truy cập và phân quyền (Role-based access).
+- **Truyền thông**: Quản lý banner thông báo và biên tập bản tin.
 
 ---
 
-## 🏗️ Kiến trúc Hệ thống & Database (Architecture & ERD)
+## Tech Stack
 
-### 1. Sơ đồ Kiến trúc (Architecture Diagram)
+**Frontend:**
+- Core: React 18, Vite, TypeScript
+- UI & Styling: Tailwind CSS, Shadcn UI, Radix UI
+- State & Data: React Context, TanStack Query (React Query)
+- Routing: React Router v6
+- Forms: React Hook Form, Zod
+
+**Backend (BaaS - Supabase):**
+- Database: PostgreSQL (tích hợp Row Level Security - RLS)
+- Auth: Supabase Auth (OTP)
+- Real-time: Supabase Channels
+- Edge Functions: Deno-based (xử lý logic thanh toán, duyệt đơn)
+- Storage: Quản lý tài liệu và hình ảnh
+
+---
+
+## Kiến trúc Hệ thống (Architecture & ERD)
+
+### 1. Luồng dữ liệu (Architecture Diagram)
 
 ```mermaid
 graph TD
@@ -87,7 +88,7 @@ graph TD
     end
 ```
 
-### 2. Sơ đồ Thực thể Liên kết (ERD)
+### 2. Sơ đồ Thực thể (ERD)
 
 ```mermaid
 erDiagram
@@ -116,21 +117,20 @@ erDiagram
     PROFILES ||--o{ NEWS_COMMENTS : writes
 ```
 
-### 3. Bảo mật và Phân quyền (RBAC)
+### 3. Phân quyền (RBAC)
 
-Hệ thống được thiết kế với cơ chế Role-Based Access Control (RBAC) chặt chẽ ở nhiều lớp (Multi-layer Security):
-
-- **Frontend (UI Level):** Sử dụng `React Context` và `Protected Routes` để điều hướng và giới hạn hiển thị các module quản trị (Admin Dashboard, CMS) tùy thuộc vào `app_role` của người dùng.
-- **Backend (Database Level):** Triển khai toàn diện **Supabase Row Level Security (RLS)**. Các bảng dữ liệu được cấu hình Policy nghiêm ngặt (Ví dụ: Chỉ Admin mới có quyền `INSERT/UPDATE/DELETE` dữ liệu môn học, đề thi; User chỉ có quyền `SELECT` các khóa học mình đã mua).
-- **Xử lý tác vụ (Edge Functions):** Xác thực JWT Token server-side cho các tác vụ quan trọng như duyệt đơn hàng, tạo thanh toán.
+Bảo mật được thiết lập qua nhiều lớp (Multi-layer Security):
+- **UI Level**: Sử dụng `Protected Routes` và React Context để ẩn/hiển thị component dựa trên `app_role`.
+- **Database Level**: Ứng dụng **Row Level Security (RLS)** của PostgreSQL. (VD: Admin toàn quyền can thiệp dữ liệu, trong khi User chỉ có thể `SELECT` dữ liệu khóa học đã mua).
+- **Server-side Logic**: Dùng Edge Functions xác thực JWT Token cho các tác vụ nhạy cảm.
 
 ---
 
-## 🏗️ Phương pháp Phát triển: SDD (Spec-Driven Development)
+## SDD (Spec-Driven Development)
 
-Dự án này là minh chứng thực tế cho việc áp dụng phương pháp **Spec-Driven & Agent-Driven Development**.
-Toàn bộ tài liệu thiết kế (Architecture, Specs, Plans, Tasks) được tổ chức và chuẩn hóa thành 10 thư mục cụ thể tại:
+Dự án áp dụng quy trình **Spec-Driven Development**. Mọi tính năng đều bắt buộc phải có tài liệu đặc tả (Spec) trước khi triển khai code.
 
+Cấu trúc lưu trữ tài liệu đặc tả:
 ```bash
 📂 .sdd/specs/
  ├── 01-core-auth/
@@ -144,43 +144,39 @@ Toàn bộ tài liệu thiết kế (Architecture, Specs, Plans, Tasks) được
  ├── 09-user-ecommerce/
  └── 10-user-news/
 ```
-*Việc chuẩn hóa spec giúp hệ thống dễ dàng được maintain và mở rộng tự động bởi các AI Agents trong tương lai.*
+Quy trình này giúp codebase thống nhất, dễ theo dõi tiến độ và đặc biệt phù hợp khi kết hợp với AI Agents trong việc scale hệ thống.
 
 ---
 
-## 💻 Hướng dẫn Cài đặt (Getting Started)
+## Hướng dẫn cài đặt
 
 ### Yêu cầu môi trường
 - Node.js (v18+)
-- Bun hoặc npm
-- Supabase Project (url & anon key)
+- Bun (hoặc npm)
+- Supabase Project (cần URL và Anon Key)
 
-### Cài đặt
-1. **Clone dự án**
+### Cài đặt và chạy nội bộ
+
+1. **Clone repository**
    ```bash
    git clone https://github.com/thanhtuanfptse05/smart-curate-learn.git
    cd smart-curate-learn
    ```
 
-2. **Cài đặt thư viện**
+2. **Cài đặt dependencies**
    ```bash
    bun install
    ```
 
-3. **Cấu hình môi trường**
-   Tạo file `.env` ở thư mục gốc và thêm các thông số:
+3. **Cấu hình biến môi trường**
+   Tạo file `.env` tại thư mục gốc:
    ```env
    VITE_SUPABASE_URL=your-supabase-project-url
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
    ```
 
-4. **Chạy server phát triển**
+4. **Khởi chạy ứng dụng**
    ```bash
    bun run dev
    ```
-   *Ứng dụng sẽ chạy tại địa chỉ http://localhost:8080*
-
----
-<div align="center">
-  <i>Được thiết kế và phát triển với ❤️ cho nền giáo dục tương lai.</i>
-</div>
+   Ứng dụng sẽ khả dụng tại `http://localhost:8080`.
