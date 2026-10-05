@@ -18,7 +18,7 @@ type Exam          = Tables<'exams'>;
 type Theory        = Tables<'theories'>;
 type Announcement  = Tables<'announcements'>;
 import { ProductReviews } from '@/components/ProductReviews';
-type Tab = 'exams' | 'theory' | 'pe' | 'announcements' | 'reviews';
+type Tab = 'exams' | 'exams_pt' | 'theory' | 'pe' | 'announcements' | 'reviews';
 
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -419,8 +419,12 @@ export default function SubjectDetailPage() {
     </div>
   );
 
+  const feExams = exams.filter(e => e.exam_type !== 'PT');
+  const ptExams = exams.filter(e => e.exam_type === 'PT');
+
   const TABS: { key: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
-    { key: 'exams',         label: 'Đề thi',    icon: <FileText size={14} />,   count: purchased ? exams.length : undefined },
+    { key: 'exams',         label: 'Đề thi FE', icon: <FileText size={14} />,   count: purchased ? feExams.length : undefined },
+    { key: 'exams_pt',      label: 'Đề thi PT', icon: <FileText size={14} />,   count: purchased ? ptExams.length : undefined },
     { key: 'theory',        label: 'Lý thuyết', icon: <BookOpen size={14} />,   count: purchased ? theoryDocs.length : undefined },
     { key: 'pe',            label: 'Tài liệu PE / Video', icon: <Layers size={14} />, count: purchased ? peDocs.length : undefined },
     { key: 'announcements', label: 'Thông báo', icon: <Bell size={14} />,       count: announcements.length },
@@ -516,7 +520,7 @@ export default function SubjectDetailPage() {
       <div className="animate-fade-in" key={activeTab}>
 
         {/* Exams */}
-        {activeTab === 'exams' && (
+        {(activeTab === 'exams' || activeTab === 'exams_pt') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
             {!purchased ? (
               <div className="empty-state" style={{ background: 'white', padding: 'var(--space-12)' }}>
@@ -524,13 +528,13 @@ export default function SubjectDetailPage() {
                 <h3 style={{ marginTop: 'var(--space-4)', fontWeight: 800 }}>Nội dung bị khóa</h3>
                 <p style={{ color: 'hsl(var(--muted-fg))', fontSize: '0.9rem', marginTop: 4 }}>Vui lòng mua môn học để truy cập danh sách đề thi</p>
               </div>
-            ) : exams.length === 0 ? (
+            ) : (activeTab === 'exams' ? feExams : ptExams).length === 0 ? (
               <div className="empty-state">
                 <FileText size={40} />
                 <p>Chưa có đề thi nào</p>
               </div>
             ) : (
-              exams.map(exam => (
+              (activeTab === 'exams' ? feExams : ptExams).map(exam => (
                 <div
                   key={exam.id}
                   className="panel"

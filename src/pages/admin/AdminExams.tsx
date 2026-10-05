@@ -55,7 +55,7 @@ export default function AdminExams() {
 
   const [showForm, setShowForm] = useState(false);
   const [showZipModal, setShowZipModal] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', duration_min: 60, subject_ids: [] as string[], is_active: true });
+  const [form, setForm] = useState({ title: '', description: '', duration_min: 60, subject_ids: [] as string[], is_active: true, exam_type: 'FE' as 'FE' | 'PT' });
 
   const [importText,  setImportText]  = useState('');
   const [importCount, setImportCount] = useState(0);
@@ -118,7 +118,7 @@ export default function AdminExams() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({ title: '', description: '', duration_min: 60, subject_ids: [], is_active: true });
+    setForm({ title: '', description: '', duration_min: 60, subject_ids: [], is_active: true, exam_type: 'FE' });
     setShowForm(true);
   };
 
@@ -130,6 +130,7 @@ export default function AdminExams() {
       duration_min: exam.duration_min,
       subject_ids: exam.exam_subjects.map(es => es.subject_id),
       is_active: exam.is_active ?? true,
+      exam_type: (exam.exam_type as 'FE' | 'PT') || 'FE',
     });
     setShowForm(true);
   };
@@ -144,6 +145,7 @@ export default function AdminExams() {
         description: form.description || null,
         duration_min: form.duration_min,
         is_active: form.is_active,
+        exam_type: form.exam_type,
       }).eq('id', editingId);
 
       if (!error) {
@@ -158,6 +160,7 @@ export default function AdminExams() {
       const { data: newExam } = await supabase.from('exams').insert({
         title: form.title, description: form.description || null,
         duration_min: form.duration_min, is_active: form.is_active,
+        exam_type: form.exam_type,
         created_by: profile?.id,
       }).select().single();
       
@@ -172,7 +175,7 @@ export default function AdminExams() {
     await fetchExams();
     setSaving(false);
     setShowForm(false);
-    setForm({ title: '', description: '', duration_min: 60, subject_ids: [], is_active: true });
+    setForm({ title: '', description: '', duration_min: 60, subject_ids: [], is_active: true, exam_type: 'FE' });
     setEditingId(null);
   };
 
@@ -739,7 +742,9 @@ export default function AdminExams() {
                           }}
                         >
                           <div style={{ overflow: 'hidden' }}>
-                            <div style={{ fontWeight: selExam?.id === exam.id ? 800 : 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: selExam?.id === exam.id ? '#2563eb' : '#0f172a' }}>
+                            <div style={{ fontWeight: selExam?.id === exam.id ? 800 : 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: selExam?.id === exam.id ? '#2563eb' : '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {exam.exam_type === 'PT' && <span style={{ background: '#fef3c7', color: '#b45309', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 800 }}>PT</span>}
+                              {exam.exam_type !== 'PT' && <span style={{ background: '#e0e7ff', color: '#3730a3', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 800 }}>FE</span>}
                               {exam.title}
                             </div>
                             <div style={{ fontSize: 11.5, color: '#64748b' }}>{exam.duration_min} phút</div>
@@ -1420,6 +1425,19 @@ export default function AdminExams() {
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Thời gian (phút)</label>
                 <input style={inputStyle} type="number" min={1} value={form.duration_min} onChange={e => setForm(p => ({ ...p, duration_min: +e.target.value }))} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Loại đề thi</label>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', color: '#0f172a' }}>
+                    <input type="radio" name="exam_type" value="FE" checked={form.exam_type === 'FE'} onChange={() => setForm(p => ({ ...p, exam_type: 'FE' }))} style={{ width: 16, height: 16, accentColor: '#2563eb' }} />
+                    Đề thi FE
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', color: '#0f172a' }}>
+                    <input type="radio" name="exam_type" value="PT" checked={form.exam_type === 'PT'} onChange={() => setForm(p => ({ ...p, exam_type: 'PT' }))} style={{ width: 16, height: 16, accentColor: '#2563eb' }} />
+                    Đề thi PT
+                  </label>
+                </div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Gắn vào môn học</label>
