@@ -131,16 +131,23 @@ Dự án này là một phiên bản mẫu mực của phương pháp **Spec-Dri
 Cấu trúc lưu trữ specs định hình toàn bộ tính năng:
 ```bash
 📂 .sdd/specs/
- ├── 01-core-auth/             # Xác thực OTP, User Profile
- ├── 02-admin-dashboard/       # Thống kê, Settings, Backup
- ├── 03-admin-subject-theory/  # Môn học, Lý thuyết, Reviews
- ├── 04-admin-exam-questions/  # Import Word/Excel/Zip, Reports
- ├── 05-admin-order-users/     # Quản lý Users, Đơn hàng, Coupons
- ├── 06-admin-news/            # Quản lý Thông báo, Tin tức
- ├── 07-user-studyhub/         # Landing, Khám phá môn học
- ├── 08-user-exam-system/      # Carousel Exam, Auto-scoring
- ├── 09-user-ecommerce/        # Giỏ hàng, Áp mã giảm giá
- └── 10-user-news/             # Đọc tin, Bình luận
+ ├── 01-core-auth-and-security/        # Xác thực OTP, User Profile, Phân quyền
+ ├── 02-admin-dashboard/               # Thống kê Live, Analytics
+ ├── 03-admin-subject-theory/          # Quản lý Môn học, Tài liệu lý thuyết
+ ├── 04-admin-exam-questions/          # Quản lý Đề thi, Import Bank Câu hỏi
+ ├── 05-admin-order-users/             # Quản lý Đơn hàng, Users, Mã giảm giá
+ ├── 06-news-and-announcements/        # Quản lý Tin tức, Banners, Thông báo
+ ├── 07-user-studyhub/                 # Trung tâm học tập của Học viên
+ ├── 08-user-exam-system/              # Giao diện Làm bài thi (Test Engine)
+ ├── 09-ecommerce-checkout/            # Luồng thanh toán, Giỏ hàng
+ ├── 10-product-catalog-and-reviews/   # Đánh giá khóa học, Danh mục
+ ├── 11-admin-data-backup/             # Sao lưu hệ thống (Backup/Restore)
+ ├── 12-system-settings/               # Cài đặt UI & Hệ thống
+ ├── 13-interactive-landing-page/      # Trang chủ Landing Page
+ ├── 14-split-fe-pt-exams/             # Nâng cấp Logic tách đề thi FE/PT
+ ├── 15-support-word-in-zip/           # Nâng cấp Import Đề thi từ Word trong Zip
+ ├── 16-admin-simulate-student-view/   # Chế độ giả lập góc nhìn sinh viên cho Admin
+ └── 17-admin-simulate-student-cart-topnav/ # Hoàn thiện giao diện TopNav cho góc nhìn mô phỏng
 ```
 
 ---
