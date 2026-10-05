@@ -26,6 +26,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { batchUploadImages } from '@/lib/imageUpload';
 
 type Subject = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
 
@@ -292,10 +293,58 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
           console.error('Error linking subject:', linkErr);
         }
 
-        // 3. Insert Questions and Options
+        // 3. Collect and upload images
+        type UploadItem = { dataUrl: string; examId: string; pathSuffix: string };
+        const uploadItems: UploadItem[] = [];
+        const uploadMap: { qIdx: number; field: 'question' | 'extra' | 'option'; optIdx?: number }[] = [];
+
         const qList = examData.questions;
+        qList.forEach((q, qi) => {
+          if (q.imageDataUrl) {
+            uploadItems.push({ dataUrl: q.imageDataUrl, examId: newExam.id, pathSuffix: `${qi + 1}_0` });
+            uploadMap.push({ qIdx: qi, field: 'question' });
+          }
+          if (q.extraImageDataUrls) {
+            q.extraImageDataUrls.forEach((url, xi) => {
+              uploadItems.push({ dataUrl: url, examId: newExam.id, pathSuffix: `${qi + 1}_extra${xi}` });
+              uploadMap.push({ qIdx: qi, field: 'extra' });
+            });
+          }
+          q.options.forEach((opt, oi) => {
+            if (opt.imageDataUrl) {
+              uploadItems.push({ dataUrl: opt.imageDataUrl, examId: newExam.id, pathSuffix: `${qi + 1}_opt${oi}` });
+              uploadMap.push({ qIdx: qi, field: 'option', optIdx: oi });
+            }
+          });
+        });
+
+        const uploadedUrls: (string | null)[] = [];
+        if (uploadItems.length > 0) {
+          setUploadStatusText(`Đang upload ảnh cho đề ${examNum}/${selectedExams.length}...`);
+          const results = await batchUploadImages(uploadItems, (done, total) => {
+            setUploadStatusText(`Đang upload ảnh cho đề ${examNum}/${selectedExams.length} (${done}/${total})...`);
+          });
+          uploadedUrls.push(...results);
+        }
+
+        const questionImages: (string | undefined)[] = qList.map(() => undefined);
+        const questionExtraImages: string[][] = qList.map(() => []);
+        const optionImages: (string | undefined)[][] = qList.map(q => q.options.map(() => undefined));
+
+        uploadedUrls.forEach((url, idx) => {
+          if (!url) return;
+          const { qIdx, field, optIdx } = uploadMap[idx];
+          if (field === 'question') questionImages[qIdx] = url;
+          else if (field === 'extra') questionExtraImages[qIdx].push(url);
+          else if (field === 'option' && optIdx !== undefined) optionImages[qIdx][optIdx] = url;
+        });
+
+        // 4. Insert Questions and Options
         for (let qi = 0; qi < qList.length; qi++) {
           const qData = qList[qi];
+          const imageUrl = questionImages[qi] || null;
+          const extraImgs = questionExtraImages[qi];
+
           setUploadStatusText(
             `Đang tạo đề ${examNum}/${selectedExams.length}: "${examData.title}" (Câu ${qi + 1}/${qList.length})...`
           );
@@ -306,7 +355,9 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
               exam_id: newExam.id,
               order_num: qData.orderNum || qi + 1,
               content: qData.content || null,
-              type: 'text',
+              type: imageUrl ? 'image' : 'text',
+              image_url: imageUrl,
+              extra_images: extraImgs.length > 0 ? extraImgs : [],
               chapter_name: qData.chapterName || 'Tổng hợp',
             } as any)
             .select()
@@ -320,11 +371,12 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
           importedQuestionCount++;
 
           if (qData.options && qData.options.length > 0) {
-            const optionsToInsert = qData.options.map(opt => ({
+            const optionsToInsert = qData.options.map((opt, oi) => ({
               question_id: qRecord.id,
               label: opt.label,
               content: opt.content || '',
               is_correct: stripAnswers ? false : opt.isCorrect,
+              image_url: optionImages[qi][oi] || null,
             }));
 
             const { error: optErr } = await supabase

@@ -2016,7 +2016,7 @@
       "file_type": "code",
       "norm_label": "bulkexamzipmodalprops",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L32"
+      "source_location": "L33"
     },
     {
       "id": "src_components_admin_bulkexamzipmodal_subject",
@@ -2029,7 +2029,7 @@
       "file_type": "code",
       "norm_label": "subject",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L30"
+      "source_location": "L31"
     },
     {
       "id": "src_lib_markdownexamparser_markdownparseroptions",
@@ -2042,7 +2042,7 @@
       "file_type": "code",
       "norm_label": "markdownparseroptions",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L45"
+      "source_location": "L48"
     },
     {
       "id": "src_lib_markdownexamparser_parsedexamdata",
@@ -2055,7 +2055,7 @@
       "file_type": "code",
       "norm_label": "parsedexamdata",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L33"
+      "source_location": "L36"
     },
     {
       "id": "src_lib_markdownexamparser_parsedexamoption",
@@ -2081,7 +2081,7 @@
       "file_type": "code",
       "norm_label": "parsedexamquestion",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L25"
+      "source_location": "L26"
     },
     {
       "id": "src_lib_wordparser_parsedoption",
@@ -5338,7 +5338,7 @@
       "file_type": "code",
       "norm_label": "bulkexamzipmodal()",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L40"
+      "source_location": "L41"
     },
     {
       "id": "src_lib_imageupload_batchuploadimages",
@@ -5422,7 +5422,7 @@
       "file_type": "code",
       "norm_label": "detectgluedoptiona()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L179"
+      "source_location": "L182"
     },
     {
       "id": "src_lib_markdownexamparser_extractanswerlabels",
@@ -5434,7 +5434,7 @@
       "file_type": "code",
       "norm_label": "extractanswerlabels()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L60"
+      "source_location": "L63"
     },
     {
       "id": "src_lib_markdownexamparser_extractexamfromfile",
@@ -5446,7 +5446,7 @@
       "file_type": "code",
       "norm_label": "extractexamfromfile()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L824"
+      "source_location": "L830"
     },
     {
       "id": "src_lib_markdownexamparser_extractexamsfromzip",
@@ -5458,7 +5458,7 @@
       "file_type": "code",
       "norm_label": "extractexamsfromzip()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L743"
+      "source_location": "L746"
     },
     {
       "id": "src_lib_markdownexamparser_matchoptionline",
@@ -5470,7 +5470,7 @@
       "file_type": "code",
       "norm_label": "matchoptionline()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L134"
+      "source_location": "L137"
     },
     {
       "id": "src_lib_markdownexamparser_normalizeexamlines",
@@ -5482,7 +5482,7 @@
       "file_type": "code",
       "norm_label": "normalizeexamlines()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L222"
+      "source_location": "L225"
     },
     {
       "id": "src_lib_markdownexamparser_parsemarkdownexam",
@@ -5494,7 +5494,7 @@
       "file_type": "code",
       "norm_label": "parsemarkdownexam()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L342"
+      "source_location": "L345"
     },
     {
       "id": "src_lib_markdownexamparser_parsemarkdownexam_flushopt",
@@ -5506,7 +5506,7 @@
       "file_type": "code",
       "norm_label": "flushopt()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L470"
+      "source_location": "L473"
     },
     {
       "id": "src_lib_utils_sortexams",
@@ -23285,7 +23285,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L145",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -23297,7 +23297,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L147",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_admin_bulkexamzipmodal_bulkexamzipmodal",
+      "target": "src_lib_imageupload_batchuploadimages",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/admin/BulkExamZipModal.tsx",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -23309,7 +23321,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -26777,7 +26789,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L833",
+      "source_location": "L839",
       "weight": 1.0
     },
     {
@@ -26789,7 +26801,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L867",
+      "source_location": "L876",
       "weight": 1.0
     },
     {
@@ -26801,7 +26813,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L773",
+      "source_location": "L776",
       "weight": 1.0
     },
     {
@@ -26813,7 +26825,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L811",
+      "source_location": "L817",
       "weight": 1.0
     },
     {
@@ -26825,7 +26837,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L352",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -26837,7 +26849,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L499",
+      "source_location": "L502",
       "weight": 1.0
     },
     {
@@ -26849,7 +26861,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L565",
+      "source_location": "L568",
       "weight": 1.0
     },
     {
@@ -28241,7 +28253,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L470",
+      "source_location": "L473",
       "weight": 1.0
     },
     {
@@ -30238,6 +30250,18 @@
       "context": "import",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
       "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_admin_bulkexamzipmodal",
+      "target": "src_lib_imageupload_batchuploadimages",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/admin/BulkExamZipModal.tsx",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -34498,6 +34522,18 @@
       "context": "import",
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
       "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_admin_bulkexamzipmodal",
+      "target": "src_lib_imageupload",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/admin/BulkExamZipModal.tsx",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -50229,7 +50265,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -50240,7 +50276,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -50251,7 +50287,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/admin/BulkExamZipModal.tsx",
-      "source_location": "L40",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -56048,7 +56084,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L134",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -56059,7 +56095,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L179",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -56081,7 +56117,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L222",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -56092,18 +56128,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L25",
-      "weight": 1.0
-    },
-    {
-      "source": "src_lib_markdownexamparser",
-      "target": "src_lib_markdownexamparser_parsedexamdata",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L33",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -56114,7 +56139,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L342",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "src_lib_markdownexamparser",
+      "target": "src_lib_markdownexamparser_parsedexamdata",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/markdownExamParser.ts",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -56125,7 +56161,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L45",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -56136,7 +56172,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L60",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -56147,7 +56183,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L743",
+      "source_location": "L746",
       "weight": 1.0
     },
     {
@@ -56158,7 +56194,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L824",
+      "source_location": "L830",
       "weight": 1.0
     },
     {
@@ -60141,5 +60177,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ad962b88ebd774afecb52062b738db7b65deb977"
+  "built_at_commit": "2436a77265989fd4206def58c7fb946b384a5d4c"
 }

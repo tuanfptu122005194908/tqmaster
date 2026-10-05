@@ -20,6 +20,7 @@ export interface ParsedExamOption {
   label: string; // 'A' | 'B' | 'C' | 'D' | ...
   content: string;
   isCorrect: boolean;
+  imageDataUrl?: string;
 }
 
 export interface ParsedExamQuestion {
@@ -28,6 +29,8 @@ export interface ParsedExamQuestion {
   chapterName: string;
   options: ParsedExamOption[];
   correctAnswers: string[]; // e.g. ['A'], ['A', 'B']
+  imageDataUrl?: string;
+  extraImageDataUrls?: string[];
 }
 
 export interface ParsedExamData {
@@ -784,10 +787,13 @@ export async function extractExamsFromZip(
                 orderNum: q.orderNum,
                 content: q.content,
                 chapterName: q.chapterName,
+                imageDataUrl: q.imageDataUrl,
+                extraImageDataUrls: q.extraImageDataUrls,
                 options: q.options.map(o => ({
                   label: o.label,
                   content: o.content,
-                  isCorrect: strippedAnswers.includes(o.label)
+                  isCorrect: strippedAnswers.includes(o.label),
+                  imageDataUrl: o.imageDataUrl
                 })),
                 correctAnswers: strippedAnswers,
              };
@@ -843,10 +849,13 @@ export async function extractExamFromFile(
             orderNum: q.orderNum,
             content: q.content,
             chapterName: q.chapterName,
+            imageDataUrl: q.imageDataUrl,
+            extraImageDataUrls: q.extraImageDataUrls,
             options: q.options.map(o => ({
               label: o.label,
               content: o.content,
-              isCorrect: strippedAnswers.includes(o.label)
+              isCorrect: strippedAnswers.includes(o.label),
+              imageDataUrl: o.imageDataUrl
             })),
             correctAnswers: strippedAnswers,
          };
