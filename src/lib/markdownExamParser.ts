@@ -13,6 +13,8 @@
  */
 
 import JSZip from 'jszip';
+import mammoth from 'mammoth';
+import { parseHtmlToQuestions } from './wordParser';
 
 export interface ParsedExamOption {
   label: string; // 'A' | 'B' | 'C' | 'D' | ...
@@ -749,7 +751,7 @@ export async function extractExamsFromZip(
   zip.forEach((relativePath, zipEntry) => {
     if (zipEntry.dir) return;
     if (relativePath.includes('__MACOSX') || relativePath.startsWith('.') || relativePath.includes('/.')) return;
-    if (/\.(md|txt|markdown)$/i.test(relativePath)) {
+    if (/\.(md|txt|markdown|docx)$/i.test(relativePath)) {
       entries.push({ path: relativePath, file: zipEntry });
     }
   });
@@ -758,12 +760,58 @@ export async function extractExamsFromZip(
   entries.sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true, sensitivity: 'base' }));
 
   for (const entry of entries) {
-    const content = await entry.file.async('string');
-    if (!content.trim()) continue;
     const filename = entry.path.split(/[\\/]/).pop() || entry.path;
-    const parsed = parseMarkdownExam(content, filename, options);
-    if (parsed.questions.length > 0) {
-      results.push(parsed);
+    const isWord = /\.docx$/i.test(filename);
+
+    if (isWord) {
+      try {
+        const arrayBuffer = await entry.file.async('arraybuffer');
+        const result = await mammoth.convertToHtml({ arrayBuffer } as any);
+        const html = result.value.trim();
+        if (!html) continue;
+
+        const parsedQ = parseHtmlToQuestions(html);
+        if (parsedQ.length === 0) continue;
+
+        const parsedData: ParsedExamData = {
+          filename,
+          title: filename.replace(/\.[^/.]+$/, '').trim(),
+          description: '',
+          durationMin: 60,
+          questions: parsedQ.map(q => {
+             const strippedAnswers = options.stripAnswers ? [] : q.correctAnswers;
+             return {
+                orderNum: q.orderNum,
+                content: q.content,
+                chapterName: q.chapterName,
+                options: q.options.map(o => ({
+                  label: o.label,
+                  content: o.content,
+                  isCorrect: strippedAnswers.includes(o.label)
+                })),
+                correctAnswers: strippedAnswers,
+             };
+          }),
+          totalQuestions: parsedQ.length,
+          unansweredQuestions: [],
+          selected: true,
+        };
+
+        parsedData.unansweredQuestions = parsedData.questions
+            .filter(q => !q.options.some(o => o.isCorrect))
+            .map(q => q.orderNum);
+        
+        results.push(parsedData);
+      } catch (err) {
+        console.error(`Lỗi khi parse file Word ${filename} từ zip:`, err);
+      }
+    } else {
+      const content = await entry.file.async('string');
+      if (!content.trim()) continue;
+      const parsed = parseMarkdownExam(content, filename, options);
+      if (parsed.questions.length > 0) {
+        results.push(parsed);
+      }
     }
   }
 
@@ -777,6 +825,44 @@ export async function extractExamFromFile(
   file: File,
   options: MarkdownParserOptions = {}
 ): Promise<ParsedExamData> {
+  const isWord = /\.docx$/i.test(file.name);
+  if (isWord) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer } as any);
+    const html = result.value.trim();
+    const parsedQ = html ? parseHtmlToQuestions(html) : [];
+    
+    const parsedData: ParsedExamData = {
+      filename: file.name,
+      title: file.name.replace(/\.[^/.]+$/, '').trim(),
+      description: '',
+      durationMin: 60,
+      questions: parsedQ.map(q => {
+         const strippedAnswers = options.stripAnswers ? [] : q.correctAnswers;
+         return {
+            orderNum: q.orderNum,
+            content: q.content,
+            chapterName: q.chapterName,
+            options: q.options.map(o => ({
+              label: o.label,
+              content: o.content,
+              isCorrect: strippedAnswers.includes(o.label)
+            })),
+            correctAnswers: strippedAnswers,
+         };
+      }),
+      totalQuestions: parsedQ.length,
+      unansweredQuestions: [],
+      selected: true,
+    };
+
+    parsedData.unansweredQuestions = parsedData.questions
+        .filter(q => !q.options.some(o => o.isCorrect))
+        .map(q => q.orderNum);
+        
+    return parsedData;
+  }
+
   const content = await file.text();
   return parseMarkdownExam(content, file.name, options);
 }

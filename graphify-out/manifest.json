@@ -1696,9 +1696,9 @@
     "semantic_hash": ""
   },
   "src/components/admin/BulkExamZipModal.tsx": {
-    "mtime": 1788195467.0889432,
-    "seen": 1789059066.0057592,
-    "ast_hash": "e2cf9aad5484e8703b8f3e9f25ec2e43",
+    "mtime": 1791170868.2261126,
+    "seen": 1791170913.396241,
+    "ast_hash": "b134a4c70de6a3f6f5498ccc3fd43420",
     "semantic_hash": ""
   },
   "src/integrations/supabase/previewAuthStorage.ts": {
@@ -1708,9 +1708,9 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1790265822.8086982,
-    "seen": 1790265871.2134356,
-    "ast_hash": "9edc6bfb5097da3f07b917d14ba76413",
+    "mtime": 1791170857.338271,
+    "seen": 1791170913.4069195,
+    "ast_hash": "3df61709dd46b3ef0e619b47c4855cad",
     "semantic_hash": ""
   },
   "src/components/SafeCanvas.tsx": {
@@ -2157,9 +2157,27 @@
     "semantic_hash": ""
   },
   ".sdd/specs/14-split-fe-pt-exams/tasks.md": {
-    "mtime": 1791166720.394778,
-    "seen": 1791166921.4090445,
-    "ast_hash": "07db13409890f55c096558cc1425b909",
+    "mtime": 1791168602.4841144,
+    "seen": 1791170913.4169357,
+    "ast_hash": "ccfa6071f380bd4a49d097c4cb7441cf",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/15-support-word-in-zip/plan.md": {
+    "mtime": 1791170673.913605,
+    "seen": 1791170913.4169385,
+    "ast_hash": "0f7c1bdaae6baf237c1496e1fe885685",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/15-support-word-in-zip/spec.md": {
+    "mtime": 1791170663.3843825,
+    "seen": 1791170913.4169412,
+    "ast_hash": "85de08e449f4f75494bc8b7572d05aae",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/15-support-word-in-zip/tasks.md": {
+    "mtime": 1791170686.3467317,
+    "seen": 1791170913.4169421,
+    "ast_hash": "72b5076cf9f0058252706511ff7c08b2",
     "semantic_hash": ""
   }
 }

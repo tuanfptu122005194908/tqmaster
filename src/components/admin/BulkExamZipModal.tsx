@@ -127,10 +127,10 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
 
   const handleFileProcess = async (file: File) => {
     const isZip = file.name.endsWith('.zip') || file.type.includes('zip');
-    const isMdOrTxt = file.name.endsWith('.md') || file.name.endsWith('.txt') || file.name.endsWith('.markdown');
+    const isAllowedFile = file.name.endsWith('.md') || file.name.endsWith('.txt') || file.name.endsWith('.markdown') || file.name.endsWith('.docx');
 
-    if (!isZip && !isMdOrTxt) {
-      toast.error('Vui lòng chọn file nén .zip hoặc file markdown .md / .txt');
+    if (!isZip && !isAllowedFile) {
+      toast.error('Vui lòng chọn file nén .zip hoặc file .md / .txt / .docx');
       return;
     }
 
@@ -151,7 +151,7 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
       }
 
       if (rawExams.length === 0) {
-        toast.error('Không tìm thấy file đề thi .md hoặc câu hỏi nào trong file.');
+        toast.error('Không tìm thấy file đề thi hoặc câu hỏi nào hợp lệ trong file.');
       } else {
         rawParsedExamsRef.current = rawExams;
 
@@ -735,7 +735,7 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".zip,.md,.txt,.markdown"
+                accept=".zip,.md,.txt,.markdown,.docx"
                 style={{ display: 'none' }}
                 onChange={e => e.target.files?.[0] && handleFileProcess(e.target.files[0])}
               />
@@ -784,7 +784,7 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
                       Kéo thả file ZIP đề thi vào đây, hoặc click để chọn file
                     </h4>
                     <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
-                      Hỗ trợ file <strong>.zip</strong> (chứa nhiều đề thi .md) hoặc file đơn lẻ <strong>.md, .txt</strong>
+                      Hỗ trợ file <strong>.zip</strong> (chứa nhiều đề thi .md, .docx) hoặc file đơn lẻ <strong>.md, .txt, .docx</strong>
                     </p>
                   </>
                 )}
