@@ -130,39 +130,6 @@ export default function ExamPage() {
     setReportNote('');
   }, [currentIndex]);
 
-  // Flashcard keyboard shortcuts
-  useEffect(() => {
-    if (examMode !== 'flashcard') return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const activeEl = document.activeElement;
-      if (['INPUT', 'TEXTAREA'].includes(activeEl?.tagName || '')) return;
-
-      if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
-          activeEl.blur();
-        }
-        setIsFlipped(prev => !prev);
-        playSound.flip();
-      } else if (e.code === 'ArrowLeft' || e.key === 'ArrowLeft' || e.keyCode === 37) {
-        e.preventDefault();
-        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
-          activeEl.blur();
-        }
-        setCurrentIndex(i => Math.max(0, i - 1));
-      } else if (e.code === 'ArrowRight' || e.key === 'ArrowRight' || e.keyCode === 39) {
-        e.preventDefault();
-        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
-          activeEl.blur();
-        }
-        setCurrentIndex(i => Math.min(questions.length - 1, i + 1));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown, true);
-    return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [examMode, questions.length]);
-
   // Load exam + questions + options
   useEffect(() => {
     if (!selectedExamId) return;
@@ -297,15 +264,26 @@ export default function ExamPage() {
         return;
       }
 
+      const activeEl = document.activeElement;
+
       if (e.code === 'Space' && examMode === 'flashcard') {
         e.preventDefault();
+        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
+          activeEl.blur();
+        }
         setIsFlipped(prev => {
           playSound.flip();
           return !prev;
         });
       } else if (e.code === 'ArrowLeft') {
+        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
+          activeEl.blur();
+        }
         setCurrentIndex(i => { if (i > 0) playSound.click(); return Math.max(0, i - 1); });
       } else if (e.code === 'ArrowRight') {
+        if (activeEl instanceof HTMLElement && activeEl.tagName === 'BUTTON') {
+          activeEl.blur();
+        }
         setCurrentIndex(i => { if (i < questions.length - 1) playSound.click(); return Math.min(questions.length - 1, i + 1); });
       }
     };
@@ -2628,4 +2606,5 @@ export default function ExamPage() {
     </div>
   );
 }
+
 

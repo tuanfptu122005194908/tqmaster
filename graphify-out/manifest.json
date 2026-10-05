@@ -660,9 +660,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/ExamPage.tsx": {
-    "mtime": 1790274465.084209,
-    "seen": 1790274560.4856062,
-    "ast_hash": "3ee7cd8c7b2254734a5c5353c7f32afb",
+    "mtime": 1791197918.8975265,
+    "seen": 1791197995.2020476,
+    "ast_hash": "f1f10e7c9b85432e87582842437b271a",
     "semantic_hash": ""
   },
   "src/pages/user/HomePage.tsx": {
@@ -1438,9 +1438,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1786098278.9581504,
-    "seen": 1789059066.0061932,
-    "ast_hash": "f5fe1ac4f936e009bcbff452ce915b93",
+    "mtime": 1791173990.9026053,
+    "seen": 1791197995.2386293,
+    "ast_hash": "789b70a69a9e282fa855063b8e11bf46",
     "semantic_hash": ""
   },
   "agent.md": {
@@ -2211,9 +2211,27 @@
     "semantic_hash": ""
   },
   ".sdd/specs/17-admin-simulate-student-cart-topnav/tasks.md": {
-    "mtime": 1791173389.3293407,
-    "seen": 1791173505.0692906,
-    "ast_hash": "8c5c317c4108306a796c59ce2b0cf82a",
+    "mtime": 1791173507.8840961,
+    "seen": 1791197995.232759,
+    "ast_hash": "ed4999da0350fa33bae7fbd6dc7202e5",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/18-fix-flashcard-double-skip/plan.md": {
+    "mtime": 1791197471.0826468,
+    "seen": 1791197995.2327645,
+    "ast_hash": "388f428b0a0f0e690f0d05b10410c0ac",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/18-fix-flashcard-double-skip/spec.md": {
+    "mtime": 1791197460.8825865,
+    "seen": 1791197995.2327683,
+    "ast_hash": "6ed6b657574e64d5dc17d9914bc41a73",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/18-fix-flashcard-double-skip/tasks.md": {
+    "mtime": 1791197480.2704196,
+    "seen": 1791197995.232771,
+    "ast_hash": "f57c362c2892feab45fa71cd9ae6db5a",
     "semantic_hash": ""
   }
 }
