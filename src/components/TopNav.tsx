@@ -13,6 +13,8 @@ export default function TopNav() {
   const menuRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
 
+  const isStudentView = !isAdmin || !location.pathname.startsWith('/admin');
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
@@ -93,7 +95,7 @@ export default function TopNav() {
             </button>
           )}
 
-          {profile && !isAdmin && (
+          {profile && isStudentView && (
             <button 
               style={{
                 border: 'none', background: 'none', padding: '6px 4px', cursor: 'pointer',
@@ -152,7 +154,7 @@ export default function TopNav() {
           </div>
           
           {/* Nhắn tin Admin */}
-          {!isAdmin && (
+          {isStudentView && (
             <button
               onClick={() => {
                 const link = siteSettings?.['facebook_url'] || 'https://www.facebook.com';
@@ -224,7 +226,7 @@ export default function TopNav() {
       </div>
 
       {/* Cart (user only) */}
-      {!isAdmin && profile && (
+      {isStudentView && profile && (
         <button
           id="nav-cart"
           className="btn-ghost hide-on-mobile"

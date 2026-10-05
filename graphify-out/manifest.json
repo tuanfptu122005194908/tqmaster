@@ -186,9 +186,9 @@
     "semantic_hash": "889a81fd2eb948eb406c9ccabe175918"
   },
   "src/components/TopNav.tsx": {
-    "mtime": 1791101161.7516565,
-    "seen": 1791166921.3656077,
-    "ast_hash": "266fefd048ea9af12c84d30aee721043",
+    "mtime": 1791173454.3039172,
+    "seen": 1791173505.0491803,
+    "ast_hash": "b6a4e72a9a786a03ba200889c4b39166",
     "semantic_hash": ""
   },
   "src/components/ui/accordion.tsx": {
@@ -2193,9 +2193,27 @@
     "semantic_hash": ""
   },
   ".sdd/specs/16-admin-simulate-student-view/tasks.md": {
-    "mtime": 1791172984.3829522,
-    "seen": 1791173163.795873,
-    "ast_hash": "116df8a80c5144378d323f32be1c1eae",
+    "mtime": 1791173165.3375418,
+    "seen": 1791173505.0692823,
+    "ast_hash": "e6073211cb39fbd79c769ec7f99e7bf4",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/17-admin-simulate-student-cart-topnav/plan.md": {
+    "mtime": 1791173380.1008692,
+    "seen": 1791173505.0692859,
+    "ast_hash": "b614b9275abc2742e7d3992db1054058",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/17-admin-simulate-student-cart-topnav/spec.md": {
+    "mtime": 1791173368.5268216,
+    "seen": 1791173505.0692885,
+    "ast_hash": "299de3a82c73f1c379e96ab4b256cbc1",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/17-admin-simulate-student-cart-topnav/tasks.md": {
+    "mtime": 1791173389.3293407,
+    "seen": 1791173505.0692906,
+    "ast_hash": "8c5c317c4108306a796c59ce2b0cf82a",
     "semantic_hash": ""
   }
 }
