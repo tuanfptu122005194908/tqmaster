@@ -1,7 +1,7 @@
-- [ ] Chờ người dùng duyệt Spec mới (đã cập nhật thêm cột db).
-- [ ] Yêu cầu người dùng / Agent chạy lệnh SQL thêm cột `exam_type` vào bảng `exams`.
-- [ ] Cập nhật file `src/integrations/supabase/types.ts`.
-- [ ] Cập nhật UI & Logic lưu dữ liệu trong `src/pages/admin/AdminExams.tsx`.
-- [ ] Cập nhật UI chia tab FE & PT trong `src/pages/user/SubjectDetailPage.tsx`.
-- [ ] Chạy `npm test` và `graphify update .`.
-- [ ] Đẩy code lên `origin` và `tqmaster`.
+- [x] Chờ người dùng duyệt Spec mới (đã cập nhật thêm cột db).
+- [x] Yêu cầu người dùng / Agent chạy lệnh SQL thêm cột `exam_type` vào bảng `exams`.
+- [x] Cập nhật file `src/integrations/supabase/types.ts`.
+- [x] Cập nhật UI & Logic lưu dữ liệu trong `src/pages/admin/AdminExams.tsx`.
+- [x] Cập nhật UI chia tab FE & PT trong `src/pages/user/SubjectDetailPage.tsx`.
+- [x] Chạy `npm test` (build) và `graphify update .`.
+- [x] Đẩy code lên `origin` và `tqmaster`.
