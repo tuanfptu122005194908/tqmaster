@@ -30,8 +30,8 @@ export function getExamScore(title: string): number {
 
   // Exam type: RE (retake) > FE (final) > others — minor tiebreaker
   let typeScore = 0;
-  if (t.includes('RE')) typeScore = 2;
-  else if (t.includes('FE')) typeScore = 1;
+  if (/\bRE\b/.test(t)) typeScore = 2;
+  else if (/\bFE\b/.test(t)) typeScore = 1;
 
   return yearScore + seasonScore + typeScore;
 }
