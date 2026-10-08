@@ -776,38 +776,49 @@ export async function extractExamsFromZip(
         const parsedQ = parseHtmlToQuestions(html);
         if (parsedQ.length === 0) continue;
 
-        const parsedData: ParsedExamData = {
-          filename,
-          title: filename.replace(/\.[^/.]+$/, '').trim(),
-          description: '',
-          durationMin: 60,
-          questions: parsedQ.map(q => {
-             const strippedAnswers = options.stripAnswers ? [] : q.correctAnswers;
-             return {
-                orderNum: q.orderNum,
-                content: q.content,
-                chapterName: q.chapterName,
-                imageDataUrl: q.imageDataUrl,
-                extraImageDataUrls: q.extraImageDataUrls,
-                options: q.options.map(o => ({
-                  label: o.label,
-                  content: o.content,
-                  isCorrect: strippedAnswers.includes(o.label),
-                  imageDataUrl: o.imageDataUrl
-                })),
-                correctAnswers: strippedAnswers,
-             };
-          }),
-          totalQuestions: parsedQ.length,
-          unansweredQuestions: [],
-          selected: true,
-        };
+        const groupedQ = new Map<string, typeof parsedQ>();
+        for (const q of parsedQ) {
+          const ch = q.chapterName || 'Tổng hợp';
+          if (!groupedQ.has(ch)) groupedQ.set(ch, []);
+          groupedQ.get(ch)!.push(q);
+        }
 
-        parsedData.unansweredQuestions = parsedData.questions
-            .filter(q => !q.options.some(o => o.isCorrect))
-            .map(q => q.orderNum);
-        
-        results.push(parsedData);
+        const isMultiChapter = groupedQ.size > 1;
+
+        for (const [chapter, chapterQs] of groupedQ.entries()) {
+          const parsedData: ParsedExamData = {
+            filename,
+            title: isMultiChapter ? `${filename.replace(/\.[^/.]+$/, '').trim()} - ${chapter}` : filename.replace(/\.[^/.]+$/, '').trim(),
+            description: '',
+            durationMin: 60,
+            questions: chapterQs.map(q => {
+               const strippedAnswers = options.stripAnswers ? [] : q.correctAnswers;
+               return {
+                  orderNum: q.orderNum,
+                  content: q.content,
+                  chapterName: q.chapterName,
+                  imageDataUrl: q.imageDataUrl,
+                  extraImageDataUrls: q.extraImageDataUrls,
+                  options: q.options.map(o => ({
+                    label: o.label,
+                    content: o.content,
+                    isCorrect: strippedAnswers.includes(o.label),
+                    imageDataUrl: o.imageDataUrl
+                  })),
+                  correctAnswers: strippedAnswers,
+               };
+            }),
+            totalQuestions: chapterQs.length,
+            unansweredQuestions: [],
+            selected: true,
+          };
+
+          parsedData.unansweredQuestions = parsedData.questions
+              .filter(q => !q.options.some(o => o.isCorrect))
+              .map(q => q.orderNum);
+          
+          results.push(parsedData);
+        }
       } catch (err) {
         console.error(`Lỗi khi parse file Word ${filename} từ zip:`, err);
       }
@@ -830,49 +841,61 @@ export async function extractExamsFromZip(
 export async function extractExamFromFile(
   file: File,
   options: MarkdownParserOptions = {}
-): Promise<ParsedExamData> {
+): Promise<ParsedExamData[]> {
   const isWord = /\.docx$/i.test(file.name);
   if (isWord) {
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.convertToHtml({ arrayBuffer } as any);
     const html = result.value.trim();
-    const parsedQ = html ? parseHtmlToQuestions(html) : [];
-    
-    const parsedData: ParsedExamData = {
-      filename: file.name,
-      title: file.name.replace(/\.[^/.]+$/, '').trim(),
-      description: '',
-      durationMin: 60,
-      questions: parsedQ.map(q => {
-         const strippedAnswers = options.stripAnswers ? [] : q.correctAnswers;
-         return {
-            orderNum: q.orderNum,
-            content: q.content,
-            chapterName: q.chapterName,
-            imageDataUrl: q.imageDataUrl,
-            extraImageDataUrls: q.extraImageDataUrls,
-            options: q.options.map(o => ({
-              label: o.label,
-              content: o.content,
-              isCorrect: strippedAnswers.includes(o.label),
-              imageDataUrl: o.imageDataUrl
-            })),
-            correctAnswers: strippedAnswers,
-         };
-      }),
-      totalQuestions: parsedQ.length,
-      unansweredQuestions: [],
-      selected: true,
-    };
+    const results: ParsedExamData[] = [];
+    const groupedQ = new Map<string, typeof parsedQ>();
+    for (const q of parsedQ) {
+      const ch = q.chapterName || 'Tổng hợp';
+      if (!groupedQ.has(ch)) groupedQ.set(ch, []);
+      groupedQ.get(ch)!.push(q);
+    }
 
-    parsedData.unansweredQuestions = parsedData.questions
-        .filter(q => !q.options.some(o => o.isCorrect))
-        .map(q => q.orderNum);
-        
-    return parsedData;
+    const isMultiChapter = groupedQ.size > 1;
+
+    for (const [chapter, chapterQs] of groupedQ.entries()) {
+      const parsedData: ParsedExamData = {
+        filename: file.name,
+        title: isMultiChapter ? `${file.name.replace(/\.[^/.]+$/, '').trim()} - ${chapter}` : file.name.replace(/\.[^/.]+$/, '').trim(),
+        description: '',
+        durationMin: 60,
+        questions: chapterQs.map(q => {
+           const strippedAnswers = options.stripAnswers ? [] : q.correctAnswers;
+           return {
+              orderNum: q.orderNum,
+              content: q.content,
+              chapterName: q.chapterName,
+              imageDataUrl: q.imageDataUrl,
+              extraImageDataUrls: q.extraImageDataUrls,
+              options: q.options.map(o => ({
+                label: o.label,
+                content: o.content,
+                isCorrect: strippedAnswers.includes(o.label),
+                imageDataUrl: o.imageDataUrl
+              })),
+              correctAnswers: strippedAnswers,
+           };
+        }),
+        totalQuestions: chapterQs.length,
+        unansweredQuestions: [],
+        selected: true,
+      };
+
+      parsedData.unansweredQuestions = parsedData.questions
+          .filter(q => !q.options.some(o => o.isCorrect))
+          .map(q => q.orderNum);
+          
+      results.push(parsedData);
+    }
+    return results;
   }
 
   const content = await file.text();
-  return parseMarkdownExam(content, file.name, options);
+  const parsed = parseMarkdownExam(content, file.name, options);
+  return [parsed];
 }
 

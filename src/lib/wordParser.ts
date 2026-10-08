@@ -123,7 +123,8 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
   // Must be followed by whitespace AND a letter (never a digit, preventing 172.16 or 1.1)
   const BARE_NUMBER_RE = /^(\d+)[.:)]\s+([A-Za-z\u00C0-\u024F\u1EA0-\u1EF9].*)/;
 
-  const ANSWER_RE = /^(?:đáp án|dap an|answer|key|đáp án đúng|dap an dung)\s*[:.\s]\s*(.*)/i;
+  const ANSWER_RE = /^(?:>|➤|\*|-)?\s*(?:đáp án|dap an|answer|key|đáp án đúng|dap an dung)\s*[:.\s]\s*(.*)/i;
+  const EXPLANATION_RE = /^(?:>|➤|\*|-)?\s*(?:lời giải chi tiết|giai thich|giải thích|explanation)\s*[:.\s]\s*(.*)/i;
   const CHAPTER_RE = /^(?:#+|\[)?\s*(chương\s+\S[^\]\n]*)/i;
 
   // Pre-scan: Build global answer map from lines like "Đáp án: 1A 2BC 3D" or "Answer: 1. A, 2. B"
@@ -157,6 +158,7 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
   let qNum = 0;
   let inOption = false;
   let currentOptLabel = '';
+  let inExplanation = false;
 
   const pushCur = () => {
     if (cur) {
@@ -215,6 +217,7 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
       qNum = detectedOrder;
       inOption = false;
       currentOptLabel = '';
+      inExplanation = false;
       cur = {
         orderNum: qNum,
         content: questionContent,
@@ -234,8 +237,16 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
       const labels = extractAnswerLabels(rest);
       if (labels.length > 0) {
         cur.correctAnswers = Array.from(new Set([...cur.correctAnswers, ...labels]));
+        inExplanation = true;
         continue;
       }
+    }
+
+    // 3.5 Check for Explanation marker
+    if (EXPLANATION_RE.test(trimmed) && cur) {
+      inExplanation = true;
+      inOption = false;
+      continue;
     }
 
     // 4. Check for Option marker (A., B., C., D...)
@@ -315,11 +326,12 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
         content: cleanContent,
         imageDataUrl: imgBefore,
       });
+      inExplanation = false;
       continue;
     }
 
     // 5. Continuation line (appends to current option or question content)
-    if (cur) {
+    if (cur && !inExplanation) {
       if (inOption && cur.options.length > 0) {
         const lastOpt = cur.options[cur.options.length - 1];
         if (text) lastOpt.content += (lastOpt.content ? '\n' : '') + text;

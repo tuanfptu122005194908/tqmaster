@@ -964,9 +964,9 @@
     "semantic_hash": ""
   },
   "src/lib/wordParser.ts": {
-    "mtime": 1791475730.1072881,
-    "seen": 1791475826.9924107,
-    "ast_hash": "976c5789603a008ae935c8190d2c5e0d",
+    "mtime": 1790264865.806354,
+    "seen": 1790264922.0852766,
+    "ast_hash": "f6497434f2042756a79a697b83a85475",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminBackup.tsx": {
@@ -1696,9 +1696,9 @@
     "semantic_hash": ""
   },
   "src/components/admin/BulkExamZipModal.tsx": {
-    "mtime": 1791475781.8214576,
-    "seen": 1791475826.9836547,
-    "ast_hash": "1a492f519445844052bc015350fc2b09",
+    "mtime": 1791172226.4267342,
+    "seen": 1791172263.9916615,
+    "ast_hash": "7ac348caebab50ff6933385b5ee75524",
     "semantic_hash": ""
   },
   "src/integrations/supabase/previewAuthStorage.ts": {
@@ -1708,9 +1708,9 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1791475774.44275,
-    "seen": 1791475826.9912424,
-    "ast_hash": "5ac915470e22f9d4dfa7154bb71808df",
+    "mtime": 1791172188.6546187,
+    "seen": 1791172263.9991071,
+    "ast_hash": "7ceffb24fdcec593efe80289eeedbba9",
     "semantic_hash": ""
   },
   "src/components/SafeCanvas.tsx": {
@@ -2232,24 +2232,6 @@
     "mtime": 1791197480.2704196,
     "seen": 1791197995.232771,
     "ast_hash": "f57c362c2892feab45fa71cd9ae6db5a",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/19-split-word-chapters-and-answers/plan.md": {
-    "mtime": 1791475686.5379982,
-    "seen": 1791475827.0021799,
-    "ast_hash": "a4bc7ed55e6617fd5c98cf5fc8841333",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/19-split-word-chapters-and-answers/spec.md": {
-    "mtime": 1791475678.1530025,
-    "seen": 1791475827.0021815,
-    "ast_hash": "ed91dc561633a6589b3727aa0b6975d1",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/19-split-word-chapters-and-answers/tasks.md": {
-    "mtime": 1791475618.8426998,
-    "seen": 1791475827.002183,
-    "ast_hash": "7b207fa4847b0ed8c4e896956c92bb29",
     "semantic_hash": ""
   }
 }

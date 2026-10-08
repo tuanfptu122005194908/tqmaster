@@ -1,0 +1,5 @@
+- [ ] 1. Cập nhật `ANSWER_RE` trong `wordParser.ts` để hỗ trợ ký tự đặc biệt (ví dụ `➤`).
+- [ ] 2. Thêm `EXPLANATION_RE` trong `wordParser.ts` để lọc phần lời giải chi tiết, không gộp vào nội dung đáp án (option).
+- [ ] 3. Cập nhật luồng xử lý file `.docx` trong hàm `extractExamsFromZip` (`markdownExamParser.ts`) để nhóm (group) các câu hỏi theo `chapterName`.
+- [ ] 4. Sinh ra nhiều `ParsedExamData` tương ứng với mỗi chapter có trong file `.docx`, điều chỉnh `title` cho phù hợp.
+- [ ] 5. Kiểm tra và pass type checking, test với file mẫu.

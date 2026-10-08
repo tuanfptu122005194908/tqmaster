@@ -145,9 +145,9 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
       if (isZip) {
         rawExams = await extractExamsFromZip(file, { stripAnswers: false });
       } else {
-        const singleExam = await extractExamFromFile(file, { stripAnswers: false });
-        if (singleExam.questions.length > 0) {
-          rawExams = [singleExam];
+        const singleExams = await extractExamFromFile(file, { stripAnswers: false });
+        if (singleExams.length > 0) {
+          rawExams = singleExams;
         }
       }
 
