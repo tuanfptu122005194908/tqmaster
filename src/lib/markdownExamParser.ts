@@ -849,6 +849,7 @@ export async function extractExamFromFile(
     const result = await mammoth.convertToHtml({ arrayBuffer } as any);
     const html = result.value.trim();
     const results: ParsedExamData[] = [];
+    const parsedQ = parseHtmlToQuestions(html);
     const groupedQ = new Map<string, typeof parsedQ>();
     for (const q of parsedQ) {
       const ch = q.chapterName || 'Tổng hợp';
