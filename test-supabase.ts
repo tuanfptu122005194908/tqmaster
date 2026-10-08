@@ -1,0 +1,3 @@
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient('https://mock', 'mock');
+// Not real test since I don't have env variables...
