@@ -52,6 +52,7 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
   const [defaultDuration, setDefaultDuration] = useState<number>(60);
   const [isActive, setIsActive] = useState<boolean>(true);
   const [stripAnswers, setStripAnswers] = useState<boolean>(false);
+  const [examType, setExamType] = useState<'FE' | 'PT'>('FE');
 
   const rawParsedExamsRef = useRef<ParsedExamData[]>([]);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -270,6 +271,7 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
             description: examData.description || null,
             duration_min: defaultDuration || examData.durationMin || 60,
             is_active: isActive,
+            exam_type: examType,
             created_by: profile?.id,
           } as any)
           .select()
@@ -736,6 +738,42 @@ export const BulkExamZipModal: React.FC<BulkExamZipModalProps> = ({
                       boxSizing: 'border-box',
                     }}
                   />
+                </div>
+
+                {/* Exam Type */}
+                <div>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      color: '#334155',
+                      marginBottom: 6,
+                    }}
+                  >
+                    <BookOpen size={15} style={{ color: '#f59e0b' }} /> Loại Đề Thi
+                  </label>
+                  <select
+                    value={examType}
+                    onChange={e => setExamType(e.target.value as 'FE' | 'PT')}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="FE">FE (Final Exam)</option>
+                    <option value="PT">PT (Progress Test)</option>
+                  </select>
                 </div>
 
                 {/* Is Active toggle & Strip answers toggle */}

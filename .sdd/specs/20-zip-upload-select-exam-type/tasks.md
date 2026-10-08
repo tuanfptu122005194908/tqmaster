@@ -1,0 +1,5 @@
+- [ ] Khai báo state `examType` (FE/PT) trong BulkExamZipModal
+- [ ] Thêm thẻ Select/Dropdown cho `examType` vào giao diện cấu hình
+- [ ] Truyền `exam_type: examType` vào hàm insert table `exams`
+- [ ] Kiểm thử upload zip và kiểm tra nhãn FE/PT hiển thị trên danh sách đề
+- [ ] Commit & tự động đẩy code lên 2 kho (origin, tqmaster)

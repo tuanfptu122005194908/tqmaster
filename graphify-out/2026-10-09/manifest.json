@@ -546,9 +546,9 @@
     "semantic_hash": "32db9e4cc8fb71fd94aa147b39e5fed0"
   },
   "src/lib/utils.ts": {
-    "mtime": 1791477324.224645,
-    "seen": 1791479016.5780463,
-    "ast_hash": "ff3ebb8827dff768ad3343fbe2d876f0",
+    "mtime": 1786785495.328989,
+    "seen": 1789059066.0059466,
+    "ast_hash": "3dcbd5b09590ccef1c6314588a9ab5a4",
     "semantic_hash": ""
   },
   "src/main.tsx": {
@@ -1696,9 +1696,9 @@
     "semantic_hash": ""
   },
   "src/components/admin/BulkExamZipModal.tsx": {
-    "mtime": 1791478976.150314,
-    "seen": 1791479016.5660052,
-    "ast_hash": "0a46872e1c9e9355d07b1b5e96e24632",
+    "mtime": 1791475883.2981534,
+    "seen": 1791476708.869594,
+    "ast_hash": "34eb68271a69bed92f65e3d6a5c0e992",
     "semantic_hash": ""
   },
   "src/integrations/supabase/previewAuthStorage.ts": {
@@ -2250,24 +2250,6 @@
     "mtime": 1791475883.255067,
     "seen": 1791476708.9106317,
     "ast_hash": "a3faf3c2a349021cf41a9b1dce42d554",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/20-zip-upload-select-exam-type/plan.md": {
-    "mtime": 1791478888.207433,
-    "seen": 1791479016.6066291,
-    "ast_hash": "6cc76def8467835d54d20b3165bbb28e",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/20-zip-upload-select-exam-type/spec.md": {
-    "mtime": 1791478877.530193,
-    "seen": 1791479016.6066334,
-    "ast_hash": "19a5cd4326b4ddbee669ea05479cd924",
-    "semantic_hash": ""
-  },
-  ".sdd/specs/20-zip-upload-select-exam-type/tasks.md": {
-    "mtime": 1791478895.6613214,
-    "seen": 1791479016.6066365,
-    "ast_hash": "e99fb490224dd96b9c41088cd0b9ca7d",
     "semantic_hash": ""
   }
 }
