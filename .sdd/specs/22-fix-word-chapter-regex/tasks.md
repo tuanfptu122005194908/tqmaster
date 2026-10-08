@@ -1,0 +1,4 @@
+- [ ] 1. Viết SDD (spec.md, plan.md, tasks.md)
+- [ ] 2. Trình bày SDD với user.
+- [ ] 3. Sửa regex `CHAPTER_RE` trong `src/lib/wordParser.ts`.
+- [ ] 4. Commit và push cả 2 remote.

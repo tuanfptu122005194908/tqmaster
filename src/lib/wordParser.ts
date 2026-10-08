@@ -125,7 +125,7 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
 
   const ANSWER_RE = /^(?:>|➤|\*|-)?\s*(?:đáp án|dap an|answer|key|đáp án đúng|dap an dung)\s*[:.\s]\s*(.*)/i;
   const EXPLANATION_RE = /^(?:>|➤|\*|-)?\s*(?:lời giải chi tiết|giai thich|giải thích|explanation)\s*[:.\s]\s*(.*)/i;
-  const CHAPTER_RE = /^(?:#+|\[)?\s*(chương\s+\S[^\]\n]*)/i;
+  const CHAPTER_RE = /^[\s\W]*(?:#+|\[)?\s*((?:chương|chapter|phần|part)\s+\S[^\]\n]*)/i;
 
   // Pre-scan: Build global answer map from lines like "Đáp án: 1A 2BC 3D" or "Answer: 1. A, 2. B"
   const globalAnswerMap: Record<number, string[]> = {};
