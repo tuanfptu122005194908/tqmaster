@@ -41,7 +41,7 @@ export function sortExams<T extends { title: string }>(exams: T[]): T[] {
     const scoreA = getExamScore(a.title);
     const scoreB = getExamScore(b.title);
     if (scoreA !== scoreB) return scoreB - scoreA; // DESC: newest first
-    return (a.title || '').localeCompare(b.title || '');
+    return (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' });
   });
 }
 
