@@ -132,9 +132,9 @@
     "semantic_hash": "bc484741cdf3591af5da7d9f3da3a647"
   },
   "package.json": {
-    "mtime": 1789201377.1673272,
-    "seen": 1789228632.038834,
-    "ast_hash": "70e624c33fdd46f65b867c94290bc46c",
+    "mtime": 1791479278.0308244,
+    "seen": 1791480024.0492587,
+    "ast_hash": "07fac4a7bcc5854839a20756812cf0f1",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -1708,9 +1708,9 @@
     "semantic_hash": ""
   },
   "src/lib/markdownExamParser.ts": {
-    "mtime": 1791476682.055319,
-    "seen": 1791476708.8880024,
-    "ast_hash": "b1fe0d8f520bf053c8d7024470d6d1d1",
+    "mtime": 1791479386.6382234,
+    "seen": 1791480024.0594149,
+    "ast_hash": "6f5121d0f8dd014e8851f2bf8dde5545",
     "semantic_hash": ""
   },
   "src/components/SafeCanvas.tsx": {
@@ -2268,6 +2268,30 @@
     "mtime": 1791478895.6613214,
     "seen": 1791479016.6066365,
     "ast_hash": "e99fb490224dd96b9c41088cd0b9ca7d",
+    "semantic_hash": ""
+  },
+  "scratch/test-extract.ts": {
+    "mtime": 1791479412.145159,
+    "seen": 1791480024.0494323,
+    "ast_hash": "80e0723a90b6dd584dc99bd743b1adbd",
+    "semantic_hash": ""
+  },
+  "scratch/test-parser.ts": {
+    "mtime": 1791479280.6341422,
+    "seen": 1791480024.0494342,
+    "ast_hash": "eb4fce8da8b6182484a93bde709a9ee0",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/21-fix-docx-single-upload/spec.md": {
+    "mtime": 1791479510.2828262,
+    "seen": 1791480024.0694528,
+    "ast_hash": "eadfc30c11610d64caae1e393eb9c31d",
+    "semantic_hash": ""
+  },
+  "scratch/mammoth-out.html": {
+    "mtime": 1791479307.2072222,
+    "seen": 1791480024.072185,
+    "ast_hash": "c25ddf7259a068d6ad0b27010bab7092",
     "semantic_hash": ""
   }
 }
