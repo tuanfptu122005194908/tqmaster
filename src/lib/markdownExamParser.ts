@@ -788,7 +788,7 @@ export async function extractExamsFromZip(
         for (const [chapter, chapterQs] of groupedQ.entries()) {
           const parsedData: ParsedExamData = {
             filename,
-            title: isMultiChapter ? `${filename.replace(/\.[^/.]+$/, '').trim()} - ${chapter}` : filename.replace(/\.[^/.]+$/, '').trim(),
+            title: isMultiChapter ? chapter : filename.replace(/\.[^/.]+$/, '').trim(),
             description: '',
             durationMin: 60,
             questions: chapterQs.map(q => {
@@ -832,6 +832,7 @@ export async function extractExamsFromZip(
     }
   }
 
+  results.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
   return results;
 }
 
@@ -860,7 +861,7 @@ export async function extractExamFromFile(
     for (const [chapter, chapterQs] of groupedQ.entries()) {
       const parsedData: ParsedExamData = {
         filename: file.name,
-        title: isMultiChapter ? `${file.name.replace(/\.[^/.]+$/, '').trim()} - ${chapter}` : file.name.replace(/\.[^/.]+$/, '').trim(),
+        title: isMultiChapter ? chapter : file.name.replace(/\.[^/.]+$/, '').trim(),
         description: '',
         durationMin: 60,
         questions: chapterQs.map(q => {
@@ -891,6 +892,7 @@ export async function extractExamFromFile(
           
       results.push(parsedData);
     }
+    results.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
     return results;
   }
 

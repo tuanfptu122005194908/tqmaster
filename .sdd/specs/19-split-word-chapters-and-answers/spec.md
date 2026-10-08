@@ -19,7 +19,8 @@ Yêu cầu mới:
 - **FR-01**: Cập nhật regex `ANSWER_RE` trong `src/lib/wordParser.ts` để cho phép các ký tự đặc biệt (như `➤`, `*`, `>`) nằm trước từ khoá "Đáp án đúng".
 - **FR-02**: Thêm logic nhận diện "Lời giải chi tiết" (Explanation) trong `wordParser.ts` để không gộp phần text này vào Option cuối cùng của câu hỏi. Mặc định có thể bỏ qua text này hoặc lưu vào trường `explanation` nếu schema hỗ trợ.
 - **FR-03**: Cập nhật hàm `extractExamsFromZip` (hoặc luồng xử lý file Word) trong `src/lib/markdownExamParser.ts`. Nhóm các câu hỏi (ParsedQuestion) theo `chapterName`.
-- **FR-04**: Ứng với mỗi `chapterName` khác nhau trong 1 file, tạo ra một `ParsedExamData` riêng biệt với `title` chứa tên file và tên chương (ví dụ: `full-quiz-chuong-1-den-15-450-cau - CHƯƠNG 1`).
+- **FR-04**: Ứng với mỗi `chapterName` khác nhau trong 1 file, tạo ra một `ParsedExamData` riêng biệt với `title` CHỈ LÀ tên chương (ví dụ: `CHƯƠNG 1: GIỚI THIỆU MÔN HỌC & PHÉP ĐO (MEASUREMENT)`), không gộp kèm tên file Word.
+- **FR-05**: Đảm bảo danh sách các đề thi được tạo ra (`ParsedExamData[]`) phải được sắp xếp theo thứ tự chương hợp lý (Natural Sort) để khi lưu vào cơ sở dữ liệu, chúng hiển thị đúng thứ tự 1, 2, 3... thay vì 1, 10, 11, 2.
 
 # 4. Key Files
 - `src/lib/wordParser.ts`: Cập nhật regex và luồng parse html.

@@ -13,5 +13,6 @@
 - Ở hàm `extractExamsFromZip`, khi xử lý `.docx`, sau khi gọi `parseHtmlToQuestions(html)`, chúng ta nhận được mảng `ParsedQuestion`.
 - Thay vì đẩy tất cả `parsedQ` vào 1 `ParsedExamData`, ta sẽ dùng `reduce` hoặc vòng lặp để gom nhóm `parsedQ` theo `q.chapterName`.
 - Lặp qua từng nhóm (group):
-  - Khởi tạo title. Nếu file chỉ có 1 chapter chung (vd: "Tổng hợp"), thì title giữ nguyên `filename`. Nếu có nhiều chapter (vd: "CHƯƠNG 1", "CHƯƠNG 2"), title sẽ là `${filename} - ${chapterName}`.
+  - Khởi tạo title. Nếu file chỉ có 1 chapter chung (vd: "Tổng hợp"), thì title giữ nguyên `filename`. Nếu có nhiều chapter, title sẽ CHỈ LÀ `chapterName`.
   - Tạo `ParsedExamData` cho từng nhóm và đẩy vào mảng `results`.
+  - Sắp xếp mảng `results` theo tên `title` sử dụng thuật toán Natural Sort trước khi return.

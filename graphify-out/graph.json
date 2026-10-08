@@ -5362,7 +5362,7 @@
       "file_type": "code",
       "norm_label": "extractexamfromfile()",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L841"
+      "source_location": "L842"
     },
     {
       "id": "src_lib_markdownexamparser_matchoptionline",
@@ -7550,7 +7550,7 @@
       "node_kind": "heading",
       "norm_label": "4. key files",
       "source_file": ".sdd/specs/19-split-word-chapters-and-answers/spec.md",
-      "source_location": "L24"
+      "source_location": "L25"
     },
     {
       "id": "sdd_specs_19_split_word_chapters_and_answers_spec_5_success_criteria",
@@ -7562,7 +7562,7 @@
       "node_kind": "heading",
       "norm_label": "5. success criteria",
       "source_file": ".sdd/specs/19-split-word-chapters-and-answers/spec.md",
-      "source_location": "L28"
+      "source_location": "L29"
     },
     {
       "id": "src_components_home3d_tourhotspots",
@@ -27377,7 +27377,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L898",
+      "source_location": "L900",
       "weight": 1.0
     },
     {
@@ -49114,7 +49114,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": ".sdd/specs/19-split-word-chapters-and-answers/spec.md",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -49125,7 +49125,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": ".sdd/specs/19-split-word-chapters-and-answers/spec.md",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -57166,7 +57166,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/markdownExamParser.ts",
-      "source_location": "L841",
+      "source_location": "L842",
       "weight": 1.0
     },
     {
@@ -60808,7 +60808,7 @@
       "confidence_score": 0.95,
       "context": "ParsedExamData",
       "source_file": ".sdd/specs/19-split-word-chapters-and-answers/spec.md",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -61341,5 +61341,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "a7d9e14b53b45e64cca925978893b04eee378bea"
+  "built_at_commit": "e7c90accba582df137f8c2bbecfbaabd398e2b87"
 }
