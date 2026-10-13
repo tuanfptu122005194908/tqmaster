@@ -27,12 +27,64 @@ export interface ParsedQuestion {
   extraImageDataUrls: string[]; // additional images for question
   options: ParsedOption[];
   correctAnswers: string[];     // e.g. ['A'], ['B', 'C']
+  pendingAnswerText?: string;
 }
 
 /** Check if an option line is explicitly marked as correct, e.g. *A., [x] A., A*. */
 function checkOptionMarkedCorrect(text: string): boolean {
   return /^\s*(?:\*|\[[xX]\]|\([xX]\))\s*[A-Ha-h][.:)]/i.test(text) ||
          /^\s*[A-Ha-h]\*\s*[.:)]/i.test(text);
+}
+
+/** Normalize text for fuzzy/clean matching */
+export function normalizeForCompare(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/^['"“‘]+|['"”’]+$/g, '')
+    .replace(/[.,;:!?]+$/, '')
+    .trim();
+}
+
+/** Match text-based answers (e.g. "Đáp án: (ISC)2" or multi-content) to option labels */
+export function matchAnswerToOptions(
+  answerText: string,
+  options: { label: string; content: string }[]
+): string[] {
+  if (!answerText || !options || options.length === 0) return [];
+  const cleanAns = answerText.trim();
+  const normAns = normalizeForCompare(cleanAns);
+
+  // 1. Exact match with single option content
+  const exactMatch = options.find(o => normalizeForCompare(o.content) === normAns);
+  if (exactMatch) {
+    return [exactMatch.label];
+  }
+
+  // 2. Comma/semicolon/newline separated items in answerText (e.g. "log management, security monitoring, threat intelligence")
+  const parts = cleanAns.split(/[,;\n]+/).map(p => normalizeForCompare(p)).filter(Boolean);
+  const matchedLabels: string[] = [];
+
+  for (const part of parts) {
+    const found = options.find(o => normalizeForCompare(o.content) === part);
+    if (found && !matchedLabels.includes(found.label)) {
+      matchedLabels.push(found.label);
+    }
+  }
+
+  if (matchedLabels.length > 0) {
+    return matchedLabels.sort();
+  }
+
+  // 3. Substring matching if options are mentioned within the answer text
+  for (const o of options) {
+    const normOpt = normalizeForCompare(o.content);
+    if (normOpt && normOpt.length >= 3 && normAns.includes(normOpt) && !matchedLabels.includes(o.label)) {
+      matchedLabels.push(o.label);
+    }
+  }
+
+  return matchedLabels.sort();
 }
 
 /** Parse raw HTML from mammoth.convertToHtml() into structured questions */
@@ -123,9 +175,11 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
   // Must be followed by whitespace AND a letter (never a digit, preventing 172.16 or 1.1)
   const BARE_NUMBER_RE = /^(\d+)[.:)]\s+([A-Za-z\u00C0-\u024F\u1EA0-\u1EF9].*)/;
 
-  const ANSWER_RE = /^(?:>|➤|\*|-)?\s*(?:đáp án|dap an|answer|key|đáp án đúng|dap an dung)\s*[:.\s]\s*(.*)/i;
+  const ANSWER_RE = /^(?:>|➤|\*|-)?\s*(?:đáp án đúng|dap an dung|đáp án|dap an|answer|key)\s*[:.\s]\s*(.*)/i;
   const EXPLANATION_RE = /^(?:>|➤|\*|-)?\s*(?:lời giải chi tiết|giai thich|giải thích|explanation)\s*[:.\s]\s*(.*)/i;
-  const CHAPTER_RE = /^[\s\W]*(?:#+|\[)?\s*((?:chương|chapter|phần|part)\s+\S[^\]\n]*)/i;
+  const CHAPTER_RE = /^[\s\W_]*((?:chương|chapter|phần|part|chủ\s*đề|topic)\s*[:\s]\s*\S[^\]\n]*)/i;
+  const OPTION_HEADER_RE = /^(?:các\s+lựa\s+chọn|lựa\s+chọn|danh\s+sách\s+lựa\s+chọn|options?)\s*[:.]?\s*$/i;
+  const BULLET_RE = /^[\u2022\u25E6\u25AA\u25AB\u2023\u2219\u25CB\u25CF\u25D8•\-*+o▪▫–—]\s+(.*)/;
 
   // Pre-scan: Build global answer map from lines like "Đáp án: 1A 2BC 3D" or "Answer: 1. A, 2. B"
   const globalAnswerMap: Record<number, string[]> = {};
@@ -166,6 +220,13 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
       if (cur.options.length > 0) {
         cur.options[cur.options.length - 1].content =
           cur.options[cur.options.length - 1].content.trim();
+      }
+      // If correctAnswers still empty, try matching pendingAnswerText against options
+      if (cur.correctAnswers.length === 0 && cur.pendingAnswerText && cur.options.length > 0) {
+        const matched = matchAnswerToOptions(cur.pendingAnswerText, cur.options);
+        if (matched.length > 0) {
+          cur.correctAnswers = matched;
+        }
       }
       // If correctAnswers still empty, check globalAnswerMap
       if (cur.correctAnswers.length === 0 && globalAnswerMap[cur.orderNum]) {
@@ -230,13 +291,28 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
       continue;
     }
 
-    // 3. Check for Per-Question Answer marker (e.g. "Đáp án: A" or "Answer: B, C" under options)
+    // 2.5 Check for Option Header marker (e.g. "Các lựa chọn:", "Options:")
+    if (OPTION_HEADER_RE.test(trimmed) && cur) {
+      continue;
+    }
+
+    // 3. Check for Per-Question Answer marker (e.g. "Đáp án: A" or "Answer: B, C" under options or "Đáp án: (ISC)2")
     const ansMatch = ANSWER_RE.exec(trimmed);
     if (ansMatch && cur) {
       const rest = ansMatch[1].trim();
       const labels = extractAnswerLabels(rest);
       if (labels.length > 0) {
         cur.correctAnswers = Array.from(new Set([...cur.correctAnswers, ...labels]));
+        inExplanation = true;
+        continue;
+      } else {
+        cur.pendingAnswerText = rest;
+        if (cur.options.length > 0) {
+          const matched = matchAnswerToOptions(rest, cur.options);
+          if (matched.length > 0) {
+            cur.correctAnswers = Array.from(new Set([...cur.correctAnswers, ...matched]));
+          }
+        }
         inExplanation = true;
         continue;
       }
@@ -252,6 +328,7 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
     // 4. Check for Option marker (A., B., C., D...)
     const isMarked = checkOptionMarkedCorrect(trimmed);
     const cleanedForOpt = trimmed
+      .replace(/^[\u2022\u25E6\u25AA\u25AB\u2023\u2219\u25CB\u25CF\u25D8•\-*+o▪▫–—]\s*/, '')
       .replace(/^\s*(?:\*|\[[xX]\]|\([xX]\))\s*/, '')
       .replace(/^([A-Ha-h])\*\s*([.:)])/i, '$1$2');
     const optMatch = matchOptionLine(cleanedForOpt);
@@ -324,6 +401,24 @@ export function parseHtmlToQuestions(html: string): ParsedQuestion[] {
       cur.options.push({
         label: currentOptLabel,
         content: cleanContent,
+        imageDataUrl: imgBefore,
+      });
+      inExplanation = false;
+      continue;
+    }
+
+    // 4.5 Check Bullet option without letters (e.g. "• CompTIA", "• (ISC)2")
+    const bM = BULLET_RE.exec(trimmed);
+    if (bM && cur && !inExplanation) {
+      if (inOption && cur.options.length > 0) {
+        cur.options[cur.options.length - 1].content =
+          cur.options[cur.options.length - 1].content.trim();
+      }
+      currentOptLabel = String.fromCharCode(65 + cur.options.length);
+      inOption = true;
+      cur.options.push({
+        label: currentOptLabel,
+        content: bM[1].trim(),
         imageDataUrl: imgBefore,
       });
       inExplanation = false;

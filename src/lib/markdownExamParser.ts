@@ -14,7 +14,7 @@
 
 import JSZip from 'jszip';
 import mammoth from 'mammoth';
-import { parseHtmlToQuestions } from './wordParser';
+import { parseHtmlToQuestions, matchAnswerToOptions } from './wordParser';
 
 export interface ParsedExamOption {
   label: string; // 'A' | 'B' | 'C' | 'D' | ...
@@ -75,7 +75,7 @@ export function extractAnswerLabels(text: string): string[] {
 
   // If targetStr still has prefix like "Đáp án: ", "Câu 1: ", "Question 1: ", "Key: ", "1. ", "1: "
   targetStr = targetStr.replace(
-    /^(?:\*{0,2}(?:đáp án|dap an|answer|key|chọn|đáp án đúng|dap an dung)\*{0,2}[:\s-]*)/i,
+    /^(?:\*{0,2}(?:đáp án đúng|dap an dung|đáp án|dap an|answer|key|chọn|đúng|dung)\*{0,2}[:\s-]*)/i,
     ''
   ).trim();
   targetStr = targetStr.replace(/^(?:câu|cau|question|q)?\s*\d+[:.)\s-]+\s*/i, '').trim();
@@ -107,13 +107,17 @@ export function extractAnswerLabels(text: string): string[] {
   }
 
   // Check 4: General fallback - sanitize non-answer words and search for isolated or grouped A-H tokens
-  const sanitized = targetStr.replace(
-    /\b(?:và|and|hoặc|or|đáp|án|câu|question|answer|key|is|are|đúng|dung|chọn|đáp án|dap an)\b/gi,
-    ' '
-  );
+  const sanitized = targetStr
+    .replace(/(?:đáp án đúng|dap an dung|đáp án|dap an|answer|key|chọn|đúng|dung)/gi, ' ')
+    .replace(/\b(?:và|and|hoặc|or|câu|question|is|are)\b/gi, ' ');
+
+  const wordTokens = sanitized.trim().split(/[\s,;&/+\-]+/);
+  // If words contain characters outside A-H, it is ordinary text (e.g. "employees", "device"), not answer labels
+  if (wordTokens.some(w => /[i-zI-Z]/.test(w))) {
+    return [];
+  }
 
   const tokens: string[] = [];
-  const wordTokens = sanitized.trim().split(/[\s,;&/+\-]+/);
   for (const w of wordTokens) {
     const cleanWord = w.replace(/[^A-Za-z]/g, '');
     if (/^[A-Ha-h]{1,8}$/.test(cleanWord)) {
@@ -467,6 +471,7 @@ export function parseMarkdownExam(
     let contentLines = rq.headerText ? [rq.headerText] : [];
     const optionsList: { label: string; content: string }[] = [];
     let correctAnswers: string[] = [];
+    let pendingAnswerText = '';
     let curOpt: { label: string; contentLines: string[] } | null = null;
     let currentSection: 'question' | 'option' | 'answer' | 'explanation' = 'question';
 
@@ -566,7 +571,11 @@ export function parseMarkdownExam(
         const rest = ansMatch[1].trim();
         if (rest) {
           const labels = extractAnswerLabels(rest);
-          if (labels.length > 0) correctAnswers = labels;
+          if (labels.length > 0) {
+            correctAnswers = labels;
+          } else {
+            pendingAnswerText = rest;
+          }
         }
         continue;
       }
@@ -700,8 +709,13 @@ export function parseMarkdownExam(
 
     if (stripAnswers) {
       correctAnswers = [];
-    } else if (correctAnswers.length === 0 && globalAnswerMap[qNum]) {
-      correctAnswers = globalAnswerMap[qNum];
+    } else {
+      if (correctAnswers.length === 0 && pendingAnswerText && optionsList.length > 0) {
+        correctAnswers = matchAnswerToOptions(pendingAnswerText, optionsList);
+      }
+      if (correctAnswers.length === 0 && globalAnswerMap[qNum]) {
+        correctAnswers = globalAnswerMap[qNum];
+      }
     }
 
     const finalOptions: ParsedExamOption[] = optionsList.map(o => ({
@@ -769,7 +783,8 @@ export async function extractExamsFromZip(
     if (isWord) {
       try {
         const arrayBuffer = await entry.file.async('arraybuffer');
-        const result = await mammoth.convertToHtml({ arrayBuffer } as any);
+        const buffer = typeof Buffer !== 'undefined' ? Buffer.from(arrayBuffer) : (arrayBuffer as any);
+        const result = await mammoth.convertToHtml({ arrayBuffer, buffer } as any);
         const html = result.value.trim();
         if (!html) continue;
 
@@ -846,7 +861,8 @@ export async function extractExamFromFile(
   const isWord = /\.docx$/i.test(file.name);
   if (isWord) {
     const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.convertToHtml({ arrayBuffer } as any);
+    const buffer = typeof Buffer !== 'undefined' ? Buffer.from(arrayBuffer) : (arrayBuffer as any);
+    const result = await mammoth.convertToHtml({ arrayBuffer, buffer } as any);
     const html = result.value.trim();
     const results: ParsedExamData[] = [];
     const parsedQ = parseHtmlToQuestions(html);

@@ -307,8 +307,9 @@ export default function AdminExams() {
         toast.success(`Nhận diện được ${parsed.length} câu hỏi từ file .txt. Xác nhận để nhập.`);
       } else {
         const arrayBuffer = await file.arrayBuffer();
+        const buffer = typeof Buffer !== 'undefined' ? Buffer.from(arrayBuffer) : (arrayBuffer as any);
         // convertToHtml preserves embedded images as base64 data URLs
-        const result = await mammoth.convertToHtml({ arrayBuffer } as any);
+        const result = await mammoth.convertToHtml({ arrayBuffer, buffer } as any);
         const html = result.value.trim();
         if (!html) {
           toast.error('File Word rỗng hoặc không đọc được nội dung.');
