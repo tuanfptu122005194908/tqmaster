@@ -150,8 +150,8 @@
     "semantic_hash": "1fafcaae4de291dd10f9b76c95aefdff"
   },
   "src/App.tsx": {
-    "mtime": 1792603494.6408236,
-    "seen": 1792603555.3504307,
+    "mtime": 1792603928.832714,
+    "seen": 1792607009.5517254,
     "ast_hash": "cb001973283408b6e1c8b793d740d2f2",
     "semantic_hash": ""
   },
@@ -510,14 +510,14 @@
     "semantic_hash": ""
   },
   "src/integrations/supabase/types.ts": {
-    "mtime": 1791166767.0931485,
-    "seen": 1791166921.3871655,
-    "ast_hash": "53e8f33a5df1fa02db8ef063b2bd4f3a",
+    "mtime": 1792606781.6012347,
+    "seen": 1792607009.5605242,
+    "ast_hash": "7bab98d25ab31e8fffedd658ea132ca0",
     "semantic_hash": ""
   },
   "src/lib/AppContext.tsx": {
-    "mtime": 1792603440.8113112,
-    "seen": 1792603555.3595397,
+    "mtime": 1792603928.8437598,
+    "seen": 1792607009.5605345,
     "ast_hash": "405979f01a401a2df73ddcdc398f3609",
     "semantic_hash": ""
   },
@@ -648,9 +648,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminUsers.tsx": {
-    "mtime": 1792603213.2084472,
-    "seen": 1792603555.3624341,
-    "ast_hash": "1607ef0e4fbe21a88efa280f695774b5",
+    "mtime": 1792606941.0209854,
+    "seen": 1792607009.5636213,
+    "ast_hash": "c0064cc50730e0f8e1d1a9d5a7876600",
     "semantic_hash": ""
   },
   "src/pages/user/CartPage.tsx": {
@@ -2349,93 +2349,111 @@
     "semantic_hash": ""
   },
   "src/components/SubjectAccessBoundary.tsx": {
-    "mtime": 1792603174.6045272,
-    "seen": 1792603555.351295,
-    "ast_hash": "194f6b2376ffbc5f39c02eee7431f7c2",
+    "mtime": 1792603928.833807,
+    "seen": 1792607009.5526404,
+    "ast_hash": "0af157d5fb10d29000bb5fa050565b12",
     "semantic_hash": ""
   },
   "src/components/__tests__/SubjectAccessBoundary.test.tsx": {
-    "mtime": 1792603319.7454205,
-    "seen": 1792603555.3514442,
-    "ast_hash": "00ccf422ed41e5076d6d70064d22d252",
+    "mtime": 1792603928.833807,
+    "seen": 1792607009.5529094,
+    "ast_hash": "08ae382fca92b50fa073859c2c14c859",
     "semantic_hash": ""
   },
   "src/components/common/RetryNotice.tsx": {
-    "mtime": 1792603174.1400225,
-    "seen": 1792603555.3522391,
-    "ast_hash": "056c42633cc2d6db765ef582ac6d9c6f",
+    "mtime": 1792603928.8348072,
+    "seen": 1792607009.5540032,
+    "ast_hash": "cf26b987ac688de45087850f2e9ebf75",
     "semantic_hash": ""
   },
   "src/hooks/__tests__/useSubjectAccess.test.tsx": {
-    "mtime": 1792603318.2331936,
-    "seen": 1792603555.3590882,
-    "ast_hash": "f54b2ca4ebe633ce0ef17d820107ed1a",
+    "mtime": 1792603928.8348072,
+    "seen": 1792607009.56015,
+    "ast_hash": "9005bd7a1dce0eb8d5ec14ea80b7fe00",
     "semantic_hash": ""
   },
   "src/hooks/useSubjectAccess.ts": {
-    "mtime": 1792603689.147326,
-    "seen": 1792603708.93347,
-    "ast_hash": "77a443ded280e90f70c93c8620b25ab1",
+    "mtime": 1792603928.836917,
+    "seen": 1792607009.560293,
+    "ast_hash": "5e0a7e6726a8dc760422c2e159ea94de",
     "semantic_hash": ""
   },
   "src/lib/__tests__/AppContext.auth.test.tsx": {
-    "mtime": 1792603441.3503096,
-    "seen": 1792603555.359541,
-    "ast_hash": "4d35bcd9e5eb57fb9447c873ddfd5546",
+    "mtime": 1792603928.8437598,
+    "seen": 1792607009.560536,
+    "ast_hash": "41c089d079a0da004b6015193e5c917a",
     "semantic_hash": ""
   },
   "src/lib/__tests__/accessLoaders.test.ts": {
-    "mtime": 1792603316.7346249,
-    "seen": 1792603555.3595421,
-    "ast_hash": "6f49404d480ae65227326252cf376800",
+    "mtime": 1792603928.844932,
+    "seen": 1792607009.560537,
+    "ast_hash": "ca7c3358a99347ec9f10e6f900594429",
     "semantic_hash": ""
   },
   "src/lib/__tests__/fetchAllById.test.ts": {
-    "mtime": 1792603316.2478812,
-    "seen": 1792603555.3595438,
-    "ast_hash": "79d8aff20601c90c8822acf68bb10780",
+    "mtime": 1792603928.844932,
+    "seen": 1792607009.5605385,
+    "ast_hash": "d498bb0cc2d125555a15cf1f161e6bdc",
     "semantic_hash": ""
   },
   "src/lib/adminUsers.ts": {
-    "mtime": 1792603173.176792,
-    "seen": 1792603555.3596244,
-    "ast_hash": "32532b7ead94f4fddee0fc3c0ce79432",
+    "mtime": 1792603928.8463094,
+    "seen": 1792607009.5606482,
+    "ast_hash": "cbf233360c3b9aeefa219b4d0cbb4edf",
     "semantic_hash": ""
   },
   "src/lib/fetchAllById.ts": {
-    "mtime": 1792603172.1235816,
-    "seen": 1792603555.3599136,
-    "ast_hash": "bf294fd5bd0d3cf88907532e28dfddcd",
+    "mtime": 1792603928.8463094,
+    "seen": 1792607009.5610166,
+    "ast_hash": "cf81508d18b09ff76b3d9c58e3338245",
     "semantic_hash": ""
   },
   "src/lib/subjectAccess.ts": {
-    "mtime": 1792603172.609933,
-    "seen": 1792603555.3606315,
-    "ast_hash": "b4e36f385ace42d2d0656b3ac11ca946",
+    "mtime": 1792603928.8473537,
+    "seen": 1792607009.5618331,
+    "ast_hash": "47f6c49d39cdd56e0a3f641a0cf973b5",
     "semantic_hash": ""
   },
   "src/pages/admin/__tests__/AdminUsers.test.tsx": {
-    "mtime": 1792603321.278143,
-    "seen": 1792603555.3624365,
-    "ast_hash": "8862ca03ec8ccaa65484dae241e32ea3",
+    "mtime": 1792606890.1332388,
+    "seen": 1792607009.563623,
+    "ast_hash": "1e9b6fc11c0d602fb8373623aaf5a9db",
     "semantic_hash": ""
   },
   ".sdd/specs/24-fix-subject-access-loading/plan.md": {
-    "mtime": 1792603649.9409318,
-    "seen": 1792603708.9480965,
-    "ast_hash": "0feecd3c74ca17ef5dbe0e75789bd434",
+    "mtime": 1792603928.8049695,
+    "seen": 1792607009.5724893,
+    "ast_hash": "c1092fcb80fc7011d48820d18b41249f",
     "semantic_hash": ""
   },
   ".sdd/specs/24-fix-subject-access-loading/spec.md": {
-    "mtime": 1792603649.4095626,
-    "seen": 1792603708.948099,
-    "ast_hash": "bd554eed4f3b1b9c9f5f15d727a654cb",
+    "mtime": 1792603928.8049695,
+    "seen": 1792607009.5724921,
+    "ast_hash": "52a2d5aba8b02d9dbbffbc5610143c09",
     "semantic_hash": ""
   },
   ".sdd/specs/24-fix-subject-access-loading/tasks.md": {
-    "mtime": 1792603689.6335049,
-    "seen": 1792603708.9481006,
-    "ast_hash": "fa5e4dd2d7ae75baf84129e805bdcc31",
+    "mtime": 1792603928.8064263,
+    "seen": 1792607009.5724933,
+    "ast_hash": "d0d3e5855059f21ab0e8f5b98e00fc6b",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/25-auto-grant-and-repair-subject-access/plan.md": {
+    "mtime": 1792606474.859066,
+    "seen": 1792607009.5724952,
+    "ast_hash": "6591af835a73e8a7eb979b9a36031772",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/25-auto-grant-and-repair-subject-access/spec.md": {
+    "mtime": 1792606993.0035539,
+    "seen": 1792607009.5724962,
+    "ast_hash": "1af9927497bdfafc2852722a4061d6e7",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/25-auto-grant-and-repair-subject-access/tasks.md": {
+    "mtime": 1792606986.0934925,
+    "seen": 1792607009.5724974,
+    "ast_hash": "dc2dbf0fa1e87556c6436dde3d442783",
     "semantic_hash": ""
   }
 }

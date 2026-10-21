@@ -1224,6 +1224,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      repair_subject_access_by_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          success: boolean
+          restored_grants_count: number
+          affected_users_count: number
+        }
+      }
     }
     Enums: {
       app_role: "user" | "admin"

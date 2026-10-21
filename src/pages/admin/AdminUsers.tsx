@@ -7,8 +7,9 @@ import { RetryNotice } from '@/components/common/RetryNotice';
 import {
   Users, UserPlus, ShieldCheck, BookOpen, Search, Trash2, Shield,
   ShieldOff, Loader2, X, Plus, ChevronLeft, ChevronRight, Check, Sparkles, Filter,
-  Mail, Download, Copy, FileText
+  Mail, Download, Copy, FileText, RefreshCw
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Subject  = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
 type UserRow = AdminUserRow;
@@ -236,10 +237,40 @@ export default function AdminUsers() {
       setShowAddModal(false);
       setAddForm({ fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user' });
       fetch();
-    } catch (err: any) {
-      alert('Lỗi tạo tài khoản: ' + (err.message || 'Không thể tạo tài khoản'));
+    } catch (err: unknown) {
+      alert('Lỗi tạo tài khoản: ' + (err instanceof Error ? err.message : 'Không thể tạo tài khoản'));
     } finally {
       setSavingAdd(false);
+    }
+  };
+
+  const [repairingAccess, setRepairingAccess] = useState(false);
+
+  const handleRepairSubjectAccess = async () => {
+    if (!window.confirm('Hệ thống sẽ đối soát toàn bộ các đơn hàng ĐÃ DUYỆT (approved) và tự động cấp bù quyền nếu có học viên bị thiếu môn học. Bạn có chắc muốn tiến hành?')) {
+      return;
+    }
+
+    setRepairingAccess(true);
+    try {
+      const { data, error } = await supabase.rpc('repair_subject_access_by_admin');
+      if (error) throw new Error(error.message);
+
+      const res = data as { success?: boolean; restored_grants_count?: number; affected_users_count?: number } | null;
+      const restored = res?.restored_grants_count ?? 0;
+      const users = res?.affected_users_count ?? 0;
+
+      if (restored > 0) {
+        toast.success(`Đã khôi phục thành công ${restored} môn học cho ${users} học viên!`);
+      } else {
+        toast.info('Tất cả học viên có đơn hàng đã duyệt đều đã có đầy đủ quyền môn học.');
+      }
+      await fetch();
+    } catch (err: unknown) {
+      console.error('Error repairing subject access:', err);
+      toast.error('Lỗi khi đồng bộ quyền: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setRepairingAccess(false);
     }
   };
 
@@ -270,6 +301,28 @@ export default function AdminUsers() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={handleRepairSubjectAccess}
+            disabled={repairingAccess}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+              background: '#ffffff', color: '#1e293b', border: '1.5px solid #cbd5e1',
+              borderRadius: 14, fontSize: 13.5, fontWeight: 700,
+              cursor: repairingAccess ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              opacity: repairingAccess ? 0.7 : 1,
+              transition: 'all 0.15s ease'
+            }}
+            title="Quét các đơn hàng đã duyệt và cấp bù quyền môn học nếu đang bị thiếu"
+          >
+            {repairingAccess ? (
+              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+            ) : (
+              <RefreshCw size={16} color="#059669" />
+            )}
+            {repairingAccess ? 'Đang đồng bộ…' : 'Đồng bộ quyền đơn hàng'}
+          </button>
+
           <button
             onClick={() => setShowExportModal(true)}
             style={{
