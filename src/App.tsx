@@ -9,6 +9,7 @@ import TopNav from "@/components/TopNav";
 import AdminSidebar from "@/components/AdminSidebar";
 import MobileNav from "@/components/MobileNav";
 import AnnouncementPopup from "@/components/AnnouncementPopup";
+import { SubjectAccessBoundary } from '@/components/SubjectAccessBoundary';
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const HomePage = lazy(() => import("@/pages/user/HomePage"));
@@ -65,12 +66,12 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
   return <>{children}</>;
 }
 
-function UserLayout({ children }: { children: React.ReactNode }) {
+function UserLayout({ children, requireSubjectAccess = true }: { children: React.ReactNode; requireSubjectAccess?: boolean }) {
   const { isAdmin } = useApp();
   return (
     <div style={{ minHeight: '100vh', background: 'hsl(var(--background))', display: 'flex', flexDirection: 'column', colorScheme: 'light' }}>
       <TopNav />
-      <main style={{ flex: 1 }}>{children}</main>
+      <main style={{ flex: 1 }}>{requireSubjectAccess ? <SubjectAccessBoundary>{children}</SubjectAccessBoundary> : children}</main>
       <MobileNav />
       {!isAdmin && <AnnouncementPopup />}
       <FacebookWidget />
@@ -227,7 +228,7 @@ function AppShell() {
       <Route path="/subjects/:id" element={<ProtectedRoute><UserLayout><SubjectDetailPage /></UserLayout></ProtectedRoute>} />
       <Route path="/exams/:id" element={<ProtectedRoute><ExamPage /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><UserLayout><ProfilePage /></UserLayout></ProtectedRoute>} />
-      <Route path="/news" element={<ProtectedRoute><UserLayout><NewsPage /></UserLayout></ProtectedRoute>} />
+      <Route path="/news" element={<ProtectedRoute><UserLayout requireSubjectAccess={false}><NewsPage /></UserLayout></ProtectedRoute>} />
       <Route path="/study-hub" element={<ProtectedRoute><UserLayout><StudyHubPage /></UserLayout></ProtectedRoute>} />
 
       {/* Admin routes */}

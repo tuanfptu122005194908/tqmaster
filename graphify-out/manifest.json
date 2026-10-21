@@ -150,9 +150,9 @@
     "semantic_hash": "1fafcaae4de291dd10f9b76c95aefdff"
   },
   "src/App.tsx": {
-    "mtime": 1791100768.2094407,
-    "seen": 1791166921.363441,
-    "ast_hash": "3617ccf85f4d9b90725c36dadc5c8217",
+    "mtime": 1792603494.6408236,
+    "seen": 1792603555.3504307,
+    "ast_hash": "cb001973283408b6e1c8b793d740d2f2",
     "semantic_hash": ""
   },
   "src/components/AdminSidebar.tsx": {
@@ -516,9 +516,9 @@
     "semantic_hash": ""
   },
   "src/lib/AppContext.tsx": {
-    "mtime": 1791100898.692122,
-    "seen": 1791166921.3871691,
-    "ast_hash": "d44d0e5313ed71ccfa034ce620cff49a",
+    "mtime": 1792603440.8113112,
+    "seen": 1792603555.3595397,
+    "ast_hash": "405979f01a401a2df73ddcdc398f3609",
     "semantic_hash": ""
   },
   "src/lib/groqVision.ts": {
@@ -648,9 +648,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminUsers.tsx": {
-    "mtime": 1789954748.9319093,
-    "seen": 1790130944.5493,
-    "ast_hash": "0d1c8ad6e18f9d8d7f1e3d6277797fca",
+    "mtime": 1792603213.2084472,
+    "seen": 1792603555.3624341,
+    "ast_hash": "1607ef0e4fbe21a88efa280f695774b5",
     "semantic_hash": ""
   },
   "src/pages/user/CartPage.tsx": {
@@ -2343,9 +2343,99 @@
     "semantic_hash": ""
   },
   ".sdd/specs/23-support-bullet-and-content-answer-docx/tasks.md": {
-    "mtime": 1791894406.1782045,
-    "seen": 1791894436.2441525,
-    "ast_hash": "47a406a0238115465b446b3f986b2e6f",
+    "mtime": 1791894491.474961,
+    "seen": 1792603555.371521,
+    "ast_hash": "67ec4fbf3a43fe57e06cd79223eaa6e8",
+    "semantic_hash": ""
+  },
+  "src/components/SubjectAccessBoundary.tsx": {
+    "mtime": 1792603174.6045272,
+    "seen": 1792603555.351295,
+    "ast_hash": "194f6b2376ffbc5f39c02eee7431f7c2",
+    "semantic_hash": ""
+  },
+  "src/components/__tests__/SubjectAccessBoundary.test.tsx": {
+    "mtime": 1792603319.7454205,
+    "seen": 1792603555.3514442,
+    "ast_hash": "00ccf422ed41e5076d6d70064d22d252",
+    "semantic_hash": ""
+  },
+  "src/components/common/RetryNotice.tsx": {
+    "mtime": 1792603174.1400225,
+    "seen": 1792603555.3522391,
+    "ast_hash": "056c42633cc2d6db765ef582ac6d9c6f",
+    "semantic_hash": ""
+  },
+  "src/hooks/__tests__/useSubjectAccess.test.tsx": {
+    "mtime": 1792603318.2331936,
+    "seen": 1792603555.3590882,
+    "ast_hash": "f54b2ca4ebe633ce0ef17d820107ed1a",
+    "semantic_hash": ""
+  },
+  "src/hooks/useSubjectAccess.ts": {
+    "mtime": 1792603689.147326,
+    "seen": 1792603708.93347,
+    "ast_hash": "77a443ded280e90f70c93c8620b25ab1",
+    "semantic_hash": ""
+  },
+  "src/lib/__tests__/AppContext.auth.test.tsx": {
+    "mtime": 1792603441.3503096,
+    "seen": 1792603555.359541,
+    "ast_hash": "4d35bcd9e5eb57fb9447c873ddfd5546",
+    "semantic_hash": ""
+  },
+  "src/lib/__tests__/accessLoaders.test.ts": {
+    "mtime": 1792603316.7346249,
+    "seen": 1792603555.3595421,
+    "ast_hash": "6f49404d480ae65227326252cf376800",
+    "semantic_hash": ""
+  },
+  "src/lib/__tests__/fetchAllById.test.ts": {
+    "mtime": 1792603316.2478812,
+    "seen": 1792603555.3595438,
+    "ast_hash": "79d8aff20601c90c8822acf68bb10780",
+    "semantic_hash": ""
+  },
+  "src/lib/adminUsers.ts": {
+    "mtime": 1792603173.176792,
+    "seen": 1792603555.3596244,
+    "ast_hash": "32532b7ead94f4fddee0fc3c0ce79432",
+    "semantic_hash": ""
+  },
+  "src/lib/fetchAllById.ts": {
+    "mtime": 1792603172.1235816,
+    "seen": 1792603555.3599136,
+    "ast_hash": "bf294fd5bd0d3cf88907532e28dfddcd",
+    "semantic_hash": ""
+  },
+  "src/lib/subjectAccess.ts": {
+    "mtime": 1792603172.609933,
+    "seen": 1792603555.3606315,
+    "ast_hash": "b4e36f385ace42d2d0656b3ac11ca946",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/__tests__/AdminUsers.test.tsx": {
+    "mtime": 1792603321.278143,
+    "seen": 1792603555.3624365,
+    "ast_hash": "8862ca03ec8ccaa65484dae241e32ea3",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/24-fix-subject-access-loading/plan.md": {
+    "mtime": 1792603649.9409318,
+    "seen": 1792603708.9480965,
+    "ast_hash": "0feecd3c74ca17ef5dbe0e75789bd434",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/24-fix-subject-access-loading/spec.md": {
+    "mtime": 1792603649.4095626,
+    "seen": 1792603708.948099,
+    "ast_hash": "bd554eed4f3b1b9c9f5f15d727a654cb",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/24-fix-subject-access-loading/tasks.md": {
+    "mtime": 1792603689.6335049,
+    "seen": 1792603708.9481006,
+    "ast_hash": "fa5e4dd2d7ae75baf84129e805bdcc31",
     "semantic_hash": ""
   }
 }

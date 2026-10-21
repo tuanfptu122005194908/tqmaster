@@ -1,20 +1,17 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+import { loadAdminUsers, type AdminUserRow } from '@/lib/adminUsers';
+import { RetryNotice } from '@/components/common/RetryNotice';
 import {
   Users, UserPlus, ShieldCheck, BookOpen, Search, Trash2, Shield,
   ShieldOff, Loader2, X, Plus, ChevronLeft, ChevronRight, Check, Sparkles, Filter,
   Mail, Download, Copy, FileText
 } from 'lucide-react';
 
-type Profile  = Tables<'profiles'>;
 type Subject  = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
-
-interface UserRow extends Profile {
-  roles: string[];
-  subjectIds: string[];
-}
+type UserRow = AdminUserRow;
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 14px',
@@ -27,6 +24,8 @@ export default function AdminUsers() {
   const [rows,     setRows]     = useState<UserRow[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
   const [search,   setSearch]   = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
   
@@ -50,62 +49,31 @@ export default function AdminUsers() {
   const [exportSeparator, setExportSeparator] = useState<'newline' | 'comma'>('newline');
   const [copiedState, setCopiedState] = useState(false);
 
-  // Tải toàn bộ dữ liệu, vượt qua giới hạn 1000 dòng mặc định của API
-  const fetchAll = async <T,>(table: string, columns: string): Promise<T[]> => {
-    const PAGE = 1000;
-    let from = 0;
-    const all: T[] = [];
-    for (;;) {
-      const { data, error } = await (supabase.from(table as any) as any)
-        .select(columns)
-        .range(from, from + PAGE - 1);
-      if (error) { console.error(`fetchAll ${table} error:`, error); break; }
-      const chunk = (data ?? []) as T[];
-      all.push(...chunk);
-      if (chunk.length < PAGE) break;
-      from += PAGE;
-    }
-    return all;
-  };
-
-  const fetch = async () => {
+  const fetch = useCallback(async () => {
+    const version = ++loadVersion.current;
+    setLoading(true);
+    setLoadError(null);
+    setSubjectUserModal(null);
     try {
-      const [profilesData, roles, subjectsRes, usub] = await Promise.all([
-        fetchAll<any>('profiles', 'id, full_name, username, email, student_code, avatar_url, created_at, phone, is_banned'),
-        fetchAll<any>('user_roles', 'user_id, role'),
-        supabase.from('subjects').select('id, name, semester').order('semester'),
-        fetchAll<any>('user_subjects', 'user_id, subject_id'),
-      ]);
-      const bySubject = new Map<string, string[]>();
-      usub.forEach(s => {
-        const arr = bySubject.get(s.user_id) ?? [];
-        arr.push(s.subject_id);
-        bySubject.set(s.user_id, arr);
-      });
-      const byRole = new Map<string, string[]>();
-      roles.forEach(r => {
-        const arr = byRole.get(r.user_id) ?? [];
-        arr.push(r.role);
-        byRole.set(r.user_id, arr);
-      });
-      const profiles = profilesData
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .map(p => ({
-          ...p,
-          roles:      byRole.get(p.id) ?? [],
-          subjectIds: bySubject.get(p.id) ?? [],
-        }));
-      setRows(profiles);
-      setSubjects(subjectsRes.data ?? []);
-    } catch (err) {
+      const data = await loadAdminUsers();
+      if (version !== loadVersion.current) return;
+      setRows(data.rows);
+      setSubjects(data.subjects);
+    } catch (err: unknown) {
       console.error('Error fetching users:', err);
+      if (version === loadVersion.current) {
+        setLoadError(err instanceof Error ? err.message : 'Không thể tải danh sách người dùng.');
+      }
     } finally {
-      setLoading(false);
+      if (version === loadVersion.current) setLoading(false);
     }
-  };
+  }, []);
 
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => {
+    void fetch();
+    return () => { loadVersion.current++; };
+  }, [fetch]);
 
   const filteredRows = useMemo(() => {
     return rows.filter(u => {
@@ -204,6 +172,7 @@ export default function AdminUsers() {
   };
 
   const toggleSubject = async (userId: string, subjectId: string, hasIt: boolean) => {
+    if (loading || loadError) return;
     if (hasIt) {
       const { error } = await supabase.from('user_subjects').delete().eq('user_id', userId).eq('subject_id', subjectId);
       if (error) { alert('Không thể gỡ quyền: ' + error.message); return; }
@@ -277,6 +246,12 @@ export default function AdminUsers() {
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+    </div>
+  );
+
+  if (loadError) return (
+    <div style={{ padding: 28, background: '#f4f7fc', minHeight: '100vh' }}>
+      <RetryNotice message="Chưa tải đầy đủ dữ liệu người dùng và quyền môn học. Vui lòng thử lại." onRetry={fetch} />
     </div>
   );
 

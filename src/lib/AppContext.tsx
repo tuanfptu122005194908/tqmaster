@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { useSubjectAccess } from '@/hooks/useSubjectAccess';
 
 // ── Single-device session helper ───────────────────────────
 const SESSION_KEY = 'tq_session_id';
@@ -57,6 +58,9 @@ interface AppContextValue {
 
   // Purchased subjects
   purchasedIds:    string[];
+  purchasedReady:  boolean;
+  purchasedLoading: boolean;
+  purchasedError:  string | null;
   freeSubjectIds:  string[];
   isFree:          (id: string) => boolean;
   isPurchased:     (id: string) => boolean;
@@ -83,6 +87,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const authUserIdRef = useRef<string | null>(null);
+  const syncAuthIdentity = useCallback((userId: string | null) => {
+    if (authUserIdRef.current !== userId) {
+      setAuthLoading(!!userId);
+      setProfile(null);
+      setIsAdmin(false);
+    }
+    authUserIdRef.current = userId;
+    setAuthUserId(userId);
+  }, []);
 
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
@@ -97,7 +112,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('tqmaster_cart', JSON.stringify(cart));
   }, [cart]);
 
-  const [purchasedIds,  setPurchasedIds]  = useState<string[]>([]);
+  const {
+    ids: purchasedIds, ready: purchasedReady, loading: purchasedLoading,
+    error: purchasedError, refresh: refreshPurchased,
+  } = useSubjectAccess(authUserId);
   const [freeSubjectIds, setFreeSubjectIds] = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
@@ -128,36 +146,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
         supabase.from('user_roles').select('role').eq('user_id', userId),
       ]);
+      if (authUserIdRef.current !== userId) return;
       if (profileRes.data) setProfile(profileRes.data);
       else if (profileRes.error) console.error('profile load error:', profileRes.error);
       if (roleRes.data) setIsAdmin(roleRes.data.some(r => r.role === 'admin'));
       else if (roleRes.error) console.error('role load error:', roleRes.error);
     } catch (e) {
       console.error('loadProfileAndRole exception:', e);
-    }
-  }, []);
-
-  // ── Load purchased subjects ──────────────────────────────
-  const refreshPurchased = useCallback(async () => {
-    try {
-      // Môn học miễn phí (giá 0đ) → ai cũng truy cập được
-      supabase
-        .from('subjects')
-        .select('id')
-        .eq('is_active', true)
-        .lte('price', 0)
-        .then(({ data }) => setFreeSubjectIds((data ?? []).map(r => r.id)));
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setPurchasedIds([]); return; }
-      const { data, error } = await supabase
-        .from('user_subjects')
-        .select('subject_id')
-        .eq('user_id', user.id);
-      if (error) console.error('purchased load error:', error);
-      setPurchasedIds((data ?? []).map(r => r.subject_id));
-    } catch (e) {
-      console.error('refreshPurchased exception:', e);
     }
   }, []);
 
@@ -290,6 +285,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
 
     let mounted = true;
+    let authEventVersion = 0;
 
     // Safety: never stay loading forever
     const safety = setTimeout(() => {
@@ -297,7 +293,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }, 5000);
 
     supabase.auth.getSession()
-      .then(async ({ data: { session } }) => {
+      .then(async ({ data: { session }, error }) => {
+        if (!mounted || authEventVersion !== 0) return;
+        if (error) throw error;
+        syncAuthIdentity(session?.user.id ?? null);
         if (session?.user) {
           setEmailVerified(!!session.user.email_confirmed_at);
           setUserEmail(session.user.email ?? null);
@@ -305,6 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (session.user.email_confirmed_at) {
             // 1. Await only loadProfileAndRole so ProtectedRoute and layouts know profile & role immediately
             await loadProfileAndRole(session.user.id);
+            if (!mounted || authEventVersion !== 0 || authUserIdRef.current !== session.user.id) return;
             if (mounted) setAuthLoading(false);
 
             // 2. Run non-blocking queries concurrently in background without blocking app render
@@ -318,27 +318,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
       .catch(e => console.error('getSession error:', e))
       .finally(() => {
-        if (mounted) setAuthLoading(false);
+        if (mounted && authEventVersion === 0) setAuthLoading(false);
       });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      const version = ++authEventVersion;
+      syncAuthIdentity(session?.user.id ?? null);
       if (event === 'PASSWORD_RECOVERY') {
         setPasswordRecovery(true);
       }
       // Run async work without blocking the callback (avoid Supabase deadlocks)
       setTimeout(async () => {
+        if (!mounted || version !== authEventVersion) return;
         if (session?.user) {
           setEmailVerified(!!session.user.email_confirmed_at);
           setUserEmail(session.user.email ?? null);
           setMustChangePassword(!!session.user.user_metadata?.must_change_password);
           if (session.user.email_confirmed_at) {
             await loadProfileAndRole(session.user.id);
+            if (!mounted || version !== authEventVersion) return;
             setAuthLoading(false);
             refreshPurchased().catch(console.error);
             if (event === 'SIGNED_IN') {
               enforceSingleSession(session.user.id).catch(console.error);
               setSearchQuery('');
             }
+          } else {
+            setAuthLoading(false);
           }
         } else {
           if (sessionChannelRef.current) {
@@ -354,9 +361,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setMustChangePassword(false);
           setProfile(null);
           setIsAdmin(false);
-          setPurchasedIds([]);
           setCart([]);
           setSearchQuery('');
+          setAuthLoading(false);
         }
       }, 0);
     });
@@ -371,7 +378,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sessionVisibilityHandlerRef.current = null;
       }
     };
-  }, [loadProfileAndRole, refreshPurchased, refreshPendingOrdersCount, refreshPendingReportsCount, enforceSingleSession]);
+  }, [loadProfileAndRole, refreshPurchased, refreshPendingOrdersCount, refreshPendingReportsCount, enforceSingleSession, syncAuthIdentity]);
 
   // ── Real-time subscription for orders/reports/chat (admin badge) ─────
   useEffect(() => {
@@ -471,7 +478,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .select('id')
       .eq('is_active', true)
       .lte('price', 0)
-      .then(({ data }) => setFreeSubjectIds((data ?? []).map(r => r.id)));
+      .then(({ data, error }) => {
+        if (!error && data) setFreeSubjectIds(data.map(r => r.id));
+      });
   }, []);
 
   const isFree       = (id: string) => freeSubjectIds.includes(id);
@@ -506,7 +515,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshAuthUser, signOut,
     searchQuery, setSearchQuery,
     cart, addToCart, removeFromCart, clearCart, isInCart,
-    purchasedIds, freeSubjectIds, isFree, isPurchased, refreshPurchased,
+    purchasedIds, purchasedReady, purchasedLoading, purchasedError, freeSubjectIds, isFree, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
     siteSettings, refreshSiteSettings,
