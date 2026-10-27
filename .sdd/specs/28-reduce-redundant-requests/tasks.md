@@ -7,4 +7,5 @@
 - [x] Ensure identity/access changes isolate private data and pending reads.
 - [x] Add and run meaningful regression tests.
 - [x] Run full tests, TypeScript, build and focused lint; inspect final diff.
-- [ ] Update Graphify, commit and push to origin and tqmaster.
+- [x] Update Graphify, commit and push to origin and tqmaster.
+- [x] Verify the Git-linked Vercel production release and hashed asset headers.

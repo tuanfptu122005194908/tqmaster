@@ -1,5 +1,7 @@
 # Implementation plan
 
+Status: Complete — approved scope implemented, both repositories synchronized and production verified on 2026-10-27.
+
 1. Add a narrow Vercel header for content-hashed build assets, preserving security headers and SPA rewrites.
 2. Make useSubjectAccess own initial reads and coalesce overlapping refreshes within the current committed identity generation. Events received while loading mark one trailing refresh; failures retain the last confirmed grants. Remove redundant startup refreshPurchased calls from AppContext, retaining explicit verification refresh.
 3. Introduce selected-tab queries using TanStack Query. Keys distinguish user, subject, effective access and resource tab. Query functions propagate errors and consume cancellation signals. Query data is never authorization proof.

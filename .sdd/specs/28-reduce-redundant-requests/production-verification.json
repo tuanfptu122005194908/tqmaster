@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-27",
+  "commit": "775a110f70b2fefb849f57a23b791ef9c69a2f77",
+  "site": "https://tuanvaquan.io.vn",
+  "deployment": {
+    "state": "success",
+    "statuses": [
+      {
+        "context": "Vercel",
+        "state": "success",
+        "description": "Deployment has completed",
+        "target_url": "https://vercel.com/thanh-tuans-projects-aecab1a6/tqmaster/2rz4o7VT8H6gMFw5PJtyqfwiDygq"
+      }
+    ]
+  },
+  "responses": [
+    {
+      "path": "/",
+      "status": "HTTP/1.1 200 OK",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "contentType": "text/html; charset=utf-8",
+      "vercelCache": "HIT"
+    },
+    {
+      "path": "/assets/index-C_In7NGG.js",
+      "status": "HTTP/1.1 200 OK",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "contentType": "application/javascript; charset=utf-8",
+      "vercelCache": "HIT",
+      "features": {
+        "site-settings": true,
+        "free-subject-ids": true,
+        "purchasedRevision": true
+      }
+    },
+    {
+      "path": "/assets/SubjectDetailPage-CrJJgqSX.js",
+      "status": "HTTP/1.1 200 OK",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "contentType": "application/javascript; charset=utf-8",
+      "vercelCache": "HIT",
+      "features": {
+        "theories!inner(*)": true,
+        "theories.category": true,
+        "documents": true,
+        "previews": true,
+        "announcements": true
+      }
+    }
+  ]
+}

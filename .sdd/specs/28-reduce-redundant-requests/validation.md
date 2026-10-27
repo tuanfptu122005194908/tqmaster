@@ -25,4 +25,6 @@ Regression coverage includes coalesced calls, event-during-read, grant revisions
 
 ## Release
 
-Both remote main branches matched the starting commit `3bfa0430c9fe4490f5264765d131ac4c16f69ff3` at the pre-push check. Production verification is pending the release push. Vercel CLI has no existing login; the existing Git-linked deployment workflow can publish without adding new credentials.
+Both remote main branches matched the starting commit `3bfa0430c9fe4490f5264765d131ac4c16f69ff3` at the pre-push check. After the user explicitly authorized both destinations, main and feat/reduce-redundant-requests on both remotes were verified at `775a110f70b2fefb849f57a23b791ef9c69a2f77`. The Git-linked Vercel deployment completed successfully. No new deployment credentials were added.
+
+Production checks on https://tuanvaquan.io.vn/ returned HTTP 200 for HTML and the updated bundles. `index-C_In7NGG.js` and `SubjectDetailPage-CrJJgqSX.js` both returned `Cache-Control: public, max-age=31536000, immutable`; HTML retained `public, max-age=0, must-revalidate`. The deployed entry contains the public query keys and purchasedRevision; the deployed subject bundle contains filtered theory/PE queries and tab-specific document/preview keys. Machine-readable results and the deployment link are recorded in `production-verification.json`. Production verification used only public asset reads, not authenticated customer data or a load test.
