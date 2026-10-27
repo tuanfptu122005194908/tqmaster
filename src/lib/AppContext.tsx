@@ -1,3 +1,5 @@
+import { queryClient } from './queryClient';
+import type { CommerceSummary } from './adminAnalytics';
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -125,7 +127,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── Load site settings ──────────────────────────────────
   const refreshSiteSettings = useCallback(async () => {
     try {
-      const { data } = await supabase.from('system_settings').select('key, value');
+      const { data, error } = await supabase.from('system_settings').select('key, value');
+      if (error) throw error;
+      if (!data) throw new Error('Không nhận được cấu hình.');
       const map: Record<string, string> = {};
       (data ?? []).forEach(r => { map[r.key] = r.value ?? ''; });
       setSiteSettings(map);
@@ -159,12 +163,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── Load pending orders count (Admin) ───────────────────
   const refreshPendingOrdersCount = useCallback(async () => {
     try {
-      const { count, error } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      
-      if (!error) setPendingOrdersCount(count ?? 0);
+      const userId = authUserIdRef.current;
+      if (!userId) return;
+      const summary = await queryClient.fetchQuery({ queryKey: ['admin', userId, 'commerce'], queryFn: () => import('./adminAnalytics').then(module => module.loadCommerceSummary()), staleTime: 0 });
+      if (authUserIdRef.current === userId) setPendingOrdersCount(summary.pendingOrders);
     } catch (e) {
       console.error('refreshPendingOrdersCount exception:', e);
     }
@@ -180,20 +182,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!error) setPendingReportsCount(count ?? 0);
     } catch (e) {
       console.error('refreshPendingReportsCount exception:', e);
-    }
-  }, []);
-
-  const refreshUnreadChatCount = useCallback(async () => {
-    try {
-      const { count, error } = await supabase
-        .from('chat_messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('sender_role', 'user')
-        .eq('is_read', false);
-      
-      if (!error) setUnreadChatCount(count ?? 0);
-    } catch (e) {
-      console.error('refreshUnreadChatCount exception:', e);
     }
   }, []);
 
@@ -382,7 +370,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Real-time subscription for orders/reports/chat (admin badge) ─────
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin || !profile) return;
+    const accountId = profile.id;
+    const unsubscribeCache = queryClient.getQueryCache().subscribe(() => {
+      const summary = queryClient.getQueryData<CommerceSummary>(['admin', accountId, 'commerce']);
+      if (summary && authUserIdRef.current === accountId) setPendingOrdersCount(summary.pendingOrders);
+    });
 
     // Fetch admin counts in parallel
     Promise.allSettled([
@@ -390,15 +383,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       refreshPendingReportsCount(),
     ]);
 
-    let ordersTimer: any = null;
+    let ordersTimer: ReturnType<typeof setTimeout> | undefined;
+    const changed = new Set<string>();
+    const invalidateAdmin = (table: string) => {
+      changed.add(table);
+      clearTimeout(ordersTimer);
+      ordersTimer = setTimeout(() => {
+        const commerce = [...changed].some(t => ['orders', 'order_items', 'subjects', 'profiles'].includes(t));
+        const exam = [...changed].some(t => ['exams', 'questions', 'question_options', 'exam_subjects', 'subjects'].includes(t));
+        void queryClient.invalidateQueries({ predicate: q => q.queryKey[0] === 'admin' && q.queryKey[1] === accountId &&
+          ((commerce && ['commerce', 'series', 'sales', 'recent-orders'].includes(String(q.queryKey[2]))) ||
+           (exam && ['exam-statistics', 'commerce'].includes(String(q.queryKey[2])))) }, { cancelRefetch: false });
+        if (commerce) void refreshPendingOrdersCount();
+        changed.clear();
+      }, 400);
+    };
     const ordersChannel = supabase
       .channel('admin-orders-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => { 
-          clearTimeout(ordersTimer);
-          ordersTimer = setTimeout(() => refreshPendingOrdersCount(), 300);
+          invalidateAdmin('orders');
           if (payload.eventType === 'INSERT') {
             const newOrder = payload.new as any;
             toast.success(
@@ -407,8 +413,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
             );
           }
         }
-      )
-      .subscribe();
+      );
+    for (const table of ['order_items', 'subjects', 'profiles', 'exams', 'questions', 'question_options', 'exam_subjects']) {
+      ordersChannel.on('postgres_changes', { event: '*', schema: 'public', table }, () => invalidateAdmin(table));
+    }
+    let subscribed = false;
+    ordersChannel.subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        if (subscribed) invalidateAdmin('orders');
+        subscribed = true;
+      }
+    });
 
     let reportsTimer: any = null;
     const reportsChannel = supabase
@@ -424,14 +439,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .subscribe();
 
     return () => {
+      unsubscribeCache();
       clearTimeout(ordersTimer);
       clearTimeout(reportsTimer);
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(reportsChannel);
     };
-  }, [isAdmin, refreshPendingOrdersCount, refreshPendingReportsCount]);
+  }, [isAdmin, profile?.id, refreshPendingOrdersCount, refreshPendingReportsCount]);
 
   // ── Cart helpers ─────────────────────────────────────────
+  useEffect(() => {
+    queryClient.removeQueries({ predicate: q => q.queryKey[0] === 'admin' && (!isAdmin || q.queryKey[1] !== authUserId) });
+    if (!isAdmin) { setPendingOrdersCount(0); setPendingReportsCount(0); }
+  }, [authUserId, isAdmin]);
+
   const addToCart = (s: Subject | string) => {
     const sid = typeof s === 'string' ? s : s?.id;
     if (sid && freeSubjectIds.includes(sid)) return; // môn miễn phí: không cần giỏ hàng

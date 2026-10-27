@@ -30,3 +30,7 @@ graphify-out/cache/
 supabase/.temp/
 backup_sql/
 *.csv
+scratch/admin-*
+scratch/supabase-tools/
+scratch/deploy-admin-analytics.sql
+graphify-out/20??-??-??/

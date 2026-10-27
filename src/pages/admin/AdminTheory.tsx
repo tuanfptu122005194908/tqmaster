@@ -1,3 +1,6 @@
+import { readAdminRows } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -88,6 +91,7 @@ const CAT_LABEL: Record<Category, string> = {
 const getCat = (t: any): Category => (t?.category === 'pe' ? 'pe' : 'theory');
 
 export default function AdminTheory() {
+  const reads = useAdminRead();
   const { profile } = useApp();
   const [theories,    setTheories]    = useState<any[]>([]);
   const [subjects,    setSubjects]    = useState<Subject[]>([]);
@@ -119,16 +123,12 @@ export default function AdminTheory() {
   const zipInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTheories = async () => {
-    const { data } = await supabase.from('theories')
-      .select('*, theory_subjects(subject_id)')
-      .order('sort_order').order('created_at', { ascending: false });
-    setTheories(data ?? []);
+    await reads.load('theories', () => readAdminRows<Theory & { theory_subjects: {subject_id: string}[] }>('theories', '*, theory_subjects(subject_id)'), data => setTheories(data.sort((a,b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || b.created_at.localeCompare(a.created_at))));
     setLoading(false);
   };
 
   const fetchSubjects = async () => {
-    const { data } = await supabase.from('subjects').select('id, name, semester').order('semester').order('name');
-    setSubjects(data ?? []);
+    await reads.load('subjects', () => readAdminRows<Subject>('subjects', 'id, name, semester'), data => setSubjects(data.sort((a,b) => a.semester - b.semester || a.name.localeCompare(b.name))));
   };
 
   useEffect(() => { fetchTheories(); fetchSubjects(); }, []);
@@ -419,6 +419,8 @@ export default function AdminTheory() {
     }
   };
 
+  if (reads.failed && !theories.length) return <AdminReadError errors={reads.errors} retry={() => { fetchTheories(); fetchSubjects(); }} />;
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -427,6 +429,8 @@ export default function AdminTheory() {
 
   return (
     <div className="admin-theory-container" style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      <AdminReadError errors={reads.errors} retry={() => { fetchTheories(); fetchSubjects(); }} />
+
       
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>

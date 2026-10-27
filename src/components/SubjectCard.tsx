@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tables } from '@/lib/supabase';
+import type { Tables } from '@/integrations/supabase/types';
 
 // Assuming we have optimizedImage in utils, otherwise we can just use subject.thumbnail_url
 function optimizedImage(url: string, width: number) {

@@ -1,3 +1,5 @@
+import { AdminReadError } from '@/components/admin/AdminReadError';
+import { queryClient } from '@/lib/queryClient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Upload, Loader2, CloudUpload, FileArchive, AlertTriangle,
@@ -39,6 +41,8 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 };
 
 export default function BackgroundRestorePanel() {
+  const [jobError, setJobError] = useState<string | null>(null);
+  const completedJobs = useRef(new Set<string>());
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -49,12 +53,20 @@ export default function BackgroundRestorePanel() {
   const [jobs, setJobs] = useState<Job[]>([]);
 
   const loadJobs = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('restore_jobs')
       .select('id,file_name,file_size,status,dry_run,include_media,progress,step,report,error,created_at,finished_at')
       .order('created_at', { ascending: false })
       .limit(8);
-    setJobs((data ?? []) as unknown as Job[]);
+    if (error) { setJobError(error.message); return; }
+    if (!data) { setJobError('Không nhận được lịch sử khôi phục.'); return; }
+    setJobError(null);
+    const rows = data as unknown as Job[];
+    for (const job of rows) if (job.status === 'done' && !completedJobs.current.has(job.id)) {
+      completedJobs.current.add(job.id);
+      void queryClient.invalidateQueries({queryKey:['admin']}, {cancelRefetch:false});
+    }
+    setJobs(rows);
   }, []);
 
   useEffect(() => {
@@ -152,6 +164,7 @@ export default function BackgroundRestorePanel() {
 
   return (
     <div style={card}>
+      <AdminReadError errors={jobError ? {jobs: jobError} : {}} retry={loadJobs} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
         <div style={iconWrap}><Moon size={17} color="#7c3aed" /></div>
         <div>

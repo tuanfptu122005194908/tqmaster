@@ -1,3 +1,4 @@
+import { readAllRows, cursorFilter } from '../../supabase/functions/_shared/readAllRows';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import JSZip from 'jszip';
@@ -241,30 +242,15 @@ export async function exportToExcel(
   for (const schema of schemas) {
     onProgress?.(`Đang xuất bảng: ${schema.label}...`);
     try {
-      let allRows: Record<string, unknown>[] = [];
-      let start = 0;
-      const limit = 1000;
-      let hasMore = true;
-
-      while (hasMore) {
-        const { data, error } = await supabase
-          .from(schema.name as never)
-          .select(schema.columns.join(','))
-          .range(start, start + limit - 1);
-
-        if (error) throw error;
-
-        const chunk = (data as Record<string, unknown>[]) ?? [];
-        if (chunk.length > 0) {
-          allRows = allRows.concat(chunk);
-          start += limit;
-          if (chunk.length < limit) {
-            hasMore = false;
-          }
-        } else {
-          hasMore = false;
-        }
-      }
+      const keys = schema.conflictColumns.split(',').map(k => k.trim());
+      const columns = [...new Set([...schema.columns, ...keys])].join(',');
+      const allRows = await readAllRows(keys, async (cursor, size) => {
+        let query = supabase.from(schema.name as never).select(columns).limit(size);
+        for (const key of keys) query = query.order(key as never);
+        if (cursor) query = query.or(cursorFilter(keys, cursor));
+        const { data, error } = await query;
+        return { data: data as unknown as Record<string, unknown>[] | null, error };
+      });
 
       const rows = allRows;
       rowCounts[schema.name] = rows.length;
@@ -371,10 +357,7 @@ export async function exportToExcel(
 
       XLSX.utils.book_append_sheet(wb, ws, schema.label);
     } catch (err) {
-      console.error(`Export error for table ${schema.name}:`, err);
-      const ws = XLSX.utils.aoa_to_sheet([['ERROR'], [`Lỗi khi export: ${String(err)}`]]);
-      XLSX.utils.book_append_sheet(wb, ws, `${schema.label} (Lỗi)`);
-      rowCounts[schema.name] = -1;
+      throw new Error(`Không thể xuất đầy đủ bảng ${schema.label}: ${String(err)}`);
     }
   }
 

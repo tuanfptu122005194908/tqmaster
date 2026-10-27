@@ -1185,6 +1185,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_commerce_summary: { Args: Record<PropertyKey, never>; Returns: Json }
+      admin_revenue_series: { Args: { p_period: string; p_year?: number }; Returns: Json }
+      admin_subject_sales: { Args: { p_range?: string; p_limit?: number }; Returns: Json }
+      admin_exam_statistics: { Args: Record<PropertyKey, never>; Returns: Json }
+
       admin_confirm_user: {
         Args: { target_user_id: string }
         Returns: undefined

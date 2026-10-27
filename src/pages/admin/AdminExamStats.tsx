@@ -1,5 +1,6 @@
+import { useExamStatistics } from '@/hooks/useAdminAnalytics';
+import { AdminDataState } from '@/components/admin/AdminDataState';
 import React, { useEffect, useState, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { sortExams, getExamScore } from '@/lib/utils';
 import { BarChart2, BookOpen, FileText, ChevronDown, ChevronRight, Loader2, TrendingUp, AlertCircle } from 'lucide-react';
 
@@ -185,155 +186,34 @@ function Pill({ label, value, bg, border, text }: { label: string; value: number
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminExamStats() {
-  const [loading, setLoading] = useState(true);
-  const [groups, setGroups] = useState<SubjectGroup[]>([]);
+  const statistics = useExamStatistics();
+  const loading = statistics.isPending;
+  const groups = statistics.data?.groups ?? [];
   const [openSubjects, setOpenSubjects] = useState<Set<string>>(new Set());
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data: subjectsData, error: subErr } = await supabase
-          .from('subjects').select('id, name, semester').order('semester').order('name').limit(10000);
-        if (subErr) throw subErr;
-        const subjects: SubjectRow[] = subjectsData ?? [];
-
-        const { data: esData, error: esErr } = await supabase
-          .from('exam_subjects').select('exam_id, subject_id').limit(20000);
-        if (esErr) throw esErr;
-        const examSubjectMap: Record<string, string[]> = {};
-        const subjectExamMap: Record<string, string[]> = {};
-        for (const row of (esData ?? [])) {
-          if (!examSubjectMap[row.exam_id]) examSubjectMap[row.exam_id] = [];
-          examSubjectMap[row.exam_id].push(row.subject_id);
-          if (!subjectExamMap[row.subject_id]) subjectExamMap[row.subject_id] = [];
-          subjectExamMap[row.subject_id].push(row.exam_id);
-        }
-
-        const { data: examsData, error: examErr } = await supabase
-          .from('exams').select('id, title').order('created_at', { ascending: false }).limit(10000);
-        if (examErr) throw examErr;
-        const exams: ExamRow[] = examsData ?? [];
-        const examById: Record<string, ExamRow> = {};
-        for (const e of exams) examById[e.id] = e;
-
-        // Helper: paginate any flat query until all rows are fetched
-        async function fetchAll<T>(
-          queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>
-        ): Promise<T[]> {
-          const PAGE = 1000;
-          const result: T[] = [];
-          let from = 0;
-          while (true) {
-            const { data, error } = await queryFn(from, from + PAGE - 1);
-            if (error) throw error;
-            if (!data || data.length === 0) break;
-            result.push(...data);
-            if (data.length < PAGE) break;
-            from += PAGE;
-          }
-          return result;
-        }
-
-        // Two FLAT queries (2 columns each) running in parallel — fast even with many pages
-        const [allQuestions, allCorrectOptions] = await Promise.all([
-          fetchAll<{ id: string; exam_id: string }>((f, t) =>
-            supabase.from('questions').select('id, exam_id').range(f, t)
-          ),
-          fetchAll<{ question_id: string; label: string }>((f, t) =>
-            supabase.from('question_options').select('question_id, label')
-              .eq('is_correct', true).range(f, t)
-          ),
-        ]);
-
-        console.log(`[ExamStats] questions=${allQuestions.length}, correct_options=${allCorrectOptions.length}`);
-
-        // Build lookup: question_id → correct answer labels
-        const correctByQ: Record<string, string[]> = {};
-        for (const o of allCorrectOptions) {
-          if (!correctByQ[o.question_id]) correctByQ[o.question_id] = [];
-          correctByQ[o.question_id].push(o.label.toUpperCase());
-        }
-
-        const examStatsMap: Record<string, ExamStat> = {};
-        for (const q of allQuestions) {
-          if (!examStatsMap[q.exam_id]) {
-            const exam = examById[q.exam_id];
-            if (!exam) continue;
-            examStatsMap[q.exam_id] = { exam, totalQ: 0, counts: {}, noAnswer: 0 };
-          }
-          const stat = examStatsMap[q.exam_id];
-          stat.totalQ++;
-          const labels = correctByQ[q.id] ?? [];
-          if (labels.length === 0) {
-            stat.noAnswer++;
-          } else {
-            for (const lbl of labels) {
-              stat.counts[lbl] = (stat.counts[lbl] ?? 0) + 1;
-            }
-          }
-        }
-
-
-        const result: SubjectGroup[] = [];
-        for (const subject of subjects) {
-          const examIds = subjectExamMap[subject.id] ?? [];
-          const examStats = (examIds.map(id => examStatsMap[id]).filter(Boolean) as ExamStat[])
-            .sort((a, b) => {
-              const diff = getExamScore(b.exam.title) - getExamScore(a.exam.title);
-              return diff !== 0 ? diff : a.exam.title.localeCompare(b.exam.title);
-            });
-          if (examStats.length === 0) continue;
-          result.push({ subject, exams: examStats });
-        }
-
-        const linkedExamIds = new Set(Object.keys(examSubjectMap));
-        const unlinkedStats = Object.values(examStatsMap).filter(s => !linkedExamIds.has(s.exam.id));
-        if (unlinkedStats.length > 0) {
-          result.push({ subject: { id: '__unlinked__', name: 'Chưa gắn môn học', semester: 0 }, exams: unlinkedStats });
-        }
-
-        setGroups(result);
-        if (result.length > 0) setOpenSubjects(new Set([result[0].subject.id]));
-      } catch (e: any) {
-        setError(e?.message ?? 'Lỗi không xác định');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
   const globalStats = useMemo(() => {
     const totals: Record<string, number> = {};
     let totalQ = 0, totalExams = 0;
-    for (const g of groups) {
-      for (const stat of g.exams) {
+    for (const stat of statistics.data?.exams ?? []) {
         totalExams++;
         totalQ += stat.totalQ;
         for (const [k, v] of Object.entries(stat.counts)) totals[k] = (totals[k] ?? 0) + v;
-      }
     }
     return { totals, totalQ, totalExams };
-  }, [groups]);
+  }, [statistics.data]);
 
   const toggleSubject = (id: string) =>
     setOpenSubjects(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
 
+  if (statistics.error && !statistics.data) return <AdminDataState query={statistics} />;
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
     </div>
   );
 
-  if (error) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', flexDirection: 'column', gap: 12, color: '#e11d48' }}>
-      <AlertCircle size={40} />
-      <p style={{ fontWeight: 700, fontSize: 15 }}>{error}</p>
-    </div>
-  );
-
   return (
     <div style={{ background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", padding: '32px 32px 48px' }}>
+      <AdminDataState query={statistics} />
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>

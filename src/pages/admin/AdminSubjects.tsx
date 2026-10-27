@@ -1,3 +1,7 @@
+import { loadSubjectSales } from '@/lib/adminAnalytics';
+import { readAdminRows, readAdminLinks } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -20,6 +24,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function AdminSubjects() {
+  const reads = useAdminRead();
   const { profile } = useApp();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading]  = useState(true);
@@ -31,32 +36,11 @@ export default function AdminSubjects() {
   const [sortBy, setSortBy] = useState<'default' | 'revenue_desc' | 'revenue_asc'>('default');
 
   const fetch = async () => {
-    const { data: subjectsData } = await supabase.from('subjects').select('*').order('semester').order('sort_order');
-    
-    // Fetch order items to calculate statistics
-    const { data: orderItemsData } = await supabase
-      .from('order_items')
-      .select('subject_id, price, orders!inner(status)')
-      .eq('orders.status', 'approved');
-
-    const statsMap: Record<string, { salesCount: number; revenue: number }> = {};
-    if (orderItemsData) {
-      orderItemsData.forEach((item: any) => {
-        if (!statsMap[item.subject_id]) {
-          statsMap[item.subject_id] = { salesCount: 0, revenue: 0 };
-        }
-        statsMap[item.subject_id].salesCount += 1;
-        statsMap[item.subject_id].revenue += Number(item.price);
-      });
-    }
-
-    const subjectsWithStats = (subjectsData ?? []).map(s => ({
-      ...s,
-      salesCount: statsMap[s.id]?.salesCount || 0,
-      revenue: statsMap[s.id]?.revenue || 0,
-    }));
-
-    setSubjects(subjectsWithStats);
+    await reads.load('subjects', async () => {
+      const [data, sales] = await Promise.all([readAdminRows<Tables<'subjects'>>('subjects'), loadSubjectSales()]);
+      const stats = new Map(sales.rows.map(s => [s.id, s]));
+      return data.sort((a,b) => a.semester - b.semester || (a.sort_order ?? 0) - (b.sort_order ?? 0)).map(s => ({ ...s, salesCount: stats.get(s.id)?.count ?? 0, revenue: stats.get(s.id)?.revenue ?? 0 }));
+    }, setSubjects);
     setLoading(false);
   };
   useEffect(() => { fetch(); }, []);
@@ -98,59 +82,57 @@ export default function AdminSubjects() {
     if (!confirm('Sao chép môn học này cùng toàn bộ đề thi và lý thuyết?')) return;
     setSaving(true);
     try {
-      const { data: newSubj } = await supabase.from('subjects').insert({ name: s.name + ' (Bản sao)', semester: s.semester, price: s.price, description: s.description, is_active: false, created_by: profile?.id }).select().single();
-      if (!newSubj) return;
-
-      // 1. Copy theories
-      const { data: ts } = await supabase.from('theory_subjects').select('theory_id').eq('subject_id', s.id);
-      if (ts && ts.length > 0) {
-        const { data: theories } = await supabase.from('theories').select('*').in('id', ts.map(t => t.theory_id));
-        if (theories) {
-          for (const theory of theories) {
-            const { id, created_at, ...rest } = theory;
-            const { data: newTheory } = await supabase.from('theories').insert(rest).select().single();
-            if (newTheory) await supabase.from('theory_subjects').insert({ theory_id: newTheory.id, subject_id: newSubj.id });
+      // Validate every source read before the first write, including >1,000-question exams.
+      const [theoryLinks, examLinks] = await Promise.all([
+        readAdminLinks<{theory_id: string}>('theory_subjects', ['theory_id','subject_id'], {subject_id: s.id}),
+        readAdminLinks<{exam_id: string}>('exam_subjects', ['exam_id','subject_id'], {subject_id: s.id}),
+      ]);
+      const theories: Tables<'theories'>[] = [];
+      for (const link of theoryLinks) {
+        const rows = await readAdminRows<Tables<'theories'>>('theories', '*', {id: link.theory_id});
+        if (rows.length !== 1) throw new Error('Không đọc được tài liệu nguồn.');
+        theories.push(rows[0]);
+      }
+      const exams: { exam: Tables<'exams'>; questions: (Tables<'questions'> & {question_options: Tables<'question_options'>[]})[] }[] = [];
+      for (const link of examLinks) {
+        const [rows, questions] = await Promise.all([
+          readAdminRows<Tables<'exams'>>('exams', '*', {id: link.exam_id}),
+          readAdminRows<Tables<'questions'> & {question_options: Tables<'question_options'>[]}>('questions', '*, question_options(*)', {exam_id: link.exam_id}),
+        ]);
+        if (rows.length !== 1) throw new Error('Không đọc được đề thi nguồn.');
+        exams.push({exam: rows[0], questions});
+      }
+      const {data: newSubject, error} = await supabase.from('subjects').insert({name: s.name + ' (Bản sao)', semester: s.semester, price: s.price, description: s.description, is_active: false, created_by: profile?.id}).select().single();
+      if (error) throw new Error(error.message);
+      if (!newSubject) throw new Error('Không tạo được môn học.');
+      for (const theory of theories) {
+        const {id, created_at, ...values} = theory;
+        const {data: copy, error} = await supabase.from('theories').insert(values).select('id').single();
+        if (error) throw new Error(error.message);
+        if (!copy) throw new Error('Không sao chép được tài liệu.');
+        const {error: linkError} = await supabase.from('theory_subjects').insert({theory_id: copy.id, subject_id: newSubject.id});
+        if (linkError) throw new Error(linkError.message);
+      }
+      for (const source of exams) {
+        const {id, created_at, ...values} = source.exam;
+        const {data: copy, error} = await supabase.from('exams').insert({...values, title: values.title + ' (Bản sao)'}).select('id').single();
+        if (error) throw new Error(error.message);
+        if (!copy) throw new Error('Không sao chép được đề thi.');
+        const {error: linkError} = await supabase.from('exam_subjects').insert({exam_id: copy.id, subject_id: newSubject.id});
+        if (linkError) throw new Error(linkError.message);
+        for (const question of source.questions) {
+          const {id, created_at, exam_id, question_options, ...values} = question;
+          const {data: q, error} = await supabase.from('questions').insert({...values, exam_id: copy.id}).select('id').single();
+          if (error) throw new Error(error.message);
+          if (!q) throw new Error('Không sao chép được câu hỏi.');
+          if (question_options.length) {
+            const {error} = await supabase.from('question_options').insert(question_options.map(({id,question_id,...option}) => ({...option,question_id:q.id})));
+            if (error) throw new Error(error.message);
           }
         }
       }
-
-      // 2. Copy exams
-      const { data: es } = await supabase.from('exam_subjects').select('exam_id').eq('subject_id', s.id);
-      if (es && es.length > 0) {
-        const { data: exams } = await supabase.from('exams').select('*').in('id', es.map(e => e.exam_id));
-        if (exams) {
-          for (const exam of exams) {
-            const { id, created_at, ...restExam } = exam;
-            const { data: newExam } = await supabase.from('exams').insert({ ...restExam, title: restExam.title + ' (Bản sao)' }).select().single();
-            if (newExam) {
-              await supabase.from('exam_subjects').insert({ exam_id: newExam.id, subject_id: newSubj.id });
-              const { data: qs } = await supabase.from('questions').select('*').eq('exam_id', id);
-              if (qs) {
-                for (const q of qs) {
-                  const { id: qId, created_at: qc, exam_id, ...restQ } = q;
-                  const { data: newQ } = await supabase.from('questions').insert({ ...restQ, exam_id: newExam.id }).select().single();
-                  if (newQ) {
-                    const { data: ops } = await supabase.from('question_options').select('*').eq('question_id', qId);
-                    if (ops && ops.length > 0) {
-                      await supabase.from('question_options').insert(ops.map(o => {
-                        const { id: oId, question_id, ...restO } = o;
-                        return { ...restO, question_id: newQ.id };
-                      }));
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Đã xảy ra lỗi khi sao chép.');
-    } finally {
-      setSaving(false);
-      fetch();
-    }
+    } catch (error) { alert('Không hoàn tất sao chép: ' + String(error)); }
+    finally { setSaving(false); void fetch(); }
   };
 
   const toggle = async (s: Subject) => {
@@ -169,6 +151,8 @@ export default function AdminSubjects() {
     fetch();
   };
 
+  if (reads.failed && !subjects.length) return <AdminReadError errors={reads.errors} retry={() => { fetch(); }} />;
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -177,6 +161,8 @@ export default function AdminSubjects() {
 
   return (
     <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <AdminReadError errors={reads.errors} retry={() => { fetch(); }} />
+
       
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>

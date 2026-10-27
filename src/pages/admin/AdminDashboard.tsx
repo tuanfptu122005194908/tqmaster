@@ -1,13 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
-import { useApp } from '@/lib/AppContext';
+import React, { useState, lazy, Suspense } from 'react';
+import { useCommerceSummary, useRecentOrders, useRevenueSeries, useSubjectSales } from '@/hooks/useAdminAnalytics';
+import { AdminDataState } from '@/components/admin/AdminDataState';
 import { formatPrice } from '@/lib/mockData';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Cell,
-  PieChart, Pie
-} from 'recharts';
+
 import {
   Users, BookOpen, FileText, CircleHelp, Clock, TrendingUp,
   Loader2, ShoppingCart, Award, ArrowUpRight, ArrowDownRight,
@@ -15,33 +10,11 @@ import {
   FileSpreadsheet, FileCode, Download, RefreshCw, XCircle, Tag, CheckCircle2, MoreVertical
 } from 'lucide-react';
 
-type Order = Tables<'orders'>;
-type Subject = Tables<'subjects'>;
-type OrderItem = Tables<'order_items'>;
 
 // ─── Custom Tooltip for Revenue Chart ───────────────────────────────────────
-function RevenueTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div style={{
-      background: '#ffffff',
-      border: '1px solid #e2e8f0',
-      borderRadius: 12,
-      padding: '12px 16px',
-      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-    }}>
-      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
-        {formatPrice(payload[0].value)}
-      </div>
-      <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
-        Doanh thu thực tế từ Supabase
-      </div>
-    </div>
-  );
-}
+
+const RevenueChart = lazy(() => import('@/components/admin/DashboardCharts').then(m => ({default:m.RevenueChart})));
+const SubjectDonut = lazy(() => import('@/components/admin/DashboardCharts').then(m => ({default:m.SubjectDonut})));
 
 type RevFilter = 'day' | 'week' | 'month' | 'year';
 
@@ -49,249 +22,30 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [orderItems, setOrderItems] = useState<(OrderItem & { subject_name?: string })[]>([]);
-  const [stats, setStats] = useState({
-    users: 0, subjects: 0, exams: 0, questions: 0,
-    pendingOrders: 0, orders: 0, approved: 0, rejected: 0,
-  });
-
-  // Defaults: revFilter = 'day', topTimeRange = 'week'
   const [revFilter, setRevFilter] = useState<RevFilter>('day');
   const [topTimeRange, setTopTimeRange] = useState<'week' | 'month' | 'year'>('week');
+  const summary = useCommerceSummary();
+  const recent = useRecentOrders();
+  const series = useRevenueSeries(revFilter);
+  const sales = useSubjectSales(topTimeRange, 5);
+  const stats = summary.data;
+  const totalRevenue = stats?.revenue;
+  const avgTripValue = stats ? (stats.approved ? Math.round(stats.revenue / stats.approved) : 0) : undefined;
+  const revenueChartData = series.data ?? [];
+  const recentOrders = recent.data ?? [];
+  const colors = ['#2563eb', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
+  const topSellingSubjectsByRange = (sales.data?.rows ?? []).map((s, idx) => ({
+    ...s, pct: sales.data?.total ? Math.round(s.revenue / sales.data.total * 100) : 0,
+    color: colors[idx % colors.length],
+  }));
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const load = async () => {
-      try {
-        // Cutoff: 400 days ago covers all chart windows (day/week/month/year)
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - 400);
-        const cutoffISO = cutoff.toISOString();
-
-        const [
-          usersRes, subjectsRes, examsRes, questionsRes,
-          ordersRes,
-          pendingRes, approvedRes, rejectedRes,
-        ] = await Promise.all([
-          supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('subjects').select('id', { count: 'exact', head: true }),
-          supabase.from('exams').select('id', { count: 'exact', head: true }),
-          supabase.from('questions').select('id', { count: 'exact', head: true }),
-          // Only fetch recent orders needed for charts — limit 1000 rows
-          supabase.from('orders')
-            .select('id, created_at, final_amount, status, full_name, email, student_code')
-            .gte('created_at', cutoffISO)
-            .order('created_at', { ascending: false })
-            .limit(1000),
-          // Server-side counts for stat cards (no data transfer)
-          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
-          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
-        ]);
-
-        const allOrders = (ordersRes.data ?? []) as unknown as Order[];
-        if (isMounted) setOrders(allOrders);
-
-        if (isMounted) {
-          setStats({
-            users:         usersRes.count ?? 0,
-            subjects:      subjectsRes.count ?? 0,
-            exams:         examsRes.count ?? 0,
-            questions:     questionsRes.count ?? 0,
-            orders:        (pendingRes.count ?? 0) + (approvedRes.count ?? 0) + (rejectedRes.count ?? 0),
-            pendingOrders: pendingRes.count ?? 0,
-            approved:      approvedRes.count ?? 0,
-            rejected:      rejectedRes.count ?? 0,
-          });
-        }
-
-        // Fetch items for ALL recent approved orders (chunked to prevent huge IN-queries limit)
-        const approvedOrderIds = allOrders
-          .filter(o => o.status === 'approved')
-          .map(o => o.id);
-
-        if (approvedOrderIds.length > 0) {
-          const chunkSize = 150;
-          let allItems: any[] = [];
-          
-          for (let i = 0; i < approvedOrderIds.length; i += chunkSize) {
-            const chunkIds = approvedOrderIds.slice(i, i + chunkSize);
-            const { data: itemsData } = await supabase
-              .from('order_items')
-              .select('id, order_id, price, subject_id, subjects(name)')
-              .in('order_id', chunkIds);
-              
-            if (itemsData) {
-              allItems = [...allItems, ...itemsData];
-            }
-          }
-          if (isMounted) setOrderItems(allItems.map((i: any) => ({ ...i, subject_name: i.subjects?.name ?? 'Môn học ôn thi' })));
-        }
-      } catch (err) {
-        console.error('Dashboard load error:', err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    load();
-
-    // Use a unique channel name with debounce to prevent reload spikes
-    let realtimeTimer: any = null;
-    const channelId = `admin-dashboard-realtime-${Date.now()}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => {
-          clearTimeout(realtimeTimer);
-          realtimeTimer = setTimeout(() => {
-            if (isMounted) load();
-          }, 500);
-        }
-      )
-      .subscribe();
-
-    return () => { 
-      isMounted = false; 
-      clearTimeout(realtimeTimer);
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const approvedOrders = useMemo(() => orders.filter(o => o.status === 'approved'), [orders]);
-  const totalRevenue = useMemo(() => approvedOrders.reduce((s, o) => s + Number(o.final_amount), 0), [approvedOrders]);
-  const avgTripValue = useMemo(() => approvedOrders.length > 0 ? Math.round(totalRevenue / approvedOrders.length) : 0, [totalRevenue, approvedOrders]);
-
-  // Real Dynamic Revenue Chart Data (Ngày / Tuần / Tháng / Năm)
-  const revenueChartData = useMemo(() => {
-    const now = new Date();
-
-    if (revFilter === 'day') {
-      // 14 ngày gần nhất
-      const days: { label: string; revenue: number }[] = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        const dayLabel = `${d.getDate()}/${d.getMonth() + 1}`;
-        const rev = approvedOrders
-          .filter(o => {
-            const od = new Date(o.created_at);
-            return od.getDate() === d.getDate() && od.getMonth() === d.getMonth() && od.getFullYear() === d.getFullYear();
-          })
-          .reduce((sum, o) => sum + Number(o.final_amount), 0);
-        days.push({ label: dayLabel, revenue: rev });
-      }
-      return days;
-    }
-
-    if (revFilter === 'week') {
-      // 8 tuần gần nhất
-      const weeks: { label: string; revenue: number }[] = [];
-      for (let i = 7; i >= 0; i--) {
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(startOfWeek.getDate() - i * 7);
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(endOfWeek.getDate() + 6);
-        
-        const rev = approvedOrders
-          .filter(o => {
-            const od = new Date(o.created_at);
-            return od >= startOfWeek && od <= endOfWeek;
-          })
-          .reduce((sum, o) => sum + Number(o.final_amount), 0);
-        weeks.push({ label: `Tuần ${8 - i}`, revenue: rev });
-      }
-      return weeks;
-    }
-
-    if (revFilter === 'month') {
-      // 12 tháng
-      const months = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
-      const byM = Array(12).fill(0);
-      approvedOrders.forEach(o => { byM[new Date(o.created_at).getMonth()] += Number(o.final_amount); });
-      return months.map((label, i) => ({ label, revenue: byM[i] }));
-    }
-
-    // Năm
-    const yearsMap: Record<string, number> = {};
-    approvedOrders.forEach(o => {
-      const y = String(new Date(o.created_at).getFullYear());
-      yearsMap[y] = (yearsMap[y] ?? 0) + Number(o.final_amount);
-    });
-    const sortedYears = Object.keys(yearsMap).sort();
-    if (sortedYears.length === 0) {
-      return [{ label: String(now.getFullYear()), revenue: totalRevenue }];
-    }
-    return sortedYears.map(y => ({ label: `Năm ${y}`, revenue: yearsMap[y] }));
-  }, [approvedOrders, revFilter, totalRevenue]);
-
-  // Filter Approved Orders by Selected Time Range (Tuần / Tháng / Năm)
-  const filteredApprovedOrders = useMemo(() => {
-    const now = new Date();
-    return approvedOrders.filter(order => {
-      const orderDate = new Date(order.created_at);
-      if (topTimeRange === 'week') {
-        const sevenDaysAgo = new Date(now);
-        sevenDaysAgo.setDate(now.getDate() - 7);
-        return orderDate >= sevenDaysAgo;
-      }
-      if (topTimeRange === 'month') {
-        const thirtyDaysAgo = new Date(now);
-        thirtyDaysAgo.setDate(now.getDate() - 30);
-        return orderDate >= thirtyDaysAgo;
-      }
-      // year
-      return orderDate.getFullYear() === now.getFullYear();
-    });
-  }, [approvedOrders, topTimeRange]);
-
-  const filteredApprovedOrderIds = useMemo(() => {
-    return new Set(filteredApprovedOrders.map(o => o.id));
-  }, [filteredApprovedOrders]);
-
-  // Real Top Best-Selling Subjects by Selected Time Range (Tuần / Tháng / Năm)
-  const topSellingSubjectsByRange = useMemo(() => {
-    const map: Record<string, { name: string; count: number; revenue: number }> = {};
-    
-    orderItems.forEach(item => {
-      if (filteredApprovedOrderIds.has(item.order_id)) {
-        const n = item.subject_name ?? 'Môn học ôn thi';
-        if (!map[n]) map[n] = { name: n, count: 0, revenue: 0 };
-        map[n].count++;
-        map[n].revenue += Number(item.price);
-      }
-    });
-
-    const list = Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    const totalRev = list.reduce((s, x) => s + x.revenue, 0) || 1;
-    const colors = ['#2563eb', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
-    
-    return list.map((s, idx) => ({
-      ...s,
-      pct: Math.round((s.revenue / totalRev) * 100),
-      color: colors[idx % colors.length]
-    }));
-  }, [orderItems, filteredApprovedOrderIds]);
-
-  // DISPLAY 10 RECENT ORDERS
-  const recentOrders = useMemo(() => orders.slice(0, 10), [orders]);
-
+  const otherRevenue = Math.max(0, (sales.data?.total ?? 0) - topSellingSubjectsByRange.reduce((sum, s) => sum + s.revenue, 0));
+  const pieData = otherRevenue ? [...topSellingSubjectsByRange, {name: 'Khác / chưa phân bổ', revenue: otherRevenue, color: '#94a3b8'}] : topSellingSubjectsByRange;
   const statusBadge = (s: string) => {
     if (s === 'pending')  return <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>Chờ duyệt</span>;
     if (s === 'approved') return <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>Đã duyệt</span>;
     return <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3' }}>Từ chối</span>;
   };
-
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
-      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-    </div>
-  );
 
   return (
     <div style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
@@ -322,11 +76,12 @@ export default function AdminDashboard() {
               boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)'
             }}
           >
-            <ShoppingCart size={16} /> Quản lý đơn hàng ({stats.pendingOrders} đơn mới)
+            <ShoppingCart size={16} /> Quản lý đơn hàng ({(stats?.pendingOrders ?? '—')} đơn mới)
           </button>
         </div>
       </div>
 
+      <AdminDataState query={summary} />
       {/* ── TOP 4 PASTEL STAT CARDS GRID (REAL DATA) ── */}
       <div style={{
         display: 'grid',
@@ -344,7 +99,7 @@ export default function AdminDashboard() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
             <span style={{ fontSize: 11, fontWeight: 800, color: '#3b82f6', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              TỔNG DOANH THU
+              TỔNG DOANH THU · MỌI THỜI GIAN
             </span>
             <div style={{
               width: 38, height: 38, borderRadius: '50%', background: '#ffffff',
@@ -355,10 +110,10 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', marginBottom: 8 }}>
-            {formatPrice(totalRevenue)}
+            {totalRevenue === undefined ? '—' : formatPrice(totalRevenue)}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>
-            Đã duyệt <strong style={{ color: '#16a34a' }}>{approvedOrders.length}</strong> đơn hàng thành công
+            Đã duyệt <strong style={{ color: '#16a34a' }}>{(stats?.approved ?? '—')}</strong> đơn hàng thành công
           </div>
         </div>
 
@@ -383,10 +138,10 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', marginBottom: 8 }}>
-            {stats.orders.toLocaleString()} đơn
+            {(stats?.orders.toLocaleString() ?? '—')} đơn
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>
-            Có <strong style={{ color: '#b45309' }}>{stats.pendingOrders}</strong> đơn đang chờ admin duyệt
+            Có <strong style={{ color: '#b45309' }}>{(stats?.pendingOrders ?? '—')}</strong> đơn đang chờ admin duyệt
           </div>
         </div>
 
@@ -411,10 +166,10 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', marginBottom: 8 }}>
-            {formatPrice(avgTripValue)}
+            {avgTripValue === undefined ? '—' : formatPrice(avgTripValue)}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>
-            Tính trên {approvedOrders.length} đơn đã thanh toán
+            Tính trên {(stats?.approved ?? '—')} đơn đã thanh toán
           </div>
         </div>
 
@@ -439,7 +194,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', marginBottom: 8 }}>
-            {stats.users.toLocaleString()} Sinh viên
+            {(stats?.users.toLocaleString() ?? '—')} Sinh viên
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>
             Đã đăng ký tài khoản hệ thống TQMaster
@@ -447,6 +202,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      <AdminDataState query={recent} />
       {/* ── MIDDLE ROW: REVENUE ANALYTICS (MẶC ĐỊNH THEO NGÀY) + TOP MÔN BÁN CHẠY (MẶC ĐỊNH THEO TUẦN) ── */}
       <div style={{
         display: 'grid',
@@ -470,7 +226,7 @@ export default function AdminDashboard() {
                  revFilter === 'month' ? 'Phân Tích Doanh Thu Theo Tháng' : 'Phân Tích Doanh Thu Theo Năm'}
               </h2>
               <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
-                Tổng doanh thu ghi nhận: <strong style={{ color: '#2563eb' }}>{formatPrice(totalRevenue)}</strong>
+                Doanh thu mọi thời gian: <strong style={{ color: '#2563eb' }}>{totalRevenue === undefined ? '—' : formatPrice(totalRevenue)}</strong>
               </p>
             </div>
 
@@ -499,22 +255,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Area Chart */}
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={revenueChartData} margin={{ top: 20, right: 10, bottom: 0, left: -15 }}>
-              <defs>
-                <linearGradient id="blueRevGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.28} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.01} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} dy={8} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} tickFormatter={v => v === 0 ? '0' : `${(v/1000000).toFixed(1)}M`} dx={-5} />
-              <Tooltip content={<RevenueTooltip />} />
-              <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} fill="url(#blueRevGrad)" dot={{ r: 4, fill: '#ffffff', stroke: '#2563eb', strokeWidth: 2 }} activeDot={{ r: 7, fill: '#2563eb', stroke: '#ffffff', strokeWidth: 3 }} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <AdminDataState query={series}>
+          <Suspense fallback={<div role="status" style={{height:260}}>Đang tải biểu đồ…</div>}><RevenueChart data={revenueChartData} /></Suspense>
+          </AdminDataState>
         </div>
 
         {/* Right: TOP MÔN BÁN CHẠY (Default: Tuần, Compact Layout) */}
@@ -560,7 +303,8 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {topSellingSubjectsByRange.length === 0 ? (
+            <AdminDataState query={sales}>
+            {sales.data && topSellingSubjectsByRange.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px 16px', color: '#94a3b8', textAlign: 'center' }}>
                 <Package size={32} style={{ marginBottom: 8, opacity: 0.5 }} />
                 <div style={{ fontSize: 13, fontWeight: 600 }}>Chưa có đơn hàng trong khoảng thời gian này</div>
@@ -568,34 +312,7 @@ export default function AdminDashboard() {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 {/* Donut Chart */}
-                <div style={{ width: 170, height: 170, position: 'relative', flexShrink: 0 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={topSellingSubjectsByRange}
-                        cx="50%" cy="50%"
-                        innerRadius={56} outerRadius={80}
-                        paddingAngle={4}
-                        dataKey="revenue"
-                      >
-                        {topSellingSubjectsByRange.map((d, i) => (
-                          <Cell key={i} fill={d.color} stroke="#ffffff" strokeWidth={2} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div style={{
-                    position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
-                  }}>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
-                      {topSellingSubjectsByRange.reduce((s, x) => s + x.count, 0)}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 3 }}>
-                      Đã bán
-                    </div>
-                  </div>
-                </div>
+                <Suspense fallback={<div role="status" style={{width:170,height:170}}>Đang tải biểu đồ…</div>}><SubjectDonut data={pieData} count={sales.data?.count ?? 0} /></Suspense>
 
                 {/* Legend list with elegant pill containers */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden' }}>
@@ -619,6 +336,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+            {sales.data && otherRevenue > 0 && <p style={{fontSize:12,color:'#64748b'}}>Các môn khác / chưa phân bổ: {formatPrice(otherRevenue)}</p>}
+            {sales.data && sales.data.unallocated > 0 && <p role="status" style={{fontSize:12,color:'#b45309'}}>Chưa phân bổ theo môn do thiếu chi tiết: {formatPrice(sales.data.unallocated)}</p>}
+            </AdminDataState>
           </div>
 
           {/* Bottom Summary Strip to eliminate awkward whitespace */}
@@ -634,9 +354,9 @@ export default function AdminDashboard() {
               fontWeight: 600,
               color: '#64748b'
             }}>
-              <span>Doanh thu kỳ chọn:</span>
+              <span>Doanh thu thuần toàn kỳ:</span>
               <strong style={{ color: '#2563eb', fontSize: 13, fontWeight: 800 }}>
-                {formatPrice(topSellingSubjectsByRange.reduce((s, x) => s + x.revenue, 0))}
+                {formatPrice((sales.data?.total ?? 0))}
               </strong>
             </div>
           )}
@@ -673,7 +393,7 @@ export default function AdminDashboard() {
               onClick={() => navigate('/admin/orders')}
               style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '7px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 12.5, fontWeight: 700, color: '#2563eb', background: '#eff6ff', cursor: 'pointer' }}
             >
-              Xem tất cả đơn ({stats.orders}) <ChevronRight size={14} />
+              Xem tất cả đơn ({(stats?.orders ?? '—')}) <ChevronRight size={14} />
             </button>
           </div>
 
@@ -691,7 +411,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.length === 0 ? (
+                {recent.isPending || (recent.error && !recent.data) ? null : recentOrders.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#94a3b8', fontSize: 13 }}>
                       Chưa có đơn hàng nào trong cơ sở dữ liệu
@@ -709,7 +429,7 @@ export default function AdminDashboard() {
                       {order.student_code || '---'}
                     </td>
                     <td style={{ padding: '12px 12px', color: '#64748b' }}>
-                      {new Date(order.created_at).toLocaleDateString('vi-VN')}
+                      {new Date(order.created_at).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </td>
                     <td style={{ padding: '12px 12px', fontWeight: 800, color: '#0f172a' }}>
                       {formatPrice(order.final_amount)}
@@ -723,7 +443,7 @@ export default function AdminDashboard() {
 
           {/* Mobile Orders Cards List */}
           <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12 }}>
-            {recentOrders.length === 0 ? (
+            {recent.isPending || (recent.error && !recent.data) ? null : recentOrders.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: 13 }}>
                 Chưa có đơn hàng nào
               </div>
@@ -760,7 +480,7 @@ export default function AdminDashboard() {
               Bảng Xếp Hạng Doanh Thu Môn Học
             </h2>
 
-            {topSellingSubjectsByRange.length === 0 ? (
+            {sales.isPending || (sales.error && !sales.data) ? null : topSellingSubjectsByRange.length === 0 ? (
               <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: '24px 0' }}>
                 Chưa có dữ liệu đơn hàng thành công
               </div>
@@ -796,19 +516,19 @@ export default function AdminDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div style={{ background: '#f8fafc', padding: 14, borderRadius: 14, border: '1px solid #f1f5f9' }}>
                 <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Tổng Sinh Viên</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#2563eb', marginTop: 2 }}>{stats.users}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#2563eb', marginTop: 2 }}>{(stats?.users ?? '—')}</div>
               </div>
               <div style={{ background: '#f8fafc', padding: 14, borderRadius: 14, border: '1px solid #f1f5f9' }}>
                 <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Tổng Môn Học</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#8b5cf6', marginTop: 2 }}>{stats.subjects}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#8b5cf6', marginTop: 2 }}>{(stats?.subjects ?? '—')}</div>
               </div>
               <div style={{ background: '#f8fafc', padding: 14, borderRadius: 14, border: '1px solid #f1f5f9' }}>
                 <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Tổng Bộ Đề Thi</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#10b981', marginTop: 2 }}>{stats.exams}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#10b981', marginTop: 2 }}>{(stats?.exams ?? '—')}</div>
               </div>
               <div style={{ background: '#f8fafc', padding: 14, borderRadius: 14, border: '1px solid #f1f5f9' }}>
                 <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Ngân Hàng Câu Hỏi</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#f59e0b', marginTop: 2 }}>{stats.questions}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#f59e0b', marginTop: 2 }}>{(stats?.questions ?? '—')}</div>
               </div>
             </div>
           </div>

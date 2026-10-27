@@ -1,3 +1,4 @@
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Server,
@@ -119,6 +120,7 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string; bo
 };
 
 export default function BackgroundBackupPanel() {
+  const [jobError, setJobError] = useState<string | null>(null);
   const { toast } = useToast();
   const [selected, setSelected] = useState<string[]>(DEFAULT_TABLES);
   const [includeMedia, setIncludeMedia] = useState(false);
@@ -145,11 +147,13 @@ export default function BackgroundBackupPanel() {
       .limit(6);
 
     if (error) {
+      setJobError(error.message);
       if (error.message?.includes('schema cache') || error.code === 'PGRST205') {
         setSchemaError(true);
       }
       return;
     }
+    setJobError(null);
     setSchemaError(false);
     setJobs((data ?? []) as unknown as BackupJob[]);
   }, []);
@@ -173,6 +177,7 @@ export default function BackgroundBackupPanel() {
     }
 
     setStarting(true);
+    let createdJobId: string | null = null;
     try {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth?.user?.id;
@@ -204,6 +209,7 @@ export default function BackgroundBackupPanel() {
         throw new Error(jobErr?.message ?? 'Không thể tạo yêu cầu sao lưu.');
       }
 
+      createdJobId = job.id;
       await loadJobs();
 
       // Đóng gói trực tiếp tốc độ cao & tải lên Cloud Storage (Khuyên dùng, không bị giới hạn 150MB RAM của Edge Function)
@@ -276,13 +282,13 @@ export default function BackgroundBackupPanel() {
       const errMsg = String(err instanceof Error ? err.message : err);
       console.error('Lỗi khi sao lưu:', err);
       try {
-        if (job?.id) {
+        if (createdJobId) {
           await supabase.from('backup_jobs').update({
             status: 'failed',
             error: errMsg,
             step: 'Thất bại khi thực hiện sao lưu: ' + errMsg,
             finished_at: new Date().toISOString(),
-          }).eq('id', job.id);
+          }).eq('id', createdJobId);
         }
       } catch {}
       toast({
@@ -469,6 +475,7 @@ export default function BackgroundBackupPanel() {
         flexDirection: 'column',
       }}
     >
+      <AdminReadError errors={jobError ? {jobs: jobError} : {}} retry={loadJobs} />
       {/* Header */}
       <div
         style={{

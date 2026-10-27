@@ -1,3 +1,5 @@
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
@@ -17,31 +19,38 @@ const KEYS = ['bank_name', 'bank_account', 'bank_owner', 'bank_content', 'bank_q
 type SettingKey = typeof KEYS[number];
 
 export default function AdminSettings() {
-  const { profile } = useApp();
+  const { profile, refreshSiteSettings } = useApp();
+  const reads = useAdminRead();
+  const [loaded, setLoaded] = useState(false);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
   const [saved,    setSaved]    = useState(false);
 
-  useEffect(() => {
-    supabase.from('system_settings').select('key, value').then(({ data }) => {
-      const map: Record<string, string> = {};
-      (data ?? []).forEach(r => { map[r.key] = r.value ?? ''; });
-      setSettings(map);
-      setLoading(false);
-    });
-  }, []);
+  const loadSettings = async () => {
+    await reads.load('settings', async () => {
+      const { data, error } = await supabase.from('system_settings').select('key, value').in('key', [...KEYS]);
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('Không nhận được cấu hình.');
+      return Object.fromEntries(data.map(r => [r.key, r.value ?? '']));
+    }, data => { setSettings(data); setLoaded(true); });
+    setLoading(false);
+  };
+  useEffect(() => { void loadSettings(); }, []);
 
   const set = (k: string, v: string) => setSettings(p => ({ ...p, [k]: v }));
 
   const save = async () => {
+    if (!loaded || reads.failed) return;
     setSaving(true);
-    const updates = KEYS.map(k => supabase.from('system_settings').upsert({ key: k, value: settings[k] ?? '', updated_by: profile?.id, updated_at: new Date().toISOString() }));
-    await Promise.all(updates);
-    setSaving(false);
-    setSaved(true);
-    toast.success('Đã lưu cấu hình hệ thống thành công');
-    setTimeout(() => setSaved(false), 2500);
+    try {
+      const { error } = await supabase.from('system_settings').upsert(KEYS.map(k => ({ key: k, value: settings[k] ?? '', updated_by: profile?.id, updated_at: new Date().toISOString() })));
+      if (error) throw new Error(error.message);
+      await refreshSiteSettings();
+      setSaved(true); toast.success('Đã lưu cấu hình hệ thống');
+      setTimeout(() => setSaved(false), 2500);
+    } catch (error) { toast.error('Không lưu được cấu hình: ' + String(error)); }
+    finally { setSaving(false); }
   };
 
   const Section = ({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) => (
@@ -56,6 +65,7 @@ export default function AdminSettings() {
     </div>
   );
 
+  if (reads.failed && !loaded) return <AdminReadError errors={reads.errors} retry={loadSettings} />;
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -64,6 +74,7 @@ export default function AdminSettings() {
 
   return (
     <div className="admin-settings-container" style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a', maxWidth: 840 }}>
+      <AdminReadError errors={reads.errors} retry={loadSettings} />
       
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
@@ -78,7 +89,7 @@ export default function AdminSettings() {
 
         <button
           onClick={save}
-          disabled={saving}
+          disabled={saving || !loaded || reads.failed}
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px',
             background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',
@@ -143,7 +154,7 @@ export default function AdminSettings() {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
         <button
           onClick={save}
-          disabled={saving}
+          disabled={saving || !loaded || reads.failed}
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '12px 28px',
             background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff',

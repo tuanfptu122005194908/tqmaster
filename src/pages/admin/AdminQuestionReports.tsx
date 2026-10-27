@@ -1,3 +1,6 @@
+import { readAdminRows } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
@@ -21,38 +24,29 @@ type QuestionReport = {
 };
 
 export default function AdminQuestionReports() {
+  const reads = useAdminRead();
   const { refreshPendingReportsCount } = useApp();
   const [reports, setReports] = useState<QuestionReport[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadReports = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('question_reports')
-      .select(`
-        *,
-        question:questions(*, options:question_options(*), exam:exams(title)),
-        user:profiles(*),
-        suggested_option:question_options(*)
-      `)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Lỗi tải danh sách báo cáo');
-      console.error(error);
-    } else {
-      const rows = data || [];
-      const signedQuestions = await signQuestionImages(rows.map((r: any) => r.question).filter(Boolean));
+    await reads.load('reports', async () => {
+      const rows = await readAdminRows<QuestionReport>('question_reports', '*, question:questions(*, options:question_options(*), exam:exams(title)), user:profiles(full_name, email), suggested_option:question_options(*)', { status: 'pending' });
+      rows.sort((a,b) => b.created_at.localeCompare(a.created_at));
+      const questions = await signQuestionImages(rows.map(r => r.question).filter(Boolean));
       let qi = 0;
-      setReports(rows.map((r: any) => (r.question ? { ...r, question: signedQuestions[qi++] } : r)));
-
-    }
+      return rows.map(r => r.question ? { ...r, question: questions[qi++] } : r);
+    }, setReports);
     setLoading(false);
   };
 
   useEffect(() => {
-    loadReports();
+    void loadReports();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const channel = supabase.channel('admin-report-list').on('postgres_changes', {event:'*',schema:'public',table:'question_reports'}, () => {
+      clearTimeout(timer); timer = setTimeout(() => void loadReports(),400);
+    }).subscribe();
+    return () => { clearTimeout(timer); void supabase.removeChannel(channel); };
   }, []);
 
   const groupedReports = reports.reduce((acc, report) => {
@@ -110,9 +104,13 @@ export default function AdminQuestionReports() {
     }
   };
 
+  if (reads.failed && !reports.length) return <AdminReadError errors={reads.errors} retry={() => { loadReports(); }} />;
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 40, background: '#f4f7fc', minHeight: '100vh' }}>
+      <AdminReadError errors={reads.errors} retry={() => { loadReports(); }} />
+
         <Loader2 className="spinner" size={32} />
       </div>
     );

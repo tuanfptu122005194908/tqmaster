@@ -1,3 +1,6 @@
+import { readAdminRows } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useRef, useState } from 'react';
 import mammoth from 'mammoth';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,11 +46,14 @@ function parseQuestions(text: string): Array<{
 }
 
 export default function AdminExams() {
+  const reads = useAdminRead();
   const { profile } = useApp();
   const [exams,    setExams]    = useState<ExamWithSubjects[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selExam,  setSelExam]  = useState<Exam | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const questionVersion = useRef(0);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -79,18 +85,12 @@ export default function AdminExams() {
   const [showTextPreview, setShowTextPreview] = useState(false);
 
   const fetchExams = async () => {
-    const { data } = await supabase
-      .from('exams')
-      .select('*, exam_subjects(subject_id, subjects(id, name, semester))')
-      .order('created_at', { ascending: false });
-    const formattedData = (data as any) ?? [];
-    setExams(sortExams(formattedData));
+    await reads.load('exams', () => readAdminRows<ExamWithSubjects>('exams', '*, exam_subjects(subject_id, subjects(id, name, semester))'), data => setExams(sortExams(data)));
     setLoading(false);
   };
 
   const fetchSubjects = async () => {
-    const { data } = await supabase.from('subjects').select('id, name, semester').order('semester').order('name');
-    setSubjects(data ?? []);
+    await reads.load('subjects', () => readAdminRows<Subject>('subjects', 'id, name, semester'), data => setSubjects(data.sort((a,b) => a.semester - b.semester || a.name.localeCompare(b.name))));
   };
 
   useEffect(() => {
@@ -99,21 +99,19 @@ export default function AdminExams() {
 
   const selectExam = async (exam: Exam) => {
     setSelExam(exam);
-    fetchQuestions(exam.id);
+    setQuestions([]);
+    void fetchQuestions(exam.id);
   };
 
   const fetchQuestions = async (examId: string) => {
-    const { data } = await supabase
-      .from('questions')
-      .select('*, question_options(*)')
-      .eq('exam_id', examId)
-      .order('order_num');
-
-    const formatted: Question[] = (data ?? []).map((q: any) => ({
-      ...q,
-      options: (q.question_options ?? q.options ?? []).sort((a: any, b: any) => (a.label || '').localeCompare(b.label || '')),
-    }));
-    setQuestions((await signQuestionImages(formatted as any)) as Question[]);
+    const version = ++questionVersion.current;
+    setQuestionsLoading(true);
+    await reads.load('questions', async () => {
+      const data = await readAdminRows<Tables<'questions'> & {question_options: Tables<'question_options'>[]}>('questions', '*, question_options(*)', { exam_id: examId });
+      const formatted = data.sort((a,b) => a.order_num - b.order_num || a.id.localeCompare(b.id)).map(q => ({ ...q, options: q.question_options.sort((a,b) => a.label.localeCompare(b.label)) }));
+      return await signQuestionImages(formatted);
+    }, setQuestions);
+    if (version === questionVersion.current) setQuestionsLoading(false);
   };
 
   const openCreate = () => {
@@ -626,6 +624,8 @@ export default function AdminExams() {
     return e.title.toLowerCase().includes(q) || (e.exam_subjects ?? []).some(es => es.subjects?.name?.toLowerCase().includes(q));
   });
 
+  if (reads.failed && !exams.length) return <AdminReadError errors={reads.errors} retry={() => { fetchExams(); fetchSubjects(); }} />;
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -634,6 +634,9 @@ export default function AdminExams() {
 
   return (
     <div className="admin-exams-root" style={{ display: 'flex', height: '100vh', background: '#f4f7fc', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      <AdminReadError errors={reads.errors} retry={() => { fetchExams(); fetchSubjects(); }} />
+      {questionsLoading && <div role="status" style={{padding:12,color:"#64748b"}}>Đang tải câu hỏi…</div>}
+
       
       {/* Sidebar — exam list */}
       <div className="admin-exams-sidebar" style={{ width: 340, borderRight: '1px solid #e2e8f0', background: '#ffffff', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
@@ -796,7 +799,7 @@ export default function AdminExams() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
               <div>
                 <h2 style={{ fontWeight: 900, fontSize: 22, color: '#0f172a', margin: '0 0 4px 0' }}>{selExam.title}</h2>
-                <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>{questions.length} câu hỏi · {selExam.duration_min} phút làm bài</p>
+                <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>{questionsLoading ? '…' : questions.length} câu hỏi · {selExam.duration_min} phút làm bài</p>
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {(() => {

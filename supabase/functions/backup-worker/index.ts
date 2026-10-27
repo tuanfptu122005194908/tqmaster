@@ -1,3 +1,4 @@
+import { readAllRows, cursorFilter } from '../_shared/readAllRows.ts';
 // Sao lưu toàn bộ hệ thống (.zip) CHẠY NỀN trên máy chủ Supabase.
 // Quản trị viên bấm "Tạo sao lưu", yêu cầu được chuyển cho Edge Function này.
 // Nhờ EdgeRuntime.waitUntil, client có thể đóng trình duyệt hoặc tắt máy, máy chủ vẫn tự xử lý tiếp.
@@ -81,41 +82,14 @@ async function updateJob(jobId: string, patch: Record<string, unknown>) {
 }
 
 async function fetchTableRows(table: BackupTable): Promise<Record<string, unknown>[]> {
-  const rows: Record<string, unknown>[] = [];
-  const key = table.conflict && !table.conflict.includes(',') ? table.conflict.trim() : null;
-
-  if (key) {
-    let lastKey: string | number | null = null;
-    const pageSize = 1000;
-    for (;;) {
-      let q = admin.from(table.name as never).select('*').order(key as never, { ascending: true }).limit(pageSize);
-      if (lastKey !== null) q = q.gt(key as never, lastKey as never) as never;
-
-      const { data, error } = await q;
-      if (error) throw new Error(`Lỗi đọc bảng ${table.name}: ${error.message}`);
-      const chunk = (data as unknown as Record<string, unknown>[]) ?? [];
-      rows.push(...chunk);
-      if (chunk.length < pageSize) break;
-      const last = chunk[chunk.length - 1][key];
-      if (last === null || last === undefined) break;
-      lastKey = last as string | number;
-    }
-  } else {
-    let from = 0;
-    const pageSize = 1000;
-    for (;;) {
-      let q = admin.from(table.name as never).select('*').range(from, from + pageSize - 1);
-      if (table.orderBy) q = q.order(table.orderBy as never, { ascending: true, nullsFirst: true }) as never;
-      const { data, error } = await q;
-      if (error) throw new Error(`Lỗi đọc bảng ${table.name}: ${error.message}`);
-      const chunk = (data as unknown as Record<string, unknown>[]) ?? [];
-      rows.push(...chunk);
-      if (chunk.length < pageSize) break;
-      from += pageSize;
-    }
-  }
-
-  return rows;
+  const keys = table.conflict.split(',').map(k => k.trim());
+  return readAllRows(keys, async (cursor, size) => {
+    let query = admin.from(table.name as never).select('*').limit(size);
+    for (const key of keys) query = query.order(key as never);
+    if (cursor) query = query.or(cursorFilter(keys, cursor));
+    const { data, error } = await query;
+    return { data: data as unknown as Record<string, unknown>[] | null, error };
+  });
 }
 
 async function listFiles(bucket: string): Promise<{ bucket: string; path: string; size: number }[]> {
@@ -239,6 +213,9 @@ async function processJob(jobId: string) {
       }
     }
     manifest.totalRows = totalRows;
+
+    const failedTables = (manifest.tables as {name:string; error?:string}[]).filter(table => table.error);
+    if (failedTables.length) throw new Error('Sao lưu chưa đầy đủ: ' + failedTables.map(table => table.name + ': ' + table.error).join('; '));
 
     // Nếu chọn sao lưu Media
     if (job.include_media) {

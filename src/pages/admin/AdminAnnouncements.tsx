@@ -1,3 +1,6 @@
+import { readAdminRows } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -18,6 +21,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function AdminAnnouncements() {
+  const reads = useAdminRead();
   const { profile } = useApp();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [subjects,      setSubjects]      = useState<Subject[]>([]);
@@ -29,13 +33,11 @@ export default function AdminAnnouncements() {
   const [form, setForm] = useState({ title: '', content: '', subject_id: '', image_url: '' });
 
   const fetchAnn = async () => {
-    const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
-    setAnnouncements(data ?? []);
+    await reads.load('announcements', () => readAdminRows<Announcement>('announcements'), data => setAnnouncements(data.sort((a,b) => b.created_at.localeCompare(a.created_at))));
     setLoading(false);
   };
   const fetchSubjects = async () => {
-    const { data } = await supabase.from('subjects').select('id, name');
-    setSubjects(data ?? []);
+    await reads.load('subjects', () => readAdminRows<Subject>('subjects', 'id, name'), setSubjects);
   };
 
   useEffect(() => { fetchAnn(); fetchSubjects(); }, []);
@@ -69,6 +71,8 @@ export default function AdminAnnouncements() {
 
   const subjectName = (id: string | null) => id ? (subjects.find(s => s.id === id)?.name ?? '—') : 'Tất cả sinh viên';
 
+  if (reads.failed && !announcements.length) return <AdminReadError errors={reads.errors} retry={() => { fetchAnn(); fetchSubjects(); }} />;
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -77,6 +81,8 @@ export default function AdminAnnouncements() {
 
   return (
     <div className="admin-announcements-container" style={{ padding: '32px 40px', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      <AdminReadError errors={reads.errors} retry={() => { fetchAnn(); fetchSubjects(); }} />
+
       
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>

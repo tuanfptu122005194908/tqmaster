@@ -1,3 +1,5 @@
+import { queryClient } from './queryClient';
+import { readAllRows, cursorFilter } from '../../supabase/functions/_shared/readAllRows';
 /**
  * TQMaster — Full Snapshot Backup Engine
  *
@@ -147,69 +149,15 @@ function timestamp(): string {
  * ở mỗi trang → chậm dần và cuối cùng bị "statement timeout".
  * Keyset (WHERE key > lastKey ORDER BY key LIMIT n) luôn nhanh như trang đầu.
  */
-function keysetColumn(table: BackupTable): string | null {
-  if (table.conflict && !table.conflict.includes(',')) return table.conflict.trim();
-  return null;
-}
-
-function isTimeoutError(message: string): boolean {
-  const m = message.toLowerCase();
-  return m.includes('timeout') || m.includes('57014') || m.includes('canceling statement');
-}
-
-export async function fetchAllRows(
-  table: BackupTable,
-  onPage?: (loaded: number) => void
-): Promise<Record<string, unknown>[]> {
-  const rows: Record<string, unknown>[] = [];
-  const key = keysetColumn(table);
-
-  if (key) {
-    // ── Keyset pagination (ổn định & nhanh với bảng rất lớn) ──
-    let lastKey: string | number | null = null;
-    let pageSize = PAGE;
-    for (;;) {
-      let q = supabase
-        .from(table.name as never)
-        .select('*')
-        .order(key as never, { ascending: true })
-        .limit(pageSize);
-      if (lastKey !== null) q = q.gt(key as never, lastKey as never) as never;
-
-      const { data, error } = await q;
-      if (error) {
-        // Trang quá lớn / quá tải → thu nhỏ trang rồi thử lại thay vì bỏ cuộc
-        if (pageSize > 100 && isTimeoutError(error.message)) {
-          pageSize = Math.max(100, Math.floor(pageSize / 2));
-          continue;
-        }
-        throw new Error(error.message);
-      }
-      const chunk = (data as unknown as Record<string, unknown>[]) ?? [];
-      rows.push(...chunk);
-      onPage?.(rows.length);
-      if (chunk.length < pageSize) break;
-      const last = chunk[chunk.length - 1][key];
-      if (last === null || last === undefined) break;
-      lastKey = last as string | number;
-    }
-    return rows;
-  }
-
-  // ── Bảng khoá phức hợp (dữ liệu nhỏ) → phân trang theo offset ──
-  let from = 0;
-  for (;;) {
-    let q = supabase.from(table.name as never).select('*').range(from, from + PAGE - 1);
-    if (table.orderBy) q = q.order(table.orderBy as never, { ascending: true, nullsFirst: true }) as never;
-    const { data, error } = await q;
-    if (error) throw new Error(error.message);
-    const chunk = (data as unknown as Record<string, unknown>[]) ?? [];
-    rows.push(...chunk);
-    onPage?.(rows.length);
-    if (chunk.length < PAGE) break;
-    from += PAGE;
-  }
-  return rows;
+export async function fetchAllRows(table: BackupTable, onPage?: (loaded: number) => void): Promise<Record<string, unknown>[]> {
+  const keys = table.conflict.split(',').map(k => k.trim());
+  return readAllRows(keys, async (cursor, size) => {
+    let query = supabase.from(table.name as never).select('*').limit(size);
+    for (const key of keys) query = query.order(key as never);
+    if (cursor) query = query.or(cursorFilter(keys, cursor));
+    const { data, error } = await query;
+    return { data: data as unknown as Record<string, unknown>[] | null, error };
+  }, onPage);
 }
 
 
@@ -339,6 +287,8 @@ export async function exportFullSnapshot(opts: ExportOptions): Promise<SnapshotE
     rows: 0,
     error: 'Không nhận được kết quả',
   });
+  const failedTables = manifest.tables.filter(table => table.error);
+  if (failedTables.length) throw new Error('Sao lưu chưa đầy đủ: ' + failedTables.map(table => table.label + ': ' + table.error).join('; '));
   manifest.totalRows = manifest.tables.reduce((sum, table) => sum + table.rows, 0);
 
   if (includeMedia) {
@@ -730,6 +680,7 @@ export async function restoreSnapshot(file: File, opts: RestoreOptions): Promise
   report.totalFailed = report.tables.reduce((sum, table) => sum + table.failed, 0);
 
   onProgress?.(100, dryRun ? 'Kiểm tra hoàn tất!' : 'Khôi phục hoàn tất!');
+  void queryClient.invalidateQueries({queryKey:['admin']}, {cancelRefetch:false});
   return report;
 }
 

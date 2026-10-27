@@ -1,3 +1,8 @@
+import { adminDateWindow } from '@/lib/adminDates';
+import { useCommerceSummary } from '@/hooks/useAdminAnalytics';
+import { AdminDataState } from '@/components/admin/AdminDataState';
+import { queryClient } from '@/lib/queryClient';
+import { readAdminRows } from '@/lib/adminRead';
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -49,9 +54,13 @@ export default function AdminOrders() {
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   // Summary counts (always reflect full dataset, not just current page)
-  const [pendingCount, setPendingCount] = useState(0);
-  const [approvedCount, setApprovedCount] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
+  const summary = useCommerceSummary();
+  const pendingCount = summary.data?.pendingOrders;
+  const approvedCount = summary.data?.approved;
+  const totalRevenue = summary.data?.revenue;
+  const [listError, setListError] = useState<Error | null>(null);
+  const detailVersion = useRef(0);
+  const [detailError, setDetailError] = useState<Error | null>(null);
 
   // Guard against race conditions from rapid responses
   const latestRequestId = useRef(0);
@@ -91,30 +100,15 @@ export default function AdminOrders() {
       let query = supabase
         .from('orders')
         .select('id, created_at, final_amount, original_amount, discount_amount, discount_code, status, full_name, email, student_code, note, bill_image_url, reviewed_at, reviewed_by, order_items(subject_id, subjects(name, id))', { count: 'exact' })
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
         .range(from, to);
 
       if (statusVal !== 'all') {
         query = query.eq('status', statusVal);
       }
 
-      // Date filtering
-      if (dateVal !== 'all') {
-        const now = new Date();
-        let startDate: Date | null = null;
-        if (dateVal === 'today') {
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        } else if (dateVal === '7days') {
-          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        } else if (dateVal === '30days') {
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        } else if (dateVal === 'this_month') {
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        }
-        if (startDate) {
-          query = query.gte('created_at', startDate.toISOString());
-        }
-      }
+      const dateWindow = adminDateWindow(dateVal);
+      if (dateWindow) query = query.gte('created_at',dateWindow.start).lt('created_at',dateWindow.end);
 
       // Sanitize search query to avoid PostgREST parsing errors
       const cleanSearch = searchVal.trim().replace(/^#/, '').replace(/[,()%\\]/g, ' ').trim();
@@ -130,13 +124,17 @@ export default function AdminOrders() {
       if (reqId !== latestRequestId.current) return;
 
       if (error) {
-        console.error('Error fetching orders:', error);
+        setListError(new Error(error.message));
       } else {
-        setOrders(data as any ?? []);
+        if (!data || count === null) throw new Error('Không nhận được đầy đủ danh sách và tổng số đơn.');
+        const lastPage = Math.max(0, Math.ceil(count / PAGE_SIZE) - 1);
+        if (pageNum > lastPage) { setPage(lastPage); return; }
+        setListError(null);
+        setOrders(data as unknown as Order[]);
         setTotalCount(count ?? 0);
       }
     } catch (e) {
-      console.error('Error fetching orders:', e);
+      if (reqId === latestRequestId.current) setListError(e instanceof Error ? e : new Error(String(e)));
     } finally {
       if (reqId === latestRequestId.current) {
         setIsTableLoading(false);
@@ -147,19 +145,7 @@ export default function AdminOrders() {
 
   // Fetch summary stats separately so they always cover the whole table
   const fetchStats = async () => {
-    try {
-      const [pendingRes, approvedRes, revenueRes] = await Promise.all([
-        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
-        supabase.from('orders').select('final_amount').eq('status', 'approved'),
-      ]);
-      setPendingCount(pendingRes.count ?? 0);
-      setApprovedCount(approvedRes.count ?? 0);
-      const rev = (revenueRes.data ?? []).reduce((s: number, o: any) => s + Number(o.final_amount), 0);
-      setTotalRevenue(rev);
-    } catch (e) {
-      console.error('Error fetching order stats:', e);
-    }
+    await queryClient.invalidateQueries({ queryKey: ['admin', profile?.id] }, { cancelRefetch: false });
   };
 
   useEffect(() => {
@@ -167,8 +153,6 @@ export default function AdminOrders() {
   }, [page, debouncedSearch, filterStatus, dateFilter]);
 
   useEffect(() => {
-    fetchStats();
-    
     // Đăng ký nhận thông báo realtime với debounce để tránh spam query
     let debounceTimer: any = null;
     const channelId = `admin-orders-page-realtime-${Date.now()}`;
@@ -182,7 +166,6 @@ export default function AdminOrders() {
           debounceTimer = setTimeout(() => {
             const cur = filterRef.current;
             fetchPage(cur.page, cur.debouncedSearch, cur.filterStatus, cur.dateFilter);
-            fetchStats();
           }, 400);
         }
       )
@@ -207,7 +190,7 @@ export default function AdminOrders() {
     } else {
       toast.success(status === 'approved' ? 'Đã duyệt đơn hàng' : 'Đã từ chối đơn hàng');
     }
-    setViewOrder(v => v?.id === id ? { ...v, status } : v);
+    if (!error) setViewOrder(v => v?.id === id ? { ...v, status } : v);
     await fetchPage(page);
     fetchStats();
     refreshPendingOrdersCount();
@@ -219,34 +202,37 @@ export default function AdminOrders() {
 
     try {
       // 1. Kiểm tra thông tin đơn hàng và các môn trước khi xoá
-      const { data: orderData } = await supabase
+      const { data: orderData, error: orderReadError } = await supabase
         .from('orders')
         .select('id, user_id, status, order_items(subject_id)')
         .eq('id', id)
         .single();
+      if (orderReadError) throw new Error(orderReadError.message);
+      if (!orderData) throw new Error('Không tìm thấy đơn hàng.');
 
       if (orderData && orderData.status === 'approved' && orderData.order_items?.length) {
         const subjectIds = (orderData.order_items as any[])
           .map((item: any) => item.subject_id)
           .filter(Boolean);
 
+        const revokeIds: string[] = [];
         for (const subjId of subjectIds) {
           // Kiểm tra xem user có đơn nào khác cũng đang approved môn này không
-          const { data: otherOrders } = await supabase
+          const { data: otherOrders, error: otherReadError } = await supabase
             .from('orders')
             .select('id, order_items!inner(subject_id)')
             .eq('user_id', orderData.user_id)
             .eq('status', 'approved')
             .neq('id', id)
-            .eq('order_items.subject_id', subjId);
+            .eq('order_items.subject_id', subjId).limit(1);
+          if (otherReadError) throw new Error(otherReadError.message);
+          if (!otherOrders) throw new Error('Không xác minh được quyền truy cập.');
 
-          if (!otherOrders || otherOrders.length === 0) {
-            await supabase
-              .from('user_subjects')
-              .delete()
-              .eq('user_id', orderData.user_id)
-              .eq('subject_id', subjId);
-          }
+          if (otherOrders.length === 0) revokeIds.push(subjId);
+        }
+        if (revokeIds.length) {
+          const {error: revokeError} = await supabase.from('user_subjects').delete().eq('user_id',orderData.user_id).in('subject_id',revokeIds);
+          if (revokeError) throw new Error(revokeError.message);
         }
       }
 
@@ -266,28 +252,22 @@ export default function AdminOrders() {
   };
 
   const openDetail = async (order: Order) => {
-    setViewOrder(order);
-    setBillUrl(null);
-    setOrderItems([]);
-    setLoadingItems(true);
-    const { data: items } = await supabase
-      .from('order_items')
-      .select('id, subject_id, price, subjects(name)')
-      .eq('order_id', order.id);
-
-    setOrderItems(
-      (items ?? []).map((it: any) => ({
-        id: it.id,
-        subject_id: it.subject_id,
-        price: Number(it.price),
-        subject_name: it.subjects?.name ?? 'Môn không xác định',
-      }))
-    );
-    setLoadingItems(false);
-
-    if (order.bill_image_url) {
-      const { data } = await supabase.storage.from('bill-images').createSignedUrl(order.bill_image_url, 300);
-      setBillUrl(data?.signedUrl ?? null);
+    const version = ++detailVersion.current;
+    setViewOrder(order); setBillUrl(null); setOrderItems([]); setLoadingItems(true); setDetailError(null);
+    try {
+      const [items, bill] = await Promise.all([
+        readAdminRows<{ id: string; subject_id: string; price: number; subjects: { name: string } | null }>(
+          'order_items', 'id, subject_id, price, subjects(name)', { order_id: order.id }),
+        order.bill_image_url ? supabase.storage.from('bill-images').createSignedUrl(order.bill_image_url, 300) : Promise.resolve(null),
+      ]);
+      if (version !== detailVersion.current) return;
+      if (bill?.error) throw new Error(bill.error.message);
+      setOrderItems(items.map(it => ({ ...it, price: Number(it.price), subject_name: it.subjects?.name ?? 'Môn không xác định' })));
+      setBillUrl(bill?.data?.signedUrl ?? null);
+    } catch (error) {
+      if (version === detailVersion.current) setDetailError(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+      if (version === detailVersion.current) setLoadingItems(false);
     }
   };
 
@@ -297,7 +277,7 @@ export default function AdminOrders() {
     return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>✕ Đã hủy</span>;
   };
 
-  const avgOrderValue = approvedCount > 0 ? Math.round(totalRevenue / approvedCount) : 0;
+  const avgOrderValue = summary.data ? (approvedCount ? Math.round(totalRevenue / approvedCount) : 0) : undefined;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   if (initialLoading) return (
@@ -308,6 +288,9 @@ export default function AdminOrders() {
 
   return (
     <div className="admin-orders-container" style={{ width: '100%', boxSizing: 'border-box', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      <AdminDataState query={summary} />
+      <AdminDataState query={{ isPending: false, error: listError, data: orders.length ? orders : undefined, refetch: () => fetchPage() }} />
+
       
       {/* Dynamic Responsive Styles */}
       <style>{`
@@ -412,10 +395,10 @@ export default function AdminOrders() {
             </div>
           </div>
           <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {pendingCount}
+            {pendingCount ?? '—'}
           </div>
           <div style={{ fontSize: 11, color: '#e11d48', fontWeight: 800 }}>
-            {pendingCount > 0 ? '❗ Cần xử lý' : '✓ Đã xong'}
+            {pendingCount === undefined ? 'Đang tải thống kê' : pendingCount > 0 ? '❗ Cần xử lý' : '✓ Đã xong'}
           </div>
         </div>
 
@@ -428,10 +411,10 @@ export default function AdminOrders() {
             </div>
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {formatPrice(totalRevenue)}
+            {totalRevenue === undefined ? '—' : formatPrice(totalRevenue)}
           </div>
           <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
-            📈 +8.4% tăng trưởng
+            Mọi thời gian · Đơn đã duyệt
           </div>
         </div>
 
@@ -444,10 +427,10 @@ export default function AdminOrders() {
             </div>
           </div>
           <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {formatPrice(avgOrderValue)}
+            {avgOrderValue === undefined ? '—' : formatPrice(avgOrderValue)}
           </div>
           <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
-            Ổn định 30 ngày
+            Mọi thời gian · Đơn đã duyệt
           </div>
         </div>
 
@@ -620,7 +603,7 @@ export default function AdminOrders() {
               </tr>
             </thead>
             <tbody style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
-              {filtered.length === 0 ? (
+              {listError && !filtered.length ? null : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8', fontSize: 13 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -775,7 +758,7 @@ export default function AdminOrders() {
 
       {/* ── MOBILE CARDS VIEW (Clean, High-contrast responsive list) ── */}
       <div className="orders-mobile-cards" style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
-        {filtered.length === 0 ? (
+        {listError && !filtered.length ? null : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', background: '#ffffff', borderRadius: 20, border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: 13, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             <Filter size={24} style={{ opacity: 0.4 }} />
             <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
@@ -953,13 +936,14 @@ export default function AdminOrders() {
       {/* ── ORDER DETAIL & BILL SLIDE PANEL ── */}
       {viewOrder && (
         <>
-          <div onClick={() => setViewOrder(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
+          <div onClick={() => (detailVersion.current++, setViewOrder(null))} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
           <div style={{
             position: 'fixed', right: 0, top: 0, bottom: 0,
             width: 'min(450px, 100vw)', background: '#ffffff',
             boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201,
             display: 'flex', flexDirection: 'column', overflowY: 'auto'
           }}>
+            <AdminDataState query={{isPending:false,error:detailError,refetch:()=>openDetail(viewOrder)}} />
             {/* Drawer Header */}
             <div style={{ padding: '18px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#ffffff', zIndex: 2 }}>
               <div>
@@ -970,7 +954,7 @@ export default function AdminOrders() {
                   #{viewOrder.id}
                 </div>
               </div>
-              <button onClick={() => setViewOrder(null)} style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
+              <button onClick={() => (detailVersion.current++, setViewOrder(null))} style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
                 <X size={18} />
               </button>
             </div>
@@ -1003,7 +987,7 @@ export default function AdminOrders() {
                   DANH SÁCH MÔN HỌC ({orderItems.length})
                 </div>
 
-                {loadingItems ? (
+                {detailError ? null : loadingItems ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: 13, padding: 12 }}>
                     <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Đang tải dữ liệu môn...
                   </div>
@@ -1043,7 +1027,7 @@ export default function AdminOrders() {
               {viewOrder.status === 'pending' && (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    onClick={() => { setStatus(viewOrder.id, 'approved'); setViewOrder(null); }}
+                    onClick={() => { setStatus(viewOrder.id, 'approved'); (detailVersion.current++, setViewOrder(null)); }}
                     style={{
                       flex: 1, padding: '11px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                       color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
@@ -1054,7 +1038,7 @@ export default function AdminOrders() {
                   </button>
 
                   <button
-                    onClick={() => { setStatus(viewOrder.id, 'rejected'); setViewOrder(null); }}
+                    onClick={() => { setStatus(viewOrder.id, 'rejected'); (detailVersion.current++, setViewOrder(null)); }}
                     style={{
                       padding: '11px 16px', background: '#ffe4e6', color: '#e11d48',
                       border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer'
@@ -1066,7 +1050,7 @@ export default function AdminOrders() {
               )}
 
               <button
-                onClick={() => { remove(viewOrder.id); setViewOrder(null); }}
+                onClick={() => { remove(viewOrder.id); (detailVersion.current++, setViewOrder(null)); }}
                 style={{
                   width: '100%', padding: '10px', background: '#ffffff', color: '#e11d48',
                   border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer'

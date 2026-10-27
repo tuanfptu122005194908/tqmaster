@@ -1,3 +1,6 @@
+import { readAdminRows } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
@@ -19,6 +22,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function AdminNews() {
+  const reads = useAdminRead();
   const { profile } = useApp();
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +33,7 @@ export default function AdminNews() {
   const [form, setForm] = useState<{ title: string; content: string; images: string[] }>({ title: '', content: '', images: [] });
 
   const fetchPosts = async () => {
-    const { data } = await supabase.from('news_posts' as any).select('*').order('created_at', { ascending: false });
-    setPosts((data as any) ?? []);
+    await reads.load('posts', () => readAdminRows<NewsPost>('news_posts'), data => setPosts(data.sort((a,b) => b.created_at.localeCompare(a.created_at))));
     setLoading(false);
   };
   useEffect(() => { fetchPosts(); }, []);
@@ -76,6 +79,8 @@ export default function AdminNews() {
     fetchPosts();
   };
 
+  if (reads.failed && !posts.length) return <AdminReadError errors={reads.errors} retry={() => { fetchPosts(); }} />;
+
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
       <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
@@ -84,6 +89,8 @@ export default function AdminNews() {
 
   return (
     <div className="admin-news-container" style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <AdminReadError errors={reads.errors} retry={() => { fetchPosts(); }} />
+
       
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>

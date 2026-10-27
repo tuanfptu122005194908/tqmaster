@@ -1,3 +1,6 @@
+import { readAdminRows } from '@/lib/adminRead';
+import { useAdminRead } from '@/hooks/useAdminRead';
+import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -60,6 +63,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function AdminCoupons() {
+  const reads = useAdminRead();
   const { profile } = useApp();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,19 +75,8 @@ export default function AdminCoupons() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'inactive'>('all');
 
   const fetchCoupons = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('discount_codes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCoupons(data ?? []);
-    } catch (err: any) {
-      toast.error('Lỗi tải danh sách mã giảm giá: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    await reads.load('coupons', () => readAdminRows<Coupon>('discount_codes'), data => setCoupons(data.sort((a,b) => b.created_at.localeCompare(a.created_at))));
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -263,9 +256,13 @@ export default function AdminCoupons() {
     });
   }, [coupons, searchQuery, statusFilter]);
 
+  if (reads.failed && !coupons.length) return <AdminReadError errors={reads.errors} retry={() => { fetchCoupons(); }} />;
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
+      <AdminReadError errors={reads.errors} retry={() => { fetchCoupons(); }} />
+
         <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
       </div>
     );

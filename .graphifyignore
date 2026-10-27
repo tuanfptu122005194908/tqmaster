@@ -1,0 +1,7 @@
+# Scratch diagnostics and temporary tooling are not project knowledge.
+scratch/
+node_modules/
+dist/
+supabase/.temp/
+.env
+.env.*

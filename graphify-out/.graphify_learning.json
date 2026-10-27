@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-10-27T00:41:47.020555+00:00",
+  "nodes": {
+    "src_lib_adminanalytics": {
+      "code_fingerprint": "d496fb9a4d019ded9fcf3538cbac9ee4f336323bcab6e7535d41f2da3a3af8dd",
+      "label": "adminAnalytics.ts",
+      "last": "2026-10-27T00:41:46.720761+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-27T00:41:46.720761+00:00",
+          "outcome": "useful",
+          "q": "Admin dashboard data integrity implementation after approved audit"
+        }
+      ],
+      "score": 0.99999992,
+      "source_file": "src/lib/adminAnalytics.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_lib_adminusers": {
+      "code_fingerprint": "c8eb2d477cc8267fdf171cc5830bb197c317f4038c75d2a80770c8543a2efd09",
+      "label": "adminUsers.ts",
+      "last": "2026-10-26T16:48:16.061100+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-26T16:48:16.061100+00:00",
+          "outcome": "useful",
+          "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
+        }
+      ],
+      "score": 0.99243119,
+      "source_file": "src/lib/adminUsers.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_lib_backupcore": {
+      "code_fingerprint": "d1469867316b5b828eb183a74641c3dbd14df626059c4bf79bfe365f97ded4f7",
+      "label": "backupCore.ts",
+      "last": "2026-10-26T16:48:16.061100+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-26T16:48:16.061100+00:00",
+          "outcome": "useful",
+          "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
+        }
+      ],
+      "score": 0.99243119,
+      "source_file": "src/lib/backupCore.ts",
+      "status": "tentative",
+      "uses": 1
+    },
+    "src_pages_admin_admindashboard": {
+      "code_fingerprint": "78ff7578241a985d1907f7502580a19587b0d24400a23fe6f9a00627868be934",
+      "label": "AdminDashboard.tsx",
+      "last": "2026-10-27T00:41:46.720761+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-27T00:41:46.720761+00:00",
+          "outcome": "useful",
+          "q": "Admin dashboard data integrity implementation after approved audit"
+        },
+        {
+          "date": "2026-10-26T16:48:16.061100+00:00",
+          "outcome": "useful",
+          "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
+        }
+      ],
+      "score": 1.99243111,
+      "source_file": "src/pages/admin/AdminDashboard.tsx",
+      "status": "preferred",
+      "uses": 2
+    },
+    "src_pages_admin_adminorders": {
+      "code_fingerprint": "59d24d9e09184d410ee719d558d116c262d85bbec4b90fec7c4ce537fe77ae3c",
+      "label": "AdminOrders.tsx",
+      "last": "2026-10-27T00:41:46.720761+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-27T00:41:46.720761+00:00",
+          "outcome": "useful",
+          "q": "Admin dashboard data integrity implementation after approved audit"
+        },
+        {
+          "date": "2026-10-26T16:48:16.061100+00:00",
+          "outcome": "useful",
+          "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
+        }
+      ],
+      "score": 1.99243111,
+      "source_file": "src/pages/admin/AdminOrders.tsx",
+      "status": "preferred",
+      "uses": 2
+    },
+    "supabase_functions_shared_readallrows": {
+      "code_fingerprint": "3572dc6a0dd4c370bd39d7a728d0fba8e4a64360e528cdcd888ef6b5a8b2be7d",
+      "label": "readAllRows.ts",
+      "last": "2026-10-27T00:41:46.720761+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-27T00:41:46.720761+00:00",
+          "outcome": "useful",
+          "q": "Admin dashboard data integrity implementation after approved audit"
+        }
+      ],
+      "score": 0.99999992,
+      "source_file": "supabase/functions/_shared/readAllRows.ts",
+      "status": "tentative",
+      "uses": 1
+    }
+  },
+  "version": 1
+}
