@@ -1,20 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script>
-      // Redirect email-verification callbacks to the production domain so the
-      // session token in the URL hash is consumed on the correct site.
-      (function () {
-        const targetHost = 'tqmaster.vercel.app';
-        if (window.location.host === targetHost) return;
-        const hash = window.location.hash;
-        if (hash && (hash.includes('access_token') || hash.includes('type=signup'))) {
-          window.location.replace(
-            'https://' + targetHost + window.location.pathname + window.location.search + hash
-          );
-        }
-      })();
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/tqmaster-logo.svg" type="image/svg+xml" />
