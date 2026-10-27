@@ -32,7 +32,7 @@
 - [x] Verify RPC role access and SQL results against independent database aggregates on the live project.
 - [ ] Measure before/after payload, HTTP request count, query plans, and summary-ready latency under identical conditions.
 - [ ] Exercise each affected admin route, failed reads, retry, filters, page changes, exports, and realtime refresh.
-- [ ] Update Graphify after implementation, review the final diff, and update spec/task status honestly.
-- [ ] Commit implementation and follow the authorized repository dual-push workflow; report any deployment or access limitation explicitly.
+- [x] Update Graphify after implementation, review the final diff, and update spec/task status honestly.
+- [x] Commit implementation, fast-forward main, push both repositories, and verify the production frontend serves the new modules.
 
 Measurement and coverage limits are recorded in [verification.md](verification.md). Browser latency/HTTP bytes and every interactive admin action were not measured; the corresponding broad verification items remain open rather than being reported as completed.

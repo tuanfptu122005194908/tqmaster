@@ -1,7 +1,7 @@
 # Feature Specification: Admin data integrity and performance
 
-**Feature Branch**: `fix/admin-data-integrity` (audit performed on `main`)  
-**Status**: Active — approved; implementation verified, delivery in progress  
+**Feature Branch**: `fix/admin-data-integrity` (audit performed on `main`)
+**Status**: Implemented — approved, tested and deployed; verification limits recorded in verification.md
 **Date**: 2026-10-26
 
 ## 1. Overview
