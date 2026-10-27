@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { signStorageUrl, signStorageUrls } from '@/lib/signedImage';
+import { StorageDownloadButton } from './StorageDownloadButton';
 import {
   X,
   ChevronLeft,
@@ -47,10 +49,43 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
     }
   }, [isOpen, initialIndex, images.length]);
 
+  const currentImage = images[currentIndex];
+  const requestVersion = useRef(0);
+  const autoRetried = useRef(false);
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [displayImage, setDisplayImage] = useState<{source: string; url: string; version: number} | null>(null);
+  const [thumbnailUrls, setThumbnailUrls] = useState(new Map<string, string>());
+
   useEffect(() => {
+    let cancelled = false;
+    setThumbnailUrls(new Map());
+    if (isOpen) void signStorageUrls(images).then(urls => {
+      if (!cancelled) setThumbnailUrls(urls);
+    }).catch(() => { /* Page numbers remain usable if thumbnails cannot load. */ });
+    return () => { cancelled = true; };
+  }, [isOpen, images]);
+
+  useEffect(() => { autoRetried.current = false; }, [isOpen, currentImage]);
+  useEffect(() => {
+    const version = ++requestVersion.current;
+    setDisplayImage(null);
+    if (!isOpen || !currentImage) return;
     setImgLoading(true);
     setImgError(false);
-  }, [currentIndex]);
+    void signStorageUrl(currentImage, {forceRefresh: true}).then(url => {
+      if (requestVersion.current !== version) return;
+      if (!url) throw new Error('missing');
+      setDisplayImage({source: currentImage, url, version});
+    }).catch(() => {
+      if (requestVersion.current === version) { setImgLoading(false); setImgError(true); }
+    });
+    return () => { requestVersion.current = version + 1; };
+  }, [isOpen, currentImage, retryVersion]);
+
+  const retryImage = () => {
+    autoRetried.current = false;
+    setRetryVersion(n => n + 1);
+  };
 
   const handlePrev = useCallback(() => {
     setCurrentIndex(prev => Math.max(0, prev - 1));
@@ -91,8 +126,6 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
   }, [isOpen, handlePrev, handleNext, onClose]);
 
   if (!isOpen || images.length === 0) return null;
-
-  const currentImage = images[currentIndex];
 
   return (
     <div
@@ -248,15 +281,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
 
           {/* Download Original ZIP Button */}
           {zipDownloadUrl && (
-            <a
-              href={
-                zipFileName
-                  ? `${zipDownloadUrl}${zipDownloadUrl.includes('?') ? '&' : '?'}download=${encodeURIComponent(zipFileName)}`
-                  : zipDownloadUrl
-              }
-              download={zipFileName || true}
-              target="_blank"
-              rel="noreferrer"
+            <StorageDownloadButton url={zipDownloadUrl} fileName={zipFileName}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -276,7 +301,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
             >
               <FileArchive size={15} />
               <span>Tải file ZIP gốc</span>
-            </a>
+            </StorageDownloadButton>
           )}
 
           {/* Close button */}
@@ -397,16 +422,12 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
               <div>
                 <h4 style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 800 }}>Không thể tải ảnh này</h4>
                 <p style={{ margin: 0, fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>
-                  Đường truyền mạng bị gián đoạn hoặc phiên signed URL đã hết hạn. Bạn có thể tải file ZIP gốc bên dưới để xem offline.
+                  Không thể mở ảnh. Hãy thử lại hoặc tải file ZIP gốc để xem trên máy.
                 </p>
               </div>
+              <button type="button" onClick={e => { e.stopPropagation(); retryImage(); }} className="btn-primary">Thử lại ảnh</button>
               {zipDownloadUrl && (
-                <a
-                  href={zipDownloadUrl}
-                  download={zipFileName || true}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={e => e.stopPropagation()}
+                <StorageDownloadButton url={zipDownloadUrl} fileName={zipFileName}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -420,19 +441,23 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
                     textDecoration: 'none',
                     marginTop: 6,
                   }}
-                >
+            >
                   <Download size={14} /> Tải file ZIP gốc
-                </a>
+                </StorageDownloadButton>
               )}
             </div>
-          ) : (
+          ) : displayImage?.source === currentImage ? (
             <img
-              src={currentImage}
+              key={`${displayImage.url}-${displayImage.version}`}
+              src={displayImage.url}
               alt={`Trang ${currentIndex + 1}`}
-              onLoad={() => setImgLoading(false)}
+              onLoad={() => { if (displayImage.version === requestVersion.current) setImgLoading(false); }}
               onError={() => {
-                setImgLoading(false);
-                setImgError(true);
+                if (displayImage.version !== requestVersion.current) return;
+                if (!autoRetried.current) {
+                  autoRetried.current = true;
+                  setRetryVersion(n => n + 1);
+                } else { setImgLoading(false); setImgError(true); }
               }}
               style={{
                 maxWidth: '100%',
@@ -445,7 +470,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
                 transition: 'opacity 0.2s ease',
               }}
             />
-          )}
+          ) : null}
         </div>
 
         {/* Navigation Arrow: Next */}
@@ -521,11 +546,11 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
                 boxShadow: isActive ? '0 0 14px rgba(59, 130, 246, 0.6)' : 'none',
               }}
             >
-              <img
-                src={img}
+              {thumbnailUrls.get(img) && <img
+                src={thumbnailUrls.get(img)}
                 alt={`thumb-${idx + 1}`}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              />}
               <span
                 style={{
                   position: 'absolute',

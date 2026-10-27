@@ -1,3 +1,4 @@
+import { StorageDownloadButton } from '@/components/common/StorageDownloadButton';
 import { readAdminRows } from '@/lib/adminRead';
 import { useAdminRead } from '@/hooks/useAdminRead';
 import { AdminReadError } from '@/components/admin/AdminReadError';
@@ -15,6 +16,7 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   Download,
+  ExternalLink,
   Pencil,
   Search,
   Sparkles,
@@ -26,7 +28,6 @@ import {
 } from 'lucide-react';
 import FileUploader from '@/components/FileUploader';
 import { toast } from 'sonner';
-import { signStorageUrl, signStorageUrls } from '@/lib/signedImage';
 import { parseTheoryDescription, formatTheoryDescription } from '@/lib/theoryMetadata';
 import {
   inspectZipImages,
@@ -396,27 +397,12 @@ export default function AdminTheory() {
   };
 
   // Open Full-Screen Image Viewer Modal
-  const openViewer = async (images: string[], title: string, zipUrl?: string, zipName?: string) => {
-    if (!images || images.length === 0) return;
-    try {
-      const signMap = await signStorageUrls(images);
-      const signedList = images.map(img => signMap.get(img) ?? img);
-      let signedZip = zipUrl;
-      if (zipUrl) {
-        const zipMap = await signStorageUrls([zipUrl]);
-        signedZip = zipMap.get(zipUrl) ?? zipUrl;
-      }
-      setViewerImages(signedList);
-      setViewerTitle(title);
-      setViewerZipUrl(signedZip);
-      setViewerZipName(zipName);
-    } catch (err) {
-      console.error('Error signing images for viewer:', err);
-      setViewerImages(images);
-      setViewerTitle(title);
-      setViewerZipUrl(zipUrl);
-      setViewerZipName(zipName);
-    }
+  const openViewer = (images: string[], title: string, zipUrl?: string, zipName?: string) => {
+    if (!images?.length) return;
+    setViewerImages(images);
+    setViewerTitle(title);
+    setViewerZipUrl(zipUrl);
+    setViewerZipName(zipName);
   };
 
   if (reads.failed && !theories.length) return <AdminReadError errors={reads.errors} retry={() => { fetchTheories(); fetchSubjects(); }} />;
@@ -784,26 +770,20 @@ export default function AdminTheory() {
                       </button>
                     )}
 
-                    {/* Open / Download original file link (always preserved) */}
-                    <a
-                      href={t.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={async (e) => {
-                        if (t.type === 'link') return;
-                        e.preventDefault();
-                        const signed = await signStorageUrl(t.url);
-                        window.open(signed ?? t.url, '_blank', 'noopener');
-                      }}
+                    {t.type === 'link' ? (
+                      <a href={t.url} target="_blank" rel="noopener noreferrer" className="btn-ghost"><ExternalLink size={14} /> Mở link</a>
+                    ) : (
+                      <StorageDownloadButton url={t.url} fileName={t.file_name}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         width: '100%', padding: '9px', borderRadius: 12, border: '1.5px solid #dbeafe',
                         background: '#eff6ff', color: '#2563eb', fontSize: 12.5, fontWeight: 800,
                         textDecoration: 'none', boxSizing: 'border-box'
                       }}
-                    >
-                      <Download size={14} /> Tải file gốc ({t.file_name || 'Tài liệu'})
-                    </a>
+                      >
+                        <Download size={14} /> Tải file gốc {t.file_name ? `(${t.file_name})` : ''}
+                      </StorageDownloadButton>
+                    )}
                   </div>
                 </div>
               </div>

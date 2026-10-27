@@ -179,8 +179,13 @@ export default function ExamPage() {
       }));
       // Sort options by label
       qs.forEach(q => { q.options.sort((a, b) => a.label.localeCompare(b.label)); });
-      const signedQs = await signQuestionImages(qs as any);
-      setQuestions(signedQs as Question[]);
+      try {
+        setQuestions(await signQuestionImages(qs));
+      } catch {
+        setLoadError('Không thể tải ảnh đề thi. Vui lòng thử lại.');
+        setLoading(false);
+        return;
+      }
 
       let initialTimeLeft = examData ? examData.duration_min * 60 : 0;
       const draftStr = localStorage.getItem(`exam_draft_${selectedExamId}_${examMode}`);

@@ -1,3 +1,4 @@
+import { clearStorageUrlCache } from './signedImage';
 import { queryClient } from './queryClient';
 import type { CommerceSummary } from './adminAnalytics';
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
@@ -93,6 +94,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const authUserIdRef = useRef<string | null>(null);
   const syncAuthIdentity = useCallback((userId: string | null) => {
     if (authUserIdRef.current !== userId) {
+      clearStorageUrlCache();
       setAuthLoading(!!userId);
       setProfile(null);
       setIsAdmin(false);

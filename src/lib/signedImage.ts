@@ -6,85 +6,76 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 
-const PRIVATE_BUCKETS = ['question-images', 'exam-images', 'theory-files', 'theory-images'] as const;
-const EXPIRES_IN = 60 * 60 * 4; // 4 giờ
+import { parseStorageUrl, type StorageAsset } from './storageAsset';
 
+const EXPIRES_IN = 60 * 60 * 4;
 type CacheEntry = { url: string; expiresAt: number };
 const cache = new Map<string, CacheEntry>();
+let authGeneration = 0;
+export const getStorageAuthGeneration = () => authGeneration;
 
-function parseStorageUrl(url: string): { bucket: string; path: string } | null {
-  if (!url) return null;
-  for (const bucket of PRIVATE_BUCKETS) {
-    const markers = [`/storage/v1/object/public/${bucket}/`, `/storage/v1/object/${bucket}/`];
-    for (const marker of markers) {
-      const idx = url.indexOf(marker);
-      if (idx !== -1) {
-        const path = url.slice(idx + marker.length).split('?')[0];
-        return { bucket, path: decodeURIComponent(path) };
-      }
-    }
-  }
-  return null;
+export function clearStorageUrlCache() {
+  authGeneration++;
+  cache.clear();
+}
+export function assertStorageSession(generation: number) {
+  if (generation !== authGeneration) throw new Error('Phiên đăng nhập đã thay đổi. Vui lòng thử lại.');
 }
 
-/** Ký hàng loạt URL. Trả về map từ URL gốc -> URL đã ký (hoặc giữ nguyên nếu không phải bucket riêng tư). */
-export async function signStorageUrls(urls: (string | null | undefined)[]): Promise<Map<string, string>> {
+/** Preview cache only. Download actions always mint their own short-lived links. */
+export async function signStorageUrls(
+  urls: (string | null | undefined)[], options: { forceRefresh?: boolean } = {},
+): Promise<Map<string, string>> {
+  const generation = authGeneration;
   const result = new Map<string, string>();
-  const now = Date.now();
-  const todo = new Map<string, { bucket: string; path: string }[]>();
-
+  const requested = new Map<string, StorageAsset>();
+  const pending = new Map<string, Set<string>>();
+  const startedAt = Date.now();
   for (const raw of urls) {
-    if (!raw || result.has(raw)) continue;
+    if (!raw || result.has(raw) || requested.has(raw)) continue;
     const parsed = parseStorageUrl(raw);
-    if (!parsed) {
-      result.set(raw, raw);
-      continue;
-    }
+    if (!parsed) { result.set(raw, raw); continue; }
+    requested.set(raw, parsed);
     const key = `${parsed.bucket}/${parsed.path}`;
-    const cached = cache.get(key);
-    if (cached && cached.expiresAt > now) {
-      result.set(raw, cached.url);
-      continue;
+    const entry = cache.get(key);
+    if (!options.forceRefresh && entry && entry.expiresAt > Date.now()) {
+      result.set(raw, entry.url);
+    } else {
+      cache.delete(key);
+      const paths = pending.get(parsed.bucket) ?? new Set<string>();
+      paths.add(parsed.path); pending.set(parsed.bucket, paths);
     }
-    const list = todo.get(parsed.bucket) ?? [];
-    list.push(parsed);
-    todo.set(parsed.bucket, list);
-    result.set(raw, raw); // fallback tạm
   }
-
-  for (const [bucket, items] of todo) {
-    const paths = Array.from(new Set(items.map(i => i.path)));
-    for (let i = 0; i < paths.length; i += 100) {
-      const chunk = paths.slice(i, i + 100);
-      const { data, error } = await supabase.storage.from(bucket).createSignedUrls(chunk, EXPIRES_IN);
-      if (error || !data) continue;
-      for (const entry of data) {
-        if (!entry.signedUrl || !entry.path) continue;
-        cache.set(`${bucket}/${entry.path}`, {
-          url: entry.signedUrl,
-          expiresAt: now + (EXPIRES_IN - 300) * 1000,
-        });
+  for (const [bucket, paths] of pending) {
+    const list = [...paths];
+    for (let i = 0; i < list.length; i += 100) {
+      const chunk = list.slice(i, i + 100);
+      const {data, error} = await supabase.storage.from(bucket).createSignedUrls(chunk, EXPIRES_IN);
+      assertStorageSession(generation);
+      if (error || !data) throw new Error('Không thể tạo liên kết tài liệu. Vui lòng thử lại.');
+      // A slow/paused request must not publish an already-expired capability.
+      const expiresAt = startedAt + (EXPIRES_IN - 300) * 1000;
+      if (expiresAt <= Date.now()) throw new Error('Liên kết đã hết hạn trong lúc tải. Vui lòng thử lại.');
+      for (const path of chunk) {
+        const entry = data.find(item => item.path === path);
+        if (!entry?.signedUrl || entry.error) throw new Error('Không thể truy cập một tệp tài liệu. Vui lòng thử lại.');
+        cache.set(`${bucket}/${path}`, {url:entry.signedUrl,expiresAt});
       }
     }
   }
-
-  // Gán lại các URL vừa ký
-  for (const raw of urls) {
-    if (!raw) continue;
-    const parsed = parseStorageUrl(raw);
-    if (!parsed) continue;
-    const cached = cache.get(`${parsed.bucket}/${parsed.path}`);
-    if (cached) result.set(raw, cached.url);
+  assertStorageSession(generation);
+  for (const [raw, parsed] of requested) {
+    const entry = cache.get(`${parsed.bucket}/${parsed.path}`);
+    if (!entry || entry.expiresAt <= Date.now()) throw new Error('Không thể làm mới liên kết tài liệu. Vui lòng thử lại.');
+    result.set(raw, entry.url);
   }
-
   return result;
 }
 
-/** Ký một URL đơn lẻ. */
-export async function signStorageUrl(url: string | null | undefined): Promise<string | null> {
+export async function signStorageUrl(url: string | null | undefined, options: { forceRefresh?: boolean } = {}): Promise<string | null> {
   if (!url) return null;
-  const map = await signStorageUrls([url]);
-  return map.get(url) ?? url;
+  const map = await signStorageUrls([url], options);
+  return map.get(url) ?? null;
 }
 
 type AnyQuestion = {

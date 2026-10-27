@@ -1,6 +1,7 @@
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppProvider, useApp } from '../AppContext';
+import { getStorageAuthGeneration } from '../signedImage';
 
 type Session = { user: { id: string; email: string; email_confirmed_at: string; user_metadata: Record<string, never> } };
 type SessionResult = { data: { session: Session | null }; error: null };
@@ -55,6 +56,21 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('AppProvider auth ownership', () => {
+  it('invalidates asset capabilities on account changes but keeps them during a same-user token refresh', async () => {
+    render(<AppProvider><Consumer /></AppProvider>);
+    const initial = getStorageAuthGeneration();
+    act(() => { emit('SIGNED_IN', session('first')); });
+    await waitFor(() => expect(current().profile).toBe('first'));
+    expect(getStorageAuthGeneration()).toBe(initial + 1);
+    act(() => { emit('TOKEN_REFRESHED', session('first')); });
+    expect(getStorageAuthGeneration()).toBe(initial + 1);
+    act(() => { emit('SIGNED_IN', session('second')); });
+    await waitFor(() => expect(current().profile).toBe('second'));
+    expect(getStorageAuthGeneration()).toBe(initial + 2);
+    act(() => { emit('SIGNED_OUT', null); });
+    expect(getStorageAuthGeneration()).toBe(initial + 3);
+  });
+
   it('ignores an initial session response that arrives after a newer sign-in', async () => {
     render(<AppProvider><Consumer /></AppProvider>);
     act(() => { emit('SIGNED_IN', session('new-account')); });

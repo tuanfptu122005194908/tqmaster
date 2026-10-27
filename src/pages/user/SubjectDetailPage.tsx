@@ -6,6 +6,7 @@ import { formatPrice, formatDate } from '@/lib/mockData';
 import { sortExams } from '@/lib/utils';
 import { signStorageUrls } from '@/lib/signedImage';
 import { parseTheoryDescription } from '@/lib/theoryMetadata';
+import { StorageDownloadButton } from '@/components/common/StorageDownloadButton';
 import { ExamImageViewerModal } from '@/components/common/ExamImageViewerModal';
 import {
   ArrowLeft, ShoppingCart, CheckCircle, Clock,
@@ -35,6 +36,8 @@ export default function SubjectDetailPage() {
   const [theories,       setTheories]       = useState<any[]>([]);
   const [announcements,  setAnnouncements]  = useState<Announcement[]>([]);
   const [loading,        setLoading]        = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   // Full-screen Image Viewer State for PE Exam Images
   const [viewerImages, setViewerImages] = useState<string[] | null>(null);
@@ -45,44 +48,45 @@ export default function SubjectDetailPage() {
 
   useEffect(() => {
     if (!selectedSubjectId) return;
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(false);
+    setViewerImages(null);
     const load = async () => {
-      const [subjRes, examRes, theoryRes, annRes] = await Promise.all([
-        supabase.from('subjects').select('*').eq('id', selectedSubjectId).single(),
-        supabase.from('exam_subjects').select('exam_id, exams(*)').eq('subject_id', selectedSubjectId),
-        supabase.from('theory_subjects').select('theory_id, theories(*)').eq('subject_id', selectedSubjectId),
-        supabase.from('announcements').select('*').eq('subject_id', selectedSubjectId).order('created_at', { ascending: false }),
-      ]);
-      setSubject(subjRes.data);
-      const examsData = (examRes.data ?? []).map((r: any) => r.exams).filter(Boolean);
-      setExams(sortExams(examsData));
-      const theoryData = (theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean);
+      try {
+        const [subjRes, examRes, theoryRes, annRes] = await Promise.all([
+          supabase.from('subjects').select('*').eq('id', selectedSubjectId).single(),
+          supabase.from('exam_subjects').select('exam_id, exams(*)').eq('subject_id', selectedSubjectId),
+          supabase.from('theory_subjects').select('theory_id, theories(*)').eq('subject_id', selectedSubjectId),
+          supabase.from('announcements').select('*').eq('subject_id', selectedSubjectId).order('created_at', { ascending: false }),
+        ]);
+        if (cancelled) return;
+        if (subjRes.error || examRes.error || theoryRes.error || annRes.error || !subjRes.data) throw new Error('load');
+        setSubject(subjRes.data);
+        const examsData = (examRes.data ?? []).map((r: any) => r.exams).filter(Boolean);
+        setExams(sortExams(examsData));
+        const theoryData = (theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean);
 
-      // Collect all storage URLs (file URL + all preview images) for batch signing
-      const urlsToSign: string[] = [];
-      for (const t of theoryData) {
-        if (t.url) urlsToSign.push(t.url);
-        const meta = parseTheoryDescription(t.description);
-        for (const img of meta.preview_images) {
-          urlsToSign.push(img);
-        }
+        // Keep canonical file and preview metadata; display links are transient.
+        const rows = theoryData.map((t: Theory) => {
+          const meta = parseTheoryDescription(t.description);
+          return {...t, clean_description: meta.description, preview_images: meta.preview_images, preview_display_images: [] as string[]};
+        });
+        setTheories(rows);
+        setAnnouncements(annRes.data ?? []);
+        setLoading(false);
+        // Preview failure must not prevent access to the original file action.
+        try {
+          const signMap = await signStorageUrls(rows.flatMap(t => t.preview_images));
+          if (!cancelled) setTheories(rows.map(t => ({...t, preview_display_images: t.preview_images.map(img => signMap.get(img))})));
+        } catch { /* Thumbnails show a placeholder; opening the viewer retries. */ }
+      } catch {
+        if (!cancelled) { setLoadError(true); setLoading(false); }
       }
-
-      const signMap = await signStorageUrls(urlsToSign);
-      setTheories(theoryData.map((t: any) => {
-        const meta = parseTheoryDescription(t.description);
-        const signedPreviewImages = meta.preview_images.map(img => signMap.get(img) ?? img);
-        return {
-          ...t,
-          url: signMap.get(t.url) ?? t.url,
-          clean_description: meta.description,
-          preview_images: signedPreviewImages,
-        };
-      }));
-      setAnnouncements(annRes.data ?? []);
-      setLoading(false);
     };
-    load();
-  }, [selectedSubjectId]);
+    void load();
+    return () => { cancelled = true; };
+  }, [selectedSubjectId, loadAttempt]);
 
   const [tabInitialized, setTabInitialized] = useState(false);
   const purchased = subject ? isPurchased(subject.id) : false;
@@ -94,6 +98,8 @@ export default function SubjectDetailPage() {
       setTabInitialized(true);
     }
   }, [loading, subject, purchased, tabInitialized]);
+
+  if (loadError) return <div className="empty-state" role="alert"><p>Không thể tải dữ liệu môn học.</p><button className="btn-primary" onClick={() => setLoadAttempt(n => n + 1)}>Thử lại</button></div>;
 
   if (loading || !subject) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-16)' }}>
@@ -116,7 +122,7 @@ export default function SubjectDetailPage() {
     imgIdx,
     onClick,
   }: {
-    imgUrl: string;
+    imgUrl?: string;
     imgIdx: number;
     onClick: () => void;
   }) => {
@@ -140,7 +146,7 @@ export default function SubjectDetailPage() {
         }}
         title={`Câu ${imgIdx + 1} - Bấm để phóng to`}
       >
-        {hasError ? (
+        {hasError || !imgUrl ? (
           <div style={{
             width: '100%',
             height: '100%',
@@ -233,18 +239,13 @@ export default function SubjectDetailPage() {
               </div>
             ) : null}
           </div>
-          <a
-            href={item.type === 'link' || !item.file_name
-              ? item.url
-              : `${item.url}${item.url.includes('?') ? '&' : '?'}download=${encodeURIComponent(item.file_name)}`}
-            target="_blank"
-            rel="noreferrer"
-            download={item.type !== 'link' ? (item.file_name || undefined) : undefined}
-            className="btn-primary"
-            style={{ textDecoration: 'none', flexShrink: 0 }}
-          >
-            {item.type === 'link' ? <><ExternalLink size={14} /> Mở link</> : <><Download size={14} /> Tải về</>}
-          </a>
+          {item.type === 'link' ? (
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
+          ) : (
+            <StorageDownloadButton url={item.url} fileName={item.file_name} className="btn-primary" style={{flexShrink: 0, borderRadius: 12}}>
+              <Download size={14} /> Tải về
+            </StorageDownloadButton>
+          )}
         </div>
       ))}
     </div>
@@ -346,28 +347,14 @@ export default function SubjectDetailPage() {
                   </button>
                 )}
 
-                {/* Original Download / Link button preserved 100% */}
-                <a
-                  href={item.type === 'link' || !item.file_name
-                    ? item.url
-                    : `${item.url}${item.url.includes('?') ? '&' : '?'}download=${encodeURIComponent(item.file_name)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  download={item.type !== 'link' ? (item.file_name || undefined) : undefined}
-                  className={hasImages ? "btn-ghost" : "btn-primary"}
-                  style={{
-                    textDecoration: 'none', flexShrink: 0,
-                    borderRadius: 12, fontSize: '0.85rem', fontWeight: 700,
-                    border: hasImages ? '1.5px solid #cbd5e1' : undefined,
-                  }}
-                  title="Tải file ZIP gốc về máy"
-                >
-                  {item.type === 'link' ? (
-                    <><ExternalLink size={14} /> Mở link</>
-                  ) : (
-                    <><Download size={14} /> {hasImages ? 'Tải file ZIP gốc' : 'Tải về'}</>
-                  )}
-                </a>
+                {/* Original file action signs a fresh attachment on each click. */}
+                {item.type === 'link' ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
+                ) : (
+                  <StorageDownloadButton url={item.url} fileName={item.file_name} className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{flexShrink: 0, borderRadius: 12}}>
+                    <Download size={14} /> {hasImages ? 'Tải file ZIP gốc' : 'Tải về'}
+                  </StorageDownloadButton>
+                )}
               </div>
             </div>
 
@@ -399,7 +386,7 @@ export default function SubjectDetailPage() {
                   {item.preview_images.map((imgUrl: string, imgIdx: number) => (
                     <PeFilmstripThumb
                       key={imgIdx}
-                      imgUrl={imgUrl}
+                      imgUrl={item.preview_display_images[imgIdx]}
                       imgIdx={imgIdx}
                       onClick={() => {
                         setViewerImages(item.preview_images);
