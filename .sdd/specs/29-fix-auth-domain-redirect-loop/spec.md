@@ -1,7 +1,7 @@
 # Fix auth callback redirect loop after domain migration
 
 Feature Branch: `feat/fix-auth-domain-redirect-loop` (proposed)
-Status: Approved — in progress
+Status: Complete — verified in production
 Date: 2026-10-27
 
 ## 1. Overview

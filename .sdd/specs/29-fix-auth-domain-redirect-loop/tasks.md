@@ -11,4 +11,4 @@
 - [x] Run `npm test` and `npm run build`; inspect the built entry point.
 - [x] Update Graphify and record verification results.
 - [x] Commit only the authorized fix and its spec documents; push to both repository remotes.
-- [ ] Verify deployed HTML and have the user confirm an actual Google login succeeds.
+- [x] Verify deployed HTML and have the user confirm an actual Google login succeeds.
