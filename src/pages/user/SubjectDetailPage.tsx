@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '@/lib/AppContext';
-import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, formatDate } from '@/lib/mockData';
-import { sortExams } from '@/lib/utils';
-import { signStorageUrls } from '@/lib/signedImage';
+import { useSubjectContent, type SubjectTab } from '@/hooks/useSubjectContent';
 import { parseTheoryDescription } from '@/lib/theoryMetadata';
 import { StorageDownloadButton } from '@/components/common/StorageDownloadButton';
 import { ExamImageViewerModal } from '@/components/common/ExamImageViewerModal';
@@ -14,30 +12,33 @@ import {
   Download, Image as ImageIcon, Play, Eye, Loader2, Lock, Star, Layers
 } from 'lucide-react';
 
-type Subject       = Tables<'subjects'>;
-type Exam          = Tables<'exams'>;
 type Theory        = Tables<'theories'>;
-type Announcement  = Tables<'announcements'>;
 import { ProductReviews } from '@/components/ProductReviews';
-type Tab = 'exams' | 'exams_pt' | 'theory' | 'pe' | 'announcements' | 'reviews';
+type Tab = SubjectTab;
 
 import { useParams, useNavigate } from 'react-router-dom';
 
 export default function SubjectDetailPage() {
+  const { id } = useParams();
+  const { profile } = useApp();
+  return <SubjectDetailContent key={`${profile?.id}:${id}`} />;
+}
+
+function SubjectDetailContent() {
   const { id: selectedSubjectId } = useParams();
   const navigate = useNavigate();
   const {
-    isPurchased, isInCart, addToCart, removeFromCart,
+    profile, isAdmin, purchasedRevision, isPurchased, isInCart, addToCart, removeFromCart,
   } = useApp();
 
   const [activeTab,      setActiveTab]      = useState<Tab>('exams');
-  const [subject,        setSubject]        = useState<Subject | null>(null);
-  const [exams,          setExams]          = useState<Exam[]>([]);
-  const [theories,       setTheories]       = useState<any[]>([]);
-  const [announcements,  setAnnouncements]  = useState<Announcement[]>([]);
-  const [loading,        setLoading]        = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [loadAttempt, setLoadAttempt] = useState(0);
+  const purchased = !!selectedSubjectId && isPurchased(selectedSubjectId);
+  const content = useSubjectContent(selectedSubjectId, activeTab, {
+    userId: profile?.id ?? null, isAdmin, accessRevision: purchasedRevision, canRead: purchased,
+  });
+  const { subject, examRows: exams, theoryDocs, peDocs, announcementRows: announcements } = content;
+  const loading = content.metadata.isPending;
+  const loadError = content.metadata.isError;
 
   // Full-screen Image Viewer State for PE Exam Images
   const [viewerImages, setViewerImages] = useState<string[] | null>(null);
@@ -46,51 +47,12 @@ export default function SubjectDetailPage() {
   const [viewerZipName, setViewerZipName] = useState<string | undefined>(undefined);
   const [viewerInitialIndex, setViewerInitialIndex] = useState<number>(0);
 
-  useEffect(() => {
-    if (!selectedSubjectId) return;
-    let cancelled = false;
-    setLoading(true);
-    setLoadError(false);
-    setViewerImages(null);
-    const load = async () => {
-      try {
-        const [subjRes, examRes, theoryRes, annRes] = await Promise.all([
-          supabase.from('subjects').select('*').eq('id', selectedSubjectId).single(),
-          supabase.from('exam_subjects').select('exam_id, exams(*)').eq('subject_id', selectedSubjectId),
-          supabase.from('theory_subjects').select('theory_id, theories(*)').eq('subject_id', selectedSubjectId),
-          supabase.from('announcements').select('*').eq('subject_id', selectedSubjectId).order('created_at', { ascending: false }),
-        ]);
-        if (cancelled) return;
-        if (subjRes.error || examRes.error || theoryRes.error || annRes.error || !subjRes.data) throw new Error('load');
-        setSubject(subjRes.data);
-        const examsData = (examRes.data ?? []).map((r: any) => r.exams).filter(Boolean);
-        setExams(sortExams(examsData));
-        const theoryData = (theoryRes.data ?? []).map((r: any) => r.theories).filter(Boolean);
-
-        // Keep canonical file and preview metadata; display links are transient.
-        const rows = theoryData.map((t: Theory) => {
-          const meta = parseTheoryDescription(t.description);
-          return {...t, clean_description: meta.description, preview_images: meta.preview_images, preview_display_images: [] as string[]};
-        });
-        setTheories(rows);
-        setAnnouncements(annRes.data ?? []);
-        setLoading(false);
-        // Preview failure must not prevent access to the original file action.
-        try {
-          const signMap = await signStorageUrls(rows.flatMap(t => t.preview_images));
-          if (!cancelled) setTheories(rows.map(t => ({...t, preview_display_images: t.preview_images.map(img => signMap.get(img))})));
-        } catch { /* Thumbnails show a placeholder; opening the viewer retries. */ }
-      } catch {
-        if (!cancelled) { setLoadError(true); setLoading(false); }
-      }
-    };
-    void load();
-    return () => { cancelled = true; };
-  }, [selectedSubjectId, loadAttempt]);
-
   const [tabInitialized, setTabInitialized] = useState(false);
-  const purchased = subject ? isPurchased(subject.id) : false;
   const inCart    = subject ? isInCart(subject.id) : false;
+
+  useEffect(() => {
+    setViewerImages(null);
+  }, [purchasedRevision, purchased]);
 
   useEffect(() => {
     if (!loading && subject && !tabInitialized) {
@@ -99,7 +61,7 @@ export default function SubjectDetailPage() {
     }
   }, [loading, subject, purchased, tabInitialized]);
 
-  if (loadError) return <div className="empty-state" role="alert"><p>Không thể tải dữ liệu môn học.</p><button className="btn-primary" onClick={() => setLoadAttempt(n => n + 1)}>Thử lại</button></div>;
+  if (loadError) return <div className="empty-state" role="alert"><p>Không thể tải dữ liệu môn học.</p><button className="btn-primary" onClick={() => void content.metadata.refetch()}>Thử lại</button></div>;
 
   if (loading || !subject) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--space-16)' }}>
@@ -188,9 +150,6 @@ export default function SubjectDetailPage() {
       </div>
     );
   };
-
-  const theoryDocs = theories.filter(t => ((t as any).category ?? 'theory') !== 'pe');
-  const peDocs     = theories.filter(t => ((t as any).category ?? 'theory') === 'pe');
 
   const getDisplayDesc = (item: any): string => {
     if (typeof item.clean_description === 'string') return item.clean_description.trim();
@@ -410,11 +369,11 @@ export default function SubjectDetailPage() {
   const ptExams = exams.filter(e => e.exam_type === 'PT');
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
-    { key: 'exams',         label: 'Đề thi FE', icon: <FileText size={14} />,   count: purchased ? feExams.length : undefined },
-    { key: 'exams_pt',      label: 'Đề thi PT', icon: <FileText size={14} />,   count: purchased ? ptExams.length : undefined },
-    { key: 'theory',        label: 'Lý thuyết', icon: <BookOpen size={14} />,   count: purchased ? theoryDocs.length : undefined },
-    { key: 'pe',            label: 'Tài liệu PE / Video', icon: <Layers size={14} />, count: purchased ? peDocs.length : undefined },
-    { key: 'announcements', label: 'Thông báo', icon: <Bell size={14} />,       count: announcements.length },
+    { key: 'exams',         label: 'Đề thi FE', icon: <FileText size={14} />,   count: purchased && content.exams.data ? feExams.length : undefined },
+    { key: 'exams_pt',      label: 'Đề thi PT', icon: <FileText size={14} />,   count: purchased && content.exams.data ? ptExams.length : undefined },
+    { key: 'theory',        label: 'Lý thuyết', icon: <BookOpen size={14} />,   count: purchased ? content.theory.data?.length : undefined },
+    { key: 'pe',            label: 'Tài liệu PE / Video', icon: <Layers size={14} />, count: purchased ? content.pe.data?.length : undefined },
+    { key: 'announcements', label: 'Thông báo', icon: <Bell size={14} />,       count: content.announcements.data?.length },
     { key: 'reviews',       label: 'Đánh giá & Phản hồi', icon: <Star size={14} />, count: 101 },
   ];
 
@@ -505,6 +464,11 @@ export default function SubjectDetailPage() {
 
       {/* ── Tab content ── */}
       <div className="animate-fade-in" key={activeTab}>
+        {content.tabLoading ? (
+          <div role="status" className="empty-state"><Loader2 size={28} className="spinner" /><p>Đang tải nội dung…</p></div>
+        ) : content.tabError ? (
+          <div role="alert" className="empty-state"><p>Không thể tải nội dung. Vui lòng thử lại.</p><button className="btn-primary" onClick={() => void content.retryTab()}>Thử lại</button></div>
+        ) : <>
 
         {/* Exams */}
         {(activeTab === 'exams' || activeTab === 'exams_pt') && (
@@ -649,6 +613,7 @@ export default function SubjectDetailPage() {
         {activeTab === 'reviews' && (
           <ProductReviews purchased={purchased} />
         )}
+        </>}
       </div>
 
       </div> {/* <-- Đóng cột trái flex-1 */}

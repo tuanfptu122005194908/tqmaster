@@ -2,6 +2,7 @@ import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppProvider, useApp } from '../AppContext';
 import { getStorageAuthGeneration } from '../signedImage';
+import { queryClient } from '../queryClient';
 
 type Session = { user: { id: string; email: string; email_confirmed_at: string; user_metadata: Record<string, never> } };
 type SessionResult = { data: { session: Session | null }; error: null };
@@ -16,7 +17,7 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {
 } }));
 vi.mock('@/hooks/useSubjectAccess', () => ({ useSubjectAccess: (userId: string | null) => {
   mocks.access(userId);
-  return { ids: userId ? [userId] : [], ready: !!userId, loading: false, error: null, refresh: mocks.refresh };
+  return { ids: userId ? [userId] : [], ready: !!userId, loading: false, error: null, revision: 0, refresh: mocks.refresh };
 } }));
 
 let emit: (event: string, session: Session | null) => void;
@@ -32,6 +33,7 @@ function current() { return JSON.parse(screen.getByTestId('auth').textContent ??
 
 beforeEach(() => {
   vi.clearAllMocks();
+  queryClient.clear();
   localStorage.clear();
   mocks.getSession.mockReturnValue(new Promise<SessionResult>(resolve => { resolveBootstrap = resolve; }));
   mocks.onAuth.mockImplementation(callback => {
@@ -56,6 +58,67 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('AppProvider auth ownership', () => {
+  it('lets the access hook own initial loading without duplicate refreshes on login or token refresh', async () => {
+    render(<AppProvider><Consumer /></AppProvider>);
+    act(() => { emit('SIGNED_IN', session('first')); });
+    await waitFor(() => expect(current().profile).toBe('first'));
+    act(() => { emit('TOKEN_REFRESHED', session('first')); });
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+    expect(mocks.refresh).not.toHaveBeenCalled();
+    act(() => { emit('USER_UPDATED', session('first')); });
+    await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it('clears private query data on identity changes while retaining explicitly public data', async () => {
+    render(<AppProvider><Consumer /></AppProvider>);
+    act(() => { emit('SIGNED_IN', session('first')); });
+    await waitFor(() => expect(current().profile).toBe('first'));
+    queryClient.setQueryData(['user', 'first', 'orders'], ['private-order']);
+    queryClient.setQueryData(['user', 'first', 'results'], ['private-result']);
+    queryClient.setQueryData(['public', 'catalog'], ['public-subject']);
+    act(() => { emit('TOKEN_REFRESHED', session('first')); });
+    expect(queryClient.getQueryData(['user', 'first', 'orders'])).toEqual(['private-order']);
+    act(() => { emit('SIGNED_IN', session('second')); });
+    expect(queryClient.getQueryData(['user', 'first', 'orders'])).toBeUndefined();
+    expect(queryClient.getQueryData(['user', 'first', 'results'])).toBeUndefined();
+    expect(queryClient.getQueryData(['public', 'catalog'])).toEqual(['public-subject']);
+    await waitFor(() => expect(current().profile).toBe('second'));
+    queryClient.setQueryData(['user', 'second', 'results'], ['second-result']);
+    act(() => { emit('SIGNED_OUT', null); });
+    expect(queryClient.getQueryData(['user', 'second', 'results'])).toBeUndefined();
+  });
+
+  it('cancels an outgoing account read so a late response cannot restore its cache after logout', async () => {
+    render(<AppProvider><Consumer /></AppProvider>);
+    act(() => { emit('SIGNED_IN', session('first')); });
+    await waitFor(() => expect(current().profile).toBe('first'));
+    let signal: AbortSignal;
+    let finish: (data: string[]) => void;
+    const key = ['user', 'first', 'results'];
+    const pending = queryClient.fetchQuery({
+      queryKey: key,
+      queryFn: ({signal: currentSignal}) => {
+        signal = currentSignal;
+        return new Promise<string[]>(resolve => { finish = resolve; });
+      },
+    }).catch(() => undefined);
+    act(() => { emit('SIGNED_OUT', null); });
+    expect(signal.aborted).toBe(true);
+    await act(async () => { finish(['late-private-result']); await pending; });
+    expect(queryClient.getQueryData(key)).toBeUndefined();
+  });
+
+  it('reuses fresh public settings and free subject IDs across provider mounts', async () => {
+    const first = render(<AppProvider><Consumer /></AppProvider>);
+    await waitFor(() => expect(queryClient.getQueryData(['public', 'free-subject-ids'])).toEqual([]));
+    await waitFor(() => expect(queryClient.getQueryData(['public', 'site-settings'])).toEqual([]));
+    const reads = mocks.from.mock.calls.length;
+    first.unmount();
+    render(<AppProvider><Consumer /></AppProvider>);
+    await act(async () => {});
+    expect(mocks.from).toHaveBeenCalledTimes(reads);
+  });
+
   it('invalidates asset capabilities on account changes but keeps them during a same-user token refresh', async () => {
     render(<AppProvider><Consumer /></AppProvider>);
     const initial = getStorageAuthGeneration();

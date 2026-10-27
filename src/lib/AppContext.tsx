@@ -1,5 +1,5 @@
 import { clearStorageUrlCache } from './signedImage';
-import { queryClient } from './queryClient';
+import { clearUserQueries, queryClient } from './queryClient';
 import type { CommerceSummary } from './adminAnalytics';
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,6 +64,7 @@ interface AppContextValue {
   purchasedReady:  boolean;
   purchasedLoading: boolean;
   purchasedError:  string | null;
+  purchasedRevision: number;
   freeSubjectIds:  string[];
   isFree:          (id: string) => boolean;
   isPurchased:     (id: string) => boolean;
@@ -95,6 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const syncAuthIdentity = useCallback((userId: string | null) => {
     if (authUserIdRef.current !== userId) {
       clearStorageUrlCache();
+      clearUserQueries();
       setAuthLoading(!!userId);
       setProfile(null);
       setIsAdmin(false);
@@ -118,7 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const {
     ids: purchasedIds, ready: purchasedReady, loading: purchasedLoading,
-    error: purchasedError, refresh: refreshPurchased,
+    error: purchasedError, revision: purchasedRevision, refresh: refreshPurchased,
   } = useSubjectAccess(authUserId);
   const [freeSubjectIds, setFreeSubjectIds] = useState<string[]>([]);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
@@ -127,11 +129,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
   // ── Load site settings ──────────────────────────────────
-  const refreshSiteSettings = useCallback(async () => {
+  const refreshSiteSettings = useCallback(async (force = true) => {
     try {
-      const { data, error } = await supabase.from('system_settings').select('key, value');
-      if (error) throw error;
-      if (!data) throw new Error('Không nhận được cấu hình.');
+      const key = ['public', 'site-settings'];
+      if (force) await queryClient.invalidateQueries({ queryKey: key, refetchType: 'none' });
+      // These rows are public_read_settings under RLS; no account data is cached here.
+      const data = await queryClient.fetchQuery({
+        queryKey: key, staleTime: 60_000, retry: false,
+        queryFn: async () => {
+          const result = await supabase.from('system_settings').select('key, value');
+          if (result.error) throw result.error;
+          if (!result.data) throw new Error('Không nhận được cấu hình.');
+          return result.data;
+        },
+      });
       const map: Record<string, string> = {};
       (data ?? []).forEach(r => { map[r.key] = r.value ?? ''; });
       setSiteSettings(map);
@@ -141,7 +152,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshSiteSettings();
+    void refreshSiteSettings(false);
   }, [refreshSiteSettings]);
 
 
@@ -297,11 +308,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (!mounted || authEventVersion !== 0 || authUserIdRef.current !== session.user.id) return;
             if (mounted) setAuthLoading(false);
 
-            // 2. Run non-blocking queries concurrently in background without blocking app render
-            Promise.allSettled([
-              refreshPurchased(),
-              enforceSingleSession(session.user.id),
-            ]).catch(console.error);
+            // useSubjectAccess owns the initial grants read for this identity.
+            enforceSingleSession(session.user.id).catch(console.error);
             return;
           }
         }
@@ -329,7 +337,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             await loadProfileAndRole(session.user.id);
             if (!mounted || version !== authEventVersion) return;
             setAuthLoading(false);
-            refreshPurchased().catch(console.error);
+            if (event === 'USER_UPDATED') refreshPurchased().catch(console.error);
             if (event === 'SIGNED_IN') {
               enforceSingleSession(session.user.id).catch(console.error);
               setSearchQuery('');
@@ -496,14 +504,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isInCart     = (id: string) => cart.some(i => (typeof i === 'string' ? i : i?.id) === id);
   // Tải danh sách môn miễn phí ngay cả khi chưa đăng nhập
   useEffect(() => {
-    supabase
-      .from('subjects')
-      .select('id')
-      .eq('is_active', true)
-      .lte('price', 0)
-      .then(({ data, error }) => {
-        if (!error && data) setFreeSubjectIds(data.map(r => r.id));
-      });
+    let mounted = true;
+    void queryClient.fetchQuery({
+      queryKey: ['public', 'free-subject-ids'], staleTime: 60_000, retry: false,
+      queryFn: async () => {
+        const { data, error } = await supabase.from('subjects').select('id').eq('is_active', true).lte('price', 0);
+        if (error) throw error;
+        if (!data) throw new Error('Không nhận được danh sách môn miễn phí.');
+        return data.map(row => row.id);
+      },
+    }).then(ids => { if (mounted) setFreeSubjectIds(ids); }).catch(console.error);
+    return () => { mounted = false; };
   }, []);
 
   const isFree       = (id: string) => freeSubjectIds.includes(id);
@@ -538,7 +549,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshAuthUser, signOut,
     searchQuery, setSearchQuery,
     cart, addToCart, removeFromCart, clearCart, isInCart,
-    purchasedIds, purchasedReady, purchasedLoading, purchasedError, freeSubjectIds, isFree, isPurchased, refreshPurchased,
+    purchasedIds, purchasedReady, purchasedLoading, purchasedError, purchasedRevision, freeSubjectIds, isFree, isPurchased, refreshPurchased,
     pendingOrdersCount, refreshPendingOrdersCount,
     pendingReportsCount, refreshPendingReportsCount,
     siteSettings, refreshSiteSettings,

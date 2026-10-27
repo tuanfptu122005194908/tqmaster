@@ -48,16 +48,41 @@ describe('useSubjectAccess', () => {
     expect(result.current.ids).toEqual([]);
   });
 
-  it('ignores older responses that arrive after a newer refresh', async () => {
-    const older = deferred();
-    const newer = deferred();
-    mocks.load.mockReturnValueOnce(older.promise).mockReturnValueOnce(newer.promise);
+  it('shares the pending read across overlapping refresh calls', async () => {
+    const pending = deferred();
+    mocks.load.mockReturnValueOnce(pending.promise);
     const { result } = renderHook(() => useSubjectAccess('buyer'));
-    act(() => { void result.current.refresh(); });
-    await act(async () => { newer.resolve(['new']); });
-    expect(result.current.ids).toEqual(['new']);
-    await act(async () => { older.resolve(['old']); });
-    expect(result.current.ids).toEqual(['new']);
+    let first: Promise<void>, second: Promise<void>;
+    act(() => { first = result.current.refresh(); second = result.current.refresh(); });
+    expect(first).toBe(second);
+    expect(mocks.load).toHaveBeenCalledTimes(1);
+    await act(async () => { pending.resolve(['confirmed']); await first; });
+    expect(result.current.ids).toEqual(['confirmed']);
+  });
+
+  it('does one follow-up read for an order change while a read is pending', async () => {
+    vi.useFakeTimers();
+    const pending = deferred();
+    mocks.load.mockReturnValueOnce(pending.promise).mockResolvedValueOnce(['new-grant']);
+    const { result } = renderHook(() => useSubjectAccess('buyer'));
+    const onOrder = mocks.channel.on.mock.calls[0][2] as () => void;
+    act(() => { onOrder(); onOrder(); });
+    await act(async () => { vi.advanceTimersByTime(300); });
+    expect(mocks.load).toHaveBeenCalledTimes(1);
+    await act(async () => { pending.resolve([]); });
+    expect(mocks.load).toHaveBeenCalledTimes(2);
+    expect(result.current.ids).toEqual(['new-grant']);
+  });
+
+  it('changes the cache revision only when confirmed grants change', async () => {
+    mocks.load.mockResolvedValueOnce(['a', 'b']).mockResolvedValueOnce(['b', 'a']).mockResolvedValueOnce(['b']);
+    const { result } = renderHook(() => useSubjectAccess('buyer'));
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    const revision = result.current.revision;
+    await act(async () => { await result.current.refresh(); });
+    expect(result.current.revision).toBe(revision);
+    await act(async () => { await result.current.refresh(); });
+    expect(result.current.revision).toBe(revision + 1);
   });
 
   it('never exposes grants from the previous account and ignores its pending response', async () => {

@@ -6,3 +6,10 @@ export const queryClient = new QueryClient({
     retry: 1, refetchOnWindowFocus: false,
   } },
 });
+
+/** Discard account-owned data and cancel its reads before another identity can render. */
+export function clearUserQueries() {
+  const filters = { queryKey: ['user'] };
+  void queryClient.cancelQueries(filters);
+  queryClient.removeQueries(filters);
+}
