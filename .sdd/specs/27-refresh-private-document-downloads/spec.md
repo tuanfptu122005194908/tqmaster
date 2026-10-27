@@ -1,7 +1,7 @@
 # Fix: Private document downloads reuse expired signed URLs
 
 **Feature Branch**: `fix/private-document-downloads`
-**Status**: Active — approved by the user; implementation in progress
+**Status**: Complete — implemented, verified and deployed
 **Date**: 2026-10-27
 
 ## 1. Overview

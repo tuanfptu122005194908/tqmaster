@@ -12,4 +12,4 @@
 - [x] Refresh image previews on open/retry without stale-result races or retry loops.
 - [x] Add and pass focused regression tests; run full tests, typecheck, build, relevant lint.
 - [x] Update Graphify and document verified behavior/limits.
-- [ ] Commit and push both repositories; verify the production frontend is updated.
+- [x] Commit and push both repositories; verify the production frontend is updated.

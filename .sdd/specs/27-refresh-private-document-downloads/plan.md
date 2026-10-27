@@ -1,6 +1,6 @@
 # Plan: Refresh private document downloads
 
-Status: Active — user approved implementation and deployment.
+Status: Complete — approved implementation deployed and production bundles verified.
 
 1. Audit every Theory/PE download and preview action. Inspect the screenshot object and stored URL formats read-only; distinguish expired tokens from missing objects or RLS failures.
 2. Add a canonical current-project Storage URL resolver that recognizes signed URLs and safely strips transient query tokens. Extend the shared signer with explicit fresh-sign behavior, correct expiry validation, and error propagation instead of stale/private-URL fallback.
