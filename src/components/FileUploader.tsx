@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Loader2, X, FileText } from 'lucide-react';
+import { compressImageFile, LONG_CACHE_CONTROL } from '@/lib/imageUpload';
 
 interface Props {
   bucket: string;
@@ -37,12 +38,23 @@ export default function FileUploader({
     }
 
     setUploading(true);
-    const ext = file.name.split('.').pop() || 'bin';
+    let uploadBody: Blob | File = file;
+    let contentType = file.type;
+    let ext = file.name.split('.').pop() || 'bin';
+
+    if (file.type.startsWith('image/')) {
+      const maxDim = bucket === 'thumbnails' ? 960 : 1280;
+      const compressed = await compressImageFile(file, maxDim, 0.82);
+      uploadBody = compressed.blob;
+      contentType = compressed.contentType;
+      ext = compressed.ext;
+    }
+
     const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const path = pathPrefix ? `${pathPrefix.replace(/\/$/, '')}/${safeName}` : safeName;
 
-    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
-      cacheControl: '3600', upsert: false, contentType: file.type,
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, uploadBody, {
+      cacheControl: LONG_CACHE_CONTROL, upsert: false, contentType,
     });
 
     if (upErr) {

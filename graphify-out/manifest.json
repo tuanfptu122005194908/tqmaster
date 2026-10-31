@@ -168,10 +168,10 @@
     "semantic_hash": ""
   },
   "src/components/FileUploader.tsx": {
-    "mtime": 1784614021.5257251,
-    "seen": 1789059066.0057456,
-    "ast_hash": "70361c675d5d85e529ca64983455d718",
-    "semantic_hash": "70361c675d5d85e529ca64983455d718"
+    "mtime": 1793413397.7358766,
+    "seen": 1793414177.643723,
+    "ast_hash": "90f59d5a01089c31600a464b5dcc2048",
+    "semantic_hash": ""
   },
   "src/components/MobileNav.tsx": {
     "mtime": 1791100409.1276503,
@@ -612,9 +612,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminNews.tsx": {
-    "mtime": 1793061772.937628,
-    "seen": 1793064207.0097415,
-    "ast_hash": "995f538e6d6dd3f532d6f197ea35b64f",
+    "mtime": 1793413837.7100766,
+    "seen": 1793414177.6563234,
+    "ast_hash": "cd10496815c169d7f1bbb92da3cb9c4d",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminOrders.tsx": {
@@ -654,9 +654,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/CartPage.tsx": {
-    "mtime": 1791120578.5704343,
-    "seen": 1791166921.394445,
-    "ast_hash": "da285ffc01f3aa4858da3d113d5f4c6b",
+    "mtime": 1793413814.5806847,
+    "seen": 1793414177.6570315,
+    "ast_hash": "0b90be87d7dfb90a41c1555a379758da",
     "semantic_hash": ""
   },
   "src/pages/user/ExamPage.tsx": {
@@ -1905,9 +1905,9 @@
     "semantic_hash": ""
   },
   "src/components/home/CourseListItem.tsx": {
-    "mtime": 1790388464.75764,
-    "seen": 1790388641.856125,
-    "ast_hash": "e7d3b5521662ecfd4a32c633ee5d87f2",
+    "mtime": 1793413477.3246777,
+    "seen": 1793414177.646187,
+    "ast_hash": "f187d68ec2a1505d2d90b2aec7c446fb",
     "semantic_hash": ""
   },
   "src/components/home/ProductFilterBar.tsx": {
@@ -1929,9 +1929,9 @@
     "semantic_hash": ""
   },
   "src/components/SubjectCard.tsx": {
-    "mtime": 1793061772.9159355,
-    "seen": 1793064206.9793515,
-    "ast_hash": "904f9bba6d6cd244f3bede39ddf08628",
+    "mtime": 1793413474.2428777,
+    "seen": 1793414177.6443639,
+    "ast_hash": "483ffa88332e9ccd673f341843c8f1db",
     "semantic_hash": ""
   },
   "src/components/ProductReviews.tsx": {
@@ -2694,6 +2694,30 @@
     "mtime": 1793412502.1355362,
     "seen": 1793412553.7296493,
     "ast_hash": "1cb18b3c3b0399771faa0ec321837205",
+    "semantic_hash": ""
+  },
+  "scripts/migrate_and_compress_storage.mjs": {
+    "mtime": 1793414102.367461,
+    "seen": 1793414177.6433718,
+    "ast_hash": "930b39f3a02995a5dab5b4f5d57ca026",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/32-compress-all-images-and-storage-migration/plan.md": {
+    "mtime": 1793413063.088469,
+    "seen": 1793414177.667632,
+    "ast_hash": "1cec32491319b5e4570ecbd21239539f",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/32-compress-all-images-and-storage-migration/spec.md": {
+    "mtime": 1793413315.783938,
+    "seen": 1793414177.6676333,
+    "ast_hash": "539a6ea21f24e075cb1277b3214bc234",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/32-compress-all-images-and-storage-migration/tasks.md": {
+    "mtime": 1793414145.5892856,
+    "seen": 1793414177.6676345,
+    "ast_hash": "4eba10a6644ddef2f19081ec27c21fbf",
     "semantic_hash": ""
   }
 }

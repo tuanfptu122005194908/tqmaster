@@ -1,10 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
-
-// Assuming we have optimizedImage in utils, otherwise we can just use subject.thumbnail_url
-function optimizedImage(url: string, width: number) {
-  return url; // fallback if not imported
-}
 
 interface SubjectCardProps {
   subject: Tables<'subjects'>;
@@ -29,6 +24,12 @@ export function SubjectCard({
   onCart,
   onBuyNow
 }: SubjectCardProps) {
+  const [imgError, setImgError] = useState(false);
+  useEffect(() => {
+    setImgError(false);
+  }, [subject.thumbnail_url]);
+
+  const showThumbnail = Boolean(subject.thumbnail_url && !imgError);
   const price = Number(subject.price);
   const oldPrice = price > 0 ? price * 1.5 : 0; // Fake old price for UI
 
@@ -64,11 +65,12 @@ export function SubjectCard({
 
           {/* Thumbnail Image or Gradient Icon */}
           <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-             {subject.thumbnail_url ? (
+             {showThumbnail ? (
                 <img
-                  src={subject.thumbnail_url}
+                  src={subject.thumbnail_url!}
                   alt={subject.name}
                   loading={idx < 4 ? 'eager' : 'lazy'}
+                  onError={() => setImgError(true)}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
@@ -79,7 +81,7 @@ export function SubjectCard({
           </div>
 
           {/* Stylized Brand Banner Mockup */}
-          {!subject.thumbnail_url && (
+          {!showThumbnail && (
             <div className="z-10 flex flex-col items-center justify-center text-center py-2 mt-auto">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-7 h-7 rounded-lg bg-iba-surface-container-lowest shadow-sm flex items-center justify-center">

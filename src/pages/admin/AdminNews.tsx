@@ -4,6 +4,7 @@ import { AdminReadError } from '@/components/admin/AdminReadError';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/lib/AppContext';
+import { compressImageFile, LONG_CACHE_CONTROL } from '@/lib/imageUpload';
 import { Plus, Trash2, Pencil, X, Newspaper, Loader2, Image as ImageIcon, Upload, Clock, Eye, Calendar, TrendingUp, ChevronRight, FilePlus } from 'lucide-react';
 
 interface NewsPost {
@@ -46,9 +47,9 @@ export default function AdminNews() {
     setUploading(true);
     const urls: string[] = [];
     for (const file of Array.from(files)) {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from('news-images').upload(path, file, { contentType: file.type, cacheControl: '3600' });
+      const compressed = await compressImageFile(file, 1280, 0.82);
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${compressed.ext}`;
+      const { error } = await supabase.storage.from('news-images').upload(path, compressed.blob, { contentType: compressed.contentType, cacheControl: LONG_CACHE_CONTROL });
       if (!error) {
         const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
         urls.push(publicUrl);

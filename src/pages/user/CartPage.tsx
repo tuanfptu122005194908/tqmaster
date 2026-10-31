@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useApp } from '@/lib/AppContext';
 import { supabase } from '@/integrations/supabase/client';
 import { parseFunctionError } from '@/lib/utils';
+import { compressImageFile, LONG_CACHE_CONTROL } from '@/lib/imageUpload';
 import type { Tables } from '@/integrations/supabase/types';
 import { formatPrice, generateOrderId, subjectColor, subjectInitials } from '@/lib/mockData';
 import {
@@ -143,9 +144,9 @@ export default function CartPage() {
     try {
       let billImagePath: string | null = null;
       if (billFile) {
-        const ext = billFile.name.split('.').pop();
-        const path = `${profile.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('bill-images').upload(path, billFile);
+        const compressed = await compressImageFile(billFile, 1280, 0.80);
+        const path = `${profile.id}/${Date.now()}.${compressed.ext}`;
+        const { error: upErr } = await supabase.storage.from('bill-images').upload(path, compressed.blob, { contentType: compressed.contentType, cacheControl: LONG_CACHE_CONTROL });
         if (upErr) {
           alert('Lỗi tải ảnh bill lên hệ thống. Vui lòng thử lại sau.');
           setSubmitting(false);

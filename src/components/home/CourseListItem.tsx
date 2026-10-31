@@ -26,6 +26,7 @@ export default function CourseListItem({
   onCart,
 }: CourseListItemProps) {
   const [hovered, setHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const isFree = Number(subject.price || 0) <= 0;
 
   return (
@@ -68,11 +69,12 @@ export default function CourseListItem({
             position: 'relative',
           }}
         >
-          {subject.thumbnail_url ? (
+          {subject.thumbnail_url && !imgError ? (
             <img
               src={optimizedImage(subject.thumbnail_url, 120)}
               alt={subject.name}
               loading="lazy"
+              onError={() => setImgError(true)}
               style={{
                 width: '100%',
                 height: '100%',
