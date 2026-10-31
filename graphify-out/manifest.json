@@ -156,9 +156,9 @@
     "semantic_hash": ""
   },
   "src/components/AdminSidebar.tsx": {
-    "mtime": 1793412502.4691842,
-    "seen": 1793412553.7050288,
-    "ast_hash": "54ab1c12a3cd77a9763b99be2dbf9791",
+    "mtime": 1793449408.5804503,
+    "seen": 1793449569.0748794,
+    "ast_hash": "5473e64607b4923e0b984d11c50f569f",
     "semantic_hash": ""
   },
   "src/components/AnnouncementPopup.tsx": {
@@ -168,8 +168,8 @@
     "semantic_hash": ""
   },
   "src/components/FileUploader.tsx": {
-    "mtime": 1793438370.7952642,
-    "seen": 1793438893.2832837,
+    "mtime": 1793439348.302812,
+    "seen": 1793449569.075747,
     "ast_hash": "03e2c22cd03ec4628782e2a554386ac8",
     "semantic_hash": ""
   },
@@ -186,9 +186,9 @@
     "semantic_hash": "889a81fd2eb948eb406c9ccabe175918"
   },
   "src/components/TopNav.tsx": {
-    "mtime": 1791173454.3039172,
-    "seen": 1791173505.0491803,
-    "ast_hash": "b6a4e72a9a786a03ba200889c4b39166",
+    "mtime": 1793449450.7409937,
+    "seen": 1793449569.0791123,
+    "ast_hash": "972653cea7e4ec1a79f2ee0cbbc8f19d",
     "semantic_hash": ""
   },
   "src/components/ui/accordion.tsx": {
@@ -868,9 +868,9 @@
     "semantic_hash": "8800905cca6b71b675e406a15d2d5b13"
   },
   "src/components/Logo.tsx": {
-    "mtime": 1788376049.4477637,
-    "seen": 1789059066.005748,
-    "ast_hash": "196f33b4f21ad00350769154eb916416",
+    "mtime": 1793449381.8001704,
+    "seen": 1793449569.0763297,
+    "ast_hash": "f6662d321e20bf2e886a9a585e4d2094",
     "semantic_hash": ""
   },
   "src/components/exam/RichContent.tsx": {
@@ -928,8 +928,8 @@
     "semantic_hash": ""
   },
   "src/lib/imageUpload.ts": {
-    "mtime": 1793438401.0966058,
-    "seen": 1793438893.2929587,
+    "mtime": 1793439348.4330518,
+    "seen": 1793449569.1074803,
     "ast_hash": "90e17f51ad21e776ad5f1eba4935d545",
     "semantic_hash": ""
   },
@@ -1798,9 +1798,9 @@
     "semantic_hash": ""
   },
   "public/tqmaster-logo.svg": {
-    "mtime": 1788376049.4422007,
-    "seen": 1789059066.0062587,
-    "ast_hash": "176402f73843b46c2712ce35f7e2bef4",
+    "mtime": 1793449359.184527,
+    "seen": 1793449569.1822925,
+    "ast_hash": "d91ebd9c5512d3519bd952254aafff99",
     "semantic_hash": ""
   },
   "supabase/migrations/20260807140000_live_chat.sql": {
@@ -1887,8 +1887,8 @@
     "semantic_hash": ""
   },
   "src/lib/peZipExtractor.ts": {
-    "mtime": 1793438357.6192174,
-    "seen": 1793438893.293207,
+    "mtime": 1793439348.5201676,
+    "seen": 1793449569.1082387,
     "ast_hash": "526b1e40467bb9a3b0ae247d9b84bec5",
     "semantic_hash": ""
   },
@@ -2829,9 +2829,33 @@
     "semantic_hash": ""
   },
   ".sdd/specs/35-compress-images-and-purge-attempt-answers/tasks.md": {
-    "mtime": 1793438798.7763548,
-    "seen": 1793438893.3065825,
+    "mtime": 1793439348.2456293,
+    "seen": 1793449569.1665783,
     "ast_hash": "970d5870fb15784be867d10fc838c9de",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/36-mascot-brand-logo-update/plan.md": {
+    "mtime": 1793449288.3203425,
+    "seen": 1793449569.166583,
+    "ast_hash": "2aad18a14d7d10b9ba53bc356c017537",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/36-mascot-brand-logo-update/spec.md": {
+    "mtime": 1793449288.499066,
+    "seen": 1793449569.166586,
+    "ast_hash": "16ac6b6eb4bafe170d41516ae0354e77",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/36-mascot-brand-logo-update/tasks.md": {
+    "mtime": 1793449469.1222844,
+    "seen": 1793449569.1665878,
+    "ast_hash": "5cabb820faaa801c11db426ba7e189cf",
+    "semantic_hash": ""
+  },
+  "public/tqmaster-mascot.svg": {
+    "mtime": 1793449359.184527,
+    "seen": 1793449569.1822965,
+    "ast_hash": "d91ebd9c5512d3519bd952254aafff99",
     "semantic_hash": ""
   }
 }

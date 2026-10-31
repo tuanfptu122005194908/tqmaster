@@ -1,24 +1,132 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="logoBg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#6366F1"/>
-      <stop offset="0.55" stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#06B6D4"/>
+    <!-- Background Gradient: TQMaster Tech Blue -->
+    <linearGradient id="bgGrad" x1="16" y1="8" x2="112" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="55%" stop-color="#1D4ED8"/>
+      <stop offset="100%" stop-color="#0F172A"/>
     </linearGradient>
-    <linearGradient id="logoCap" x1="18" y1="17" x2="47" y2="42" gradientUnits="userSpaceOnUse">
-      <stop stop-color="white"/>
-      <stop offset="1" stop-color="#DBEAFE"/>
+    
+    <!-- Gloss Shine Highlight -->
+    <linearGradient id="shineGrad" x1="64" y1="0" x2="64" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="logoShine" x1="32" y1="0" x2="32" y2="30" gradientUnits="userSpaceOnUse">
-      <stop stop-color="white" stop-opacity=".34"/>
-      <stop offset="1" stop-color="white" stop-opacity="0"/>
+
+    <!-- Frog Skin Gradient: Vibrant Emerald & Golden Lime -->
+    <linearGradient id="frogSkin" x1="32" y1="36" x2="96" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4ADE80"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
     </linearGradient>
+
+    <!-- Frog Eye Mound Gradient -->
+    <linearGradient id="eyeMoundGrad" x1="42" y1="32" x2="42" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#86EFAC"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+
+    <!-- Graduation Cap Gradient -->
+    <linearGradient id="capGrad" x1="26" y1="12" x2="102" y2="38" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="50%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for Depth -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#020617" flood-opacity="0.35"/>
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="19" fill="url(#logoBg)"/>
-  <path d="M0 19C0 8.507 8.507 0 19 0h26c10.493 0 19 8.507 19 19v6C47 35 17 35 0 25v-6Z" fill="url(#logoShine)"/>
-  <rect x="1.25" y="1.25" width="61.5" height="61.5" rx="17.75" stroke="white" stroke-opacity=".28" stroke-width="2.5"/>
-  <path d="m32 17 18.5 8.35L32 33.7l-18.5-8.35L32 17Z" fill="url(#logoCap)"/>
-  <path d="M21.8 29.1v7.3c0 1.75 4.58 4.1 10.2 4.1s10.2-2.35 10.2-4.1v-7.3" stroke="white" stroke-opacity=".95" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M49.2 25.6v8.7" stroke="white" stroke-opacity=".95" stroke-width="2.6" stroke-linecap="round"/>
-  <circle cx="49.2" cy="38.1" r="2.7" fill="#FDE68A"/>
+
+  <!-- 1. Background Rounded Badge -->
+  <rect width="128" height="128" rx="38" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Border Stroke -->
+  <rect x="1.5" y="1.5" width="125" height="125" rx="36.5" stroke="white" stroke-opacity="0.22" stroke-width="3"/>
+
+  <!-- Glossy top reflection -->
+  <path d="M0 38C0 17 17 0 38 0h52c21 0 38 17 38 38v8C86 62 42 62 0 46v-8Z" fill="url(#shineGrad)"/>
+
+  <!-- 2. Frog Mascot Body & Head Group -->
+  <g filter="url(#softShadow)">
+    <!-- White Shirt & Tie Underneath -->
+    <path d="M 44 94 Q 64 88 84 94 L 88 118 Q 64 122 40 118 Z" fill="#F8FAFC"/>
+    <!-- Cute Blue Tech Collar -->
+    <path d="M 46 95 L 64 108 L 52 118 Z" fill="#DBEAFE"/>
+    <path d="M 82 95 L 64 108 L 76 118 Z" fill="#BFDBFE"/>
+    <!-- Gold Mascot Tie -->
+    <path d="M 64 106 L 60 114 L 64 124 L 68 114 Z" fill="url(#goldGrad)"/>
+
+    <!-- Left & Right Eye Mounds (Đặc trưng Cóc FPT) -->
+    <ellipse cx="40" cy="50" rx="19" ry="18" fill="url(#eyeMoundGrad)"/>
+    <ellipse cx="88" cy="50" rx="19" ry="18" fill="url(#eyeMoundGrad)"/>
+
+    <!-- Main Face & Head Shape -->
+    <ellipse cx="64" cy="74" rx="43" ry="32" fill="url(#frogSkin)"/>
+    
+    <!-- Lighter Belly / Chin Area -->
+    <ellipse cx="64" cy="84" rx="26" ry="17" fill="#A7F3D0" opacity="0.6"/>
+
+    <!-- 3. Big Anime / Chibi Eyes -->
+    <!-- Left Eye -->
+    <ellipse cx="40" cy="50" rx="13.5" ry="13.5" fill="white"/>
+    <ellipse cx="41.5" cy="51" rx="8.5" ry="8.5" fill="#0F172A"/>
+    <circle cx="38.5" cy="47" r="3.5" fill="white"/>
+    <circle cx="44.5" cy="54" r="1.5" fill="white"/>
+
+    <!-- Right Eye -->
+    <ellipse cx="88" cy="50" rx="13.5" ry="13.5" fill="white"/>
+    <ellipse cx="86.5" cy="51" rx="8.5" ry="8.5" fill="#0F172A"/>
+    <circle cx="83.5" cy="47" r="3.5" fill="white"/>
+    <circle cx="89.5" cy="54" r="1.5" fill="white"/>
+
+    <!-- 4. Cute Smart Glasses (Kính Học Bá Vàng Gold) -->
+    <!-- Left Glass Frame -->
+    <circle cx="40" cy="51" r="17" stroke="url(#goldGrad)" stroke-width="3.5" fill="none"/>
+    <!-- Right Glass Frame -->
+    <circle cx="88" cy="51" r="17" stroke="url(#goldGrad)" stroke-width="3.5" fill="none"/>
+    <!-- Glasses Bridge -->
+    <path d="M 57 50 Q 64 47 71 50" stroke="url(#goldGrad)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <!-- Glasses Temple Ends -->
+    <path d="M 23 50 L 16 48" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 105 50 L 112 48" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- 5. Cute Rosy Cheeks -->
+    <ellipse cx="30" cy="76" rx="7" ry="4.5" fill="#FB7185" opacity="0.65"/>
+    <ellipse cx="98" cy="76" rx="7" ry="4.5" fill="#FB7185" opacity="0.65"/>
+
+    <!-- 6. Cheerful Confident Mouth -->
+    <path d="M 52 74 Q 64 88 76 74" stroke="#065F46" stroke-width="3" stroke-linecap="round" fill="#DC2626"/>
+    <!-- Cute pink tongue -->
+    <path d="M 57 78 Q 64 86 71 78 Q 64 82 57 78 Z" fill="#FDA4AF"/>
+    <!-- Nostril dots -->
+    <circle cx="60" cy="67" r="1.2" fill="#047857"/>
+    <circle cx="68" cy="67" r="1.2" fill="#047857"/>
+  </g>
+
+  <!-- 7. Academic Graduation Cap (Mũ Cử Nhân Đội Lệch Siêu Ngầu) -->
+  <g filter="url(#softShadow)">
+    <!-- Skull Cap Base -->
+    <path d="M 47 28 C 47 21 81 21 81 28 Z" fill="#0F172A"/>
+    
+    <!-- Mortarboard Diamond -->
+    <path d="M 64 8 L 105 22 L 64 36 L 23 22 Z" fill="url(#capGrad)" stroke="#60A5FA" stroke-width="1.2"/>
+    
+    <!-- Top Center Gold Button -->
+    <circle cx="64" cy="22" r="3.5" fill="url(#goldGrad)"/>
+
+    <!-- Hanging Gold Tassel -->
+    <path d="M 64 22 Q 88 24 96 36 L 98 48" stroke="url(#goldGrad)" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <!-- Tassel Fringe Charm -->
+    <circle cx="98" cy="50" r="3.2" fill="#F59E0B"/>
+    <path d="M 96 52 L 95 60 M 98 52 L 98 61 M 100 52 L 101 60" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
 </svg>
