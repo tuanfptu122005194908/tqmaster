@@ -1,25 +1,129 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/tqmaster-logo.svg" type="image/svg+xml" />
-    <title>TQMaster — Ôn thi Đại học FPT | Đề thi & Tài liệu</title>
-    <meta name="description" content="TQMaster — nền tảng ôn thi, đề thi thử và tài liệu dành cho sinh viên Đại học FPT." />
+    <title>TQMaster – Ôn thi Đại học FPT | Đề thi & Tài liệu</title>
+    <meta name="description" content="TQMaster – nền tảng ôn thi, đề thi thử và tài liệu dành cho sinh viên Đại học FPT." />
     <meta name="author" content="TQMaster Team" />
-    <meta property="og:title" content="TQMaster — Ôn thi Đại học FPT" />
+    <meta property="og:title" content="TQMaster – Ôn thi Đại học FPT" />
     <meta property="og:description" content="Ôn thi hiệu quả với đề thi thử, tài liệu và phân tích tiến độ dành cho sinh viên Đại học FPT." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="TQMaster — Ôn thi Đại học FPT" />
+    <meta name="twitter:title" content="TQMaster – Ôn thi Đại học FPT" />
     <meta name="twitter:description" content="Nền tảng ôn thi và tài liệu dành cho sinh viên Đại học FPT." />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+    <style>
+      /* Pre-loader inline styles for instant 0ms render */
+      #tq-preloader {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at 50% 40%, #ffffff 0%, #f4f7fc 100%);
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        margin: 0;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      .tq-preloader-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        max-width: 380px;
+        width: 100%;
+        padding: 36px 32px;
+        background: rgba(255, 255, 255, 0.88);
+        border-radius: 24px;
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        box-shadow: 0 12px 36px -8px rgba(37, 99, 235, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
+      }
+      @keyframes tqPreFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+      @keyframes tqPrePulse {
+        0%, 100% { transform: scale(1); opacity: 0.35; }
+        50% { transform: scale(0.85); opacity: 0.18; }
+      }
+      @keyframes tqPreBar {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(250%); }
+      }
+      .tq-pre-logo {
+        width: 68px;
+        height: 68px;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.22);
+        animation: tqPreFloat 2s ease-in-out infinite;
+      }
+      .tq-pre-shadow {
+        width: 48px;
+        height: 7px;
+        background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.35) 0%, transparent 70%);
+        border-radius: 50%;
+        margin: 6px auto 16px auto;
+        animation: tqPrePulse 2s ease-in-out infinite;
+      }
+      .tq-pre-title {
+        font-size: 1.25rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        color: #0f172a;
+        margin-bottom: 12px;
+      }
+      .tq-pre-bar-track {
+        width: 160px;
+        height: 4.5px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 14px;
+      }
+      .tq-pre-bar-fill {
+        position: absolute;
+        top: 0; left: 0;
+        width: 45%; height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #38bdf8 0%, #2563eb 50%, #4f46e5 100%);
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        animation: tqPreBar 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+      .tq-pre-label {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #475569;
+        line-height: 1.4;
+      }
+      .tq-pre-sub {
+        font-size: 11px;
+        font-weight: 500;
+        color: #94a3b8;
+        margin-top: 6px;
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="tq-preloader">
+        <div class="tq-preloader-card">
+          <img class="tq-pre-logo" src="/tqmaster-logo.svg" alt="TQMaster" />
+          <div class="tq-pre-shadow"></div>
+          <div class="tq-pre-title">TQMaster</div>
+          <div class="tq-pre-bar-track">
+            <div class="tq-pre-bar-fill"></div>
+          </div>
+          <div class="tq-pre-label">Đang nạp kiến thức ôn thi…</div>
+          <div class="tq-pre-sub">TQMaster • Nền tảng Ôn thi Đại học FPT</div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

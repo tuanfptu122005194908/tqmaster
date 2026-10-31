@@ -1,1342 +1,1339 @@
-import { adminDateWindow } from '@/lib/adminDates';
-import { useCommerceSummary } from '@/hooks/useAdminAnalytics';
-import { AdminDataState } from '@/components/admin/AdminDataState';
-import { queryClient } from '@/lib/queryClient';
-import { readAdminRows } from '@/lib/adminRead';
-import React, { useEffect, useState, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
-import { formatDate, formatPrice } from '@/lib/mockData';
-import {
-  Search, CheckCircle, XCircle, Trash2, Eye, X, Loader2, ShoppingBag,
-  Clock, TrendingUp, Download, Zap, Calendar, Filter, Image as ImageIcon,
-  Check, CreditCard, ChevronRight, FileText, ShieldCheck
-} from 'lucide-react';
-import { useApp } from '@/lib/AppContext';
-import { toast } from 'sonner';
-import { fetchBillStats, cleanBillImages, type BillStats, type CleanBillScope } from '@/lib/orderBillCleaner';
-
-type Order = Tables<'orders'>;
-
-const PAGE_SIZE = 50;
-
-type DateFilter = 'all' | 'today' | '7days' | '30days' | 'this_month';
-
-const DATE_OPTIONS: { key: DateFilter; label: string }[] = [
-  { key: 'all', label: 'Tất cả thời gian' },
-  { key: 'today', label: 'Hôm nay' },
-  { key: '7days', label: '7 ngày qua' },
-  { key: '30days', label: '30 ngày qua' },
-  { key: 'this_month', label: 'Tháng này' },
-];
-
-export default function AdminOrders() {
-  const { profile, refreshPendingOrdersCount } = useApp();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [isTableLoading, setIsTableLoading] = useState(false);
-
-  // Search input & debounced search
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  // Status & Date Filters
-  const [filterStatus, setFilterStatus] = useState<'all' | Order['status']>('all');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
-  const [showDateDropdown, setShowDateDropdown] = useState(false);
-
-  const [viewOrder, setViewOrder] = useState<Order | null>(null);
-  const [actioning, setActioning] = useState<string | null>(null);
-  const [billUrl, setBillUrl] = useState<string | null>(null);
-  const [orderItems, setOrderItems] = useState<{ id: string; subject_id: string; price: number; subject_name: string }[]>([]);
-  const [loadingItems, setLoadingItems] = useState(false);
-
-  // Pagination
-  const [page, setPage] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  // Summary counts (always reflect full dataset, not just current page)
-  const summary = useCommerceSummary();
-  const pendingCount = summary.data?.pendingOrders;
-  const approvedCount = summary.data?.approved;
-  const totalRevenue = summary.data?.revenue;
-  const [listError, setListError] = useState<Error | null>(null);
-  const detailVersion = useRef(0);
-  const [detailError, setDetailError] = useState<Error | null>(null);
-
-  // Clean bill images state
-  const [isCleanModalOpen, setIsCleanModalOpen] = useState(false);
-  const [cleanScope, setCleanScope] = useState<CleanBillScope>('processed_only');
-  const [isCleaning, setIsCleaning] = useState(false);
-  const [billStats, setBillStats] = useState<BillStats | null>(null);
-  const [loadingBillStats, setLoadingBillStats] = useState(false);
-
-  // Guard against race conditions from rapid responses
-  const latestRequestId = useRef(0);
-
-  // Debounce search input (350ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  // Keep latest filter values in a ref for realtime subscription without stale closure
-  const filterRef = useRef({ page, debouncedSearch, filterStatus, dateFilter });
-  useEffect(() => {
-    filterRef.current = { page, debouncedSearch, filterStatus, dateFilter };
-  }, [page, debouncedSearch, filterStatus, dateFilter]);
-
-  // Reset page to 0 when debounced search or filters change
-  useEffect(() => {
-    setPage(0);
-  }, [debouncedSearch, filterStatus, dateFilter]);
-
-  const fetchPage = async (
-    pageNum = page,
-    searchVal = debouncedSearch,
-    statusVal = filterStatus,
-    dateVal = dateFilter
-  ) => {
-    const reqId = ++latestRequestId.current;
-    setIsTableLoading(true);
-
-    try {
-      const from = pageNum * PAGE_SIZE;
-      const to   = from + PAGE_SIZE - 1;
-
-      let query = supabase
-        .from('orders')
-        .select('id, created_at, final_amount, original_amount, discount_amount, discount_code, status, full_name, email, student_code, note, bill_image_url, reviewed_at, reviewed_by, order_items(subject_id, subjects(name, id))', { count: 'exact' })
-        .order('created_at', { ascending: false }).order('id', { ascending: false })
-        .range(from, to);
-
-      if (statusVal !== 'all') {
-        query = query.eq('status', statusVal);
-      }
-
-      const dateWindow = adminDateWindow(dateVal);
-      if (dateWindow) query = query.gte('created_at',dateWindow.start).lt('created_at',dateWindow.end);
-
-      // Sanitize search query to avoid PostgREST parsing errors
-      const cleanSearch = searchVal.trim().replace(/^#/, '').replace(/[,()%\\]/g, ' ').trim();
-      if (cleanSearch) {
-        query = query.or(
-          `full_name.ilike.%${cleanSearch}%,email.ilike.%${cleanSearch}%,student_code.ilike.%${cleanSearch}%,id.ilike.%${cleanSearch}%,note.ilike.%${cleanSearch}%`
-        );
-      }
-
-      const { data, count, error } = await query;
-
-      // Ignore stale responses
-      if (reqId !== latestRequestId.current) return;
-
-      if (error) {
-        setListError(new Error(error.message));
-      } else {
-        if (!data || count === null) throw new Error('Không nhận được đầy đủ danh sách và tổng số đơn.');
-        const lastPage = Math.max(0, Math.ceil(count / PAGE_SIZE) - 1);
-        if (pageNum > lastPage) { setPage(lastPage); return; }
-        setListError(null);
-        setOrders(data as unknown as Order[]);
-        setTotalCount(count ?? 0);
-      }
-    } catch (e) {
-      if (reqId === latestRequestId.current) setListError(e instanceof Error ? e : new Error(String(e)));
-    } finally {
-      if (reqId === latestRequestId.current) {
-        setIsTableLoading(false);
-        setInitialLoading(false);
-      }
-    }
-  };
-
-  // Fetch summary stats separately so they always cover the whole table
-  const fetchStats = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['admin', profile?.id] }, { cancelRefetch: false });
-  };
-
-  useEffect(() => {
-    fetchPage(page, debouncedSearch, filterStatus, dateFilter);
-  }, [page, debouncedSearch, filterStatus, dateFilter]);
-
-  useEffect(() => {
-    // Đăng ký nhận thông báo realtime với debounce để tránh spam query
-    let debounceTimer: any = null;
-    const channelId = `admin-orders-page-realtime-${Date.now()}`;
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        () => {
-          clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            const cur = filterRef.current;
-            fetchPage(cur.page, cur.debouncedSearch, cur.filterStatus, cur.dateFilter);
-          }, 400);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      clearTimeout(debounceTimer);
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const filtered = orders; // Filtering now handled server-side
-
-  const setStatus = async (id: string, status: 'approved' | 'rejected') => {
-    setActioning(id);
-    const { error } = await supabase.from('orders').update({
-      status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString(),
-    }).eq('id', id);
-
-    if (error) {
-      toast.error('Lỗi: ' + error.message);
-    } else {
-      toast.success(status === 'approved' ? 'Đã duyệt đơn hàng' : 'Đã từ chối đơn hàng');
-    }
-    if (!error) setViewOrder(v => v?.id === id ? { ...v, status } : v);
-    await fetchPage(page);
-    fetchStats();
-    refreshPendingOrdersCount();
-    setActioning(null);
-  };
-
-  const remove = async (id: string) => {
-    if (!confirm('Xoá đơn hàng này? Nếu đơn hàng đã từng duyệt, quyền học của học viên sẽ được tự động thu hồi.')) return;
-
-    try {
-      // 1. Kiểm tra thông tin đơn hàng và các môn trước khi xoá
-      const { data: orderData, error: orderReadError } = await supabase
-        .from('orders')
-        .select('id, user_id, status, order_items(subject_id)')
-        .eq('id', id)
-        .single();
-      if (orderReadError) throw new Error(orderReadError.message);
-      if (!orderData) throw new Error('Không tìm thấy đơn hàng.');
-
-      if (orderData && orderData.status === 'approved' && orderData.order_items?.length) {
-        const subjectIds = (orderData.order_items as any[])
-          .map((item: any) => item.subject_id)
-          .filter(Boolean);
-
-        const revokeIds: string[] = [];
-        for (const subjId of subjectIds) {
-          // Kiểm tra xem user có đơn nào khác cũng đang approved môn này không
-          const { data: otherOrders, error: otherReadError } = await supabase
-            .from('orders')
-            .select('id, order_items!inner(subject_id)')
-            .eq('user_id', orderData.user_id)
-            .eq('status', 'approved')
-            .neq('id', id)
-            .eq('order_items.subject_id', subjId).limit(1);
-          if (otherReadError) throw new Error(otherReadError.message);
-          if (!otherOrders) throw new Error('Không xác minh được quyền truy cập.');
-
-          if (otherOrders.length === 0) revokeIds.push(subjId);
-        }
-        if (revokeIds.length) {
-          const {error: revokeError} = await supabase.from('user_subjects').delete().eq('user_id',orderData.user_id).in('subject_id',revokeIds);
-          if (revokeError) throw new Error(revokeError.message);
-        }
-      }
-
-      // 2. Xoá đơn hàng
-      const { error } = await supabase.from('orders').delete().eq('id', id);
-      if (error) {
-        toast.error('Lỗi khi xoá đơn hàng: ' + error.message);
-        return;
-      }
-      toast.success('Đã xoá đơn hàng và thu hồi quyền môn học');
-      fetchPage(page);
-      fetchStats();
-      refreshPendingOrdersCount();
-    } catch (e: any) {
-      toast.error('Lỗi xử lý xoá: ' + (e?.message || 'Có lỗi xảy ra'));
-    }
-  };
-
-  const openCleanBillsDialog = async () => {
-    setIsCleanModalOpen(true);
-    setLoadingBillStats(true);
-    try {
-      const stats = await fetchBillStats();
-      setBillStats(stats);
-    } catch (err: any) {
-      toast.error('Không thể lấy thống kê ảnh bill: ' + (err?.message || 'Có lỗi xảy ra'));
-    } finally {
-      setLoadingBillStats(false);
-    }
-  };
-
-  const handleCleanBills = async () => {
-    setIsCleaning(true);
-    try {
-      const result = await cleanBillImages({ scope: cleanScope });
-      toast.success(`Đã dọn dẹp thành công ${result.deletedFilesCount} file ảnh bill (${result.updatedOrdersCount} đơn hàng)!`);
-      setIsCleanModalOpen(false);
-      await fetchPage(page);
-      fetchStats();
-      setViewOrder(current => {
-        if (!current) return null;
-        if (cleanScope === 'all' || current.status !== 'pending') {
-          setBillUrl(null);
-          return { ...current, bill_image_url: null };
-        }
-        return current;
-      });
-    } catch (err: any) {
-      toast.error('Lỗi dọn dẹp ảnh bill: ' + (err?.message || 'Có lỗi xảy ra'));
-    } finally {
-      setIsCleaning(false);
-    }
-  };
-
-  const openDetail = async (order: Order) => {
-    const version = ++detailVersion.current;
-    setViewOrder(order); setBillUrl(null); setOrderItems([]); setLoadingItems(true); setDetailError(null);
-    try {
-      const [items, bill] = await Promise.all([
-        readAdminRows<{ id: string; subject_id: string; price: number; subjects: { name: string } | null }>(
-          'order_items', 'id, subject_id, price, subjects(name)', { order_id: order.id }),
-        order.bill_image_url ? supabase.storage.from('bill-images').createSignedUrl(order.bill_image_url, 300) : Promise.resolve(null),
-      ]);
-      if (version !== detailVersion.current) return;
-      if (bill?.error) throw new Error(bill.error.message);
-      setOrderItems(items.map(it => ({ ...it, price: Number(it.price), subject_name: it.subjects?.name ?? 'Môn không xác định' })));
-      setBillUrl(bill?.data?.signedUrl ?? null);
-    } catch (error) {
-      if (version === detailVersion.current) setDetailError(error instanceof Error ? error : new Error(String(error)));
-    } finally {
-      if (version === detailVersion.current) setLoadingItems(false);
-    }
-  };
-
-  const statusBadge = (s: string) => {
-    if (s === 'pending')  return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>• Chờ duyệt</span>;
-    if (s === 'approved') return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>✓ Đã duyệt</span>;
-    return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>✕ Đã hủy</span>;
-  };
-
-  const avgOrderValue = summary.data ? (approvedCount ? Math.round(totalRevenue / approvedCount) : 0) : undefined;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-  if (initialLoading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 450, background: '#f4f7fc' }}>
-      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-    </div>
-  );
-
-  return (
-    <div className="admin-orders-container" style={{ width: '100%', boxSizing: 'border-box', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
-      <AdminDataState query={summary} />
-      <AdminDataState query={{ isPending: false, error: listError, data: orders.length ? orders : undefined, refetch: () => fetchPage() }} />
-
-      
-      {/* Dynamic Responsive Styles */}
-      <style>{`
-        .admin-orders-container {
-          padding: 28px 32px;
-        }
-        .orders-desktop-table {
-          display: block;
-        }
-        .orders-mobile-cards {
-          display: none;
-        }
-        @media (max-width: 768px) {
-          .admin-orders-container {
-            padding: 16px 12px !important;
-          }
-          .orders-desktop-table {
-            display: none !important;
-          }
-          .orders-mobile-cards {
-            display: flex !important;
-            flex-direction: column;
-            gap: 14px;
-          }
-          .header-action-btns {
-            width: 100%;
-            justify-content: space-between;
-          }
-          .header-action-btns button {
-            flex: 1;
-            justify-content: center;
-          }
-          .stat-cards-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 10px !important;
-          }
-        }
-      `}</style>
-
-      {/* ── TOP HEADER AREA ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <h1 style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.03em' }}>
-            Quản lý Đơn hàng
-          </h1>
-          <p style={{ fontSize: 13, color: '#64748b', margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
-            Theo dõi, phê duyệt và quản lý các giao dịch của học viên TQMaster.
-          </p>
-        </div>
-
-        {/* Top Right Action Buttons */}
-        <div className="header-action-btns" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button
-            onClick={openCleanBillsDialog}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
-              borderRadius: 12, border: '1.5px solid #fecdd3', background: '#fff1f2',
-              fontSize: 12.5, fontWeight: 800, color: '#e11d48', cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.08)',
-              transition: 'all 0.15s ease'
-            }}
-            title="Dọn dẹp ảnh bill chuyển khoản cũ để tiết kiệm dung lượng lưu trữ"
-          >
-            <Trash2 size={15} /> Xoá ảnh bill cũ
-          </button>
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
-            borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff',
-            fontSize: 12.5, fontWeight: 700, color: '#475569', cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-          }}>
-            <Download size={15} /> Xuất báo cáo
-          </button>
-
-          <button style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
-            borderRadius: 12, border: 'none',
-            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-            color: '#ffffff', fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
-            boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)'
-          }}>
-            <Zap size={15} /> Thao tác nhanh
-          </button>
-        </div>
-      </div>
-
-      {/* ── 4 PASTEL STAT CARDS ── */}
-      <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
-        
-        {/* Card 1: TỔNG ĐƠN HÀNG */}
-        <div style={{ background: '#f3eefd', border: '1px solid #ede9fe', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(139, 92, 246, 0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TỔNG ĐƠN</span>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ShoppingBag size={16} />
-            </div>
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {totalCount.toLocaleString()}
-          </div>
-          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
-            📈 +12% tháng trước
-          </div>
-        </div>
-
-        {/* Card 2: ĐANG CHỜ DUYỆT */}
-        <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(217, 119, 6, 0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CHỜ DUYỆT</span>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-              <Clock size={16} />
-              {pendingCount > 0 && (
-                <span style={{ position: 'absolute', top: -1, right: -1, width: 8, height: 8, borderRadius: '50%', background: '#e11d48', border: '2px solid #ffffff' }} />
-              )}
-            </div>
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {pendingCount ?? '—'}
-          </div>
-          <div style={{ fontSize: 11, color: '#e11d48', fontWeight: 800 }}>
-            {pendingCount === undefined ? 'Đang tải thống kê' : pendingCount > 0 ? '❗ Cần xử lý' : '✓ Đã xong'}
-          </div>
-        </div>
-
-        {/* Card 3: DOANH THU (THÁNG) */}
-        <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(37, 99, 235, 0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DOANH THU</span>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CreditCard size={16} />
-            </div>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {totalRevenue === undefined ? '—' : formatPrice(totalRevenue)}
-          </div>
-          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
-            Mọi thời gian · Đơn đã duyệt
-          </div>
-        </div>
-
-        {/* Card 4: GIÁ TRỊ TB ĐƠN */}
-        <div style={{ background: '#eafaf5', border: '1px solid #d1fae5', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(5, 150, 105, 0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TB ĐƠN</span>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={16} />
-            </div>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            {avgOrderValue === undefined ? '—' : formatPrice(avgOrderValue)}
-          </div>
-          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
-            Mọi thời gian · Đơn đã duyệt
-          </div>
-        </div>
-
-      </div>
-
-      {/* ── FILTER TABS & SEARCH CONTROLS BAR ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        
-        {/* Status Filter Pills */}
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 4, maxWidth: '100%' }}>
-          {[
-            { key: 'all', label: 'Tất cả' },
-            { key: 'pending', label: 'Chờ duyệt' },
-            { key: 'approved', label: 'Đã duyệt' },
-            { key: 'rejected', label: 'Đã hủy' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setFilterStatus(tab.key as any)}
-              style={{
-                padding: '7px 16px', borderRadius: 20, border: '1px solid #cbd5e1',
-                fontSize: 12.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
-                background: filterStatus === tab.key ? '#2563eb' : '#ffffff',
-                color: filterStatus === tab.key ? '#ffffff' : '#475569',
-                boxShadow: filterStatus === tab.key ? '0 3px 10px rgba(37, 99, 235, 0.25)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Search & Filters */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', width: '100%', maxWidth: 480 }}>
-          {/* Search Box */}
-          <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-            <input
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              placeholder="Tìm tên, email, MSV, mã đơn..."
-              style={{
-                width: '100%', padding: '9px 34px 9px 36px', borderRadius: 12,
-                border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', background: '#ffffff',
-                color: '#0f172a', boxSizing: 'border-box'
-              }}
-            />
-            {/* Search Clear Button or Spinner */}
-            <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
-              {(isTableLoading || searchInput !== debouncedSearch) ? (
-                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-              ) : searchInput ? (
-                <button
-                  type="button"
-                  onClick={() => { setSearchInput(''); setDebouncedSearch(''); }}
-                  style={{
-                    background: '#e2e8f0', border: 'none', borderRadius: '50%',
-                    width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', padding: 0, color: '#475569'
-                  }}
-                  title="Xóa tìm kiếm"
-                >
-                  <X size={11} strokeWidth={3} />
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          {/* Date Filter Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => setShowDateDropdown(v => !v)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px',
-                borderRadius: 12,
-                border: dateFilter !== 'all' ? '1.5px solid #2563eb' : '1.5px solid #cbd5e1',
-                background: dateFilter !== 'all' ? '#eff6ff' : '#ffffff',
-                fontSize: 12.5, fontWeight: 700,
-                color: dateFilter !== 'all' ? '#2563eb' : '#475569',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                boxShadow: dateFilter !== 'all' ? '0 2px 8px rgba(37, 99, 235, 0.15)' : 'none'
-              }}
-            >
-              <Calendar size={14} />
-              {DATE_OPTIONS.find(o => o.key === dateFilter)?.label || 'Thời gian'}
-            </button>
-
-            {showDateDropdown && (
-              <>
-                <div
-                  onClick={() => setShowDateDropdown(false)}
-                  style={{ position: 'fixed', inset: 0, zIndex: 90 }}
-                />
-                <div style={{
-                  position: 'absolute', right: 0, top: '100%', marginTop: 6,
-                  background: '#ffffff', borderRadius: 14, border: '1px solid #e2e8f0',
-                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
-                  zIndex: 91, minWidth: 165, padding: 6, display: 'flex', flexDirection: 'column', gap: 2
-                }}>
-                  {DATE_OPTIONS.map(opt => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => {
-                        setDateFilter(opt.key);
-                        setShowDateDropdown(false);
-                      }}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '8px 12px', borderRadius: 8, border: 'none',
-                        background: dateFilter === opt.key ? '#eff6ff' : 'transparent',
-                        color: dateFilter === opt.key ? '#2563eb' : '#334155',
-                        fontSize: 12.5, fontWeight: dateFilter === opt.key ? 800 : 600,
-                        cursor: 'pointer', textAlign: 'left', width: '100%'
-                      }}
-                    >
-                      <span>{opt.label}</span>
-                      {dateFilter === opt.key && <Check size={14} strokeWidth={3} />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Reset All Filters Button (shown only when active) */}
-          {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchInput('');
-                setDebouncedSearch('');
-                setFilterStatus('all');
-                setDateFilter('all');
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4, padding: '9px 12px',
-                borderRadius: 12, border: '1.5px dashed #fecdd3', background: '#fff1f2',
-                fontSize: 12, fontWeight: 800, color: '#e11d48', cursor: 'pointer', whiteSpace: 'nowrap'
-              }}
-              title="Đặt lại toàn bộ bộ lọc"
-            >
-              <X size={13} strokeWidth={2.5} /> Đặt lại
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── DESKTOP TABLE VIEW (With overflowX: 'auto' so it never cuts off) ── */}
-      <div className="orders-desktop-table">
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', position: 'relative' }}>
-          {/* Subtle loading indicator line */}
-          <div style={{
-            height: 3, width: '100%',
-            background: isTableLoading ? 'linear-gradient(90deg, #3b82f6 0%, #93c5fd 50%, #3b82f6 100%)' : 'transparent',
-            transition: 'background 0.2s ease'
-          }} />
-          <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>MÃ ĐƠN</th>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>HỌC VIÊN</th>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>NGÀY TẠO</th>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>SỐ TIỀN</th>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>TRẠNG THÁI</th>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>MINH CHỨNG</th>
-                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'right' }}>THAO TÁC</th>
-              </tr>
-            </thead>
-            <tbody style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
-              {listError && !filtered.length ? null : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8', fontSize: 13 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                      <Filter size={24} style={{ opacity: 0.4 }} />
-                      <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
-                      {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSearchInput('');
-                            setDebouncedSearch('');
-                            setFilterStatus('all');
-                            setDateFilter('all');
-                          }}
-                          style={{
-                            marginTop: 4, padding: '6px 14px', borderRadius: 10,
-                            border: '1px solid #cbd5e1', background: '#ffffff',
-                            color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer'
-                          }}
-                        >
-                          Đặt lại tất cả bộ lọc
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : filtered.map((order) => {
-                const avatarInitials = (order.full_name || 'U').slice(0, 2).toUpperCase();
-
-                return (
-                  <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
-                    {/* Order ID */}
-                    <td style={{ padding: '14px 18px', fontWeight: 900, color: '#2563eb', fontFamily: 'monospace', fontSize: 13 }}>
-                      #{order.id.slice(0, 8).toUpperCase()}
-                    </td>
-
-                    {/* Student Info */}
-                    <td style={{ padding: '14px 18px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                          width: 36, height: 36, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 900,
-                          flexShrink: 0
-                        }}>
-                          {avatarInitials}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 13 }}>{order.full_name}</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>{order.email}</div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Created At */}
-                    <td style={{ padding: '14px 18px', color: '#64748b', fontSize: 12.5 }}>
-                      {formatDate(order.created_at)}
-                    </td>
-
-                    {/* Amount */}
-                    <td style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 13.5 }}>
-                      {formatPrice(Number(order.final_amount))}
-                    </td>
-
-                    {/* Status Badge */}
-                    <td style={{ padding: '14px 18px' }}>
-                      {statusBadge(order.status)}
-                    </td>
-
-                    {/* Bill Proof Button */}
-                    <td style={{ padding: '14px 18px' }}>
-                      {order.bill_image_url ? (
-                        <button
-                          onClick={() => openDetail(order)}
-                          style={{
-                            border: 'none', background: '#eff6ff', color: '#2563eb',
-                            padding: '5px 10px', borderRadius: 8, fontSize: 11.5, fontWeight: 800,
-                            cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap'
-                          }}
-                        >
-                          <ImageIcon size={13} /> Xem Bill
-                        </button>
-                      ) : (
-                        order.status === 'approved' ? (
-                          <span style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <CheckCircle size={13} /> Đã dọn bill
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 11.5, color: '#94a3b8', fontStyle: 'italic' }}>Không có ảnh</span>
-                        )
-                      )}
-                    </td>
-
-                    {/* Actions */}
-                    <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        {order.status === 'pending' && (
-                          <button
-                            disabled={actioning === order.id}
-                            onClick={() => setStatus(order.id, 'approved')}
-                            style={{
-                              padding: '6px 12px', borderRadius: 10, border: 'none',
-                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                              color: '#ffffff', fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                              boxShadow: '0 3px 8px rgba(37, 99, 235, 0.25)',
-                              display: 'flex', alignItems: 'center', gap: 4
-                            }}
-                          >
-                            {actioning === order.id ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={12} strokeWidth={3} />}
-                            Duyệt
-                          </button>
-                        )}
-
-                        {order.status === 'pending' && (
-                          <button
-                            disabled={actioning === order.id}
-                            onClick={() => setStatus(order.id, 'rejected')}
-                            style={{
-                              padding: '6px 10px', borderRadius: 10, border: '1px solid #fecdd3',
-                              background: '#ffe4e6', color: '#e11d48', fontSize: 12, fontWeight: 800, cursor: 'pointer'
-                            }}
-                          >
-                            Hủy
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => openDetail(order)}
-                          style={{
-                            width: 30, height: 30, borderRadius: 8, border: '1.5px solid #cbd5e1',
-                            background: '#ffffff', color: '#475569', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                          }}
-                          title="Xem chi tiết"
-                        >
-                          <Eye size={14} />
-                        </button>
-
-                        <button
-                          onClick={() => remove(order.id)}
-                          style={{
-                            width: 30, height: 30, borderRadius: 8, border: '1px solid #fecdd3',
-                            background: '#fff1f2', color: '#e11d48', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                          }}
-                          title="Xóa đơn hàng"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ── MOBILE CARDS VIEW (Clean, High-contrast responsive list) ── */}
-      <div className="orders-mobile-cards" style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
-        {listError && !filtered.length ? null : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#ffffff', borderRadius: 20, border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: 13, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <Filter size={24} style={{ opacity: 0.4 }} />
-            <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
-            {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchInput('');
-                  setDebouncedSearch('');
-                  setFilterStatus('all');
-                  setDateFilter('all');
-                }}
-                style={{
-                  marginTop: 4, padding: '6px 14px', borderRadius: 10,
-                  border: '1px solid #cbd5e1', background: '#ffffff',
-                  color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer'
-                }}
-              >
-                Đặt lại tất cả bộ lọc
-              </button>
-            )}
-          </div>
-        ) : filtered.map(order => {
-          const avatarInitials = (order.full_name || 'U').slice(0, 2).toUpperCase();
-
-          return (
-            <div
-              key={order.id}
-              style={{
-                background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20,
-                padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: 12
-              }}
-            >
-              {/* Header: Student Info & Status */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
-                  <div style={{
-                    width: 38, height: 38, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900,
-                    flexShrink: 0
-                  }}>
-                    {avatarInitials}
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {order.full_name}
-                    </div>
-                    <div style={{ fontSize: 11.5, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {order.email}
-                    </div>
-                  </div>
-                </div>
-                {statusBadge(order.status)}
-              </div>
-
-              {/* Detail row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderTop: '1px dashed #e2e8f0', borderBottom: '1px dashed #e2e8f0' }}>
-                <div>
-                  <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>MÃ ĐƠN</div>
-                  <div style={{ fontFamily: 'monospace', fontWeight: 900, color: '#2563eb', fontSize: 13 }}>
-                    #{order.id.slice(0, 8).toUpperCase()}
-                  </div>
-                </div>
-
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>SỐ TIỀN</div>
-                  <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 14 }}>
-                    {formatPrice(Number(order.final_amount))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Date & Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-                <span style={{ fontSize: 11.5, color: '#64748b' }}>{formatDate(order.created_at)}</span>
-
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  {order.bill_image_url && (
-                    <button
-                      onClick={() => openDetail(order)}
-                      style={{
-                        border: 'none', background: '#eff6ff', color: '#2563eb',
-                        padding: '6px 10px', borderRadius: 8, fontSize: 11.5, fontWeight: 800,
-                        cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4
-                      }}
-                    >
-                      <ImageIcon size={13} /> Bill
-                    </button>
-                  )}
-
-                  {order.status === 'pending' && (
-                    <button
-                      disabled={actioning === order.id}
-                      onClick={() => setStatus(order.id, 'approved')}
-                      style={{
-                        padding: '6px 12px', borderRadius: 8, border: 'none',
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                        color: '#ffffff', fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 4
-                      }}
-                    >
-                      {actioning === order.id ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={12} strokeWidth={3} />}
-                      Duyệt
-                    </button>
-                  )}
-
-                  {order.status === 'pending' && (
-                    <button
-                      disabled={actioning === order.id}
-                      onClick={() => setStatus(order.id, 'rejected')}
-                      style={{
-                        padding: '6px 10px', borderRadius: 8, border: '1px solid #fecdd3',
-                        background: '#ffe4e6', color: '#e11d48', fontSize: 12, fontWeight: 800, cursor: 'pointer'
-                      }}
-                    >
-                      Hủy
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => openDetail(order)}
-                    style={{
-                      width: 30, height: 30, borderRadius: 8, border: '1.5px solid #cbd5e1',
-                      background: '#ffffff', color: '#475569', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
-                    title="Chi tiết"
-                  >
-                    <Eye size={14} />
-                  </button>
-
-                  <button
-                    onClick={() => remove(order.id)}
-                    style={{
-                      width: 30, height: 30, borderRadius: 8, border: '1px solid #fecdd3',
-                      background: '#fff1f2', color: '#e11d48', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
-                    title="Xóa đơn"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── PAGINATION CONTROLS ── */}
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, padding: '12px 16px', background: '#ffffff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
-            Trang {page + 1} / {totalPages} &nbsp;·&nbsp; {totalCount.toLocaleString()} đơn hàng
-          </span>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button
-              onClick={() => setPage(p => Math.max(0, p - 1))}
-              disabled={page === 0 || isTableLoading}
-              style={{ padding: '7px 14px', borderRadius: 10, border: '1.5px solid #cbd5e1', background: page === 0 ? '#f8fafc' : '#ffffff', color: page === 0 ? '#94a3b8' : '#0f172a', fontWeight: 800, fontSize: 13, cursor: page === 0 ? 'default' : 'pointer' }}
-            >
-              ← Trước
-            </button>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1 || isTableLoading}
-              style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: page >= totalPages - 1 ? '#f8fafc' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: page >= totalPages - 1 ? '#94a3b8' : '#ffffff', fontWeight: 800, fontSize: 13, cursor: page >= totalPages - 1 ? 'default' : 'pointer', boxShadow: page >= totalPages - 1 ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)' }}
-            >
-              Sau →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── ORDER DETAIL & BILL SLIDE PANEL ── */}
-      {viewOrder && (
-        <>
-          <div onClick={() => (detailVersion.current++, setViewOrder(null))} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
-          <div style={{
-            position: 'fixed', right: 0, top: 0, bottom: 0,
-            width: 'min(450px, 100vw)', background: '#ffffff',
-            boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201,
-            display: 'flex', flexDirection: 'column', overflowY: 'auto'
-          }}>
-            <AdminDataState query={{isPending:false,error:detailError,refetch:()=>openDetail(viewOrder)}} />
-            {/* Drawer Header */}
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#ffffff', zIndex: 2 }}>
-              <div>
-                <h2 style={{ fontSize: 17, fontWeight: 900, color: '#0f172a', margin: '0 0 2px 0' }}>
-                  Chi tiết đơn hàng
-                </h2>
-                <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 800, fontFamily: 'monospace' }}>
-                  #{viewOrder.id}
-                </div>
-              </div>
-              <button onClick={() => (detailVersion.current++, setViewOrder(null))} style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Drawer Content */}
-            <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                { label: 'Họ tên học viên', value: viewOrder.full_name },
-                { label: 'Email', value: viewOrder.email },
-                { label: 'Mã sinh viên', value: viewOrder.student_code || 'Chưa cập nhật' },
-                { label: 'Thời gian tạo đơn', value: formatDate(viewOrder.created_at) },
-                { label: 'Số tiền gốc', value: formatPrice(viewOrder.original_amount) },
-                { label: 'Giảm giá', value: formatPrice(viewOrder.discount_amount) },
-                { label: 'Thành tiền', value: formatPrice(viewOrder.final_amount) },
-              ].map(row => (
-                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
-                  <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>
-                  <strong style={{ color: '#0f172a', fontWeight: 800, textAlign: 'right' }}>{row.value}</strong>
-                </div>
-              ))}
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
-                <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>Trạng thái đơn</span>
-                {statusBadge(viewOrder.status)}
-              </div>
-
-              {/* Order Items */}
-              <div style={{ marginTop: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 8, textTransform: 'uppercase' }}>
-                  DANH SÁCH MÔN HỌC ({orderItems.length})
-                </div>
-
-                {detailError ? null : loadingItems ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: 13, padding: 12 }}>
-                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Đang tải dữ liệu môn...
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {orderItems.map((item, idx) => (
-                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#f8fafc', borderRadius: 12, border: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-                          <span style={{ width: 20, height: 20, borderRadius: 6, background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{idx + 1}</span>
-                          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.subject_name}</span>
-                        </div>
-                        <span style={{ fontWeight: 800, color: '#2563eb', fontSize: 13, flexShrink: 0, marginLeft: 8 }}>{formatPrice(item.price)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Bill Image View */}
-              <div style={{ marginTop: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 8, textTransform: 'uppercase' }}>
-                  ẢNH BILL CHUYỂN KHOẢN
-                </div>
-
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 8 }}>
-                  {billUrl ? (
-                    <img src={billUrl} alt="Bill chuyển khoản" style={{ maxWidth: '100%', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                  ) : (
-                    viewOrder.status === 'approved' ? (
-                      <div style={{ textAlign: 'center', padding: '14px 8px' }}>
-                        <CheckCircle size={26} style={{ margin: '0 auto 6px', color: '#16a34a' }} />
-                        <div style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>
-                          Đơn hàng đã được duyệt
-                        </div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.4, maxWidth: 280, marginInline: 'auto' }}>
-                          Ảnh bill đã được dọn dẹp khỏi bộ nhớ lưu trữ để tối ưu dung lượng hệ thống.
-                        </div>
-                      </div>
-                    ) : viewOrder.status === 'rejected' ? (
-                      <div style={{ textAlign: 'center', padding: '14px 8px' }}>
-                        <XCircle size={26} style={{ margin: '0 auto 6px', color: '#e11d48' }} />
-                        <div style={{ fontSize: 13, fontWeight: 800, color: '#9f1239' }}>
-                          Đơn hàng đã bị từ chối
-                        </div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.4, maxWidth: 280, marginInline: 'auto' }}>
-                          Ảnh bill đã được dọn dẹp hoặc không có ảnh đính kèm.
-                        </div>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: 12.5, color: '#94a3b8', fontStyle: 'italic' }}>Khách hàng chưa tải lên ảnh bill</span>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Sticky Action Footer */}
-            <div style={{ padding: 16, borderTop: '1px solid #e2e8f0', background: '#ffffff', position: 'sticky', bottom: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {viewOrder.status === 'pending' && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => { setStatus(viewOrder.id, 'approved'); (detailVersion.current++, setViewOrder(null)); }}
-                    style={{
-                      flex: 1, padding: '11px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                      color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
-                      boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                    }}
-                  >
-                    <Check size={16} strokeWidth={3} /> Duyệt đơn
-                  </button>
-
-                  <button
-                    onClick={() => { setStatus(viewOrder.id, 'rejected'); (detailVersion.current++, setViewOrder(null)); }}
-                    style={{
-                      padding: '11px 16px', background: '#ffe4e6', color: '#e11d48',
-                      border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer'
-                    }}
-                  >
-                    Từ chối
-                  </button>
-                </div>
-              )}
-
-              <button
-                onClick={() => { remove(viewOrder.id); (detailVersion.current++, setViewOrder(null)); }}
-                style={{
-                  width: '100%', padding: '10px', background: '#ffffff', color: '#e11d48',
-                  border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer'
-                }}
-              >
-                Xóa đơn hàng này
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── MODAL DỌN DẸP ẢNH BILL CŨ ── */}
-      {isCleanModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div
-            onClick={() => !isCleaning && setIsCleanModalOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(3px)' }}
-          />
-          <div style={{
-            position: 'relative', width: '100%', maxWidth: 520, background: '#ffffff',
-            borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
-            overflow: 'hidden', zIndex: 251, display: 'flex', flexDirection: 'column'
-          }}>
-            {/* Modal Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#fff1f2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Trash2 size={22} />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0' }}>
-                    Xoá ảnh bill cũ
-                  </h3>
-                  <p style={{ fontSize: 12.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
-                    Giải phóng bộ nhớ Supabase Storage định kỳ
-                  </p>
-                </div>
-              </div>
-              <button
-                disabled={isCleaning}
-                onClick={() => setIsCleanModalOpen(false)}
-                style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {loadingBillStats ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px 0', gap: 12 }}>
-                  <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#e11d48' }} />
-                  <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Đang kiểm tra số lượng ảnh bill trên hệ thống...</span>
-                </div>
-              ) : billStats ? (
-                <>
-                  {/* Stats Summary Banner */}
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: '14px 16px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-                      TỔNG QUAN DUNG LƯỢNG BILL
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>
-                          {billStats.totalWithBills.toLocaleString()}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Ảnh bill đang lưu trữ</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <span style={{ padding: '6px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>
-                          Đã xử lý: {billStats.processedWithBills}
-                        </span>
-                        <span style={{ padding: '6px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
-                          Chờ duyệt: {billStats.pendingWithBills}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Scope Selection */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>
-                      Chọn phạm vi dọn dẹp:
-                    </div>
-
-                    {/* Option 1: Processed only (Recommended) */}
-                    <div
-                      onClick={() => !isCleaning && setCleanScope('processed_only')}
-                      style={{
-                        padding: '12px 14px', borderRadius: 14,
-                        border: cleanScope === 'processed_only' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                        background: cleanScope === 'processed_only' ? '#eff6ff' : '#ffffff',
-                        cursor: isCleaning ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <input
-                            type="radio"
-                            name="cleanScope"
-                            checked={cleanScope === 'processed_only'}
-                            onChange={() => setCleanScope('processed_only')}
-                            disabled={isCleaning}
-                            style={{ cursor: 'pointer' }}
-                          />
-                          <strong style={{ fontSize: 13, color: '#0f172a' }}>
-                            Chỉ xoá ảnh đơn đã xử lý ({billStats.processedWithBills} ảnh)
-                          </strong>
-                        </div>
-                        <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 8, background: '#3b82f6', color: '#ffffff' }}>
-                          KHUYÊN DÙNG
-                        </span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 12, color: '#64748b', paddingLeft: 24, lineHeight: 1.4 }}>
-                        Chỉ xoá ảnh của các đơn đã duyệt hoặc đã huỷ. Giữ lại {billStats.pendingWithBills} ảnh của đơn chờ duyệt để đối soát.
-                      </p>
-                    </div>
-
-                    {/* Option 2: All */}
-                    <div
-                      onClick={() => !isCleaning && setCleanScope('all')}
-                      style={{
-                        padding: '12px 14px', borderRadius: 14,
-                        border: cleanScope === 'all' ? '2px solid #e11d48' : '1px solid #e2e8f0',
-                        background: cleanScope === 'all' ? '#fff1f2' : '#ffffff',
-                        cursor: isCleaning ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <input
-                          type="radio"
-                          name="cleanScope"
-                          checked={cleanScope === 'all'}
-                          onChange={() => setCleanScope('all')}
-                          disabled={isCleaning}
-                          style={{ cursor: 'pointer' }}
-                        />
-                        <strong style={{ fontSize: 13, color: '#0f172a' }}>
-                          Xoá toàn bộ ảnh bill từ trước đến nay ({billStats.totalWithBills} ảnh)
-                        </strong>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 12, color: '#64748b', paddingLeft: 24, lineHeight: 1.4 }}>
-                        Xoá sạch 100% file ảnh bill trong kho lưu trữ, bao gồm cả các đơn đang chờ duyệt.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Safety Assurance Card */}
-                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <ShieldCheck size={20} style={{ color: '#16a34a', flexShrink: 0, marginTop: 2 }} />
-                    <div style={{ fontSize: 12, color: '#166534', lineHeight: 1.5 }}>
-                      <strong>Cam kết an toàn tuyệt đối:</strong> Quyền môn học của học viên và dữ liệu đơn hàng (doanh thu, mã đơn, trạng thái) được bảo toàn 100%. Khách đặt đơn mới sau này vẫn bắt buộc tải ảnh bình thường.
-                    </div>
-                  </div>
-                </>
-              ) : null}
-            </div>
-
-            {/* Modal Footer */}
-            <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', background: '#ffffff', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button
-                disabled={isCleaning}
-                onClick={() => setIsCleanModalOpen(false)}
-                style={{
-                  padding: '9px 16px', borderRadius: 12, border: '1.5px solid #cbd5e1',
-                  background: '#ffffff', fontSize: 13, fontWeight: 700, color: '#475569',
-                  cursor: isCleaning ? 'not-allowed' : 'pointer'
-                }}
-              >
-                Đóng
-              </button>
-
-              <button
-                disabled={isCleaning || loadingBillStats || !billStats || (cleanScope === 'processed_only' ? billStats.processedWithBills : billStats.totalWithBills) === 0}
-                onClick={handleCleanBills}
-                style={{
-                  padding: '9px 18px', borderRadius: 12, border: 'none',
-                  background: (cleanScope === 'processed_only' ? billStats?.processedWithBills : billStats?.totalWithBills) === 0
-                    ? '#cbd5e1'
-                    : 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
-                  color: '#ffffff', fontSize: 13, fontWeight: 800,
-                  cursor: isCleaning || (cleanScope === 'processed_only' ? billStats?.processedWithBills : billStats?.totalWithBills) === 0 ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: '0 4px 14px rgba(225, 29, 72, 0.3)'
-                }}
-              >
-                {isCleaning ? (
-                  <>
-                    <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Đang dọn dẹp...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={15} /> Xác nhận xoá ảnh
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+import { BrandLoader } from '@/components/common/BrandLoader';
+import { adminDateWindow } from '@/lib/adminDates';
+import { useCommerceSummary } from '@/hooks/useAdminAnalytics';
+import { AdminDataState } from '@/components/admin/AdminDataState';
+import { queryClient } from '@/lib/queryClient';
+import { readAdminRows } from '@/lib/adminRead';
+import React, { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+import { formatDate, formatPrice } from '@/lib/mockData';
+import {
+  Search, CheckCircle, XCircle, Trash2, Eye, X, Loader2, ShoppingBag,
+  Clock, TrendingUp, Download, Zap, Calendar, Filter, Image as ImageIcon,
+  Check, CreditCard, ChevronRight, FileText, ShieldCheck
+} from 'lucide-react';
+import { useApp } from '@/lib/AppContext';
+import { toast } from 'sonner';
+import { fetchBillStats, cleanBillImages, type BillStats, type CleanBillScope } from '@/lib/orderBillCleaner';
+
+type Order = Tables<'orders'>;
+
+const PAGE_SIZE = 50;
+
+type DateFilter = 'all' | 'today' | '7days' | '30days' | 'this_month';
+
+const DATE_OPTIONS: { key: DateFilter; label: string }[] = [
+  { key: 'all', label: 'Tất cả thời gian' },
+  { key: 'today', label: 'Hôm nay' },
+  { key: '7days', label: '7 ngày qua' },
+  { key: '30days', label: '30 ngày qua' },
+  { key: 'this_month', label: 'Tháng này' },
+];
+
+export default function AdminOrders() {
+  const { profile, refreshPendingOrdersCount } = useApp();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isTableLoading, setIsTableLoading] = useState(false);
+
+  // Search input & debounced search
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Status & Date Filters
+  const [filterStatus, setFilterStatus] = useState<'all' | Order['status']>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [showDateDropdown, setShowDateDropdown] = useState(false);
+
+  const [viewOrder, setViewOrder] = useState<Order | null>(null);
+  const [actioning, setActioning] = useState<string | null>(null);
+  const [billUrl, setBillUrl] = useState<string | null>(null);
+  const [orderItems, setOrderItems] = useState<{ id: string; subject_id: string; price: number; subject_name: string }[]>([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+
+  // Pagination
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  // Summary counts (always reflect full dataset, not just current page)
+  const summary = useCommerceSummary();
+  const pendingCount = summary.data?.pendingOrders;
+  const approvedCount = summary.data?.approved;
+  const totalRevenue = summary.data?.revenue;
+  const [listError, setListError] = useState<Error | null>(null);
+  const detailVersion = useRef(0);
+  const [detailError, setDetailError] = useState<Error | null>(null);
+
+  // Clean bill images state
+  const [isCleanModalOpen, setIsCleanModalOpen] = useState(false);
+  const [cleanScope, setCleanScope] = useState<CleanBillScope>('processed_only');
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [billStats, setBillStats] = useState<BillStats | null>(null);
+  const [loadingBillStats, setLoadingBillStats] = useState(false);
+
+  // Guard against race conditions from rapid responses
+  const latestRequestId = useRef(0);
+
+  // Debounce search input (350ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Keep latest filter values in a ref for realtime subscription without stale closure
+  const filterRef = useRef({ page, debouncedSearch, filterStatus, dateFilter });
+  useEffect(() => {
+    filterRef.current = { page, debouncedSearch, filterStatus, dateFilter };
+  }, [page, debouncedSearch, filterStatus, dateFilter]);
+
+  // Reset page to 0 when debounced search or filters change
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, filterStatus, dateFilter]);
+
+  const fetchPage = async (
+    pageNum = page,
+    searchVal = debouncedSearch,
+    statusVal = filterStatus,
+    dateVal = dateFilter
+  ) => {
+    const reqId = ++latestRequestId.current;
+    setIsTableLoading(true);
+
+    try {
+      const from = pageNum * PAGE_SIZE;
+      const to   = from + PAGE_SIZE - 1;
+
+      let query = supabase
+        .from('orders')
+        .select('id, created_at, final_amount, original_amount, discount_amount, discount_code, status, full_name, email, student_code, note, bill_image_url, reviewed_at, reviewed_by, order_items(subject_id, subjects(name, id))', { count: 'exact' })
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .range(from, to);
+
+      if (statusVal !== 'all') {
+        query = query.eq('status', statusVal);
+      }
+
+      const dateWindow = adminDateWindow(dateVal);
+      if (dateWindow) query = query.gte('created_at',dateWindow.start).lt('created_at',dateWindow.end);
+
+      // Sanitize search query to avoid PostgREST parsing errors
+      const cleanSearch = searchVal.trim().replace(/^#/, '').replace(/[,()%\\]/g, ' ').trim();
+      if (cleanSearch) {
+        query = query.or(
+          `full_name.ilike.%${cleanSearch}%,email.ilike.%${cleanSearch}%,student_code.ilike.%${cleanSearch}%,id.ilike.%${cleanSearch}%,note.ilike.%${cleanSearch}%`
+        );
+      }
+
+      const { data, count, error } = await query;
+
+      // Ignore stale responses
+      if (reqId !== latestRequestId.current) return;
+
+      if (error) {
+        setListError(new Error(error.message));
+      } else {
+        if (!data || count === null) throw new Error('Không nhận được đầy đủ danh sách và tổng số đơn.');
+        const lastPage = Math.max(0, Math.ceil(count / PAGE_SIZE) - 1);
+        if (pageNum > lastPage) { setPage(lastPage); return; }
+        setListError(null);
+        setOrders(data as unknown as Order[]);
+        setTotalCount(count ?? 0);
+      }
+    } catch (e) {
+      if (reqId === latestRequestId.current) setListError(e instanceof Error ? e : new Error(String(e)));
+    } finally {
+      if (reqId === latestRequestId.current) {
+        setIsTableLoading(false);
+        setInitialLoading(false);
+      }
+    }
+  };
+
+  // Fetch summary stats separately so they always cover the whole table
+  const fetchStats = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['admin', profile?.id] }, { cancelRefetch: false });
+  };
+
+  useEffect(() => {
+    fetchPage(page, debouncedSearch, filterStatus, dateFilter);
+  }, [page, debouncedSearch, filterStatus, dateFilter]);
+
+  useEffect(() => {
+    // Đăng ký nhận thông báo realtime với debounce để tránh spam query
+    let debounceTimer: any = null;
+    const channelId = `admin-orders-page-realtime-${Date.now()}`;
+    const channel = supabase
+      .channel(channelId)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            const cur = filterRef.current;
+            fetchPage(cur.page, cur.debouncedSearch, cur.filterStatus, cur.dateFilter);
+          }, 400);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const filtered = orders; // Filtering now handled server-side
+
+  const setStatus = async (id: string, status: 'approved' | 'rejected') => {
+    setActioning(id);
+    const { error } = await supabase.from('orders').update({
+      status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString(),
+    }).eq('id', id);
+
+    if (error) {
+      toast.error('Lỗi: ' + error.message);
+    } else {
+      toast.success(status === 'approved' ? 'Đã duyệt đơn hàng' : 'Đã từ chối đơn hàng');
+    }
+    if (!error) setViewOrder(v => v?.id === id ? { ...v, status } : v);
+    await fetchPage(page);
+    fetchStats();
+    refreshPendingOrdersCount();
+    setActioning(null);
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm('Xoá đơn hàng này? Nếu đơn hàng đã từng duyệt, quyền học của học viên sẽ được tự động thu hồi.')) return;
+
+    try {
+      // 1. Kiểm tra thông tin đơn hàng và các môn trước khi xoá
+      const { data: orderData, error: orderReadError } = await supabase
+        .from('orders')
+        .select('id, user_id, status, order_items(subject_id)')
+        .eq('id', id)
+        .single();
+      if (orderReadError) throw new Error(orderReadError.message);
+      if (!orderData) throw new Error('Không tìm thấy đơn hàng.');
+
+      if (orderData && orderData.status === 'approved' && orderData.order_items?.length) {
+        const subjectIds = (orderData.order_items as any[])
+          .map((item: any) => item.subject_id)
+          .filter(Boolean);
+
+        const revokeIds: string[] = [];
+        for (const subjId of subjectIds) {
+          // Kiểm tra xem user có đơn nào khác cũng đang approved môn này không
+          const { data: otherOrders, error: otherReadError } = await supabase
+            .from('orders')
+            .select('id, order_items!inner(subject_id)')
+            .eq('user_id', orderData.user_id)
+            .eq('status', 'approved')
+            .neq('id', id)
+            .eq('order_items.subject_id', subjId).limit(1);
+          if (otherReadError) throw new Error(otherReadError.message);
+          if (!otherOrders) throw new Error('Không xác minh được quyền truy cập.');
+
+          if (otherOrders.length === 0) revokeIds.push(subjId);
+        }
+        if (revokeIds.length) {
+          const {error: revokeError} = await supabase.from('user_subjects').delete().eq('user_id',orderData.user_id).in('subject_id',revokeIds);
+          if (revokeError) throw new Error(revokeError.message);
+        }
+      }
+
+      // 2. Xoá đơn hàng
+      const { error } = await supabase.from('orders').delete().eq('id', id);
+      if (error) {
+        toast.error('Lỗi khi xoá đơn hàng: ' + error.message);
+        return;
+      }
+      toast.success('Đã xoá đơn hàng và thu hồi quyền môn học');
+      fetchPage(page);
+      fetchStats();
+      refreshPendingOrdersCount();
+    } catch (e: any) {
+      toast.error('Lỗi xử lý xoá: ' + (e?.message || 'Có lỗi xảy ra'));
+    }
+  };
+
+  const openCleanBillsDialog = async () => {
+    setIsCleanModalOpen(true);
+    setLoadingBillStats(true);
+    try {
+      const stats = await fetchBillStats();
+      setBillStats(stats);
+    } catch (err: any) {
+      toast.error('Không thể lấy thống kê ảnh bill: ' + (err?.message || 'Có lỗi xảy ra'));
+    } finally {
+      setLoadingBillStats(false);
+    }
+  };
+
+  const handleCleanBills = async () => {
+    setIsCleaning(true);
+    try {
+      const result = await cleanBillImages({ scope: cleanScope });
+      toast.success(`Đã dọn dẹp thành công ${result.deletedFilesCount} file ảnh bill (${result.updatedOrdersCount} đơn hàng)!`);
+      setIsCleanModalOpen(false);
+      await fetchPage(page);
+      fetchStats();
+      setViewOrder(current => {
+        if (!current) return null;
+        if (cleanScope === 'all' || current.status !== 'pending') {
+          setBillUrl(null);
+          return { ...current, bill_image_url: null };
+        }
+        return current;
+      });
+    } catch (err: any) {
+      toast.error('Lỗi dọn dẹp ảnh bill: ' + (err?.message || 'Có lỗi xảy ra'));
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
+  const openDetail = async (order: Order) => {
+    const version = ++detailVersion.current;
+    setViewOrder(order); setBillUrl(null); setOrderItems([]); setLoadingItems(true); setDetailError(null);
+    try {
+      const [items, bill] = await Promise.all([
+        readAdminRows<{ id: string; subject_id: string; price: number; subjects: { name: string } | null }>(
+          'order_items', 'id, subject_id, price, subjects(name)', { order_id: order.id }),
+        order.bill_image_url ? supabase.storage.from('bill-images').createSignedUrl(order.bill_image_url, 300) : Promise.resolve(null),
+      ]);
+      if (version !== detailVersion.current) return;
+      if (bill?.error) throw new Error(bill.error.message);
+      setOrderItems(items.map(it => ({ ...it, price: Number(it.price), subject_name: it.subjects?.name ?? 'Môn không xác định' })));
+      setBillUrl(bill?.data?.signedUrl ?? null);
+    } catch (error) {
+      if (version === detailVersion.current) setDetailError(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+      if (version === detailVersion.current) setLoadingItems(false);
+    }
+  };
+
+  const statusBadge = (s: string) => {
+    if (s === 'pending')  return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>• Chờ duyệt</span>;
+    if (s === 'approved') return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>✓ Đã duyệt</span>;
+    return <span style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#ffe4e6', color: '#be123c', border: '1px solid #fecdd3', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>✕ Đã hủy</span>;
+  };
+
+  const avgOrderValue = summary.data ? (approvedCount ? Math.round(totalRevenue / approvedCount) : 0) : undefined;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  if (initialLoading) return <BrandLoader variant="page" label="Đang tải danh sách đơn hàng…" minHeight={450} />;
+
+  return (
+    <div className="admin-orders-container" style={{ width: '100%', boxSizing: 'border-box', background: '#f4f7fc', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif", color: '#0f172a' }}>
+      <AdminDataState query={summary} />
+      <AdminDataState query={{ isPending: false, error: listError, data: orders.length ? orders : undefined, refetch: () => fetchPage() }} />
+
+      
+      {/* Dynamic Responsive Styles */}
+      <style>{`
+        .admin-orders-container {
+          padding: 28px 32px;
+        }
+        .orders-desktop-table {
+          display: block;
+        }
+        .orders-mobile-cards {
+          display: none;
+        }
+        @media (max-width: 768px) {
+          .admin-orders-container {
+            padding: 16px 12px !important;
+          }
+          .orders-desktop-table {
+            display: none !important;
+          }
+          .orders-mobile-cards {
+            display: flex !important;
+            flex-direction: column;
+            gap: 14px;
+          }
+          .header-action-btns {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .header-action-btns button {
+            flex: 1;
+            justify-content: center;
+          }
+          .stat-cards-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+        }
+      `}</style>
+
+      {/* ── TOP HEADER AREA ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h1 style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.03em' }}>
+            Quản lý Đơn hàng
+          </h1>
+          <p style={{ fontSize: 13, color: '#64748b', margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+            Theo dõi, phê duyệt và quản lý các giao dịch của học viên TQMaster.
+          </p>
+        </div>
+
+        {/* Top Right Action Buttons */}
+        <div className="header-action-btns" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button
+            onClick={openCleanBillsDialog}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
+              borderRadius: 12, border: '1.5px solid #fecdd3', background: '#fff1f2',
+              fontSize: 12.5, fontWeight: 800, color: '#e11d48', cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.08)',
+              transition: 'all 0.15s ease'
+            }}
+            title="Dọn dẹp ảnh bill chuyển khoản cũ để tiết kiệm dung lượng lưu trữ"
+          >
+            <Trash2 size={15} /> Xoá ảnh bill cũ
+          </button>
+          <button style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
+            borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff',
+            fontSize: 12.5, fontWeight: 700, color: '#475569', cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+          }}>
+            <Download size={15} /> Xuất báo cáo
+          </button>
+
+          <button style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
+            borderRadius: 12, border: 'none',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: '#ffffff', fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+            boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)'
+          }}>
+            <Zap size={15} /> Thao tác nhanh
+          </button>
+        </div>
+      </div>
+
+      {/* ── 4 PASTEL STAT CARDS ── */}
+      <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+        
+        {/* Card 1: TỔNG ĐƠN HÀNG */}
+        <div style={{ background: '#f3eefd', border: '1px solid #ede9fe', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(139, 92, 246, 0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TỔNG ĐƠN</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShoppingBag size={16} />
+            </div>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
+            {totalCount.toLocaleString()}
+          </div>
+          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
+            📈 +12% tháng trước
+          </div>
+        </div>
+
+        {/* Card 2: ĐANG CHỜ DUYỆT */}
+        <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(217, 119, 6, 0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CHỜ DUYỆT</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              <Clock size={16} />
+              {pendingCount > 0 && (
+                <span style={{ position: 'absolute', top: -1, right: -1, width: 8, height: 8, borderRadius: '50%', background: '#e11d48', border: '2px solid #ffffff' }} />
+              )}
+            </div>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
+            {pendingCount ?? '—'}
+          </div>
+          <div style={{ fontSize: 11, color: '#e11d48', fontWeight: 800 }}>
+            {pendingCount === undefined ? 'Đang tải thống kê' : pendingCount > 0 ? '❗ Cần xử lý' : '✓ Đã xong'}
+          </div>
+        </div>
+
+        {/* Card 3: DOANH THU (THÁNG) */}
+        <div style={{ background: '#edf5ff', border: '1px solid #dbeafe', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(37, 99, 235, 0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>DOANH THU</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CreditCard size={16} />
+            </div>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
+            {totalRevenue === undefined ? '—' : formatPrice(totalRevenue)}
+          </div>
+          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700 }}>
+            Mọi thời gian · Đơn đã duyệt
+          </div>
+        </div>
+
+        {/* Card 4: GIÁ TRỊ TB ĐƠN */}
+        <div style={{ background: '#eafaf5', border: '1px solid #d1fae5', borderRadius: 20, padding: 18, boxShadow: '0 2px 10px rgba(5, 150, 105, 0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TB ĐƠN</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#ffffff', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={16} />
+            </div>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4, letterSpacing: '-0.02em' }}>
+            {avgOrderValue === undefined ? '—' : formatPrice(avgOrderValue)}
+          </div>
+          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>
+            Mọi thời gian · Đơn đã duyệt
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── FILTER TABS & SEARCH CONTROLS BAR ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        
+        {/* Status Filter Pills */}
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 4, maxWidth: '100%' }}>
+          {[
+            { key: 'all', label: 'Tất cả' },
+            { key: 'pending', label: 'Chờ duyệt' },
+            { key: 'approved', label: 'Đã duyệt' },
+            { key: 'rejected', label: 'Đã hủy' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setFilterStatus(tab.key as any)}
+              style={{
+                padding: '7px 16px', borderRadius: 20, border: '1px solid #cbd5e1',
+                fontSize: 12.5, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+                background: filterStatus === tab.key ? '#2563eb' : '#ffffff',
+                color: filterStatus === tab.key ? '#ffffff' : '#475569',
+                boxShadow: filterStatus === tab.key ? '0 3px 10px rgba(37, 99, 235, 0.25)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search & Filters */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', width: '100%', maxWidth: 480 }}>
+          {/* Search Box */}
+          <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <input
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              placeholder="Tìm tên, email, MSV, mã đơn..."
+              style={{
+                width: '100%', padding: '9px 34px 9px 36px', borderRadius: 12,
+                border: '1.5px solid #cbd5e1', fontSize: 13, outline: 'none', background: '#ffffff',
+                color: '#0f172a', boxSizing: 'border-box'
+              }}
+            />
+            {/* Search Clear Button or Spinner */}
+            <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+              {(isTableLoading || searchInput !== debouncedSearch) ? (
+                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+              ) : searchInput ? (
+                <button
+                  type="button"
+                  onClick={() => { setSearchInput(''); setDebouncedSearch(''); }}
+                  style={{
+                    background: '#e2e8f0', border: 'none', borderRadius: '50%',
+                    width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', padding: 0, color: '#475569'
+                  }}
+                  title="Xóa tìm kiếm"
+                >
+                  <X size={11} strokeWidth={3} />
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Date Filter Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setShowDateDropdown(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px',
+                borderRadius: 12,
+                border: dateFilter !== 'all' ? '1.5px solid #2563eb' : '1.5px solid #cbd5e1',
+                background: dateFilter !== 'all' ? '#eff6ff' : '#ffffff',
+                fontSize: 12.5, fontWeight: 700,
+                color: dateFilter !== 'all' ? '#2563eb' : '#475569',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+                boxShadow: dateFilter !== 'all' ? '0 2px 8px rgba(37, 99, 235, 0.15)' : 'none'
+              }}
+            >
+              <Calendar size={14} />
+              {DATE_OPTIONS.find(o => o.key === dateFilter)?.label || 'Thời gian'}
+            </button>
+
+            {showDateDropdown && (
+              <>
+                <div
+                  onClick={() => setShowDateDropdown(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: 90 }}
+                />
+                <div style={{
+                  position: 'absolute', right: 0, top: '100%', marginTop: 6,
+                  background: '#ffffff', borderRadius: 14, border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                  zIndex: 91, minWidth: 165, padding: 6, display: 'flex', flexDirection: 'column', gap: 2
+                }}>
+                  {DATE_OPTIONS.map(opt => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => {
+                        setDateFilter(opt.key);
+                        setShowDateDropdown(false);
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '8px 12px', borderRadius: 8, border: 'none',
+                        background: dateFilter === opt.key ? '#eff6ff' : 'transparent',
+                        color: dateFilter === opt.key ? '#2563eb' : '#334155',
+                        fontSize: 12.5, fontWeight: dateFilter === opt.key ? 800 : 600,
+                        cursor: 'pointer', textAlign: 'left', width: '100%'
+                      }}
+                    >
+                      <span>{opt.label}</span>
+                      {dateFilter === opt.key && <Check size={14} strokeWidth={3} />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Reset All Filters Button (shown only when active) */}
+          {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput('');
+                setDebouncedSearch('');
+                setFilterStatus('all');
+                setDateFilter('all');
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4, padding: '9px 12px',
+                borderRadius: 12, border: '1.5px dashed #fecdd3', background: '#fff1f2',
+                fontSize: 12, fontWeight: 800, color: '#e11d48', cursor: 'pointer', whiteSpace: 'nowrap'
+              }}
+              title="Đặt lại toàn bộ bộ lọc"
+            >
+              <X size={13} strokeWidth={2.5} /> Đặt lại
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── DESKTOP TABLE VIEW (With overflowX: 'auto' so it never cuts off) ── */}
+      <div className="orders-desktop-table">
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20, overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', position: 'relative' }}>
+          {/* Subtle loading indicator line */}
+          <div style={{
+            height: 3, width: '100%',
+            background: isTableLoading ? 'linear-gradient(90deg, #3b82f6 0%, #93c5fd 50%, #3b82f6 100%)' : 'transparent',
+            transition: 'background 0.2s ease'
+          }} />
+          <table style={{ width: '100%', minWidth: 780, borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>MÃ ĐƠN</th>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>HỌC VIÊN</th>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>NGÀY TẠO</th>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>SỐ TIỀN</th>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>TRẠNG THÁI</th>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em' }}>MINH CHỨNG</th>
+                <th style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'right' }}>THAO TÁC</th>
+              </tr>
+            </thead>
+            <tbody style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
+              {listError && !filtered.length ? null : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8', fontSize: 13 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <Filter size={24} style={{ opacity: 0.4 }} />
+                      <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
+                      {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchInput('');
+                            setDebouncedSearch('');
+                            setFilterStatus('all');
+                            setDateFilter('all');
+                          }}
+                          style={{
+                            marginTop: 4, padding: '6px 14px', borderRadius: 10,
+                            border: '1px solid #cbd5e1', background: '#ffffff',
+                            color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          Đặt lại tất cả bộ lọc
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : filtered.map((order) => {
+                const avatarInitials = (order.full_name || 'U').slice(0, 2).toUpperCase();
+
+                return (
+                  <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                    {/* Order ID */}
+                    <td style={{ padding: '14px 18px', fontWeight: 900, color: '#2563eb', fontFamily: 'monospace', fontSize: 13 }}>
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </td>
+
+                    {/* Student Info */}
+                    <td style={{ padding: '14px 18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 36, height: 36, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 900,
+                          flexShrink: 0
+                        }}>
+                          {avatarInitials}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 13 }}>{order.full_name}</div>
+                          <div style={{ fontSize: 11, color: '#64748b' }}>{order.email}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Created At */}
+                    <td style={{ padding: '14px 18px', color: '#64748b', fontSize: 12.5 }}>
+                      {formatDate(order.created_at)}
+                    </td>
+
+                    {/* Amount */}
+                    <td style={{ padding: '14px 18px', fontWeight: 900, color: '#0f172a', fontSize: 13.5 }}>
+                      {formatPrice(Number(order.final_amount))}
+                    </td>
+
+                    {/* Status Badge */}
+                    <td style={{ padding: '14px 18px' }}>
+                      {statusBadge(order.status)}
+                    </td>
+
+                    {/* Bill Proof Button */}
+                    <td style={{ padding: '14px 18px' }}>
+                      {order.bill_image_url ? (
+                        <button
+                          onClick={() => openDetail(order)}
+                          style={{
+                            border: 'none', background: '#eff6ff', color: '#2563eb',
+                            padding: '5px 10px', borderRadius: 8, fontSize: 11.5, fontWeight: 800,
+                            cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap'
+                          }}
+                        >
+                          <ImageIcon size={13} /> Xem Bill
+                        </button>
+                      ) : (
+                        order.status === 'approved' ? (
+                          <span style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <CheckCircle size={13} /> Đã dọn bill
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 11.5, color: '#94a3b8', fontStyle: 'italic' }}>Không có ảnh</span>
+                        )
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        {order.status === 'pending' && (
+                          <button
+                            disabled={actioning === order.id}
+                            onClick={() => setStatus(order.id, 'approved')}
+                            style={{
+                              padding: '6px 12px', borderRadius: 10, border: 'none',
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                              color: '#ffffff', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                              boxShadow: '0 3px 8px rgba(37, 99, 235, 0.25)',
+                              display: 'flex', alignItems: 'center', gap: 4
+                            }}
+                          >
+                            {actioning === order.id ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={12} strokeWidth={3} />}
+                            Duyệt
+                          </button>
+                        )}
+
+                        {order.status === 'pending' && (
+                          <button
+                            disabled={actioning === order.id}
+                            onClick={() => setStatus(order.id, 'rejected')}
+                            style={{
+                              padding: '6px 10px', borderRadius: 10, border: '1px solid #fecdd3',
+                              background: '#ffe4e6', color: '#e11d48', fontSize: 12, fontWeight: 800, cursor: 'pointer'
+                            }}
+                          >
+                            Hủy
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => openDetail(order)}
+                          style={{
+                            width: 30, height: 30, borderRadius: 8, border: '1.5px solid #cbd5e1',
+                            background: '#ffffff', color: '#475569', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}
+                          title="Xem chi tiết"
+                        >
+                          <Eye size={14} />
+                        </button>
+
+                        <button
+                          onClick={() => remove(order.id)}
+                          style={{
+                            width: 30, height: 30, borderRadius: 8, border: '1px solid #fecdd3',
+                            background: '#fff1f2', color: '#e11d48', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}
+                          title="Xóa đơn hàng"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── MOBILE CARDS VIEW (Clean, High-contrast responsive list) ── */}
+      <div className="orders-mobile-cards" style={{ opacity: isTableLoading ? 0.6 : 1, transition: 'opacity 0.2s ease' }}>
+        {listError && !filtered.length ? null : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#ffffff', borderRadius: 20, border: '1px solid #e2e8f0', color: '#94a3b8', fontSize: 13, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Filter size={24} style={{ opacity: 0.4 }} />
+            <span>Không tìm thấy đơn hàng nào phù hợp với bộ lọc</span>
+            {(searchInput || filterStatus !== 'all' || dateFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput('');
+                  setDebouncedSearch('');
+                  setFilterStatus('all');
+                  setDateFilter('all');
+                }}
+                style={{
+                  marginTop: 4, padding: '6px 14px', borderRadius: 10,
+                  border: '1px solid #cbd5e1', background: '#ffffff',
+                  color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                }}
+              >
+                Đặt lại tất cả bộ lọc
+              </button>
+            )}
+          </div>
+        ) : filtered.map(order => {
+          const avatarInitials = (order.full_name || 'U').slice(0, 2).toUpperCase();
+
+          return (
+            <div
+              key={order.id}
+              style={{
+                background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 20,
+                padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: 12
+              }}
+            >
+              {/* Header: Student Info & Status */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: '50%', background: '#eff6ff', color: '#2563eb',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900,
+                    flexShrink: 0
+                  }}>
+                    {avatarInitials}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {order.full_name}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {order.email}
+                    </div>
+                  </div>
+                </div>
+                {statusBadge(order.status)}
+              </div>
+
+              {/* Detail row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderTop: '1px dashed #e2e8f0', borderBottom: '1px dashed #e2e8f0' }}>
+                <div>
+                  <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>MÃ ĐƠN</div>
+                  <div style={{ fontFamily: 'monospace', fontWeight: 900, color: '#2563eb', fontSize: 13 }}>
+                    #{order.id.slice(0, 8).toUpperCase()}
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600 }}>SỐ TIỀN</div>
+                  <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 14 }}>
+                    {formatPrice(Number(order.final_amount))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Date & Actions */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                <span style={{ fontSize: 11.5, color: '#64748b' }}>{formatDate(order.created_at)}</span>
+
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  {order.bill_image_url && (
+                    <button
+                      onClick={() => openDetail(order)}
+                      style={{
+                        border: 'none', background: '#eff6ff', color: '#2563eb',
+                        padding: '6px 10px', borderRadius: 8, fontSize: 11.5, fontWeight: 800,
+                        cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4
+                      }}
+                    >
+                      <ImageIcon size={13} /> Bill
+                    </button>
+                  )}
+
+                  {order.status === 'pending' && (
+                    <button
+                      disabled={actioning === order.id}
+                      onClick={() => setStatus(order.id, 'approved')}
+                      style={{
+                        padding: '6px 12px', borderRadius: 8, border: 'none',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        color: '#ffffff', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 4
+                      }}
+                    >
+                      {actioning === order.id ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={12} strokeWidth={3} />}
+                      Duyệt
+                    </button>
+                  )}
+
+                  {order.status === 'pending' && (
+                    <button
+                      disabled={actioning === order.id}
+                      onClick={() => setStatus(order.id, 'rejected')}
+                      style={{
+                        padding: '6px 10px', borderRadius: 8, border: '1px solid #fecdd3',
+                        background: '#ffe4e6', color: '#e11d48', fontSize: 12, fontWeight: 800, cursor: 'pointer'
+                      }}
+                    >
+                      Hủy
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => openDetail(order)}
+                    style={{
+                      width: 30, height: 30, borderRadius: 8, border: '1.5px solid #cbd5e1',
+                      background: '#ffffff', color: '#475569', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Chi tiết"
+                  >
+                    <Eye size={14} />
+                  </button>
+
+                  <button
+                    onClick={() => remove(order.id)}
+                    style={{
+                      width: 30, height: 30, borderRadius: 8, border: '1px solid #fecdd3',
+                      background: '#fff1f2', color: '#e11d48', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Xóa đơn"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── PAGINATION CONTROLS ── */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, padding: '12px 16px', background: '#ffffff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+          <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+            Trang {page + 1} / {totalPages} &nbsp;·&nbsp; {totalCount.toLocaleString()} đơn hàng
+          </span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0 || isTableLoading}
+              style={{ padding: '7px 14px', borderRadius: 10, border: '1.5px solid #cbd5e1', background: page === 0 ? '#f8fafc' : '#ffffff', color: page === 0 ? '#94a3b8' : '#0f172a', fontWeight: 800, fontSize: 13, cursor: page === 0 ? 'default' : 'pointer' }}
+            >
+              ← Trước
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1 || isTableLoading}
+              style={{ padding: '7px 14px', borderRadius: 10, border: 'none', background: page >= totalPages - 1 ? '#f8fafc' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: page >= totalPages - 1 ? '#94a3b8' : '#ffffff', fontWeight: 800, fontSize: 13, cursor: page >= totalPages - 1 ? 'default' : 'pointer', boxShadow: page >= totalPages - 1 ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)' }}
+            >
+              Sau →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── ORDER DETAIL & BILL SLIDE PANEL ── */}
+      {viewOrder && (
+        <>
+          <div onClick={() => (detailVersion.current++, setViewOrder(null))} style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', zIndex: 200, backdropFilter: 'blur(3px)' }} />
+          <div style={{
+            position: 'fixed', right: 0, top: 0, bottom: 0,
+            width: 'min(450px, 100vw)', background: '#ffffff',
+            boxShadow: '-10px 0 30px rgba(0,0,0,0.15)', zIndex: 201,
+            display: 'flex', flexDirection: 'column', overflowY: 'auto'
+          }}>
+            <AdminDataState query={{isPending:false,error:detailError,refetch:()=>openDetail(viewOrder)}} />
+            {/* Drawer Header */}
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#ffffff', zIndex: 2 }}>
+              <div>
+                <h2 style={{ fontSize: 17, fontWeight: 900, color: '#0f172a', margin: '0 0 2px 0' }}>
+                  Chi tiết đơn hàng
+                </h2>
+                <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 800, fontFamily: 'monospace' }}>
+                  #{viewOrder.id}
+                </div>
+              </div>
+              <button onClick={() => (detailVersion.current++, setViewOrder(null))} style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Drawer Content */}
+            <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { label: 'Họ tên học viên', value: viewOrder.full_name },
+                { label: 'Email', value: viewOrder.email },
+                { label: 'Mã sinh viên', value: viewOrder.student_code || 'Chưa cập nhật' },
+                { label: 'Thời gian tạo đơn', value: formatDate(viewOrder.created_at) },
+                { label: 'Số tiền gốc', value: formatPrice(viewOrder.original_amount) },
+                { label: 'Giảm giá', value: formatPrice(viewOrder.discount_amount) },
+                { label: 'Thành tiền', value: formatPrice(viewOrder.final_amount) },
+              ].map(row => (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                  <span style={{ color: '#64748b', fontWeight: 500 }}>{row.label}</span>
+                  <strong style={{ color: '#0f172a', fontWeight: 800, textAlign: 'right' }}>{row.value}</strong>
+                </div>
+              ))}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>Trạng thái đơn</span>
+                {statusBadge(viewOrder.status)}
+              </div>
+
+              {/* Order Items */}
+              <div style={{ marginTop: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 8, textTransform: 'uppercase' }}>
+                  DANH SÁCH MÔN HỌC ({orderItems.length})
+                </div>
+
+                {detailError ? null : loadingItems ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontSize: 13, padding: 12 }}>
+                    <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Đang tải dữ liệu môn...
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {orderItems.map((item, idx) => (
+                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#f8fafc', borderRadius: 12, border: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+                          <span style={{ width: 20, height: 20, borderRadius: 6, background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{idx + 1}</span>
+                          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.subject_name}</span>
+                        </div>
+                        <span style={{ fontWeight: 800, color: '#2563eb', fontSize: 13, flexShrink: 0, marginLeft: 8 }}>{formatPrice(item.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Bill Image View */}
+              <div style={{ marginTop: 6 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', marginBottom: 8, textTransform: 'uppercase' }}>
+                  ẢNH BILL CHUYỂN KHOẢN
+                </div>
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 8 }}>
+                  {billUrl ? (
+                    <img src={billUrl} alt="Bill chuyển khoản" style={{ maxWidth: '100%', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                  ) : (
+                    viewOrder.status === 'approved' ? (
+                      <div style={{ textAlign: 'center', padding: '14px 8px' }}>
+                        <CheckCircle size={26} style={{ margin: '0 auto 6px', color: '#16a34a' }} />
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>
+                          Đơn hàng đã được duyệt
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.4, maxWidth: 280, marginInline: 'auto' }}>
+                          Ảnh bill đã được dọn dẹp khỏi bộ nhớ lưu trữ để tối ưu dung lượng hệ thống.
+                        </div>
+                      </div>
+                    ) : viewOrder.status === 'rejected' ? (
+                      <div style={{ textAlign: 'center', padding: '14px 8px' }}>
+                        <XCircle size={26} style={{ margin: '0 auto 6px', color: '#e11d48' }} />
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#9f1239' }}>
+                          Đơn hàng đã bị từ chối
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.4, maxWidth: 280, marginInline: 'auto' }}>
+                          Ảnh bill đã được dọn dẹp hoặc không có ảnh đính kèm.
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12.5, color: '#94a3b8', fontStyle: 'italic' }}>Khách hàng chưa tải lên ảnh bill</span>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Action Footer */}
+            <div style={{ padding: 16, borderTop: '1px solid #e2e8f0', background: '#ffffff', position: 'sticky', bottom: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {viewOrder.status === 'pending' && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => { setStatus(viewOrder.id, 'approved'); (detailVersion.current++, setViewOrder(null)); }}
+                    style={{
+                      flex: 1, padding: '11px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
+                      boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                    }}
+                  >
+                    <Check size={16} strokeWidth={3} /> Duyệt đơn
+                  </button>
+
+                  <button
+                    onClick={() => { setStatus(viewOrder.id, 'rejected'); (detailVersion.current++, setViewOrder(null)); }}
+                    style={{
+                      padding: '11px 16px', background: '#ffe4e6', color: '#e11d48',
+                      border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer'
+                    }}
+                  >
+                    Từ chối
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={() => { remove(viewOrder.id); (detailVersion.current++, setViewOrder(null)); }}
+                style={{
+                  width: '100%', padding: '10px', background: '#ffffff', color: '#e11d48',
+                  border: '1px solid #fecdd3', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer'
+                }}
+              >
+                Xóa đơn hàng này
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── MODAL DỌN DẸP ẢNH BILL CŨ ── */}
+      {isCleanModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div
+            onClick={() => !isCleaning && setIsCleanModalOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(3px)' }}
+          />
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 520, background: '#ffffff',
+            borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
+            overflow: 'hidden', zIndex: 251, display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Modal Header */}
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#fff1f2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Trash2 size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0' }}>
+                    Xoá ảnh bill cũ
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
+                    Giải phóng bộ nhớ Supabase Storage định kỳ
+                  </p>
+                </div>
+              </div>
+              <button
+                disabled={isCleaning}
+                onClick={() => setIsCleanModalOpen(false)}
+                style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {loadingBillStats ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px 0', gap: 12 }}>
+                  <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#e11d48' }} />
+                  <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Đang kiểm tra số lượng ảnh bill trên hệ thống...</span>
+                </div>
+              ) : billStats ? (
+                <>
+                  {/* Stats Summary Banner */}
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: '14px 16px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                      TỔNG QUAN DUNG LƯỢNG BILL
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>
+                          {billStats.totalWithBills.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Ảnh bill đang lưu trữ</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <span style={{ padding: '6px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                          Đã xử lý: {billStats.processedWithBills}
+                        </span>
+                        <span style={{ padding: '6px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                          Chờ duyệt: {billStats.pendingWithBills}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scope Selection */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>
+                      Chọn phạm vi dọn dẹp:
+                    </div>
+
+                    {/* Option 1: Processed only (Recommended) */}
+                    <div
+                      onClick={() => !isCleaning && setCleanScope('processed_only')}
+                      style={{
+                        padding: '12px 14px', borderRadius: 14,
+                        border: cleanScope === 'processed_only' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                        background: cleanScope === 'processed_only' ? '#eff6ff' : '#ffffff',
+                        cursor: isCleaning ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="radio"
+                            name="cleanScope"
+                            checked={cleanScope === 'processed_only'}
+                            onChange={() => setCleanScope('processed_only')}
+                            disabled={isCleaning}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <strong style={{ fontSize: 13, color: '#0f172a' }}>
+                            Chỉ xoá ảnh đơn đã xử lý ({billStats.processedWithBills} ảnh)
+                          </strong>
+                        </div>
+                        <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 8, background: '#3b82f6', color: '#ffffff' }}>
+                          KHUYÊN DÙNG
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: '#64748b', paddingLeft: 24, lineHeight: 1.4 }}>
+                        Chỉ xoá ảnh của các đơn đã duyệt hoặc đã huỷ. Giữ lại {billStats.pendingWithBills} ảnh của đơn chờ duyệt để đối soát.
+                      </p>
+                    </div>
+
+                    {/* Option 2: All */}
+                    <div
+                      onClick={() => !isCleaning && setCleanScope('all')}
+                      style={{
+                        padding: '12px 14px', borderRadius: 14,
+                        border: cleanScope === 'all' ? '2px solid #e11d48' : '1px solid #e2e8f0',
+                        background: cleanScope === 'all' ? '#fff1f2' : '#ffffff',
+                        cursor: isCleaning ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <input
+                          type="radio"
+                          name="cleanScope"
+                          checked={cleanScope === 'all'}
+                          onChange={() => setCleanScope('all')}
+                          disabled={isCleaning}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <strong style={{ fontSize: 13, color: '#0f172a' }}>
+                          Xoá toàn bộ ảnh bill từ trước đến nay ({billStats.totalWithBills} ảnh)
+                        </strong>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: '#64748b', paddingLeft: 24, lineHeight: 1.4 }}>
+                        Xoá sạch 100% file ảnh bill trong kho lưu trữ, bao gồm cả các đơn đang chờ duyệt.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Safety Assurance Card */}
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <ShieldCheck size={20} style={{ color: '#16a34a', flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ fontSize: 12, color: '#166534', lineHeight: 1.5 }}>
+                      <strong>Cam kết an toàn tuyệt đối:</strong> Quyền môn học của học viên và dữ liệu đơn hàng (doanh thu, mã đơn, trạng thái) được bảo toàn 100%. Khách đặt đơn mới sau này vẫn bắt buộc tải ảnh bình thường.
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', background: '#ffffff', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                disabled={isCleaning}
+                onClick={() => setIsCleanModalOpen(false)}
+                style={{
+                  padding: '9px 16px', borderRadius: 12, border: '1.5px solid #cbd5e1',
+                  background: '#ffffff', fontSize: 13, fontWeight: 700, color: '#475569',
+                  cursor: isCleaning ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Đóng
+              </button>
+
+              <button
+                disabled={isCleaning || loadingBillStats || !billStats || (cleanScope === 'processed_only' ? billStats.processedWithBills : billStats.totalWithBills) === 0}
+                onClick={handleCleanBills}
+                style={{
+                  padding: '9px 18px', borderRadius: 12, border: 'none',
+                  background: (cleanScope === 'processed_only' ? billStats?.processedWithBills : billStats?.totalWithBills) === 0
+                    ? '#cbd5e1'
+                    : 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
+                  color: '#ffffff', fontSize: 13, fontWeight: 800,
+                  cursor: isCleaning || (cleanScope === 'processed_only' ? billStats?.processedWithBills : billStats?.totalWithBills) === 0 ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  boxShadow: '0 4px 14px rgba(225, 29, 72, 0.3)'
+                }}
+              >
+                {isCleaning ? (
+                  <>
+                    <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Đang dọn dẹp...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={15} /> Xác nhận xoá ảnh
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

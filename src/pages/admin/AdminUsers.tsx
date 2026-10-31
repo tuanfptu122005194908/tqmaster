@@ -1,1168 +1,1165 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
-import { loadAdminUsers, type AdminUserRow } from '@/lib/adminUsers';
-import { RetryNotice } from '@/components/common/RetryNotice';
-import {
-  Users, UserPlus, ShieldCheck, BookOpen, Search, Trash2, Shield,
-  ShieldOff, Loader2, X, Plus, ChevronLeft, ChevronRight, Check, Sparkles, Filter,
-  Mail, Download, Copy, FileText, RefreshCw
-} from 'lucide-react';
-import { toast } from 'sonner';
-
-type Subject  = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
-type UserRow = AdminUserRow;
-
-const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '10px 14px',
-  border: '1.5px solid #cbd5e1', borderRadius: 12,
-  fontSize: '0.875rem', outline: 'none', background: '#ffffff',
-  color: '#0f172a',
-};
-
-export default function AdminUsers() {
-  const [rows,     setRows]     = useState<UserRow[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const loadVersion = useRef(0);
-  const [search,   setSearch]   = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
-  
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
-
-  // Modals
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [savingAdd, setSavingAdd] = useState(false);
-  const [addForm, setAddForm] = useState({
-    fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user'
-  });
-
-  const [subjectUserModal, setSubjectUserModal] = useState<UserRow | null>(null);
-  const [subjSearch, setSubjSearch] = useState('');
-
-  // Export Emails Modal states
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [exportScope, setExportScope] = useState<'all' | 'filtered'>('all');
-  const [exportSeparator, setExportSeparator] = useState<'newline' | 'comma'>('newline');
-  const [copiedState, setCopiedState] = useState(false);
-
-  const fetch = useCallback(async () => {
-    const version = ++loadVersion.current;
-    setLoading(true);
-    setLoadError(null);
-    setSubjectUserModal(null);
-    try {
-      const data = await loadAdminUsers();
-      if (version !== loadVersion.current) return;
-      setRows(data.rows);
-      setSubjects(data.subjects);
-    } catch (err: unknown) {
-      console.error('Error fetching users:', err);
-      if (version === loadVersion.current) {
-        setLoadError(err instanceof Error ? err.message : 'Không thể tải danh sách người dùng.');
-      }
-    } finally {
-      if (version === loadVersion.current) setLoading(false);
-    }
-  }, []);
-
-
-  useEffect(() => {
-    void fetch();
-    return () => { loadVersion.current++; };
-  }, [fetch]);
-
-  const filteredRows = useMemo(() => {
-    return rows.filter(u => {
-      const q = search.toLowerCase();
-      const matchSearch = !q || (u.username ?? '').toLowerCase().includes(q) || (u.email ?? '').toLowerCase().includes(q) || (u.full_name ?? '').toLowerCase().includes(q) || (u.student_code ?? '').toLowerCase().includes(q);
-      const isAdmin = u.roles.includes('admin');
-      const matchRole = roleFilter === 'all' || (roleFilter === 'admin' && isAdmin) || (roleFilter === 'user' && !isAdmin);
-      return matchSearch && matchRole;
-    });
-  }, [rows, search, roleFilter]);
-
-  const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredRows.slice(start, start + pageSize);
-  }, [filteredRows, currentPage, pageSize]);
-
-  // Trích xuất danh sách email nguyên vẹn, hợp lệ và khử trùng lặp
-  const targetExportUsers = exportScope === 'all' ? rows : filteredRows;
-  const exportedEmails = useMemo(() => {
-    const list: string[] = [];
-    const seen = new Set<string>();
-    targetExportUsers.forEach(u => {
-      const email = (u.email || '').trim();
-      if (email && email.includes('@') && !seen.has(email.toLowerCase())) {
-        seen.add(email.toLowerCase());
-        list.push(email);
-      }
-    });
-    return list;
-  }, [targetExportUsers]);
-
-  const handleCopyEmails = async () => {
-    if (exportedEmails.length === 0) return;
-    const delimiter = exportSeparator === 'newline' ? '\n' : ', ';
-    const text = exportedEmails.join(delimiter);
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedState(true);
-      setTimeout(() => setCopiedState(false), 2000);
-    } catch (e) {
-      console.error('Failed to copy emails', e);
-      alert('Không thể sao chép vào bộ nhớ tạm!');
-    }
-  };
-
-  const handleDownloadTxt = () => {
-    if (exportedEmails.length === 0) return;
-    const content = exportedEmails.join('\n');
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const dateStr = new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.download = `danh_sach_email_${exportScope}_${dateStr}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadCsv = () => {
-    if (exportedEmails.length === 0) return;
-    const content = '\uFEFFEmail\n' + exportedEmails.map(e => `"${e.replace(/"/g, '""')}"`).join('\n');
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const dateStr = new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.download = `danh_sach_email_${exportScope}_${dateStr}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  // Quick stats
-  const totalUsers = rows.length;
-  const newThisMonth = useMemo(() => {
-    const now = new Date();
-    return rows.filter(r => {
-      const d = new Date(r.created_at);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
-  }, [rows]);
-  const totalAdmins = useMemo(() => rows.filter(r => r.roles.includes('admin')).length, [rows]);
-  const totalGrantedSubjects = useMemo(() => rows.reduce((s, r) => s + r.subjectIds.length, 0), [rows]);
-
-  const toggleRole = async (userId: string, isAdmin: boolean) => {
-    if (isAdmin) {
-      await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', 'admin');
-    } else {
-      await supabase.from('user_roles').insert({ user_id: userId, role: 'admin' });
-    }
-    fetch();
-  };
-
-  const toggleSubject = async (userId: string, subjectId: string, hasIt: boolean) => {
-    if (loading || loadError) return;
-    if (hasIt) {
-      const { error } = await supabase.from('user_subjects').delete().eq('user_id', userId).eq('subject_id', subjectId);
-      if (error) { alert('Không thể gỡ quyền: ' + error.message); return; }
-    } else {
-      const { error } = await supabase
-        .from('user_subjects')
-        .upsert({ user_id: userId, subject_id: subjectId, granted_by: 'admin' }, { onConflict: 'user_id,subject_id' });
-      if (error) { alert('Không thể cấp quyền: ' + error.message); return; }
-    }
-
-    // Update local state for responsiveness
-    setRows(prev => prev.map(u => {
-      if (u.id === userId) {
-        const newSubjs = hasIt ? u.subjectIds.filter(id => id !== subjectId) : [...u.subjectIds, subjectId];
-        return { ...u, subjectIds: newSubjs };
-      }
-      return u;
-    }));
-    if (subjectUserModal && subjectUserModal.id === userId) {
-      setSubjectUserModal(prev => prev ? ({
-        ...prev,
-        subjectIds: hasIt ? prev.subjectIds.filter(id => id !== subjectId) : [...prev.subjectIds, subjectId]
-      }) : null);
-    }
-  };
-
-  const deleteUser = async (userId: string) => {
-    if (!confirm('Bạn có chắc muốn xóa tài khoản này? Toàn bộ dữ liệu sẽ bị xóa vĩnh viễn.')) return;
-    const { error } = await supabase.rpc('delete_user_by_admin', { target_user_id: userId });
-    if (error) {
-      alert('Lỗi: Không thể xoá người dùng. ' + error.message);
-    } else {
-      fetch();
-    }
-  };
-
-  const handleAddUser = async () => {
-    if (!addForm.email.trim() || !addForm.password.trim() || !addForm.username.trim()) {
-      alert('Vui lòng điền đầy đủ email, username và mật khẩu!');
-      return;
-    }
-    setSavingAdd(true);
-    try {
-      // Call admin-create-user Edge Function with Service Role permissions
-      const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: {
-          email: addForm.email.trim(),
-          password: addForm.password.trim(),
-          username: addForm.username.trim(),
-          fullName: addForm.fullName.trim(),
-          studentCode: addForm.studentCode.trim(),
-          role: addForm.role,
-        },
-      });
-
-      if (error || data?.error) {
-        throw new Error(data?.error || error?.message || 'Không thể tạo tài khoản');
-      }
-
-      alert('Tạo tài khoản thành công!');
-      setShowAddModal(false);
-      setAddForm({ fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user' });
-      fetch();
-    } catch (err: unknown) {
-      alert('Lỗi tạo tài khoản: ' + (err instanceof Error ? err.message : 'Không thể tạo tài khoản'));
-    } finally {
-      setSavingAdd(false);
-    }
-  };
-
-  const [repairingAccess, setRepairingAccess] = useState(false);
-
-  const handleRepairSubjectAccess = async () => {
-    if (!window.confirm('Hệ thống sẽ đối soát toàn bộ các đơn hàng ĐÃ DUYỆT (approved) và tự động cấp bù quyền nếu có học viên bị thiếu môn học. Bạn có chắc muốn tiến hành?')) {
-      return;
-    }
-
-    setRepairingAccess(true);
-    try {
-      const { data, error } = await supabase.rpc('repair_subject_access_by_admin');
-      if (error) throw new Error(error.message);
-
-      const res = data as { success?: boolean; restored_grants_count?: number; affected_users_count?: number } | null;
-      const restored = res?.restored_grants_count ?? 0;
-      const users = res?.affected_users_count ?? 0;
-
-      if (restored > 0) {
-        toast.success(`Đã khôi phục thành công ${restored} môn học cho ${users} học viên!`);
-      } else {
-        toast.info('Tất cả học viên có đơn hàng đã duyệt đều đã có đầy đủ quyền môn học.');
-      }
-      await fetch();
-    } catch (err: unknown) {
-      console.error('Error repairing subject access:', err);
-      toast.error('Lỗi khi đồng bộ quyền: ' + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setRepairingAccess(false);
-    }
-  };
-
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, background: '#f4f7fc' }}>
-      <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-    </div>
-  );
-
-  if (loadError) return (
-    <div style={{ padding: 28, background: '#f4f7fc', minHeight: '100vh' }}>
-      <RetryNotice message="Chưa tải đầy đủ dữ liệu người dùng và quyền môn học. Vui lòng thử lại." onRetry={fetch} />
-    </div>
-  );
-
-  return (
-    <div className="admin-users-container" style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      
-      {/* ── Page Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 6px 0' }}>
-            Quản lý người dùng
-          </h1>
-          <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
-            Quản lý danh sách thành viên, phân quyền và giám sát môn học.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <button
-            onClick={handleRepairSubjectAccess}
-            disabled={repairingAccess}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
-              background: '#ffffff', color: '#1e293b', border: '1.5px solid #cbd5e1',
-              borderRadius: 14, fontSize: 13.5, fontWeight: 700,
-              cursor: repairingAccess ? 'not-allowed' : 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              opacity: repairingAccess ? 0.7 : 1,
-              transition: 'all 0.15s ease'
-            }}
-            title="Quét các đơn hàng đã duyệt và cấp bù quyền môn học nếu đang bị thiếu"
-          >
-            {repairingAccess ? (
-              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-            ) : (
-              <RefreshCw size={16} color="#059669" />
-            )}
-            {repairingAccess ? 'Đang đồng bộ…' : 'Đồng bộ quyền đơn hàng'}
-          </button>
-
-          <button
-            onClick={() => setShowExportModal(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
-              background: '#ffffff', color: '#1e293b', border: '1.5px solid #cbd5e1',
-              borderRadius: 14, fontSize: 13.5, fontWeight: 700,
-              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <Mail size={16} color="#2563eb" /> Xuất email ({rows.length})
-          </button>
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-              color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
-              cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
-              transition: 'transform 0.15s ease'
-            }}
-          >
-            <UserPlus size={18} /> Thêm thành viên
-          </button>
-        </div>
-      </div>
-
-      {/* ── TOP 4 PASTEL STAT CARDS GRID ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-        gap: 18,
-        marginBottom: 24,
-      }}>
-        {/* Card 1: Tổng người dùng */}
-        <div style={{
-          background: '#edf5ff',
-          borderRadius: 20,
-          padding: '20px 22px',
-          border: '1px solid #dbeafe',
-          boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#2563eb', boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)'
-            }}>
-              <Users size={20} />
-            </div>
-            <span style={{ padding: '3px 8px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontSize: 11, fontWeight: 800 }}>
-              +12%
-            </span>
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
-            Tổng người dùng
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {totalUsers.toLocaleString()}
-          </div>
-        </div>
-
-        {/* Card 2: Học viên mới (tháng này) */}
-        <div style={{
-          background: '#f3eefd',
-          borderRadius: 20,
-          padding: '20px 22px',
-          border: '1px solid #ede9fe',
-          boxShadow: '0 2px 8px rgba(139, 92, 246, 0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#8b5cf6', boxShadow: '0 4px 10px rgba(139, 92, 246, 0.15)'
-            }}>
-              <UserPlus size={20} />
-            </div>
-            <span style={{ padding: '3px 8px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontSize: 11, fontWeight: 800 }}>
-              +8%
-            </span>
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
-            Học viên mới (tháng này)
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {newThisMonth.toLocaleString()}
-          </div>
-        </div>
-
-        {/* Card 3: Admin hệ thống */}
-        <div style={{
-          background: '#eafaf5',
-          borderRadius: 20,
-          padding: '20px 22px',
-          border: '1px solid #d1fae5',
-          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#059669', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.15)'
-            }}>
-              <ShieldCheck size={20} />
-            </div>
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
-            Admin hệ thống
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {totalAdmins.toLocaleString()}
-          </div>
-        </div>
-
-        {/* Card 4: Tổng môn học đã cấp */}
-        <div style={{
-          background: '#fff7ed',
-          borderRadius: 20,
-          padding: '20px 22px',
-          border: '1px solid #ffedd5',
-          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#d97706', boxShadow: '0 4px 10px rgba(245, 158, 11, 0.18)'
-            }}>
-              <BookOpen size={20} />
-            </div>
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
-            Tổng môn học đã cấp
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {totalGrantedSubjects.toLocaleString()}
-          </div>
-        </div>
-      </div>
-
-      {/* ── SEARCH & ROLE FILTER CONTROLS ── */}
-      <div style={{
-        background: '#ffffff',
-        borderRadius: 20,
-        padding: '16px 22px',
-        border: '1px solid #e2e8f0',
-        marginBottom: 20,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 14,
-      }}>
-        {/* Search Bar */}
-        <div style={{ position: 'relative', flex: 1, minWidth: 260, maxWidth: 400 }}>
-          <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-          <input
-            value={search}
-            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-            placeholder="Tìm theo tên, email, MSV..."
-            style={{
-              width: '100%', padding: '9px 34px 9px 40px',
-              border: '1.5px solid #cbd5e1', borderRadius: 12,
-              fontSize: 13.5, outline: 'none', background: '#f8fafc',
-              color: '#0f172a', boxSizing: 'border-box'
-            }}
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => { setSearch(''); setCurrentPage(1); }}
-              style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: '#e2e8f0', border: 'none', borderRadius: '50%',
-                width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', padding: 0, color: '#475569'
-              }}
-              title="Xóa tìm kiếm"
-            >
-              <X size={11} strokeWidth={3} />
-            </button>
-          )}
-        </div>
-
-        {/* Role Filter Pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f1f5f9', padding: 4, borderRadius: 12 }}>
-          <button
-            onClick={() => { setRoleFilter('all'); setCurrentPage(1); }}
-            style={{
-              padding: '6px 14px', borderRadius: 9, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              background: roleFilter === 'all' ? '#2563eb' : 'transparent',
-              color: roleFilter === 'all' ? '#ffffff' : '#64748b',
-              boxShadow: roleFilter === 'all' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
-            }}
-          >
-            Tất cả ({rows.length})
-          </button>
-          <button
-            onClick={() => { setRoleFilter('admin'); setCurrentPage(1); }}
-            style={{
-              padding: '6px 14px', borderRadius: 9, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              background: roleFilter === 'admin' ? '#2563eb' : 'transparent',
-              color: roleFilter === 'admin' ? '#ffffff' : '#64748b',
-              boxShadow: roleFilter === 'admin' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
-            }}
-          >
-            Admin ({totalAdmins})
-          </button>
-          <button
-            onClick={() => { setRoleFilter('user'); setCurrentPage(1); }}
-            style={{
-              padding: '6px 14px', borderRadius: 9, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              background: roleFilter === 'user' ? '#2563eb' : 'transparent',
-              color: roleFilter === 'user' ? '#ffffff' : '#64748b',
-              boxShadow: roleFilter === 'user' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
-            }}
-          >
-            User ({totalUsers - totalAdmins})
-          </button>
-        </div>
-      </div>
-
-      {/* ── MAIN USER TABLE ── */}
-      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-        {/* Desktop Table View */}
-        <div className="hidden-mobile" style={{ overflowX: 'auto', width: '100%' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>NGƯỜI DÙNG</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>EMAIL & USERNAME</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>NGÀY THAM GIA</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>VAI TRÒ</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>MÔN HỌC</th>
-                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase', textAlign: 'right' }}>HÀNH ĐỘNG</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedRows.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: 14 }}>
-                    Không tìm thấy thành viên nào phù hợp
-                  </td>
-                </tr>
-              ) : paginatedRows.map(user => {
-                const isAdmin = user.roles.includes('admin');
-                const idShort = user.id.slice(0, 5).toUpperCase();
-
-                return (
-                  <tr key={user.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    {/* User */}
-                    <td style={{ padding: '16px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        {/* Circle Avatar */}
-                        <div style={{
-                          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                          background: isAdmin ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#e2e8f0',
-                          color: isAdmin ? '#ffffff' : '#475569',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontWeight: 800, fontSize: 15, boxShadow: isAdmin ? '0 4px 10px rgba(37, 99, 235, 0.2)' : 'none'
-                        }}>
-                          {user.username.charAt(0).toUpperCase()}
-                        </div>
-
-                        <div>
-                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>
-                            {user.full_name || user.username}
-                          </div>
-                          <div style={{ fontSize: 11.5, color: '#2563eb', fontWeight: 800, fontFamily: 'monospace', marginTop: 1 }}>
-                            ID-{idShort}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Email & Username */}
-                    <td style={{ padding: '16px 20px' }}>
-                      <div style={{ fontWeight: 700, color: '#334155' }}>{user.email}</div>
-                      <div style={{ fontSize: 12, color: '#94a3b8' }}>@{user.username}</div>
-                    </td>
-
-                    {/* Join Date */}
-                    <td style={{ padding: '16px 20px', color: '#64748b', fontWeight: 600 }}>
-                      {new Date(user.created_at).toLocaleDateString('vi-VN')}
-                    </td>
-
-                    {/* Role Badge */}
-                    <td style={{ padding: '16px 20px' }}>
-                      {isAdmin ? (
-                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>
-                          Admin
-                        </span>
-                      ) : (
-                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1' }}>
-                          User
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Subject Count & Assignment Modal Trigger */}
-                    <td style={{ padding: '16px 20px' }}>
-                      <button
-                        onClick={() => setSubjectUserModal(user)}
-                        style={{
-                          border: 'none', background: '#eff6ff', color: '#2563eb',
-                          padding: '4px 10px', borderRadius: 12, fontSize: 13, fontWeight: 800,
-                          cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6
-                        }}
-                      >
-                        <BookOpen size={14} />
-                        {String(user.subjectIds.length).padStart(2, '0')} môn
-                      </button>
-                    </td>
-
-                    {/* Actions */}
-                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
-                        {/* Manage Subjects Icon */}
-                        <button
-                          onClick={() => setSubjectUserModal(user)}
-                          title="Cấp quyền môn học"
-                          style={{ border: 'none', background: '#f1f5f9', color: '#2563eb', padding: 8, borderRadius: 10, cursor: 'pointer' }}
-                        >
-                          <BookOpen size={16} />
-                        </button>
-
-                        {/* Toggle Role Switch */}
-                        <button
-                          onClick={() => toggleRole(user.id, isAdmin)}
-                          title={isAdmin ? 'Hạ quyền xuống User' : 'Nâng quyền lên Admin'}
-                          style={{
-                            width: 42, height: 22, borderRadius: 20, border: 'none', cursor: 'pointer',
-                            background: isAdmin ? '#2563eb' : '#cbd5e1', position: 'relative',
-                            transition: 'background 0.2s ease', padding: 0
-                          }}
-                        >
-                          <div style={{
-                            width: 18, height: 18, borderRadius: '50%', background: '#ffffff',
-                            position: 'absolute', top: 2, left: isAdmin ? 22 : 2,
-                            transition: 'left 0.2s ease', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                          }} />
-                        </button>
-
-                        {/* Delete User Icon */}
-                        <button
-                          onClick={() => deleteUser(user.id)}
-                          title="Xóa người dùng"
-                          style={{ border: 'none', background: '#ffe4e6', color: '#e11d48', padding: 8, borderRadius: 10, cursor: 'pointer' }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile User Cards List */}
-        <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 16 }}>
-          {paginatedRows.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: 13 }}>
-              Không tìm thấy thành viên nào
-            </div>
-          ) : (
-            paginatedRows.map(user => {
-              const isAdmin = user.roles.includes('admin');
-              return (
-                <div key={user.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>{user.full_name || user.username}</div>
-                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, background: isAdmin ? '#eff6ff' : '#f1f5f9', color: isAdmin ? '#2563eb' : '#64748b' }}>
-                      {isAdmin ? 'Admin' : 'User'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 4 }}>{user.email}</div>
-                  {user.student_code && <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 700, fontFamily: 'monospace', marginBottom: 10 }}>MSV: {user.student_code}</div>}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #e2e8f0' }}>
-                    <button style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => setSubjectUserModal(user)}>
-                      Môn học ({user.subjectIds.length})
-                    </button>
-                    <button onClick={() => deleteUser(user.id)} style={{ border: 'none', background: '#ffe4e6', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer' }}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* ── TABLE FOOTER & PAGINATION ── */}
-        <div style={{
-          padding: '16px 24px', borderTop: '1px solid #f1f5f9', background: '#ffffff',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
-        }}>
-          <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
-            Hiển thị <strong style={{ color: '#0f172a' }}>{filteredRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredRows.length)}</strong> của <strong style={{ color: '#0f172a' }}>{filteredRows.length.toLocaleString()}</strong> người dùng
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-              style={{
-                width: 32, height: 32, borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                color: currentPage === 1 ? '#cbd5e1' : '#475569'
-              }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
-              const pageNum = i + 1;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  style={{
-                    width: 32, height: 32, borderRadius: 8, border: 'none',
-                    background: currentPage === pageNum ? '#2563eb' : 'transparent',
-                    color: currentPage === pageNum ? '#ffffff' : '#475569',
-                    fontWeight: 700, fontSize: 13, cursor: 'pointer'
-                  }}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-              style={{
-                width: 32, height: 32, borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                color: currentPage === totalPages ? '#cbd5e1' : '#475569'
-              }}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ── MODAL 1: THÊM THÀNH VIÊN MỚI ── */}
-      {showAddModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: 20
-        }}>
-          <div style={{
-            background: '#ffffff', width: '100%', maxWidth: 480, borderRadius: 24,
-            padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <UserPlus size={20} />
-                </div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                  Thêm thành viên mới
-                </h2>
-              </div>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Họ và tên</label>
-                <input value={addForm.fullName} onChange={e => setAddForm({ ...addForm, fullName: e.target.value })} placeholder="VD: Lê Minh Tuấn" style={inputStyle} />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Username</label>
-                  <input value={addForm.username} onChange={e => setAddForm({ ...addForm, username: e.target.value })} placeholder="VD: tuantuan" style={inputStyle} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Mã Sinh Viên (MSV)</label>
-                  <input value={addForm.studentCode} onChange={e => setAddForm({ ...addForm, studentCode: e.target.value.toUpperCase() })} placeholder="VD: SE170291" style={inputStyle} />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Địa chỉ Email</label>
-                <input type="email" value={addForm.email} onChange={e => setAddForm({ ...addForm, email: e.target.value })} placeholder="email@tqmaster.vn" style={inputStyle} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Mật khẩu đăng nhập</label>
-                <input type="password" value={addForm.password} onChange={e => setAddForm({ ...addForm, password: e.target.value })} placeholder="Tối thiểu 6 ký tự" style={inputStyle} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Vai trò hệ thống</label>
-                <select value={addForm.role} onChange={e => setAddForm({ ...addForm, role: e.target.value })} style={inputStyle}>
-                  <option value="user">User (Học viên)</option>
-                  <option value="admin">Admin (Quản trị viên)</option>
-                </select>
-              </div>
-
-              <button
-                onClick={handleAddUser} disabled={savingAdd}
-                style={{
-                  height: 48, width: '100%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                  color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
-                  cursor: savingAdd ? 'not-allowed' : 'pointer', marginTop: 10, boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)'
-                }}
-              >
-                {savingAdd ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : 'Tạo tài khoản'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL 2: CẤP QUYỀN MÔN HỌC DÀNH CHO USER ── */}
-      {subjectUserModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: 20
-        }}>
-          <div style={{
-            background: '#ffffff', width: '100%', maxWidth: 540, borderRadius: 24,
-            padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
-            maxHeight: '90vh', display: 'flex', flexDirection: 'column'
-          }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-              <div>
-                <h2 style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
-                  Phân quyền môn học
-                </h2>
-                <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
-                  Thành viên: <strong style={{ color: '#2563eb' }}>{subjectUserModal.full_name || subjectUserModal.username}</strong> ({subjectUserModal.email})
-                </p>
-              </div>
-              <button onClick={() => setSubjectUserModal(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Search filter for subjects inside modal */}
-            <div style={{ position: 'relative', marginBottom: 16 }}>
-              <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input
-                value={subjSearch}
-                onChange={e => setSubjSearch(e.target.value)}
-                placeholder="Tìm kiếm môn học theo tên hoặc kỳ..."
-                style={{
-                  width: '100%', padding: '8px 14px 8px 38px',
-                  border: '1.5px solid #cbd5e1', borderRadius: 10,
-                  fontSize: 13, outline: 'none', background: '#f8fafc'
-                }}
-              />
-            </div>
-
-            {/* Granted count strip */}
-            <div style={{ padding: '8px 12px', background: '#eff6ff', borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: '#1d4ed8', marginBottom: 14 }}>
-              Đã cấp quyền: {subjectUserModal.subjectIds.length} / {subjects.length} môn học
-            </div>
-
-            {/* Subjects List Scrollable */}
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
-              {subjects
-                .filter(s => !subjSearch || s.name.toLowerCase().includes(subjSearch.toLowerCase()) || String(s.semester).includes(subjSearch))
-                .map(s => {
-                  const hasIt = subjectUserModal.subjectIds.includes(s.id);
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => toggleSubject(subjectUserModal.id, s.id, hasIt)}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '10px 14px', borderRadius: 12, border: '1px solid',
-                        borderColor: hasIt ? '#bbf7d0' : '#e2e8f0',
-                        background: hasIt ? '#f0fdf4' : '#ffffff',
-                        cursor: 'pointer', transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                          width: 24, height: 24, borderRadius: 6,
-                          background: hasIt ? '#16a34a' : '#f1f5f9',
-                          color: hasIt ? '#ffffff' : '#cbd5e1',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                          <Check size={14} strokeWidth={3} />
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a' }}>{s.name}</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>Kỳ học: Kỳ {s.semester}</div>
-                        </div>
-                      </div>
-
-                      <span style={{
-                        padding: '3px 10px', borderRadius: 12, fontSize: 11.5, fontWeight: 800,
-                        background: hasIt ? '#dcfce7' : '#f1f5f9',
-                        color: hasIt ? '#15803d' : '#64748b'
-                      }}>
-                        {hasIt ? 'Đã cấp' : 'Chưa cấp'}
-                      </span>
-                    </div>
-                  );
-                })}
-            </div>
-
-            {/* Footer Close */}
-            <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #f1f5f9', textAlign: 'right' }}>
-              <button
-                onClick={() => setSubjectUserModal(null)}
-                style={{
-                  padding: '9px 20px', background: '#2563eb', color: '#ffffff',
-                  border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer'
-                }}
-              >
-                Xác nhận & Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL 3: XUẤT NGUYÊN DANH SÁCH EMAIL ── */}
-      {showExportModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: 20
-        }}>
-          <div style={{
-            background: '#ffffff', width: '100%', maxWidth: 520, borderRadius: 24,
-            padding: 28, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
-            maxHeight: '92vh', display: 'flex', flexDirection: 'column'
-          }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 14, background: '#eff6ff',
-                  color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.12)'
-                }}>
-                  <Mail size={22} />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: 19, fontWeight: 900, color: '#0f172a', margin: '0 0 3px 0', letterSpacing: '-0.02em' }}>
-                    Xuất danh sách Email
-                  </h2>
-                  <div style={{ fontSize: 12.5, color: '#64748b' }}>
-                    Tìm thấy <strong style={{ color: '#2563eb', fontWeight: 800 }}>{exportedEmails.length.toLocaleString()}</strong> email hợp lệ duy nhất
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowExportModal(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Scope Selection */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Phạm vi trích xuất
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setExportScope('all')}
-                  style={{
-                    padding: '10px 14px', borderRadius: 14, border: '1.5px solid',
-                    borderColor: exportScope === 'all' ? '#3b82f6' : '#e2e8f0',
-                    background: exportScope === 'all' ? '#eff6ff' : '#ffffff',
-                    color: exportScope === 'all' ? '#1d4ed8' : '#475569',
-                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease'
-                  }}
-                >
-                  <div style={{ fontWeight: 800, fontSize: 13 }}>Tất cả người dùng</div>
-                  <div style={{ fontSize: 11.5, color: exportScope === 'all' ? '#2563eb' : '#94a3b8', marginTop: 2 }}>
-                    Toàn hệ thống ({rows.length})
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setExportScope('filtered')}
-                  style={{
-                    padding: '10px 14px', borderRadius: 14, border: '1.5px solid',
-                    borderColor: exportScope === 'filtered' ? '#3b82f6' : '#e2e8f0',
-                    background: exportScope === 'filtered' ? '#eff6ff' : '#ffffff',
-                    color: exportScope === 'filtered' ? '#1d4ed8' : '#475569',
-                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease'
-                  }}
-                >
-                  <div style={{ fontWeight: 800, fontSize: 13 }}>Danh sách đang lọc</div>
-                  <div style={{ fontSize: 11.5, color: exportScope === 'filtered' ? '#2563eb' : '#94a3b8', marginTop: 2 }}>
-                    {search || roleFilter !== 'all' ? `Đang lọc (${filteredRows.length})` : `Khớp hiện tại (${filteredRows.length})`}
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Preview Label & Delimiter Switch */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <label style={{ fontSize: 11.5, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Xem trước nội dung ({exportedEmails.length} email)
-              </label>
-              <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 2, borderRadius: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setExportSeparator('newline')}
-                  style={{
-                    padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                    background: exportSeparator === 'newline' ? '#ffffff' : 'transparent',
-                    color: exportSeparator === 'newline' ? '#0f172a' : '#64748b',
-                    boxShadow: exportSeparator === 'newline' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  }}
-                >
-                  Mỗi dòng 1 email
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setExportSeparator('comma')}
-                  style={{
-                    padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                    background: exportSeparator === 'comma' ? '#ffffff' : 'transparent',
-                    color: exportSeparator === 'comma' ? '#0f172a' : '#64748b',
-                    boxShadow: exportSeparator === 'comma' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  }}
-                >
-                  Dấu phẩy (BCC)
-                </button>
-              </div>
-            </div>
-
-            {/* Monospace Preview Area */}
-            <textarea
-              readOnly
-              value={exportedEmails.join(exportSeparator === 'newline' ? '\n' : ', ')}
-              placeholder="Không có email nào để hiển thị..."
-              style={{
-                width: '100%', height: 135, padding: 12, borderRadius: 12,
-                border: '1.5px solid #cbd5e1', background: '#f8fafc',
-                fontFamily: 'monospace', fontSize: 12, color: '#0f172a',
-                lineHeight: 1.5, resize: 'none', outline: 'none', boxSizing: 'border-box',
-                marginBottom: 16
-              }}
-              onClick={e => (e.target as HTMLTextAreaElement).select()}
-            />
-
-            {/* Export & Copy Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {/* Download TXT Button */}
-                <button
-                  type="button"
-                  onClick={handleDownloadTxt}
-                  disabled={exportedEmails.length === 0}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    padding: '11px 16px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                    color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800,
-                    cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)', opacity: exportedEmails.length === 0 ? 0.6 : 1
-                  }}
-                >
-                  <Download size={15} /> Tải file .TXT
-                </button>
-
-                {/* Download CSV Button */}
-                <button
-                  type="button"
-                  onClick={handleDownloadCsv}
-                  disabled={exportedEmails.length === 0}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    padding: '11px 16px', background: '#ffffff', color: '#0f172a',
-                    border: '1.5px solid #cbd5e1', borderRadius: 12, fontSize: 13, fontWeight: 700,
-                    cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)', opacity: exportedEmails.length === 0 ? 0.6 : 1
-                  }}
-                >
-                  <FileText size={15} color="#059669" /> Tải file .CSV
-                </button>
-              </div>
-
-              {/* Copy to Clipboard Button */}
-              <button
-                type="button"
-                onClick={handleCopyEmails}
-                disabled={exportedEmails.length === 0}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  padding: '11px 16px',
-                  background: copiedState ? '#16a34a' : '#f1f5f9',
-                  color: copiedState ? '#ffffff' : '#1e293b',
-                  border: copiedState ? 'none' : '1px solid #e2e8f0',
-                  borderRadius: 12, fontSize: 13, fontWeight: 800,
-                  cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease', opacity: exportedEmails.length === 0 ? 0.6 : 1
-                }}
-              >
-                {copiedState ? (
-                  <>
-                    <Check size={16} strokeWidth={3} /> Đã sao chép {exportedEmails.length} email!
-                  </>
-                ) : (
-                  <>
-                    <Copy size={15} /> Sao chép tất cả ({exportedEmails.length} email)
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .admin-users-container {
-            padding: 16px !important;
-          }
-          .hidden-mobile { display: none !important; }
-          .visible-mobile { display: flex !important; }
-        }
-      `}</style>
-    </div>
-  );
-}
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+import { loadAdminUsers, type AdminUserRow } from '@/lib/adminUsers';
+import { RetryNotice } from '@/components/common/RetryNotice';
+import {
+  Users, UserPlus, ShieldCheck, BookOpen, Search, Trash2, Shield,
+  ShieldOff, Loader2, X, Plus, ChevronLeft, ChevronRight, Check, Sparkles, Filter,
+  Mail, Download, Copy, FileText, RefreshCw
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { BrandLoader } from '@/components/common/BrandLoader';
+
+type Subject  = Pick<Tables<'subjects'>, 'id' | 'name' | 'semester'>;
+type UserRow = AdminUserRow;
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 14px',
+  border: '1.5px solid #cbd5e1', borderRadius: 12,
+  fontSize: '0.875rem', outline: 'none', background: '#ffffff',
+  color: '#0f172a',
+};
+
+export default function AdminUsers() {
+  const [rows,     setRows]     = useState<UserRow[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadVersion = useRef(0);
+  const [search,   setSearch]   = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [savingAdd, setSavingAdd] = useState(false);
+  const [addForm, setAddForm] = useState({
+    fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user'
+  });
+
+  const [subjectUserModal, setSubjectUserModal] = useState<UserRow | null>(null);
+  const [subjSearch, setSubjSearch] = useState('');
+
+  // Export Emails Modal states
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportScope, setExportScope] = useState<'all' | 'filtered'>('all');
+  const [exportSeparator, setExportSeparator] = useState<'newline' | 'comma'>('newline');
+  const [copiedState, setCopiedState] = useState(false);
+
+  const fetch = useCallback(async () => {
+    const version = ++loadVersion.current;
+    setLoading(true);
+    setLoadError(null);
+    setSubjectUserModal(null);
+    try {
+      const data = await loadAdminUsers();
+      if (version !== loadVersion.current) return;
+      setRows(data.rows);
+      setSubjects(data.subjects);
+    } catch (err: unknown) {
+      console.error('Error fetching users:', err);
+      if (version === loadVersion.current) {
+        setLoadError(err instanceof Error ? err.message : 'Không thể tải danh sách người dùng.');
+      }
+    } finally {
+      if (version === loadVersion.current) setLoading(false);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    void fetch();
+    return () => { loadVersion.current++; };
+  }, [fetch]);
+
+  const filteredRows = useMemo(() => {
+    return rows.filter(u => {
+      const q = search.toLowerCase();
+      const matchSearch = !q || (u.username ?? '').toLowerCase().includes(q) || (u.email ?? '').toLowerCase().includes(q) || (u.full_name ?? '').toLowerCase().includes(q) || (u.student_code ?? '').toLowerCase().includes(q);
+      const isAdmin = u.roles.includes('admin');
+      const matchRole = roleFilter === 'all' || (roleFilter === 'admin' && isAdmin) || (roleFilter === 'user' && !isAdmin);
+      return matchSearch && matchRole;
+    });
+  }, [rows, search, roleFilter]);
+
+  const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, currentPage, pageSize]);
+
+  // Trích xuất danh sách email nguyên vẹn, hợp lệ và khử trùng lặp
+  const targetExportUsers = exportScope === 'all' ? rows : filteredRows;
+  const exportedEmails = useMemo(() => {
+    const list: string[] = [];
+    const seen = new Set<string>();
+    targetExportUsers.forEach(u => {
+      const email = (u.email || '').trim();
+      if (email && email.includes('@') && !seen.has(email.toLowerCase())) {
+        seen.add(email.toLowerCase());
+        list.push(email);
+      }
+    });
+    return list;
+  }, [targetExportUsers]);
+
+  const handleCopyEmails = async () => {
+    if (exportedEmails.length === 0) return;
+    const delimiter = exportSeparator === 'newline' ? '\n' : ', ';
+    const text = exportedEmails.join(delimiter);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedState(true);
+      setTimeout(() => setCopiedState(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy emails', e);
+      alert('Không thể sao chép vào bộ nhớ tạm!');
+    }
+  };
+
+  const handleDownloadTxt = () => {
+    if (exportedEmails.length === 0) return;
+    const content = exportedEmails.join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `danh_sach_email_${exportScope}_${dateStr}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadCsv = () => {
+    if (exportedEmails.length === 0) return;
+    const content = '\uFEFFEmail\n' + exportedEmails.map(e => `"${e.replace(/"/g, '""')}"`).join('\n');
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `danh_sach_email_${exportScope}_${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Quick stats
+  const totalUsers = rows.length;
+  const newThisMonth = useMemo(() => {
+    const now = new Date();
+    return rows.filter(r => {
+      const d = new Date(r.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [rows]);
+  const totalAdmins = useMemo(() => rows.filter(r => r.roles.includes('admin')).length, [rows]);
+  const totalGrantedSubjects = useMemo(() => rows.reduce((s, r) => s + r.subjectIds.length, 0), [rows]);
+
+  const toggleRole = async (userId: string, isAdmin: boolean) => {
+    if (isAdmin) {
+      await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', 'admin');
+    } else {
+      await supabase.from('user_roles').insert({ user_id: userId, role: 'admin' });
+    }
+    fetch();
+  };
+
+  const toggleSubject = async (userId: string, subjectId: string, hasIt: boolean) => {
+    if (loading || loadError) return;
+    if (hasIt) {
+      const { error } = await supabase.from('user_subjects').delete().eq('user_id', userId).eq('subject_id', subjectId);
+      if (error) { alert('Không thể gỡ quyền: ' + error.message); return; }
+    } else {
+      const { error } = await supabase
+        .from('user_subjects')
+        .upsert({ user_id: userId, subject_id: subjectId, granted_by: 'admin' }, { onConflict: 'user_id,subject_id' });
+      if (error) { alert('Không thể cấp quyền: ' + error.message); return; }
+    }
+
+    // Update local state for responsiveness
+    setRows(prev => prev.map(u => {
+      if (u.id === userId) {
+        const newSubjs = hasIt ? u.subjectIds.filter(id => id !== subjectId) : [...u.subjectIds, subjectId];
+        return { ...u, subjectIds: newSubjs };
+      }
+      return u;
+    }));
+    if (subjectUserModal && subjectUserModal.id === userId) {
+      setSubjectUserModal(prev => prev ? ({
+        ...prev,
+        subjectIds: hasIt ? prev.subjectIds.filter(id => id !== subjectId) : [...prev.subjectIds, subjectId]
+      }) : null);
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    if (!confirm('Bạn có chắc muốn xóa tài khoản này? Toàn bộ dữ liệu sẽ bị xóa vĩnh viễn.')) return;
+    const { error } = await supabase.rpc('delete_user_by_admin', { target_user_id: userId });
+    if (error) {
+      alert('Lỗi: Không thể xoá người dùng. ' + error.message);
+    } else {
+      fetch();
+    }
+  };
+
+  const handleAddUser = async () => {
+    if (!addForm.email.trim() || !addForm.password.trim() || !addForm.username.trim()) {
+      alert('Vui lòng điền đầy đủ email, username và mật khẩu!');
+      return;
+    }
+    setSavingAdd(true);
+    try {
+      // Call admin-create-user Edge Function with Service Role permissions
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: addForm.email.trim(),
+          password: addForm.password.trim(),
+          username: addForm.username.trim(),
+          fullName: addForm.fullName.trim(),
+          studentCode: addForm.studentCode.trim(),
+          role: addForm.role,
+        },
+      });
+
+      if (error || data?.error) {
+        throw new Error(data?.error || error?.message || 'Không thể tạo tài khoản');
+      }
+
+      alert('Tạo tài khoản thành công!');
+      setShowAddModal(false);
+      setAddForm({ fullName: '', username: '', email: '', password: '', studentCode: '', role: 'user' });
+      fetch();
+    } catch (err: unknown) {
+      alert('Lỗi tạo tài khoản: ' + (err instanceof Error ? err.message : 'Không thể tạo tài khoản'));
+    } finally {
+      setSavingAdd(false);
+    }
+  };
+
+  const [repairingAccess, setRepairingAccess] = useState(false);
+
+  const handleRepairSubjectAccess = async () => {
+    if (!window.confirm('Hệ thống sẽ đối soát toàn bộ các đơn hàng ĐÃ DUYỆT (approved) và tự động cấp bù quyền nếu có học viên bị thiếu môn học. Bạn có chắc muốn tiến hành?')) {
+      return;
+    }
+
+    setRepairingAccess(true);
+    try {
+      const { data, error } = await supabase.rpc('repair_subject_access_by_admin');
+      if (error) throw new Error(error.message);
+
+      const res = data as { success?: boolean; restored_grants_count?: number; affected_users_count?: number } | null;
+      const restored = res?.restored_grants_count ?? 0;
+      const users = res?.affected_users_count ?? 0;
+
+      if (restored > 0) {
+        toast.success(`Đã khôi phục thành công ${restored} môn học cho ${users} học viên!`);
+      } else {
+        toast.info('Tất cả học viên có đơn hàng đã duyệt đều đã có đầy đủ quyền môn học.');
+      }
+      await fetch();
+    } catch (err: unknown) {
+      console.error('Error repairing subject access:', err);
+      toast.error('Lỗi khi đồng bộ quyền: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setRepairingAccess(false);
+    }
+  };
+
+  if (loading) return <BrandLoader variant="page" label="Đang tải danh sách người dùng…" minHeight={400} />;
+
+  if (loadError) return (
+    <div style={{ padding: 28, background: '#f4f7fc', minHeight: '100vh' }}>
+      <RetryNotice message="Chưa tải đầy đủ dữ liệu người dùng và quyền môn học. Vui lòng thử lại." onRetry={fetch} />
+    </div>
+  );
+
+  return (
+    <div className="admin-users-container" style={{ padding: '28px 36px', flex: 1, minWidth: 0, background: '#f4f7fc', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      
+      {/* ── Page Header ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 6px 0' }}>
+            Quản lý người dùng
+          </h1>
+          <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
+            Quản lý danh sách thành viên, phân quyền và giám sát môn học.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={handleRepairSubjectAccess}
+            disabled={repairingAccess}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+              background: '#ffffff', color: '#1e293b', border: '1.5px solid #cbd5e1',
+              borderRadius: 14, fontSize: 13.5, fontWeight: 700,
+              cursor: repairingAccess ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              opacity: repairingAccess ? 0.7 : 1,
+              transition: 'all 0.15s ease'
+            }}
+            title="Quét các đơn hàng đã duyệt và cấp bù quyền môn học nếu đang bị thiếu"
+          >
+            {repairingAccess ? (
+              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+            ) : (
+              <RefreshCw size={16} color="#059669" />
+            )}
+            {repairingAccess ? 'Đang đồng bộ…' : 'Đồng bộ quyền đơn hàng'}
+          </button>
+
+          <button
+            onClick={() => setShowExportModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px',
+              background: '#ffffff', color: '#1e293b', border: '1.5px solid #cbd5e1',
+              borderRadius: 14, fontSize: 13.5, fontWeight: 700,
+              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Mail size={16} color="#2563eb" /> Xuất email ({rows.length})
+          </button>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#ffffff', border: 'none', borderRadius: 14, fontSize: 14, fontWeight: 800,
+              cursor: 'pointer', boxShadow: '0 6px 18px rgba(37, 99, 235, 0.35)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <UserPlus size={18} /> Thêm thành viên
+          </button>
+        </div>
+      </div>
+
+      {/* ── TOP 4 PASTEL STAT CARDS GRID ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+        gap: 18,
+        marginBottom: 24,
+      }}>
+        {/* Card 1: Tổng người dùng */}
+        <div style={{
+          background: '#edf5ff',
+          borderRadius: 20,
+          padding: '20px 22px',
+          border: '1px solid #dbeafe',
+          boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#2563eb', boxShadow: '0 4px 10px rgba(37, 99, 235, 0.15)'
+            }}>
+              <Users size={20} />
+            </div>
+            <span style={{ padding: '3px 8px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontSize: 11, fontWeight: 800 }}>
+              +12%
+            </span>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
+            Tổng người dùng
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {totalUsers.toLocaleString()}
+          </div>
+        </div>
+
+        {/* Card 2: Học viên mới (tháng này) */}
+        <div style={{
+          background: '#f3eefd',
+          borderRadius: 20,
+          padding: '20px 22px',
+          border: '1px solid #ede9fe',
+          boxShadow: '0 2px 8px rgba(139, 92, 246, 0.05)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#8b5cf6', boxShadow: '0 4px 10px rgba(139, 92, 246, 0.15)'
+            }}>
+              <UserPlus size={20} />
+            </div>
+            <span style={{ padding: '3px 8px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontSize: 11, fontWeight: 800 }}>
+              +8%
+            </span>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
+            Học viên mới (tháng này)
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {newThisMonth.toLocaleString()}
+          </div>
+        </div>
+
+        {/* Card 3: Admin hệ thống */}
+        <div style={{
+          background: '#eafaf5',
+          borderRadius: 20,
+          padding: '20px 22px',
+          border: '1px solid #d1fae5',
+          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.05)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#059669', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.15)'
+            }}>
+              <ShieldCheck size={20} />
+            </div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
+            Admin hệ thống
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {totalAdmins.toLocaleString()}
+          </div>
+        </div>
+
+        {/* Card 4: Tổng môn học đã cấp */}
+        <div style={{
+          background: '#fff7ed',
+          borderRadius: 20,
+          padding: '20px 22px',
+          border: '1px solid #ffedd5',
+          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.05)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', background: '#ffffff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#d97706', boxShadow: '0 4px 10px rgba(245, 158, 11, 0.18)'
+            }}>
+              <BookOpen size={20} />
+            </div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4 }}>
+            Tổng môn học đã cấp
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {totalGrantedSubjects.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SEARCH & ROLE FILTER CONTROLS ── */}
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 20,
+        padding: '16px 22px',
+        border: '1px solid #e2e8f0',
+        marginBottom: 20,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 14,
+      }}>
+        {/* Search Bar */}
+        <div style={{ position: 'relative', flex: 1, minWidth: 260, maxWidth: 400 }}>
+          <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+          <input
+            value={search}
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+            placeholder="Tìm theo tên, email, MSV..."
+            style={{
+              width: '100%', padding: '9px 34px 9px 40px',
+              border: '1.5px solid #cbd5e1', borderRadius: 12,
+              fontSize: 13.5, outline: 'none', background: '#f8fafc',
+              color: '#0f172a', boxSizing: 'border-box'
+            }}
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(''); setCurrentPage(1); }}
+              style={{
+                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                background: '#e2e8f0', border: 'none', borderRadius: '50%',
+                width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0, color: '#475569'
+              }}
+              title="Xóa tìm kiếm"
+            >
+              <X size={11} strokeWidth={3} />
+            </button>
+          )}
+        </div>
+
+        {/* Role Filter Pills */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f1f5f9', padding: 4, borderRadius: 12 }}>
+          <button
+            onClick={() => { setRoleFilter('all'); setCurrentPage(1); }}
+            style={{
+              padding: '6px 14px', borderRadius: 9, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              background: roleFilter === 'all' ? '#2563eb' : 'transparent',
+              color: roleFilter === 'all' ? '#ffffff' : '#64748b',
+              boxShadow: roleFilter === 'all' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
+            }}
+          >
+            Tất cả ({rows.length})
+          </button>
+          <button
+            onClick={() => { setRoleFilter('admin'); setCurrentPage(1); }}
+            style={{
+              padding: '6px 14px', borderRadius: 9, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              background: roleFilter === 'admin' ? '#2563eb' : 'transparent',
+              color: roleFilter === 'admin' ? '#ffffff' : '#64748b',
+              boxShadow: roleFilter === 'admin' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
+            }}
+          >
+            Admin ({totalAdmins})
+          </button>
+          <button
+            onClick={() => { setRoleFilter('user'); setCurrentPage(1); }}
+            style={{
+              padding: '6px 14px', borderRadius: 9, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              background: roleFilter === 'user' ? '#2563eb' : 'transparent',
+              color: roleFilter === 'user' ? '#ffffff' : '#64748b',
+              boxShadow: roleFilter === 'user' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
+            }}
+          >
+            User ({totalUsers - totalAdmins})
+          </button>
+        </div>
+      </div>
+
+      {/* ── MAIN USER TABLE ── */}
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 22, overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        {/* Desktop Table View */}
+        <div className="hidden-mobile" style={{ overflowX: 'auto', width: '100%' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>NGƯỜI DÙNG</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>EMAIL & USERNAME</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>NGÀY THAM GIA</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>VAI TRÒ</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase' }}>MÔN HỌC</th>
+                <th style={{ padding: '14px 20px', fontWeight: 800, color: '#475569', fontSize: 11, textTransform: 'uppercase', textAlign: 'right' }}>HÀNH ĐỘNG</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedRows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8', fontSize: 14 }}>
+                    Không tìm thấy thành viên nào phù hợp
+                  </td>
+                </tr>
+              ) : paginatedRows.map(user => {
+                const isAdmin = user.roles.includes('admin');
+                const idShort = user.id.slice(0, 5).toUpperCase();
+
+                return (
+                  <tr key={user.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    {/* User */}
+                    <td style={{ padding: '16px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {/* Circle Avatar */}
+                        <div style={{
+                          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+                          background: isAdmin ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' : '#e2e8f0',
+                          color: isAdmin ? '#ffffff' : '#475569',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 800, fontSize: 15, boxShadow: isAdmin ? '0 4px 10px rgba(37, 99, 235, 0.2)' : 'none'
+                        }}>
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>
+                            {user.full_name || user.username}
+                          </div>
+                          <div style={{ fontSize: 11.5, color: '#2563eb', fontWeight: 800, fontFamily: 'monospace', marginTop: 1 }}>
+                            ID-{idShort}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Email & Username */}
+                    <td style={{ padding: '16px 20px' }}>
+                      <div style={{ fontWeight: 700, color: '#334155' }}>{user.email}</div>
+                      <div style={{ fontSize: 12, color: '#94a3b8' }}>@{user.username}</div>
+                    </td>
+
+                    {/* Join Date */}
+                    <td style={{ padding: '16px 20px', color: '#64748b', fontWeight: 600 }}>
+                      {new Date(user.created_at).toLocaleDateString('vi-VN')}
+                    </td>
+
+                    {/* Role Badge */}
+                    <td style={{ padding: '16px 20px' }}>
+                      {isAdmin ? (
+                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                          Admin
+                        </span>
+                      ) : (
+                        <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1' }}>
+                          User
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Subject Count & Assignment Modal Trigger */}
+                    <td style={{ padding: '16px 20px' }}>
+                      <button
+                        onClick={() => setSubjectUserModal(user)}
+                        style={{
+                          border: 'none', background: '#eff6ff', color: '#2563eb',
+                          padding: '4px 10px', borderRadius: 12, fontSize: 13, fontWeight: 800,
+                          cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6
+                        }}
+                      >
+                        <BookOpen size={14} />
+                        {String(user.subjectIds.length).padStart(2, '0')} môn
+                      </button>
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
+                        {/* Manage Subjects Icon */}
+                        <button
+                          onClick={() => setSubjectUserModal(user)}
+                          title="Cấp quyền môn học"
+                          style={{ border: 'none', background: '#f1f5f9', color: '#2563eb', padding: 8, borderRadius: 10, cursor: 'pointer' }}
+                        >
+                          <BookOpen size={16} />
+                        </button>
+
+                        {/* Toggle Role Switch */}
+                        <button
+                          onClick={() => toggleRole(user.id, isAdmin)}
+                          title={isAdmin ? 'Hạ quyền xuống User' : 'Nâng quyền lên Admin'}
+                          style={{
+                            width: 42, height: 22, borderRadius: 20, border: 'none', cursor: 'pointer',
+                            background: isAdmin ? '#2563eb' : '#cbd5e1', position: 'relative',
+                            transition: 'background 0.2s ease', padding: 0
+                          }}
+                        >
+                          <div style={{
+                            width: 18, height: 18, borderRadius: '50%', background: '#ffffff',
+                            position: 'absolute', top: 2, left: isAdmin ? 22 : 2,
+                            transition: 'left 0.2s ease', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }} />
+                        </button>
+
+                        {/* Delete User Icon */}
+                        <button
+                          onClick={() => deleteUser(user.id)}
+                          title="Xóa người dùng"
+                          style={{ border: 'none', background: '#ffe4e6', color: '#e11d48', padding: 8, borderRadius: 10, cursor: 'pointer' }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile User Cards List */}
+        <div className="visible-mobile" style={{ display: 'none', flexDirection: 'column', gap: 12, padding: 16 }}>
+          {paginatedRows.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: 13 }}>
+              Không tìm thấy thành viên nào
+            </div>
+          ) : (
+            paginatedRows.map(user => {
+              const isAdmin = user.roles.includes('admin');
+              return (
+                <div key={user.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>{user.full_name || user.username}</div>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, background: isAdmin ? '#eff6ff' : '#f1f5f9', color: isAdmin ? '#2563eb' : '#64748b' }}>
+                      {isAdmin ? 'Admin' : 'User'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 4 }}>{user.email}</div>
+                  {user.student_code && <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 700, fontFamily: 'monospace', marginBottom: 10 }}>MSV: {user.student_code}</div>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid #e2e8f0' }}>
+                    <button style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer' }} onClick={() => setSubjectUserModal(user)}>
+                      Môn học ({user.subjectIds.length})
+                    </button>
+                    <button onClick={() => deleteUser(user.id)} style={{ border: 'none', background: '#ffe4e6', color: '#e11d48', padding: 6, borderRadius: 8, cursor: 'pointer' }}>
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* ── TABLE FOOTER & PAGINATION ── */}
+        <div style={{
+          padding: '16px 24px', borderTop: '1px solid #f1f5f9', background: '#ffffff',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12
+        }}>
+          <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+            Hiển thị <strong style={{ color: '#0f172a' }}>{filteredRows.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredRows.length)}</strong> của <strong style={{ color: '#0f172a' }}>{filteredRows.length.toLocaleString()}</strong> người dùng
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+              style={{
+                width: 32, height: 32, borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                color: currentPage === 1 ? '#cbd5e1' : '#475569'
+              }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  style={{
+                    width: 32, height: 32, borderRadius: 8, border: 'none',
+                    background: currentPage === pageNum ? '#2563eb' : 'transparent',
+                    color: currentPage === pageNum ? '#ffffff' : '#475569',
+                    fontWeight: 700, fontSize: 13, cursor: 'pointer'
+                  }}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+              style={{
+                width: 32, height: 32, borderRadius: 8, border: '1px solid #e2e8f0', background: '#ffffff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                color: currentPage === totalPages ? '#cbd5e1' : '#475569'
+              }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MODAL 1: THÊM THÀNH VIÊN MỚI ── */}
+      {showAddModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: 480, borderRadius: 24,
+            padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserPlus size={20} />
+                </div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  Thêm thành viên mới
+                </h2>
+              </div>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Họ và tên</label>
+                <input value={addForm.fullName} onChange={e => setAddForm({ ...addForm, fullName: e.target.value })} placeholder="VD: Lê Minh Tuấn" style={inputStyle} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Username</label>
+                  <input value={addForm.username} onChange={e => setAddForm({ ...addForm, username: e.target.value })} placeholder="VD: tuantuan" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Mã Sinh Viên (MSV)</label>
+                  <input value={addForm.studentCode} onChange={e => setAddForm({ ...addForm, studentCode: e.target.value.toUpperCase() })} placeholder="VD: SE170291" style={inputStyle} />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Địa chỉ Email</label>
+                <input type="email" value={addForm.email} onChange={e => setAddForm({ ...addForm, email: e.target.value })} placeholder="email@tqmaster.vn" style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Mật khẩu đăng nhập</label>
+                <input type="password" value={addForm.password} onChange={e => setAddForm({ ...addForm, password: e.target.value })} placeholder="Tối thiểu 6 ký tự" style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase' }}>Vai trò hệ thống</label>
+                <select value={addForm.role} onChange={e => setAddForm({ ...addForm, role: e.target.value })} style={inputStyle}>
+                  <option value="user">User (Học viên)</option>
+                  <option value="admin">Admin (Quản trị viên)</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleAddUser} disabled={savingAdd}
+                style={{
+                  height: 48, width: '100%', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                  color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 800,
+                  cursor: savingAdd ? 'not-allowed' : 'pointer', marginTop: 10, boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)'
+                }}
+              >
+                {savingAdd ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : 'Tạo tài khoản'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL 2: CẤP QUYỀN MÔN HỌC DÀNH CHO USER ── */}
+      {subjectUserModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: 540, borderRadius: 24,
+            padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+              <div>
+                <h2 style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
+                  Phân quyền môn học
+                </h2>
+                <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+                  Thành viên: <strong style={{ color: '#2563eb' }}>{subjectUserModal.full_name || subjectUserModal.username}</strong> ({subjectUserModal.email})
+                </p>
+              </div>
+              <button onClick={() => setSubjectUserModal(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Search filter for subjects inside modal */}
+            <div style={{ position: 'relative', marginBottom: 16 }}>
+              <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input
+                value={subjSearch}
+                onChange={e => setSubjSearch(e.target.value)}
+                placeholder="Tìm kiếm môn học theo tên hoặc kỳ..."
+                style={{
+                  width: '100%', padding: '8px 14px 8px 38px',
+                  border: '1.5px solid #cbd5e1', borderRadius: 10,
+                  fontSize: 13, outline: 'none', background: '#f8fafc'
+                }}
+              />
+            </div>
+
+            {/* Granted count strip */}
+            <div style={{ padding: '8px 12px', background: '#eff6ff', borderRadius: 10, fontSize: 12.5, fontWeight: 700, color: '#1d4ed8', marginBottom: 14 }}>
+              Đã cấp quyền: {subjectUserModal.subjectIds.length} / {subjects.length} môn học
+            </div>
+
+            {/* Subjects List Scrollable */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+              {subjects
+                .filter(s => !subjSearch || s.name.toLowerCase().includes(subjSearch.toLowerCase()) || String(s.semester).includes(subjSearch))
+                .map(s => {
+                  const hasIt = subjectUserModal.subjectIds.includes(s.id);
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => toggleSubject(subjectUserModal.id, s.id, hasIt)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 14px', borderRadius: 12, border: '1px solid',
+                        borderColor: hasIt ? '#bbf7d0' : '#e2e8f0',
+                        background: hasIt ? '#f0fdf4' : '#ffffff',
+                        cursor: 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 24, height: 24, borderRadius: 6,
+                          background: hasIt ? '#16a34a' : '#f1f5f9',
+                          color: hasIt ? '#ffffff' : '#cbd5e1',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <Check size={14} strokeWidth={3} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a' }}>{s.name}</div>
+                          <div style={{ fontSize: 11, color: '#64748b' }}>Kỳ học: Kỳ {s.semester}</div>
+                        </div>
+                      </div>
+
+                      <span style={{
+                        padding: '3px 10px', borderRadius: 12, fontSize: 11.5, fontWeight: 800,
+                        background: hasIt ? '#dcfce7' : '#f1f5f9',
+                        color: hasIt ? '#15803d' : '#64748b'
+                      }}>
+                        {hasIt ? 'Đã cấp' : 'Chưa cấp'}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Footer Close */}
+            <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #f1f5f9', textAlign: 'right' }}>
+              <button
+                onClick={() => setSubjectUserModal(null)}
+                style={{
+                  padding: '9px 20px', background: '#2563eb', color: '#ffffff',
+                  border: 'none', borderRadius: 12, fontSize: 13.5, fontWeight: 800, cursor: 'pointer'
+                }}
+              >
+                Xác nhận & Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL 3: XUẤT NGUYÊN DANH SÁCH EMAIL ── */}
+      {showExportModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: 520, borderRadius: 24,
+            padding: 28, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0',
+            maxHeight: '92vh', display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 14, background: '#eff6ff',
+                  color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.12)'
+                }}>
+                  <Mail size={22} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: 19, fontWeight: 900, color: '#0f172a', margin: '0 0 3px 0', letterSpacing: '-0.02em' }}>
+                    Xuất danh sách Email
+                  </h2>
+                  <div style={{ fontSize: 12.5, color: '#64748b' }}>
+                    Tìm thấy <strong style={{ color: '#2563eb', fontWeight: 800 }}>{exportedEmails.length.toLocaleString()}</strong> email hợp lệ duy nhất
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExportModal(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Scope Selection */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Phạm vi trích xuất
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setExportScope('all')}
+                  style={{
+                    padding: '10px 14px', borderRadius: 14, border: '1.5px solid',
+                    borderColor: exportScope === 'all' ? '#3b82f6' : '#e2e8f0',
+                    background: exportScope === 'all' ? '#eff6ff' : '#ffffff',
+                    color: exportScope === 'all' ? '#1d4ed8' : '#475569',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>Tất cả người dùng</div>
+                  <div style={{ fontSize: 11.5, color: exportScope === 'all' ? '#2563eb' : '#94a3b8', marginTop: 2 }}>
+                    Toàn hệ thống ({rows.length})
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setExportScope('filtered')}
+                  style={{
+                    padding: '10px 14px', borderRadius: 14, border: '1.5px solid',
+                    borderColor: exportScope === 'filtered' ? '#3b82f6' : '#e2e8f0',
+                    background: exportScope === 'filtered' ? '#eff6ff' : '#ffffff',
+                    color: exportScope === 'filtered' ? '#1d4ed8' : '#475569',
+                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>Danh sách đang lọc</div>
+                  <div style={{ fontSize: 11.5, color: exportScope === 'filtered' ? '#2563eb' : '#94a3b8', marginTop: 2 }}>
+                    {search || roleFilter !== 'all' ? `Đang lọc (${filteredRows.length})` : `Khớp hiện tại (${filteredRows.length})`}
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Preview Label & Delimiter Switch */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <label style={{ fontSize: 11.5, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Xem trước nội dung ({exportedEmails.length} email)
+              </label>
+              <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', padding: 2, borderRadius: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setExportSeparator('newline')}
+                  style={{
+                    padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    background: exportSeparator === 'newline' ? '#ffffff' : 'transparent',
+                    color: exportSeparator === 'newline' ? '#0f172a' : '#64748b',
+                    boxShadow: exportSeparator === 'newline' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  Mỗi dòng 1 email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExportSeparator('comma')}
+                  style={{
+                    padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    background: exportSeparator === 'comma' ? '#ffffff' : 'transparent',
+                    color: exportSeparator === 'comma' ? '#0f172a' : '#64748b',
+                    boxShadow: exportSeparator === 'comma' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  Dấu phẩy (BCC)
+                </button>
+              </div>
+            </div>
+
+            {/* Monospace Preview Area */}
+            <textarea
+              readOnly
+              value={exportedEmails.join(exportSeparator === 'newline' ? '\n' : ', ')}
+              placeholder="Không có email nào để hiển thị..."
+              style={{
+                width: '100%', height: 135, padding: 12, borderRadius: 12,
+                border: '1.5px solid #cbd5e1', background: '#f8fafc',
+                fontFamily: 'monospace', fontSize: 12, color: '#0f172a',
+                lineHeight: 1.5, resize: 'none', outline: 'none', boxSizing: 'border-box',
+                marginBottom: 16
+              }}
+              onClick={e => (e.target as HTMLTextAreaElement).select()}
+            />
+
+            {/* Export & Copy Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {/* Download TXT Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadTxt}
+                  disabled={exportedEmails.length === 0}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '11px 16px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: '#ffffff', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 800,
+                    cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 6px 16px rgba(37, 99, 235, 0.3)', opacity: exportedEmails.length === 0 ? 0.6 : 1
+                  }}
+                >
+                  <Download size={15} /> Tải file .TXT
+                </button>
+
+                {/* Download CSV Button */}
+                <button
+                  type="button"
+                  onClick={handleDownloadCsv}
+                  disabled={exportedEmails.length === 0}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '11px 16px', background: '#ffffff', color: '#0f172a',
+                    border: '1.5px solid #cbd5e1', borderRadius: 12, fontSize: 13, fontWeight: 700,
+                    cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)', opacity: exportedEmails.length === 0 ? 0.6 : 1
+                  }}
+                >
+                  <FileText size={15} color="#059669" /> Tải file .CSV
+                </button>
+              </div>
+
+              {/* Copy to Clipboard Button */}
+              <button
+                type="button"
+                onClick={handleCopyEmails}
+                disabled={exportedEmails.length === 0}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '11px 16px',
+                  background: copiedState ? '#16a34a' : '#f1f5f9',
+                  color: copiedState ? '#ffffff' : '#1e293b',
+                  border: copiedState ? 'none' : '1px solid #e2e8f0',
+                  borderRadius: 12, fontSize: 13, fontWeight: 800,
+                  cursor: exportedEmails.length === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease', opacity: exportedEmails.length === 0 ? 0.6 : 1
+                }}
+              >
+                {copiedState ? (
+                  <>
+                    <Check size={16} strokeWidth={3} /> Đã sao chép {exportedEmails.length} email!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={15} /> Sao chép tất cả ({exportedEmails.length} email)
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .admin-users-container {
+            padding: 16px !important;
+          }
+          .hidden-mobile { display: none !important; }
+          .visible-mobile { display: flex !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
