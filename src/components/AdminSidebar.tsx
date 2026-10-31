@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '@/lib/AppContext';
 import {
   LayoutDashboard, BookOpen, FileText, Library, Bell, Newspaper,
-  ShoppingBag, Tag, Users, Settings, Mountain, MessageSquareWarning, HardDriveDownload, MessageCircle, BarChart2, Star
+  ShoppingBag, Tag, Users, Settings, Mountain, MessageSquareWarning, MessageCircle, BarChart2, Star
 } from 'lucide-react';
 import authMountainBg from '@/assets/auth-mountain-bg.png';
 
@@ -22,7 +22,6 @@ const NAV = [
   { key: 'admin-users',         label: 'Người dùng',  icon: Users },
   null,
   { key: 'admin-settings',      label: 'Cài đặt',        icon: Settings },
-  { key: 'admin-backup',        label: 'Backup / Restore', icon: HardDriveDownload },
 ];
 
 import { useNavigate, useLocation } from 'react-router-dom';

@@ -33,7 +33,6 @@ const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const AdminNews = lazy(() => import("@/pages/admin/AdminNews"));
 const AdminQuestionReports = lazy(() => import("@/pages/admin/AdminQuestionReports"));
-const AdminBackup = lazy(() => import("@/pages/admin/AdminBackup"));
 const AdminExamStats = lazy(() => import("@/pages/admin/AdminExamStats"));
 const AdminReviews = lazy(() => import("@/pages/admin/AdminReviews"));
 
@@ -234,7 +233,6 @@ function AppShell() {
       <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/news" element={<ProtectedRoute requireAdmin><AdminLayout><AdminNews /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute requireAdmin><AdminLayout><AdminQuestionReports /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/backup" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBackup /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/exam-stats" element={<ProtectedRoute requireAdmin><AdminLayout><AdminExamStats /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/reviews" element={<ProtectedRoute requireAdmin><AdminLayout><AdminReviews /></AdminLayout></ProtectedRoute>} />
 
