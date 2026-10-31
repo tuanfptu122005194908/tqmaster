@@ -2781,9 +2781,9 @@
     "semantic_hash": ""
   },
   ".sdd/specs/34-migrate-theory-files-to-google-drive/tasks.md": {
-    "mtime": 1793432451.5322955,
-    "seen": 1793432488.2869046,
-    "ast_hash": "b7bfebfcdb25c55c6e83162cd7d6995a",
+    "mtime": 1793433132.2449288,
+    "seen": 1793433147.60228,
+    "ast_hash": "7a70f901a061f506e74e9975fdee0689",
     "semantic_hash": ""
   },
   "scripts/unzip_and_cleanup_theories.py": {
