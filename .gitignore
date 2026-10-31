@@ -33,4 +33,6 @@ backup_sql/
 scratch/admin-*
 scratch/supabase-tools/
 scratch/deploy-admin-analytics.sql
+scratch/*.sql
+artifacts/
 graphify-out/20??-??-??/

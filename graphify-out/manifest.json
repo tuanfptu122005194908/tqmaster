@@ -168,8 +168,8 @@
     "semantic_hash": ""
   },
   "src/components/FileUploader.tsx": {
-    "mtime": 1793413397.7358766,
-    "seen": 1793414177.643723,
+    "mtime": 1793414219.0311646,
+    "seen": 1793421875.018549,
     "ast_hash": "90f59d5a01089c31600a464b5dcc2048",
     "semantic_hash": ""
   },
@@ -612,15 +612,15 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminNews.tsx": {
-    "mtime": 1793413837.7100766,
-    "seen": 1793414177.6563234,
+    "mtime": 1793414219.3105402,
+    "seen": 1793421875.0297673,
     "ast_hash": "cd10496815c169d7f1bbb92da3cb9c4d",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminOrders.tsx": {
-    "mtime": 1793061772.9386697,
-    "seen": 1793064207.009744,
-    "ast_hash": "24d2958ec1fb529ebe550d610e03635f",
+    "mtime": 1793421766.027072,
+    "seen": 1793421875.0297687,
+    "ast_hash": "05dd1f17af05311e834091d0cb418171",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminQuestionReports.tsx": {
@@ -654,8 +654,8 @@
     "semantic_hash": ""
   },
   "src/pages/user/CartPage.tsx": {
-    "mtime": 1793413814.5806847,
-    "seen": 1793414177.6570315,
+    "mtime": 1793414219.410138,
+    "seen": 1793421875.0304153,
     "ast_hash": "0b90be87d7dfb90a41c1555a379758da",
     "semantic_hash": ""
   },
@@ -1905,8 +1905,8 @@
     "semantic_hash": ""
   },
   "src/components/home/CourseListItem.tsx": {
-    "mtime": 1793413477.3246777,
-    "seen": 1793414177.646187,
+    "mtime": 1793414219.1914535,
+    "seen": 1793421875.020959,
     "ast_hash": "f187d68ec2a1505d2d90b2aec7c446fb",
     "semantic_hash": ""
   },
@@ -1929,8 +1929,8 @@
     "semantic_hash": ""
   },
   "src/components/SubjectCard.tsx": {
-    "mtime": 1793413474.2428777,
-    "seen": 1793414177.6443639,
+    "mtime": 1793414219.139546,
+    "seen": 1793421875.0191147,
     "ast_hash": "483ffa88332e9ccd673f341843c8f1db",
     "semantic_hash": ""
   },
@@ -2697,9 +2697,9 @@
     "semantic_hash": ""
   },
   "scripts/migrate_and_compress_storage.mjs": {
-    "mtime": 1793414102.367461,
-    "seen": 1793414177.6433718,
-    "ast_hash": "930b39f3a02995a5dab5b4f5d57ca026",
+    "mtime": 1793416904.985302,
+    "seen": 1793421875.018193,
+    "ast_hash": "9671b0e6672cb196d45a8aba37293ea7",
     "semantic_hash": ""
   },
   ".sdd/specs/32-compress-all-images-and-storage-migration/plan.md": {
@@ -2709,15 +2709,63 @@
     "semantic_hash": ""
   },
   ".sdd/specs/32-compress-all-images-and-storage-migration/spec.md": {
-    "mtime": 1793413315.783938,
-    "seen": 1793414177.6676333,
+    "mtime": 1793414218.745877,
+    "seen": 1793421875.041348,
     "ast_hash": "539a6ea21f24e075cb1277b3214bc234",
     "semantic_hash": ""
   },
   ".sdd/specs/32-compress-all-images-and-storage-migration/tasks.md": {
-    "mtime": 1793414145.5892856,
-    "seen": 1793414177.6676345,
+    "mtime": 1793414218.8078446,
+    "seen": 1793421875.0413494,
     "ast_hash": "4eba10a6644ddef2f19081ec27c21fbf",
+    "semantic_hash": ""
+  },
+  "scripts/clone_all_storage_to_backup_db.mjs": {
+    "mtime": 1793419045.4786317,
+    "seen": 1793421875.018112,
+    "ast_hash": "5e4fb36432b2e5f1b8ff78a87b3e71b8",
+    "semantic_hash": ""
+  },
+  "scripts/compress_existing_storage_in_place.mjs": {
+    "mtime": 1793416839.7521064,
+    "seen": 1793421875.018114,
+    "ast_hash": "4b54f310a19a8afcea7c0a12f32c1eb1",
+    "semantic_hash": ""
+  },
+  "src/lib/__tests__/orderBillCleaner.test.ts": {
+    "mtime": 1793421216.382116,
+    "seen": 1793421875.0269673,
+    "ast_hash": "678b656e902022e8e75549e4992294d8",
+    "semantic_hash": ""
+  },
+  "src/lib/orderBillCleaner.ts": {
+    "mtime": 1793421194.5599065,
+    "seen": 1793421875.0280669,
+    "ast_hash": "643fb5029739690b5ed51fe3c3216416",
+    "semantic_hash": ""
+  },
+  "src/pages/admin/__tests__/AdminOrders.test.tsx": {
+    "mtime": 1793421790.4798005,
+    "seen": 1793421875.0303411,
+    "ast_hash": "ab86e7697b15379fde336ff68d118f9e",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/33-admin-clean-bill-images/plan.md": {
+    "mtime": 1793421004.841175,
+    "seen": 1793421875.0413508,
+    "ast_hash": "c86838cbdba6dfa2659f472fe71e98b8",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/33-admin-clean-bill-images/spec.md": {
+    "mtime": 1793421848.137746,
+    "seen": 1793421875.041352,
+    "ast_hash": "5157749ba8c6b5845a0e3cad239b685f",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/33-admin-clean-bill-images/tasks.md": {
+    "mtime": 1793421844.1362224,
+    "seen": 1793421875.041353,
+    "ast_hash": "8db74bc667f666c2d44ec9066b77fc4c",
     "semantic_hash": ""
   }
 }

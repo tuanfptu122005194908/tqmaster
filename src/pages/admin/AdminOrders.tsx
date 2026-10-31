@@ -10,10 +10,11 @@ import { formatDate, formatPrice } from '@/lib/mockData';
 import {
   Search, CheckCircle, XCircle, Trash2, Eye, X, Loader2, ShoppingBag,
   Clock, TrendingUp, Download, Zap, Calendar, Filter, Image as ImageIcon,
-  Check, CreditCard, ChevronRight, FileText
+  Check, CreditCard, ChevronRight, FileText, ShieldCheck
 } from 'lucide-react';
 import { useApp } from '@/lib/AppContext';
 import { toast } from 'sonner';
+import { fetchBillStats, cleanBillImages, type BillStats, type CleanBillScope } from '@/lib/orderBillCleaner';
 
 type Order = Tables<'orders'>;
 
@@ -61,6 +62,13 @@ export default function AdminOrders() {
   const [listError, setListError] = useState<Error | null>(null);
   const detailVersion = useRef(0);
   const [detailError, setDetailError] = useState<Error | null>(null);
+
+  // Clean bill images state
+  const [isCleanModalOpen, setIsCleanModalOpen] = useState(false);
+  const [cleanScope, setCleanScope] = useState<CleanBillScope>('processed_only');
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [billStats, setBillStats] = useState<BillStats | null>(null);
+  const [loadingBillStats, setLoadingBillStats] = useState(false);
 
   // Guard against race conditions from rapid responses
   const latestRequestId = useRef(0);
@@ -251,6 +259,42 @@ export default function AdminOrders() {
     }
   };
 
+  const openCleanBillsDialog = async () => {
+    setIsCleanModalOpen(true);
+    setLoadingBillStats(true);
+    try {
+      const stats = await fetchBillStats();
+      setBillStats(stats);
+    } catch (err: any) {
+      toast.error('Không thể lấy thống kê ảnh bill: ' + (err?.message || 'Có lỗi xảy ra'));
+    } finally {
+      setLoadingBillStats(false);
+    }
+  };
+
+  const handleCleanBills = async () => {
+    setIsCleaning(true);
+    try {
+      const result = await cleanBillImages({ scope: cleanScope });
+      toast.success(`Đã dọn dẹp thành công ${result.deletedFilesCount} file ảnh bill (${result.updatedOrdersCount} đơn hàng)!`);
+      setIsCleanModalOpen(false);
+      await fetchPage(page);
+      fetchStats();
+      setViewOrder(current => {
+        if (!current) return null;
+        if (cleanScope === 'all' || current.status !== 'pending') {
+          setBillUrl(null);
+          return { ...current, bill_image_url: null };
+        }
+        return current;
+      });
+    } catch (err: any) {
+      toast.error('Lỗi dọn dẹp ảnh bill: ' + (err?.message || 'Có lỗi xảy ra'));
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
   const openDetail = async (order: Order) => {
     const version = ++detailVersion.current;
     setViewOrder(order); setBillUrl(null); setOrderItems([]); setLoadingItems(true); setDetailError(null);
@@ -343,6 +387,19 @@ export default function AdminOrders() {
 
         {/* Top Right Action Buttons */}
         <div className="header-action-btns" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button
+            onClick={openCleanBillsDialog}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
+              borderRadius: 12, border: '1.5px solid #fecdd3', background: '#fff1f2',
+              fontSize: 12.5, fontWeight: 800, color: '#e11d48', cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(225, 29, 72, 0.08)',
+              transition: 'all 0.15s ease'
+            }}
+            title="Dọn dẹp ảnh bill chuyển khoản cũ để tiết kiệm dung lượng lưu trữ"
+          >
+            <Trash2 size={15} /> Xoá ảnh bill cũ
+          </button>
           <button style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px',
             borderRadius: 12, border: '1.5px solid #cbd5e1', background: '#ffffff',
@@ -686,7 +743,13 @@ export default function AdminOrders() {
                           <ImageIcon size={13} /> Xem Bill
                         </button>
                       ) : (
-                        <span style={{ fontSize: 11.5, color: '#94a3b8', fontStyle: 'italic' }}>Không có ảnh</span>
+                        order.status === 'approved' ? (
+                          <span style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <CheckCircle size={13} /> Đã dọn bill
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 11.5, color: '#94a3b8', fontStyle: 'italic' }}>Không có ảnh</span>
+                        )
                       )}
                     </td>
 
@@ -1016,7 +1079,29 @@ export default function AdminOrders() {
                   {billUrl ? (
                     <img src={billUrl} alt="Bill chuyển khoản" style={{ maxWidth: '100%', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                   ) : (
-                    <span style={{ fontSize: 12.5, color: '#94a3b8', fontStyle: 'italic' }}>Khách hàng chưa tải lên ảnh bill</span>
+                    viewOrder.status === 'approved' ? (
+                      <div style={{ textAlign: 'center', padding: '14px 8px' }}>
+                        <CheckCircle size={26} style={{ margin: '0 auto 6px', color: '#16a34a' }} />
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#166534' }}>
+                          Đơn hàng đã được duyệt
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.4, maxWidth: 280, marginInline: 'auto' }}>
+                          Ảnh bill đã được dọn dẹp khỏi bộ nhớ lưu trữ để tối ưu dung lượng hệ thống.
+                        </div>
+                      </div>
+                    ) : viewOrder.status === 'rejected' ? (
+                      <div style={{ textAlign: 'center', padding: '14px 8px' }}>
+                        <XCircle size={26} style={{ margin: '0 auto 6px', color: '#e11d48' }} />
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#9f1239' }}>
+                          Đơn hàng đã bị từ chối
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, lineHeight: 1.4, maxWidth: 280, marginInline: 'auto' }}>
+                          Ảnh bill đã được dọn dẹp hoặc không có ảnh đính kèm.
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12.5, color: '#94a3b8', fontStyle: 'italic' }}>Khách hàng chưa tải lên ảnh bill</span>
+                    )
                   )}
                 </div>
               </div>
@@ -1063,6 +1148,195 @@ export default function AdminOrders() {
         </>
       )}
 
+      {/* ── MODAL DỌN DẸP ẢNH BILL CŨ ── */}
+      {isCleanModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 250, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div
+            onClick={() => !isCleaning && setIsCleanModalOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(3px)' }}
+          />
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 520, background: '#ffffff',
+            borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
+            overflow: 'hidden', zIndex: 251, display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Modal Header */}
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#fff1f2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Trash2 size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0' }}>
+                    Xoá ảnh bill cũ
+                  </h3>
+                  <p style={{ fontSize: 12.5, color: '#64748b', margin: 0, fontWeight: 500 }}>
+                    Giải phóng bộ nhớ Supabase Storage định kỳ
+                  </p>
+                </div>
+              </div>
+              <button
+                disabled={isCleaning}
+                onClick={() => setIsCleanModalOpen(false)}
+                style={{ border: 'none', background: '#f1f5f9', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {loadingBillStats ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px 0', gap: 12 }}>
+                  <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#e11d48' }} />
+                  <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Đang kiểm tra số lượng ảnh bill trên hệ thống...</span>
+                </div>
+              ) : billStats ? (
+                <>
+                  {/* Stats Summary Banner */}
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: '14px 16px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                      TỔNG QUAN DUNG LƯỢNG BILL
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>
+                          {billStats.totalWithBills.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Ảnh bill đang lưu trữ</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <span style={{ padding: '6px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                          Đã xử lý: {billStats.processedWithBills}
+                        </span>
+                        <span style={{ padding: '6px 10px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                          Chờ duyệt: {billStats.pendingWithBills}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scope Selection */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>
+                      Chọn phạm vi dọn dẹp:
+                    </div>
+
+                    {/* Option 1: Processed only (Recommended) */}
+                    <div
+                      onClick={() => !isCleaning && setCleanScope('processed_only')}
+                      style={{
+                        padding: '12px 14px', borderRadius: 14,
+                        border: cleanScope === 'processed_only' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                        background: cleanScope === 'processed_only' ? '#eff6ff' : '#ffffff',
+                        cursor: isCleaning ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            type="radio"
+                            name="cleanScope"
+                            checked={cleanScope === 'processed_only'}
+                            onChange={() => setCleanScope('processed_only')}
+                            disabled={isCleaning}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <strong style={{ fontSize: 13, color: '#0f172a' }}>
+                            Chỉ xoá ảnh đơn đã xử lý ({billStats.processedWithBills} ảnh)
+                          </strong>
+                        </div>
+                        <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 8, background: '#3b82f6', color: '#ffffff' }}>
+                          KHUYÊN DÙNG
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: '#64748b', paddingLeft: 24, lineHeight: 1.4 }}>
+                        Chỉ xoá ảnh của các đơn đã duyệt hoặc đã huỷ. Giữ lại {billStats.pendingWithBills} ảnh của đơn chờ duyệt để đối soát.
+                      </p>
+                    </div>
+
+                    {/* Option 2: All */}
+                    <div
+                      onClick={() => !isCleaning && setCleanScope('all')}
+                      style={{
+                        padding: '12px 14px', borderRadius: 14,
+                        border: cleanScope === 'all' ? '2px solid #e11d48' : '1px solid #e2e8f0',
+                        background: cleanScope === 'all' ? '#fff1f2' : '#ffffff',
+                        cursor: isCleaning ? 'not-allowed' : 'pointer', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <input
+                          type="radio"
+                          name="cleanScope"
+                          checked={cleanScope === 'all'}
+                          onChange={() => setCleanScope('all')}
+                          disabled={isCleaning}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <strong style={{ fontSize: 13, color: '#0f172a' }}>
+                          Xoá toàn bộ ảnh bill từ trước đến nay ({billStats.totalWithBills} ảnh)
+                        </strong>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 12, color: '#64748b', paddingLeft: 24, lineHeight: 1.4 }}>
+                        Xoá sạch 100% file ảnh bill trong kho lưu trữ, bao gồm cả các đơn đang chờ duyệt.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Safety Assurance Card */}
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <ShieldCheck size={20} style={{ color: '#16a34a', flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ fontSize: 12, color: '#166534', lineHeight: 1.5 }}>
+                      <strong>Cam kết an toàn tuyệt đối:</strong> Quyền môn học của học viên và dữ liệu đơn hàng (doanh thu, mã đơn, trạng thái) được bảo toàn 100%. Khách đặt đơn mới sau này vẫn bắt buộc tải ảnh bình thường.
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', background: '#ffffff', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                disabled={isCleaning}
+                onClick={() => setIsCleanModalOpen(false)}
+                style={{
+                  padding: '9px 16px', borderRadius: 12, border: '1.5px solid #cbd5e1',
+                  background: '#ffffff', fontSize: 13, fontWeight: 700, color: '#475569',
+                  cursor: isCleaning ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Đóng
+              </button>
+
+              <button
+                disabled={isCleaning || loadingBillStats || !billStats || (cleanScope === 'processed_only' ? billStats.processedWithBills : billStats.totalWithBills) === 0}
+                onClick={handleCleanBills}
+                style={{
+                  padding: '9px 18px', borderRadius: 12, border: 'none',
+                  background: (cleanScope === 'processed_only' ? billStats?.processedWithBills : billStats?.totalWithBills) === 0
+                    ? '#cbd5e1'
+                    : 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
+                  color: '#ffffff', fontSize: 13, fontWeight: 800,
+                  cursor: isCleaning || (cleanScope === 'processed_only' ? billStats?.processedWithBills : billStats?.totalWithBills) === 0 ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  boxShadow: '0 4px 14px rgba(225, 29, 72, 0.3)'
+                }}
+              >
+                {isCleaning ? (
+                  <>
+                    <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Đang dọn dẹp...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={15} /> Xác nhận xoá ảnh
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
