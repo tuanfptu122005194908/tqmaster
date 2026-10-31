@@ -958,9 +958,9 @@
     "semantic_hash": ""
   },
   "src/lib/imageUpload.ts": {
-    "mtime": 1788506765.1335506,
-    "seen": 1789059066.0059378,
-    "ast_hash": "c02b57f10f8d192e812ae150deb7415d",
+    "mtime": 1793409850.64606,
+    "seen": 1793410003.2563105,
+    "ast_hash": "0e9a62e3c174d3839de433ba90dd8b16",
     "semantic_hash": ""
   },
   "src/lib/wordParser.ts": {
@@ -1462,9 +1462,9 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1791086599.666193,
-    "seen": 1791087085.375672,
-    "ast_hash": "3d7783ce9284f9ef3f01ca87cbe3c81f",
+    "mtime": 1793101123.8140564,
+    "seen": 1793101243.3651721,
+    "ast_hash": "9e45eb3cb1118445706874d1ad3faaf4",
     "semantic_hash": ""
   },
   "public/robots.txt": {
@@ -1929,9 +1929,9 @@
     "semantic_hash": ""
   },
   "src/lib/signedImage.ts": {
-    "mtime": 1793064328.2324061,
-    "seen": 1793093325.5173807,
-    "ast_hash": "73d0a216ec97bfc09eba7e3ec1123e34",
+    "mtime": 1793409698.3772295,
+    "seen": 1793410003.2572136,
+    "ast_hash": "3c33ded6380dae495f6d916f8d8dac99",
     "semantic_hash": ""
   },
   "supabase/functions/restore-worker/index.ts": {
@@ -1941,15 +1941,15 @@
     "semantic_hash": ""
   },
   "src/components/backup/BackgroundBackupPanel.tsx": {
-    "mtime": 1793061772.9191704,
-    "seen": 1793064206.9801729,
-    "ast_hash": "a2b617db2e32a7d6383c6c586942b65f",
+    "mtime": 1793409932.7461996,
+    "seen": 1793410003.2336278,
+    "ast_hash": "d6f8fcbc4b340cbd33244a51efca443d",
     "semantic_hash": ""
   },
   "supabase/functions/backup-worker/index.ts": {
-    "mtime": 1793061772.9484117,
-    "seen": 1793064207.011508,
-    "ast_hash": "4343c5cb470ef02b0263795e8ac303c6",
+    "mtime": 1793409898.9659557,
+    "seen": 1793410003.2659254,
+    "ast_hash": "983dd0c59d6ac88fc0dc38b2cf3430b0",
     "semantic_hash": ""
   },
   "supabase/functions/admin-create-user/index.ts": {
@@ -1959,15 +1959,15 @@
     "semantic_hash": ""
   },
   "src/components/common/ExamImageViewerModal.tsx": {
-    "mtime": 1793064328.2262983,
-    "seen": 1793093325.4979959,
-    "ast_hash": "229da16ad3e83ba0eeabbfbcf45b67bd",
+    "mtime": 1793409804.948364,
+    "seen": 1793410003.2348123,
+    "ast_hash": "61d370519529acc8b0b7f32bc661df93",
     "semantic_hash": ""
   },
   "src/lib/peZipExtractor.ts": {
-    "mtime": 1790133339.6392174,
-    "seen": 1790133735.7031872,
-    "ast_hash": "9a7ac17a75ae5fde1da9378e5d198423",
+    "mtime": 1793409870.4989588,
+    "seen": 1793410003.2566955,
+    "ast_hash": "7663d3be67747cc18152e768c89ffc99",
     "semantic_hash": ""
   },
   "src/lib/theoryMetadata.ts": {
@@ -2565,9 +2565,9 @@
     "semantic_hash": ""
   },
   "src/components/common/ExamImageViewerModal.test.tsx": {
-    "mtime": 1793064328.2242668,
-    "seen": 1793093325.4979842,
-    "ast_hash": "ecb7e96f67efb44a76f6a81a0dff1a65",
+    "mtime": 1793409819.5904799,
+    "seen": 1793410003.2348092,
+    "ast_hash": "d60685de3990036f85015f48b4e5049a",
     "semantic_hash": ""
   },
   "src/components/common/StorageDownloadButton.test.tsx": {
@@ -2583,9 +2583,9 @@
     "semantic_hash": ""
   },
   "src/lib/__tests__/storageDownloads.test.ts": {
-    "mtime": 1793064328.2303803,
-    "seen": 1793093325.5144703,
-    "ast_hash": "ef1b93be5d08a37649769c05c7393206",
+    "mtime": 1793409745.6036737,
+    "seen": 1793410003.2538922,
+    "ast_hash": "9038cf92b3985814924c080bbae15a12",
     "semantic_hash": ""
   },
   "src/lib/documentDownload.ts": {
@@ -2661,9 +2661,9 @@
     "semantic_hash": ""
   },
   ".sdd/specs/28-reduce-redundant-requests/plan.md": {
-    "mtime": 1793092840.0117347,
-    "seen": 1793093325.5429602,
-    "ast_hash": "a9cf05e90265c2c15b427f7f053ae920",
+    "mtime": 1793093894.6487303,
+    "seen": 1793101243.3629022,
+    "ast_hash": "0cca2410a8849d1de1082ce787220ae7",
     "semantic_hash": ""
   },
   ".sdd/specs/28-reduce-redundant-requests/spec.md": {
@@ -2673,9 +2673,9 @@
     "semantic_hash": ""
   },
   ".sdd/specs/28-reduce-redundant-requests/tasks.md": {
-    "mtime": 1793092840.7207067,
-    "seen": 1793093325.5429635,
-    "ast_hash": "edfbe983275e6f99f874e65c2410da24",
+    "mtime": 1793093893.9905524,
+    "seen": 1793101243.3629742,
+    "ast_hash": "b24041b1ad173e62c41182b0fab60886",
     "semantic_hash": ""
   },
   "artifacts/performance-audit-2026-10-27.md": {
@@ -2688,6 +2688,66 @@
     "mtime": 1793091865.9610298,
     "seen": 1793093325.547506,
     "ast_hash": "df3bb46dafeebaba3ecdaa5fcf072eb7",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/28-reduce-redundant-requests/production-verification.json": {
+    "mtime": 1793093871.6646347,
+    "seen": 1793101243.3355386,
+    "ast_hash": "55751c78a72f5b81582c6ddfb45ddfea",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/28-reduce-redundant-requests/validation.md": {
+    "mtime": 1793093895.3856463,
+    "seen": 1793101243.3629756,
+    "ast_hash": "e728f3f33e6a6389bdc9c2cde6d572b5",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/29-fix-auth-domain-redirect-loop/plan.md": {
+    "mtime": 1793101492.3849487,
+    "seen": 1793410003.307119,
+    "ast_hash": "3e9ffd5514cc14a5e61df935e3d085e6",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/29-fix-auth-domain-redirect-loop/spec.md": {
+    "mtime": 1793101486.5918481,
+    "seen": 1793410003.3071249,
+    "ast_hash": "7b1a8d4d56ae790ef7b7e5d99cfd434c",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/29-fix-auth-domain-redirect-loop/tasks.md": {
+    "mtime": 1793101481.0619662,
+    "seen": 1793410003.3071294,
+    "ast_hash": "b73e7a504c9cdd0f779734921fe97cb1",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/29-fix-auth-domain-redirect-loop/production-verification.json": {
+    "mtime": 1793101474.5757792,
+    "seen": 1793410003.2241452,
+    "ast_hash": "d6fe0b9dba0d00dd9ea10d92c2f2a865",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/29-fix-auth-domain-redirect-loop/validation.md": {
+    "mtime": 1793101260.8722878,
+    "seen": 1793410003.3071346,
+    "ast_hash": "cbc79ab1f7aabcd8621227b6c15219f2",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/30-optimize-storage-and-egress-quota/plan.md": {
+    "mtime": 1793409306.4696896,
+    "seen": 1793410003.307139,
+    "ast_hash": "f4a4921b323f95d6391f87db62027d0e",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/30-optimize-storage-and-egress-quota/spec.md": {
+    "mtime": 1793409628.9049573,
+    "seen": 1793410003.307144,
+    "ast_hash": "c01c6d57959c50c618855ce4580d5f68",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/30-optimize-storage-and-egress-quota/tasks.md": {
+    "mtime": 1793409976.8250506,
+    "seen": 1793410003.3071496,
+    "ast_hash": "05e7dc797c143a15f4053616d814b774",
     "semantic_hash": ""
   }
 }

@@ -9,14 +9,68 @@ import { supabase } from '@/integrations/supabase/client';
 import { parseStorageUrl, type StorageAsset } from './storageAsset';
 
 const EXPIRES_IN = 60 * 60 * 4;
+const SESSION_CACHE_KEY = 'tq_signed_url_cache_v1';
+const MAX_SESSION_CACHE_ENTRIES = 500;
 type CacheEntry = { url: string; expiresAt: number };
 const cache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<CacheEntry>>();
 let authGeneration = 0;
+let hydratedGeneration = -1;
 export const getStorageAuthGeneration = () => authGeneration;
+
+function hydrateSessionCache() {
+  if (hydratedGeneration === authGeneration) return;
+  hydratedGeneration = authGeneration;
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return;
+    const raw = window.sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Record<string, CacheEntry>;
+    const now = Date.now();
+    for (const [k, v] of Object.entries(parsed)) {
+      if (v && typeof v.url === 'string' && typeof v.expiresAt === 'number' && v.expiresAt > now && !cache.has(k)) {
+        cache.set(k, v);
+      }
+    }
+  } catch {
+    // Ignore storage access or JSON parse errors
+  }
+}
+
+function persistSessionCache() {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return;
+    const now = Date.now();
+    const entries: [string, CacheEntry][] = [];
+    for (const [k, v] of cache.entries()) {
+      if (v.expiresAt > now) entries.push([k, v]);
+    }
+    const bounded = entries.slice(-MAX_SESSION_CACHE_ENTRIES);
+    window.sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(Object.fromEntries(bounded)));
+  } catch {
+    // Ignore quota exceeded or restricted storage errors
+  }
+}
+
+/** Evicts only in-memory cache to simulate a tab reload while keeping sessionStorage intact (used in tests). */
+export function evictMemoryStorageUrlCacheForTest() {
+  cache.clear();
+  inFlight.clear();
+  hydratedGeneration = -1;
+}
 
 export function clearStorageUrlCache() {
   authGeneration++;
   cache.clear();
+  inFlight.clear();
+  hydratedGeneration = authGeneration;
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.removeItem(SESSION_CACHE_KEY);
+    }
+  } catch {
+    // Ignore storage cleanup errors
+  }
 }
 export function assertStorageSession(generation: number) {
   if (generation !== authGeneration) throw new Error('Phiên đăng nhập đã thay đổi. Vui lòng thử lại.');
@@ -27,9 +81,11 @@ export async function signStorageUrls(
   urls: (string | null | undefined)[], options: { forceRefresh?: boolean } = {},
 ): Promise<Map<string, string>> {
   const generation = authGeneration;
+  hydrateSessionCache();
   const result = new Map<string, string>();
   const requested = new Map<string, StorageAsset>();
   const pending = new Map<string, Set<string>>();
+  const waitingInFlight: Promise<unknown>[] = [];
   const startedAt = Date.now();
   for (const raw of urls) {
     if (!raw || result.has(raw) || requested.has(raw)) continue;
@@ -40,28 +96,60 @@ export async function signStorageUrls(
     const entry = cache.get(key);
     if (!options.forceRefresh && entry && entry.expiresAt > Date.now()) {
       result.set(raw, entry.url);
+    } else if (!options.forceRefresh && inFlight.has(key)) {
+      waitingInFlight.push(inFlight.get(key)!);
     } else {
       cache.delete(key);
       const paths = pending.get(parsed.bucket) ?? new Set<string>();
       paths.add(parsed.path); pending.set(parsed.bucket, paths);
     }
   }
+  let cacheUpdated = false;
   for (const [bucket, paths] of pending) {
     const list = [...paths];
     for (let i = 0; i < list.length; i += 100) {
       const chunk = list.slice(i, i + 100);
-      const {data, error} = await supabase.storage.from(bucket).createSignedUrls(chunk, EXPIRES_IN);
-      assertStorageSession(generation);
-      if (error || !data) throw new Error('Không thể tạo liên kết tài liệu. Vui lòng thử lại.');
-      // A slow/paused request must not publish an already-expired capability.
-      const expiresAt = startedAt + (EXPIRES_IN - 300) * 1000;
-      if (expiresAt <= Date.now()) throw new Error('Liên kết đã hết hạn trong lúc tải. Vui lòng thử lại.');
+      const resolvers = new Map<string, { resolve: (e: CacheEntry) => void; reject: (err: unknown) => void }>();
       for (const path of chunk) {
-        const entry = data.find(item => item.path === path);
-        if (!entry?.signedUrl || entry.error) throw new Error('Không thể truy cập một tệp tài liệu. Vui lòng thử lại.');
-        cache.set(`${bucket}/${path}`, {url:entry.signedUrl,expiresAt});
+        const key = `${bucket}/${path}`;
+        const p = new Promise<CacheEntry>((resolve, reject) => {
+          resolvers.set(key, { resolve, reject });
+        });
+        // Prevent unhandled rejection warnings if no concurrent caller awaits this promise
+        p.catch(() => {});
+        inFlight.set(key, p);
+      }
+      try {
+        const {data, error} = await supabase.storage.from(bucket).createSignedUrls(chunk, EXPIRES_IN);
+        assertStorageSession(generation);
+        if (error || !data) throw new Error('Không thể tạo liên kết tài liệu. Vui lòng thử lại.');
+        // A slow/paused request must not publish an already-expired capability.
+        const expiresAt = startedAt + (EXPIRES_IN - 300) * 1000;
+        if (expiresAt <= Date.now()) throw new Error('Liên kết đã hết hạn trong lúc tải. Vui lòng thử lại.');
+        for (const path of chunk) {
+          const entry = data.find(item => item.path === path);
+          if (!entry?.signedUrl || entry.error) throw new Error('Không thể truy cập một tệp tài liệu. Vui lòng thử lại.');
+          const cacheEntry: CacheEntry = {url: entry.signedUrl, expiresAt};
+          const key = `${bucket}/${path}`;
+          cache.set(key, cacheEntry);
+          resolvers.get(key)?.resolve(cacheEntry);
+          cacheUpdated = true;
+        }
+      } catch (err) {
+        for (const { reject } of resolvers.values()) reject(err);
+        throw err;
+      } finally {
+        for (const path of chunk) {
+          inFlight.delete(`${bucket}/${path}`);
+        }
       }
     }
+  }
+  if (waitingInFlight.length > 0) {
+    await Promise.all(waitingInFlight);
+  }
+  if (cacheUpdated) {
+    persistSessionCache();
   }
   assertStorageSession(generation);
   for (const [raw, parsed] of requested) {

@@ -75,7 +75,7 @@ const KNOWN_BUCKETS = [
 ];
 
 const MAX_TOTAL_MEDIA_BYTES = 120 * 1024 * 1024; // 120MB an toàn RAM cho Edge Function
-const MAX_BACKUP_RETENTION = 3; // Giữ tối đa 3 bản mới nhất trên Storage để không tốn dung lượng cloud
+const MAX_BACKUP_RETENTION = 1; // Giữ tối đa 1 bản mới nhất trên Storage để không tốn dung lượng cloud
 
 async function updateJob(jobId: string, patch: Record<string, unknown>) {
   await admin.from('backup_jobs').update({ ...patch, heartbeat_at: new Date().toISOString() }).eq('id', jobId);

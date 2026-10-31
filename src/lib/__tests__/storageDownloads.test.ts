@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseStorageUrl, safeDownloadName } from '../storageAsset';
-import { clearStorageUrlCache, signStorageUrl, signStorageUrls } from '../signedImage';
+import { clearStorageUrlCache, evictMemoryStorageUrlCacheForTest, signStorageUrl, signStorageUrls } from '../signedImage';
 import { downloadDocument } from '../documentDownload';
 
 const mocks = vi.hoisted(() => ({batch: vi.fn(), single: vi.fn(), from: vi.fn()}));
@@ -71,6 +71,22 @@ describe('preview cache', () => {
     await expect(signStorageUrl(raw)).rejects.toThrow('Phiên đăng nhập');
     await signStorageUrl(raw);
     expect(mocks.batch).toHaveBeenCalledTimes(3);
+  });
+  it('persists signed URLs in sessionStorage across memory evictions and wipes on clearStorageUrlCache', async () => {
+    const first = await signStorageUrl(raw);
+    expect(mocks.batch).toHaveBeenCalledTimes(1);
+    evictMemoryStorageUrlCacheForTest();
+    const afterReload = await signStorageUrl(raw);
+    expect(afterReload).toBe(first);
+    expect(mocks.batch).toHaveBeenCalledTimes(1);
+    clearStorageUrlCache();
+    await signStorageUrl(raw);
+    expect(mocks.batch).toHaveBeenCalledTimes(2);
+  });
+  it('deduplicates concurrent in-flight requests for the same storage object', async () => {
+    const [u1, u2] = await Promise.all([signStorageUrl(raw), signStorageUrl(raw)]);
+    expect(u1).toBe(u2);
+    expect(mocks.batch).toHaveBeenCalledTimes(1);
   });
 });
 

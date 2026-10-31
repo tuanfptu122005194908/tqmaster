@@ -7,6 +7,7 @@
 import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { signStorageUrls } from '@/lib/signedImage';
+import { compressImageFile } from '@/lib/imageUpload';
 
 const IMAGE_EXTENSIONS_REGEX = /\.(png|jpe?g|webp|gif|bmp)$/i;
 
@@ -107,12 +108,28 @@ export async function uploadExtractedZipImages(
     onProgress?.(i + 1, images.length, item.cleanName);
 
     try {
-      const blob = await item.entry.async('blob');
-      const mimeType = getMimeType(item.cleanName);
-      const safeName = sanitizeFileName(item.cleanName);
+      const rawBlob = await item.entry.async('blob');
+      const rawMime = getMimeType(item.cleanName);
+      let uploadBlob: Blob | File = rawBlob;
+      let mimeType = rawMime;
+      let safeName = sanitizeFileName(item.cleanName);
+
+      if (typeof File !== 'undefined' && rawBlob.size > 100 * 1024) {
+        try {
+          const tempFile = new File([rawBlob], item.cleanName, { type: rawMime });
+          const compressed = await compressImageFile(tempFile);
+          uploadBlob = compressed.blob;
+          mimeType = compressed.contentType;
+          const baseName = safeName.replace(/\.[^.]+$/, '');
+          safeName = `${baseName}.${compressed.ext}`;
+        } catch {
+          // Fallback to rawBlob if compression is unavailable in current environment
+        }
+      }
+
       const storagePath = `pe-extracts/${prefix}/${String(i + 1).padStart(2, '0')}_${Date.now()}_${safeName}`;
 
-      const { error: upErr } = await supabase.storage.from(targetBucket).upload(storagePath, blob, {
+      const { error: upErr } = await supabase.storage.from(targetBucket).upload(storagePath, uploadBlob, {
         cacheControl: '31536000',
         upsert: true,
         contentType: mimeType,
@@ -121,7 +138,7 @@ export async function uploadExtractedZipImages(
       if (upErr) {
         console.warn(`[peZipExtractor] Upload to ${targetBucket} failed, trying theory-files:`, upErr.message);
         // Fallback to theory-files bucket if theory-images bucket has issues
-        const { error: fallbackErr } = await supabase.storage.from('theory-files').upload(storagePath, blob, {
+        const { error: fallbackErr } = await supabase.storage.from('theory-files').upload(storagePath, uploadBlob, {
           cacheControl: '31536000',
           upsert: true,
           contentType: mimeType,

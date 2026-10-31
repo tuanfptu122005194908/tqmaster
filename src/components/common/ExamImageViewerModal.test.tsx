@@ -15,15 +15,16 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 
-it('refreshes on open and image failure once, exposes manual retry and fresh downloads in both ZIP actions', async () => {
+it('reuses cached URL on open and refreshes with forceRefresh on image failure and manual retry, with fresh downloads in both ZIP actions', async () => {
   render(<ExamImageViewerModal {...props} />);
   const first = await screen.findByRole('img', {name: 'Trang 1'});
   expect(first).toHaveAttribute('src', 'fresh-canonical-image-1');
-  expect(signStorageUrl).toHaveBeenCalledWith(images[0], {forceRefresh: true});
+  expect(signStorageUrl).toHaveBeenCalledWith(images[0], {forceRefresh: false});
   fireEvent.click(screen.getByRole('button', {name: 'Tải file ZIP gốc'}));
   await waitFor(() => expect(downloadDocument).toHaveBeenCalledTimes(1));
   fireEvent.error(first);
   await waitFor(() => expect(signStorageUrl).toHaveBeenCalledTimes(2));
+  expect(signStorageUrl).toHaveBeenLastCalledWith(images[0], {forceRefresh: true});
   fireEvent.error(await screen.findByRole('img', {name: 'Trang 1'}));
   expect(await screen.findByRole('button', {name: 'Thử lại ảnh'})).toBeVisible();
   expect(signStorageUrl).toHaveBeenCalledTimes(2);
@@ -34,6 +35,7 @@ it('refreshes on open and image failure once, exposes manual retry and fresh dow
   fireEvent.click(screen.getByRole('button', {name: 'Thử lại ảnh'}));
   await screen.findByRole('img', {name: 'Trang 1'});
   expect(signStorageUrl).toHaveBeenCalledTimes(3);
+  expect(signStorageUrl).toHaveBeenLastCalledWith(images[0], {forceRefresh: true});
 });
 
 it('ignores a signing result from the previously selected page', async () => {

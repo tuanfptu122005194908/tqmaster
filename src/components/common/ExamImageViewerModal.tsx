@@ -52,6 +52,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
   const currentImage = images[currentIndex];
   const requestVersion = useRef(0);
   const autoRetried = useRef(false);
+  const forceRefreshNext = useRef(false);
   const [retryVersion, setRetryVersion] = useState(0);
   const [displayImage, setDisplayImage] = useState<{source: string; url: string; version: number} | null>(null);
   const [thumbnailUrls, setThumbnailUrls] = useState(new Map<string, string>());
@@ -65,14 +66,16 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
     return () => { cancelled = true; };
   }, [isOpen, images]);
 
-  useEffect(() => { autoRetried.current = false; }, [isOpen, currentImage]);
+  useEffect(() => { autoRetried.current = false; forceRefreshNext.current = false; }, [isOpen, currentImage]);
   useEffect(() => {
     const version = ++requestVersion.current;
     setDisplayImage(null);
     if (!isOpen || !currentImage) return;
+    const forceRefresh = forceRefreshNext.current;
+    forceRefreshNext.current = false;
     setImgLoading(true);
     setImgError(false);
-    void signStorageUrl(currentImage, {forceRefresh: true}).then(url => {
+    void signStorageUrl(currentImage, {forceRefresh}).then(url => {
       if (requestVersion.current !== version) return;
       if (!url) throw new Error('missing');
       setDisplayImage({source: currentImage, url, version});
@@ -84,6 +87,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
 
   const retryImage = () => {
     autoRetried.current = false;
+    forceRefreshNext.current = true;
     setRetryVersion(n => n + 1);
   };
 
@@ -456,6 +460,7 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
                 if (displayImage.version !== requestVersion.current) return;
                 if (!autoRetried.current) {
                   autoRetried.current = true;
+                  forceRefreshNext.current = true;
                   setRetryVersion(n => n + 1);
                 } else { setImgLoading(false); setImgError(true); }
               }}

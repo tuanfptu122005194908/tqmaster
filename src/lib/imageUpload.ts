@@ -9,8 +9,41 @@ import { supabase } from '@/integrations/supabase/client';
 const CANDIDATE_BUCKETS = ['question-images', 'exam-images'];
 let cachedWorkingBucket: string | null = null;
 
-const MAX_IMAGE_DIMENSION = 1920; // 1920px retains crisp text & math formulas
-const JPEG_QUALITY = 0.88;
+export const MAX_IMAGE_DIMENSION = 1600; // 1600px retains crisp text & math formulas while cutting payload size
+export const JPEG_QUALITY = 0.82;
+export const LONG_CACHE_CONTROL = '31536000'; // 1 year immutable cache for versioned storage objects
+
+/**
+ * Helper to encode a canvas to WebP first, with automatic fallback to JPEG
+ * if the browser or test environment does not support WebP canvas encoding.
+ */
+async function canvasToOptimizedBlob(
+  canvas: HTMLCanvasElement,
+  quality: number
+): Promise<{ blob: Blob; contentType: string; ext: string }> {
+  const tryFormat = (mime: string): Promise<Blob | null> =>
+    new Promise(resolve => {
+      try {
+        canvas.toBlob(b => resolve(b), mime, quality);
+      } catch {
+        resolve(null);
+      }
+    });
+
+  const webpBlob = await tryFormat('image/webp');
+  if (webpBlob && (webpBlob.type === 'image/webp' || webpBlob.type === '')) {
+    const ext = webpBlob.type === 'image/webp' ? 'webp' : 'jpg';
+    const contentType = webpBlob.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+    return { blob: webpBlob, contentType, ext };
+  }
+
+  const jpegBlob = await tryFormat('image/jpeg');
+  if (jpegBlob) {
+    return { blob: jpegBlob, contentType: 'image/jpeg', ext: 'jpg' };
+  }
+
+  throw new Error('Canvas toBlob failed');
+}
 
 /**
  * Upload a Blob or File to Supabase Storage with bucket auto-fallback.
@@ -19,7 +52,7 @@ const JPEG_QUALITY = 0.88;
 export async function uploadFileToExamStorage(
   path: string,
   fileOrBlob: Blob | File,
-  contentType = 'image/jpeg'
+  contentType = 'image/webp'
 ): Promise<string> {
   const bucketsToTry = cachedWorkingBucket
     ? [cachedWorkingBucket, ...CANDIDATE_BUCKETS.filter(b => b !== cachedWorkingBucket)]
@@ -32,9 +65,9 @@ export async function uploadFileToExamStorage(
       const { error } = await supabase.storage
         .from(bucket)
         .upload(path, fileOrBlob, {
-          contentType: contentType || 'image/jpeg',
+          contentType: contentType || 'image/webp',
           upsert: true,
-          cacheControl: '3600',
+          cacheControl: LONG_CACHE_CONTROL,
         });
 
       if (!error) {
@@ -61,9 +94,9 @@ export async function uploadFileToExamStorage(
 }
 
 /**
- * Client-side compression for image File objects.
- * Resizes large dimensions to max 1920px and converts to high-quality JPEG Blob.
- * If the file is small (< 250KB) or an animated GIF / SVG, returns original file.
+ * Client-side compression for image File or Blob objects.
+ * Resizes large dimensions to max 1600px and converts to WebP (with JPEG fallback).
+ * If the file is small (< 100KB) or an animated GIF / SVG, returns original file.
  */
 export async function compressImageFile(
   file: File,
@@ -76,14 +109,14 @@ export async function compressImageFile(
     return { blob: file, contentType: file.type, ext };
   }
 
-  // If already a small JPEG or PNG (< 250KB), upload directly without re-compression
-  if (file.size < 250 * 1024 && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp')) {
-    const ext = file.name.split('.').pop() || 'jpg';
+  // If already a small WebP/JPEG/PNG (< 100KB), upload directly without re-compression
+  if (file.size < 100 * 1024 && (file.type === 'image/webp' || file.type === 'image/jpeg' || file.type === 'image/png')) {
+    const ext = file.name.split('.').pop() || (file.type === 'image/webp' ? 'webp' : 'jpg');
     return { blob: file, contentType: file.type, ext };
   }
 
   try {
-    const blob = await new Promise<Blob>((resolve, reject) => {
+    const result = await new Promise<{ blob: Blob; contentType: string; ext: string }>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const img = new Image();
@@ -113,14 +146,7 @@ export async function compressImageFile(
           ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob(
-            resBlob => {
-              if (resBlob) resolve(resBlob);
-              else reject(new Error('Canvas toBlob failed'));
-            },
-            'image/jpeg',
-            quality
-          );
+          canvasToOptimizedBlob(canvas, quality).then(resolve).catch(reject);
         };
         img.onerror = () => reject(new Error('Lỗi load ảnh vào trình duyệt'));
         img.src = reader.result as string;
@@ -128,8 +154,7 @@ export async function compressImageFile(
       reader.onerror = () => reject(new Error('Lỗi đọc file ảnh'));
       reader.readAsDataURL(file);
     });
-
-    return { blob, contentType: 'image/jpeg', ext: 'jpg' };
+    return result;
   } catch (err) {
     console.warn('[imageUpload] Compression fallback to raw file:', err);
     const ext = file.name.split('.').pop() || 'jpg';
@@ -138,13 +163,13 @@ export async function compressImageFile(
 }
 
 /**
- * Convert a base64 data URL to a compressed JPEG Blob
+ * Convert a base64 data URL to a compressed WebP/JPEG Blob
  */
 async function compressDataUrl(
   dataUrl: string,
   maxDim = MAX_IMAGE_DIMENSION,
   quality = JPEG_QUALITY
-): Promise<Blob> {
+): Promise<{ blob: Blob; contentType: string; ext: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -169,11 +194,7 @@ async function compressDataUrl(
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        blob => (blob ? resolve(blob) : reject(new Error('toBlob failed'))),
-        'image/jpeg',
-        quality
-      );
+      canvasToOptimizedBlob(canvas, quality).then(resolve).catch(reject);
     };
     img.onerror = () => reject(new Error('Lỗi load ảnh dataUrl'));
     img.src = dataUrl;
@@ -189,9 +210,9 @@ export async function uploadDataUrlImage(
   examId: string,
   pathSuffix: string
 ): Promise<string> {
-  const blob = await compressDataUrl(dataUrl);
-  const path = `${examId}/${pathSuffix}.jpg`;
-  return uploadFileToExamStorage(path, blob, 'image/jpeg');
+  const { blob, contentType, ext } = await compressDataUrl(dataUrl);
+  const path = `${examId}/${pathSuffix}.${ext}`;
+  return uploadFileToExamStorage(path, blob, contentType);
 }
 
 /**

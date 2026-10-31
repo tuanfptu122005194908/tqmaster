@@ -273,9 +273,34 @@ export default function BackgroundBackupPanel() {
         heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
 
+      // Tự động kích hoạt tải ngay từ bộ nhớ trình duyệt để không tốn thêm băng thông Egress tải lại từ đám mây
+      downloadBlob(res.blob, res.fileName);
+
+      // Dọn dẹp các bản sao lưu cũ trên đám mây (chỉ giữ tối đa 1 bản mới nhất để tránh vượt 1GB Storage)
+      try {
+        const { data: oldJobs } = await supabase
+          .from('backup_jobs')
+          .select('id, file_path')
+          .eq('status', 'done')
+          .neq('id', job.id)
+          .not('file_path', 'is', null);
+        if (oldJobs && oldJobs.length > 0) {
+          const oldPaths = oldJobs.map(j => j.file_path).filter((p): p is string => !!p);
+          if (oldPaths.length > 0) {
+            await supabase.storage.from('backup-uploads').remove(oldPaths);
+          }
+          for (const oj of oldJobs) {
+            await supabase.from('backup_jobs').update({
+              file_path: null,
+              step: 'Đã tự động xóa file trên đám mây để tiết kiệm dung lượng',
+            }).eq('id', oj.id);
+          }
+        }
+      } catch {}
+
       toast({
-        title: '✅ Đã lưu trữ gói sao lưu trên đám mây',
-        description: `${res.fileName} (${formatBytes(res.sizeBytes)}). Bạn có thể bấm "Tải về (.zip)" bất cứ lúc nào!`,
+        title: '✅ Đã lưu trữ và tải gói sao lưu về máy',
+        description: `${res.fileName} (${formatBytes(res.sizeBytes)}). Các bản cũ trên mây đã được dọn dẹp để tiết kiệm dung lượng!`,
       });
       await loadJobs();
     } catch (err) {
@@ -371,6 +396,8 @@ export default function BackgroundBackupPanel() {
         heartbeat_at: new Date().toISOString(),
       }).eq('id', job.id);
 
+      downloadBlob(res.blob, res.fileName);
+
       toast({
         title: '✅ Đã hoàn tất sao lưu thành công',
         description: `${res.fileName} (${formatBytes(res.sizeBytes)})`,
@@ -430,7 +457,18 @@ export default function BackgroundBackupPanel() {
 
       const fileName = job.file_name || `TQMaster_ServerBackup_${job.id.slice(0, 8)}.zip`;
       downloadBlob(data, fileName);
-      toast({ title: '✅ Đang tải gói sao lưu về máy...' });
+
+      // Tự động xóa file trên đám mây sau khi đã tải về máy để giải phóng Storage quota
+      try {
+        await supabase.storage.from('backup-uploads').remove([job.file_path]);
+        await supabase.from('backup_jobs').update({
+          file_path: null,
+          step: 'Đã tải về máy và tự động xóa file trên đám mây để tiết kiệm dung lượng',
+        }).eq('id', job.id);
+      } catch {}
+
+      toast({ title: '✅ Đã tải gói sao lưu về máy và dọn dẹp bộ nhớ đám mây!' });
+      await loadJobs();
     } catch (err) {
       toast({
         title: 'Lỗi tải file',

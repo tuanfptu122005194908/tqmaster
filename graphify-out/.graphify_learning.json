@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-27T00:41:47.020555+00:00",
+  "generated_at": "2026-10-27T08:56:42.369725+00:00",
   "nodes": {
     "src_lib_adminanalytics": {
-      "code_fingerprint": "d496fb9a4d019ded9fcf3538cbac9ee4f336323bcab6e7535d41f2da3a3af8dd",
+      "code_fingerprint": "b6fe06a65889f11bb69ad647fcc8473502874340d00683fbc4a291d27797c7cd",
       "label": "adminAnalytics.ts",
       "last": "2026-10-27T00:41:46.720761+00:00",
       "provenance": [
@@ -12,7 +12,7 @@
           "q": "Admin dashboard data integrity implementation after approved audit"
         }
       ],
-      "score": 0.99999992,
+      "score": 0.9920903,
       "source_file": "src/lib/adminAnalytics.ts",
       "status": "tentative",
       "uses": 1
@@ -28,7 +28,7 @@
           "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
         }
       ],
-      "score": 0.99243119,
+      "score": 0.984581436,
       "source_file": "src/lib/adminUsers.ts",
       "status": "tentative",
       "uses": 1
@@ -44,7 +44,7 @@
           "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
         }
       ],
-      "score": 0.99243119,
+      "score": 0.984581436,
       "source_file": "src/lib/backupCore.ts",
       "status": "tentative",
       "uses": 1
@@ -65,7 +65,7 @@
           "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
         }
       ],
-      "score": 1.99243111,
+      "score": 1.976671735,
       "source_file": "src/pages/admin/AdminDashboard.tsx",
       "status": "preferred",
       "uses": 2
@@ -86,13 +86,13 @@
           "q": "Giup kiem tra dashboard admin load cham, thieu du lieu va lech doanh thu voi don hang; ra soat tat ca truy xuat admin."
         }
       ],
-      "score": 1.99243111,
+      "score": 1.976671735,
       "source_file": "src/pages/admin/AdminOrders.tsx",
       "status": "preferred",
       "uses": 2
     },
     "supabase_functions_shared_readallrows": {
-      "code_fingerprint": "3572dc6a0dd4c370bd39d7a728d0fba8e4a64360e528cdcd888ef6b5a8b2be7d",
+      "code_fingerprint": "97bc2563a3800aa2fd755cb00db28f709ba41cbe492e9eea5d6bf73d4062fda4",
       "label": "readAllRows.ts",
       "last": "2026-10-27T00:41:46.720761+00:00",
       "provenance": [
@@ -102,7 +102,7 @@
           "q": "Admin dashboard data integrity implementation after approved audit"
         }
       ],
-      "score": 0.99999992,
+      "score": 0.9920903,
       "source_file": "supabase/functions/_shared/readAllRows.ts",
       "status": "tentative",
       "uses": 1
