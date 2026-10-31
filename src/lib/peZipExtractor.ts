@@ -136,9 +136,9 @@ export async function uploadExtractedZipImages(
       });
 
       if (upErr) {
-        console.warn(`[peZipExtractor] Upload to ${targetBucket} failed, trying theory-files:`, upErr.message);
-        // Fallback to theory-files bucket if theory-images bucket has issues
-        const { error: fallbackErr } = await supabase.storage.from('theory-files').upload(storagePath, uploadBlob, {
+        console.warn(`[peZipExtractor] Upload to ${targetBucket} failed, trying exam-images:`, upErr.message);
+        // Fallback to exam-images bucket if theory-images bucket has issues
+        const { error: fallbackErr } = await supabase.storage.from('exam-images').upload(storagePath, uploadBlob, {
           cacheControl: '31536000',
           upsert: true,
           contentType: mimeType,
@@ -148,7 +148,7 @@ export async function uploadExtractedZipImages(
           throw fallbackErr;
         }
 
-        const { data: { publicUrl } } = supabase.storage.from('theory-files').getPublicUrl(storagePath);
+        const { data: { publicUrl } } = supabase.storage.from('exam-images').getPublicUrl(storagePath);
         uploadedUrls.push(publicUrl);
         continue;
       }

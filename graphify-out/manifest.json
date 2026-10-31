@@ -168,9 +168,9 @@
     "semantic_hash": ""
   },
   "src/components/FileUploader.tsx": {
-    "mtime": 1793414219.0311646,
-    "seen": 1793421875.018549,
-    "ast_hash": "90f59d5a01089c31600a464b5dcc2048",
+    "mtime": 1793438370.7952642,
+    "seen": 1793438893.2832837,
+    "ast_hash": "03e2c22cd03ec4628782e2a554386ac8",
     "semantic_hash": ""
   },
   "src/components/MobileNav.tsx": {
@@ -600,9 +600,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminDashboard.tsx": {
-    "mtime": 1793061772.9335258,
-    "seen": 1793064207.009734,
-    "ast_hash": "1a3d2b7b7836c6f7bd7886d121d8cb70",
+    "mtime": 1793438530.1669326,
+    "seen": 1793438893.2948506,
+    "ast_hash": "102205f6eab7fa428c90e57ac4136386",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminExams.tsx": {
@@ -928,9 +928,9 @@
     "semantic_hash": ""
   },
   "src/lib/imageUpload.ts": {
-    "mtime": 1793410039.2940116,
-    "seen": 1793412553.7154825,
-    "ast_hash": "0e9a62e3c174d3839de433ba90dd8b16",
+    "mtime": 1793438401.0966058,
+    "seen": 1793438893.2929587,
+    "ast_hash": "90e17f51ad21e776ad5f1eba4935d545",
     "semantic_hash": ""
   },
   "src/lib/wordParser.ts": {
@@ -1887,9 +1887,9 @@
     "semantic_hash": ""
   },
   "src/lib/peZipExtractor.ts": {
-    "mtime": 1793410039.3594596,
-    "seen": 1793412553.7156532,
-    "ast_hash": "7663d3be67747cc18152e768c89ffc99",
+    "mtime": 1793438357.6192174,
+    "seen": 1793438893.293207,
+    "ast_hash": "526b1e40467bb9a3b0ae247d9b84bec5",
     "semantic_hash": ""
   },
   "src/lib/theoryMetadata.ts": {
@@ -2808,6 +2808,30 @@
     "mtime": 1793432374.7832136,
     "seen": 1793432488.1734984,
     "ast_hash": "437eb4f3ea471e77e9bd57f51e56adb8",
+    "semantic_hash": ""
+  },
+  "scripts/compress_question_and_theory_images.mjs": {
+    "mtime": 1793438683.4549985,
+    "seen": 1793438893.2824454,
+    "ast_hash": "36c2300cbef783e69d6bd207a1302013",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/35-compress-images-and-purge-attempt-answers/plan.md": {
+    "mtime": 1793437108.6189306,
+    "seen": 1793438893.3065803,
+    "ast_hash": "6837d46bc51bada81084bc95525c44b4",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/35-compress-images-and-purge-attempt-answers/spec.md": {
+    "mtime": 1793437108.7273486,
+    "seen": 1793438893.3065815,
+    "ast_hash": "87c7f6a63ecbdea03cc0ce0302494678",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/35-compress-images-and-purge-attempt-answers/tasks.md": {
+    "mtime": 1793438798.7763548,
+    "seen": 1793438893.3065825,
+    "ast_hash": "970d5870fb15784be867d10fc838c9de",
     "semantic_hash": ""
   }
 }

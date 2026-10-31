@@ -109,10 +109,9 @@ export async function compressImageFile(
     return { blob: file, contentType: file.type, ext };
   }
 
-  // If already a small WebP/JPEG/PNG (< 100KB), upload directly without re-compression
-  if (file.size < 100 * 1024 && (file.type === 'image/webp' || file.type === 'image/jpeg' || file.type === 'image/png')) {
-    const ext = file.name.split('.').pop() || (file.type === 'image/webp' ? 'webp' : 'jpg');
-    return { blob: file, contentType: file.type, ext };
+  // If already a small WebP (< 50KB), upload directly without re-compression
+  if (file.size < 50 * 1024 && file.type === 'image/webp') {
+    return { blob: file, contentType: 'image/webp', ext: 'webp' };
   }
 
   try {

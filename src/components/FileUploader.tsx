@@ -42,7 +42,8 @@ export default function FileUploader({
     let contentType = file.type;
     let ext = file.name.split('.').pop() || 'bin';
 
-    if (file.type.startsWith('image/')) {
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|bmp|tiff?)$/i.test(file.name);
+    if (isImage) {
       const maxDim = bucket === 'thumbnails' ? 960 : 1280;
       const compressed = await compressImageFile(file, maxDim, 0.82);
       uploadBody = compressed.blob;
