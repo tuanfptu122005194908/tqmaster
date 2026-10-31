@@ -690,8 +690,8 @@
     "semantic_hash": ""
   },
   "src/pages/user/SubjectDetailPage.tsx": {
-    "mtime": 1793423722.8825035,
-    "seen": 1793423992.3351657,
+    "mtime": 1793424223.2605102,
+    "seen": 1793425213.9558175,
     "ast_hash": "a001fe251f7a47b85ba3e2e9590fad75",
     "semantic_hash": ""
   },
@@ -2529,8 +2529,8 @@
     "semantic_hash": ""
   },
   "src/pages/user/SubjectDetailPage.test.tsx": {
-    "mtime": 1793423879.3940947,
-    "seen": 1793423992.3351629,
+    "mtime": 1793424223.0838394,
+    "seen": 1793425213.9558144,
     "ast_hash": "04e1f839d4134dbb25e70c86b6a06f56",
     "semantic_hash": ""
   },
@@ -2757,15 +2757,15 @@
     "semantic_hash": ""
   },
   "scripts/clean_supabase_theory_files.mjs": {
-    "mtime": 1793423904.3510072,
-    "seen": 1793423992.2897766,
-    "ast_hash": "0105bb3a4406228c18ba6d9a26e8667c",
+    "mtime": 1793425148.819875,
+    "seen": 1793425213.9210064,
+    "ast_hash": "f36ccac52b00c5ea207afd569c3f1471",
     "semantic_hash": ""
   },
   "scripts/export_theories_to_local.mjs": {
-    "mtime": 1793423571.09533,
-    "seen": 1793423992.2907124,
-    "ast_hash": "22c817ca850c4072d7881e04f59c8bf1",
+    "mtime": 1793426044.487796,
+    "seen": 1793428627.3510067,
+    "ast_hash": "d68ffbca812275783d13a304d91d838e",
     "semantic_hash": ""
   },
   ".sdd/specs/34-migrate-theory-files-to-google-drive/plan.md": {
@@ -2775,15 +2775,39 @@
     "semantic_hash": ""
   },
   ".sdd/specs/34-migrate-theory-files-to-google-drive/spec.md": {
-    "mtime": 1793423966.9337585,
-    "seen": 1793423992.3593445,
+    "mtime": 1793424222.6668005,
+    "seen": 1793425213.986056,
     "ast_hash": "72b3427087614730b17fc3a6dedb0f28",
     "semantic_hash": ""
   },
   ".sdd/specs/34-migrate-theory-files-to-google-drive/tasks.md": {
-    "mtime": 1793423957.0681527,
-    "seen": 1793423992.3593462,
-    "ast_hash": "69f5fdf9c4833009eec4996537b6ce08",
+    "mtime": 1793432451.5322955,
+    "seen": 1793432488.2869046,
+    "ast_hash": "b7bfebfcdb25c55c6e83162cd7d6995a",
+    "semantic_hash": ""
+  },
+  "scripts/unzip_and_cleanup_theories.py": {
+    "mtime": 1793425390.8734741,
+    "seen": 1793426019.5346665,
+    "ast_hash": "df849f61788f24511331cc6b55883055",
+    "semantic_hash": ""
+  },
+  "scripts/organize_theories_by_semester.py": {
+    "mtime": 1793426044.5120547,
+    "seen": 1793428627.3510826,
+    "ast_hash": "10397dbf56f6a039e0714071877aae2f",
+    "semantic_hash": ""
+  },
+  "scripts/upload_theories_to_gdrive.py": {
+    "mtime": 1793431456.9728281,
+    "seen": 1793432488.1744082,
+    "ast_hash": "9ccf72626a1abb0cb8374ed54e9d2c03",
+    "semantic_hash": ""
+  },
+  "scripts/isolate_subject_permissions.py": {
+    "mtime": 1793432374.7832136,
+    "seen": 1793432488.1734984,
+    "ast_hash": "437eb4f3ea471e77e9bd57f51e56adb8",
     "semantic_hash": ""
   }
 }

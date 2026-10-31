@@ -4,5 +4,5 @@
 - [x] **Task 2**: Thực thi script và tải hoàn tất 100% tài liệu về máy cho người dùng (127/127 files, 24 thư mục).
 - [x] **Task 3**: Nâng cấp UI trong `src/pages/user/SubjectDetailPage.tsx` để nhận diện và hiển thị giao diện chuyên dụng cho link Thư mục Google Drive.
 - [x] **Task 4**: Viết unit test, chạy `npm test` (104 tests passed), kiểm tra `npm run build`.
-- [ ] **Task 5**: Hướng dẫn người dùng upload lên Google Drive và cung cấp script `scripts/clean_supabase_theory_files.mjs` để dọn sạch 473 MB trên Supabase Storage.
+- [x] **Task 5**: Upload toàn bộ tài liệu lên Google Drive (16 luồng song song), cập nhật database Supabase sang link Google Drive, và cô lập phân quyền độc lập cho 24 thư mục môn học (Phương án 1 - ngăn chặn xem chéo môn).
 - [ ] **Task 6**: Cập nhật `graphify update .`, commit và đẩy code lên cả 2 remote (`origin` và `tqmaster`).
