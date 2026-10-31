@@ -13,6 +13,7 @@ import {
   Check,
   Loader2,
   FileText,
+  FolderOpen,
   Link as LinkIcon,
   Image as ImageIcon,
   Download,
@@ -46,6 +47,11 @@ const inputStyle: React.CSSProperties = {
   color: '#0f172a', transition: 'all 0.15s ease',
   boxSizing: 'border-box'
 };
+
+function isGoogleDrive(url?: string | null): boolean {
+  if (!url) return false;
+  return /drive\.google\.com|docs\.google\.com/i.test(url);
+}
 
 const TYPE_OPTS: Array<{ value: Theory['type']; label: string; icon: React.ReactNode }> = [
   { value: 'file',  label: 'File / Video', icon: <FileText size={15} /> },
@@ -770,7 +776,21 @@ export default function AdminTheory() {
                       </button>
                     )}
 
-                    {t.type === 'link' ? (
+                    {isGoogleDrive(t.url) ? (
+                      <a
+                        href={t.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          width: '100%', padding: '9px', borderRadius: 12, border: '1.5px solid #a7f3d0',
+                          background: '#ecfdf5', color: '#047857', fontSize: 12.5, fontWeight: 800,
+                          textDecoration: 'none', boxSizing: 'border-box'
+                        }}
+                      >
+                        <FolderOpen size={14} /> Mở Google Drive {t.file_name ? `(${t.file_name})` : ''}
+                      </a>
+                    ) : t.type === 'link' ? (
                       <a href={t.url} target="_blank" rel="noopener noreferrer" className="btn-ghost"><ExternalLink size={14} /> Mở link</a>
                     ) : (
                       <StorageDownloadButton url={t.url} fileName={t.file_name}

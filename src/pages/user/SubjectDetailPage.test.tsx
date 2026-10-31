@@ -21,6 +21,7 @@ vi.mock('@/lib/signedImage', () => ({signStorageUrl: vi.fn(), signStorageUrls: v
 const files = [
   {id: 'theory', title: 'Tài liệu lý thuyết', category: 'theory', type: 'file', url: 'canonical.txt', file_name: 'Đề.txt'},
   {id: 'pe', title: 'Đề PE', category: 'pe', type: 'file', url: 'canonical.zip', file_name: 'Đề.zip', description: '<!--PE_META:{"preview_images":["canonical.png"]}-->'},
+  {id: 'pe_gdrive', title: 'Đề PE Drive', category: 'pe', type: 'file', url: 'https://drive.google.com/drive/folders/pe_drive_id', file_name: 'Đề_Drive.zip'},
   {id: 'link', title: 'Link ngoài', category: 'theory', type: 'link', url: 'https://external.example/video'},
   {id: 'gdrive', title: 'Thư mục Drive', category: 'theory', type: 'link', url: 'https://drive.google.com/drive/folders/1abcxyz'},
 ];
@@ -134,4 +135,13 @@ it('renders Google Drive open button when theory link is a Google Drive url', as
   const gdriveBtn = await screen.findByRole('link', {name: /Mở Google Drive/i});
   expect(gdriveBtn).toBeInTheDocument();
   expect(gdriveBtn).toHaveAttribute('href', 'https://drive.google.com/drive/folders/1abcxyz');
+});
+
+it('renders Google Drive button in PE tab for PE items with Google Drive url even when type is file', async () => {
+  render(page());
+  await screen.findByRole('heading', {name: 'Môn học'});
+  fireEvent.click(document.getElementById('tab-pe')!);
+  const gdriveBtns = await screen.findAllByRole('link', {name: /Mở Google Drive/i});
+  expect(gdriveBtns.length).toBeGreaterThanOrEqual(1);
+  expect(gdriveBtns.some(b => b.getAttribute('href') === 'https://drive.google.com/drive/folders/pe_drive_id')).toBe(true);
 });

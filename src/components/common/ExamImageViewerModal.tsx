@@ -11,9 +11,15 @@ import {
   Download,
   Layers,
   FileArchive,
+  FolderOpen,
   Loader2,
   AlertCircle,
 } from 'lucide-react';
+
+function isGoogleDrive(url?: string | null): boolean {
+  if (!url) return false;
+  return /drive\.google\.com|docs\.google\.com/i.test(url);
+}
 
 interface ExamImageViewerModalProps {
   isOpen: boolean;
@@ -283,29 +289,56 @@ export const ExamImageViewerModal: React.FC<ExamImageViewerModalProps> = ({
             </button>
           </div>
 
-          {/* Download Original ZIP Button */}
+          {/* Download Original ZIP or Open Google Drive Button */}
           {zipDownloadUrl && (
-            <StorageDownloadButton url={zipDownloadUrl} fileName={zipFileName}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: 10,
-                padding: '8px 14px',
-                fontSize: 12.5,
-                fontWeight: 700,
-                textDecoration: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
-              }}
-              title="Tải file ZIP gốc chứa source code / đề bài"
-            >
-              <FileArchive size={15} />
-              <span>Tải file ZIP gốc</span>
-            </StorageDownloadButton>
+            isGoogleDrive(zipDownloadUrl) ? (
+              <a
+                href={zipDownloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 10,
+                  padding: '8px 14px',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                }}
+                title="Mở thư mục đề thi trên Google Drive"
+              >
+                <FolderOpen size={15} />
+                <span>Mở Google Drive</span>
+              </a>
+            ) : (
+              <StorageDownloadButton url={zipDownloadUrl} fileName={zipFileName}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 10,
+                  padding: '8px 14px',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                }}
+                title="Tải file ZIP gốc chứa source code / đề bài"
+              >
+                <FileArchive size={15} />
+                <span>Tải file ZIP gốc</span>
+              </StorageDownloadButton>
+            )
           )}
 
           {/* Close button */}

@@ -642,9 +642,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminTheory.tsx": {
-    "mtime": 1793064328.2334158,
-    "seen": 1793093325.5213,
-    "ast_hash": "74cd92509feebf56744706fce5e96687",
+    "mtime": 1793433793.4375143,
+    "seen": 1793433994.6370196,
+    "ast_hash": "642fffc8e1798c99e555e7780432f7ed",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminUsers.tsx": {
@@ -690,9 +690,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/SubjectDetailPage.tsx": {
-    "mtime": 1793424223.2605102,
-    "seen": 1793425213.9558175,
-    "ast_hash": "a001fe251f7a47b85ba3e2e9590fad75",
+    "mtime": 1793433793.434851,
+    "seen": 1793433994.6395175,
+    "ast_hash": "c3fbce3bf0146a2e47775f8fd032f34e",
     "semantic_hash": ""
   },
   "src/vite-env.d.ts": {
@@ -1881,9 +1881,9 @@
     "semantic_hash": ""
   },
   "src/components/common/ExamImageViewerModal.tsx": {
-    "mtime": 1793410039.149252,
-    "seen": 1793412553.7064085,
-    "ast_hash": "61d370519529acc8b0b7f32bc661df93",
+    "mtime": 1793433793.4360058,
+    "seen": 1793433994.5965958,
+    "ast_hash": "7d14e62dc67e8e284fd7a04b8d160e05",
     "semantic_hash": ""
   },
   "src/lib/peZipExtractor.ts": {
@@ -2529,9 +2529,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/SubjectDetailPage.test.tsx": {
-    "mtime": 1793424223.0838394,
-    "seen": 1793425213.9558144,
-    "ast_hash": "04e1f839d4134dbb25e70c86b6a06f56",
+    "mtime": 1793433917.6471138,
+    "seen": 1793433994.6395142,
+    "ast_hash": "975bd431e2ae4e876c85b3766cbc60b5",
     "semantic_hash": ""
   },
   ".sdd/specs/27-refresh-private-document-downloads/audit.md": {
@@ -2781,9 +2781,9 @@
     "semantic_hash": ""
   },
   ".sdd/specs/34-migrate-theory-files-to-google-drive/tasks.md": {
-    "mtime": 1793433132.2449288,
-    "seen": 1793433147.60228,
-    "ast_hash": "7a70f901a061f506e74e9975fdee0689",
+    "mtime": 1793433192.9449317,
+    "seen": 1793433994.6822872,
+    "ast_hash": "b09eb3565328d968f598fcf758b93380",
     "semantic_hash": ""
   },
   "scripts/unzip_and_cleanup_theories.py": {

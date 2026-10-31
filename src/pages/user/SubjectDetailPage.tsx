@@ -78,7 +78,8 @@ function SubjectDetailContent() {
     navigate(`/exams/${examId}?mode=${mode}`);
   };
 
-  const TypeIcon = ({ type }: { type: string }) => {
+  const TypeIcon = ({ type, url }: { type: string; url?: string | null }) => {
+    if (isGoogleDrive(url)) return <FolderOpen size={15} />;
     if (type === 'image') return <ImageIcon size={15} />;
     if (type === 'link')  return <ExternalLink size={15} />;
     return <Download size={15} />;
@@ -183,11 +184,11 @@ function SubjectDetailContent() {
         >
           <div style={{
             width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-            background: 'hsl(var(--primary-muted))',
+            background: isGoogleDrive(item.url) ? 'rgba(16, 185, 129, 0.12)' : 'hsl(var(--primary-muted))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'hsl(var(--primary))',
+            color: isGoogleDrive(item.url) ? '#059669' : 'hsl(var(--primary))',
           }}>
-            <TypeIcon type={item.type} />
+            <TypeIcon type={item.type} url={item.url} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
@@ -203,25 +204,23 @@ function SubjectDetailContent() {
               </div>
             ) : null}
           </div>
-          {item.type === 'link' ? (
-            isGoogleDrive(item.url) ? (
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: '#ffffff', padding: '9px 16px', borderRadius: 12,
-                  fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', flexShrink: 0, whiteSpace: 'nowrap'
-                }}
-              >
-                <FolderOpen size={15} /> Mở Google Drive
-              </a>
-            ) : (
-              <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
-            )
+          {isGoogleDrive(item.url) ? (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: '#ffffff', padding: '9px 16px', borderRadius: 12,
+                fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', flexShrink: 0, whiteSpace: 'nowrap'
+              }}
+            >
+              <FolderOpen size={15} /> Mở Google Drive
+            </a>
+          ) : item.type === 'link' ? (
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
           ) : (
             <StorageDownloadButton url={item.url} fileName={item.file_name} className="btn-primary" style={{flexShrink: 0, borderRadius: 12}}>
               <Download size={14} /> Tải về
@@ -270,12 +269,12 @@ function SubjectDetailContent() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 260 }}>
                 <div style={{
                   width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-                  background: hasImages ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'hsl(var(--primary-muted))',
-                  color: hasImages ? '#1d4ed8' : 'hsl(var(--primary))',
-                  border: hasImages ? '1px solid #bfdbfe' : 'none',
+                  background: isGoogleDrive(item.url) ? 'rgba(16, 185, 129, 0.12)' : hasImages ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'hsl(var(--primary-muted))',
+                  color: isGoogleDrive(item.url) ? '#059669' : hasImages ? '#1d4ed8' : 'hsl(var(--primary))',
+                  border: isGoogleDrive(item.url) ? '1px solid #a7f3d0' : hasImages ? '1px solid #bfdbfe' : 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {hasImages ? <Layers size={18} /> : <TypeIcon type={item.type} />}
+                  {hasImages ? <Layers size={18} /> : <TypeIcon type={item.type} url={item.url} />}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -328,26 +327,24 @@ function SubjectDetailContent() {
                   </button>
                 )}
 
-                {/* Original file action signs a fresh attachment on each click. */}
-                {item.type === 'link' ? (
-                  isGoogleDrive(item.url) ? (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 6,
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        color: '#ffffff', padding: '9px 16px', borderRadius: 12,
-                        fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none',
-                        boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', flexShrink: 0, whiteSpace: 'nowrap'
-                      }}
-                    >
-                      <FolderOpen size={15} /> Mở Google Drive
-                    </a>
-                  ) : (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
-                  )
+                {/* Original file action: Open Google Drive directly or download */}
+                {isGoogleDrive(item.url) ? (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: '#ffffff', padding: '9px 16px', borderRadius: 12,
+                      fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none',
+                      boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', flexShrink: 0, whiteSpace: 'nowrap'
+                    }}
+                  >
+                    <FolderOpen size={15} /> Mở Google Drive
+                  </a>
+                ) : item.type === 'link' ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
                 ) : (
                   <StorageDownloadButton url={item.url} fileName={item.file_name} className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{flexShrink: 0, borderRadius: 12}}>
                     <Download size={14} /> {hasImages ? 'Tải file ZIP gốc' : 'Tải về'}
