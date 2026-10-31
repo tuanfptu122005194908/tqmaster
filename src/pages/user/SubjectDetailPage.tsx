@@ -9,10 +9,15 @@ import { ExamImageViewerModal } from '@/components/common/ExamImageViewerModal';
 import {
   ArrowLeft, ShoppingCart, CheckCircle, Clock,
   BookOpen, Bell, FileText, ExternalLink,
-  Download, Image as ImageIcon, Play, Eye, Loader2, Lock, Star, Layers
+  Download, Image as ImageIcon, Play, Eye, Loader2, Lock, Star, Layers, FolderOpen
 } from 'lucide-react';
 
 type Theory        = Tables<'theories'>;
+
+function isGoogleDrive(url?: string | null): boolean {
+  if (!url) return false;
+  return /drive\.google\.com|docs\.google\.com/i.test(url);
+}
 import { ProductReviews } from '@/components/ProductReviews';
 type Tab = SubjectTab;
 
@@ -199,7 +204,24 @@ function SubjectDetailContent() {
             ) : null}
           </div>
           {item.type === 'link' ? (
-            <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
+            isGoogleDrive(item.url) ? (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#ffffff', padding: '9px 16px', borderRadius: 12,
+                  fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', flexShrink: 0, whiteSpace: 'nowrap'
+                }}
+              >
+                <FolderOpen size={15} /> Mở Google Drive
+              </a>
+            ) : (
+              <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
+            )
           ) : (
             <StorageDownloadButton url={item.url} fileName={item.file_name} className="btn-primary" style={{flexShrink: 0, borderRadius: 12}}>
               <Download size={14} /> Tải về
@@ -308,7 +330,24 @@ function SubjectDetailContent() {
 
                 {/* Original file action signs a fresh attachment on each click. */}
                 {item.type === 'link' ? (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
+                  isGoogleDrive(item.url) ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: '#ffffff', padding: '9px 16px', borderRadius: 12,
+                        fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none',
+                        boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', flexShrink: 0, whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <FolderOpen size={15} /> Mở Google Drive
+                    </a>
+                  ) : (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{textDecoration: 'none', flexShrink: 0}}><ExternalLink size={14} /> Mở link</a>
+                  )
                 ) : (
                   <StorageDownloadButton url={item.url} fileName={item.file_name} className={hasImages ? 'btn-ghost' : 'btn-primary'} style={{flexShrink: 0, borderRadius: 12}}>
                     <Download size={14} /> {hasImages ? 'Tải file ZIP gốc' : 'Tải về'}

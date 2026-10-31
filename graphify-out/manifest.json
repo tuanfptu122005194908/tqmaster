@@ -618,9 +618,9 @@
     "semantic_hash": ""
   },
   "src/pages/admin/AdminOrders.tsx": {
-    "mtime": 1793421766.027072,
-    "seen": 1793421875.0297687,
-    "ast_hash": "05dd1f17af05311e834091d0cb418171",
+    "mtime": 1793421972.6756544,
+    "seen": 1793423992.332436,
+    "ast_hash": "2a1ed6788f03b0c50a31f4438cd0e654",
     "semantic_hash": ""
   },
   "src/pages/admin/AdminQuestionReports.tsx": {
@@ -690,9 +690,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/SubjectDetailPage.tsx": {
-    "mtime": 1793093028.6487029,
-    "seen": 1793093325.522826,
-    "ast_hash": "762d5994b70ec66b2e155cfebf05c0d7",
+    "mtime": 1793423722.8825035,
+    "seen": 1793423992.3351657,
+    "ast_hash": "a001fe251f7a47b85ba3e2e9590fad75",
     "semantic_hash": ""
   },
   "src/vite-env.d.ts": {
@@ -2529,9 +2529,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/SubjectDetailPage.test.tsx": {
-    "mtime": 1793093304.1362996,
-    "seen": 1793093325.5228236,
-    "ast_hash": "94c064b41e0993bd2d24793ceaec28a8",
+    "mtime": 1793423879.3940947,
+    "seen": 1793423992.3351629,
+    "ast_hash": "04e1f839d4134dbb25e70c86b6a06f56",
     "semantic_hash": ""
   },
   ".sdd/specs/27-refresh-private-document-downloads/audit.md": {
@@ -2570,12 +2570,6 @@
     "ast_hash": "503a0788adcdb0fb5ae1f3b239afe6ce",
     "semantic_hash": ""
   },
-  "artifacts/performance-live-2026-10-27.json": {
-    "mtime": 1793091614.660092,
-    "seen": 1793093325.4922717,
-    "ast_hash": "a71c75ea6a54517b54d98d4ea09e7011",
-    "semantic_hash": ""
-  },
   "src/hooks/useSubjectContent.ts": {
     "mtime": 1793093168.0505548,
     "seen": 1793093325.5130234,
@@ -2598,12 +2592,6 @@
     "mtime": 1793093893.9905524,
     "seen": 1793101243.3629742,
     "ast_hash": "b24041b1ad173e62c41182b0fab60886",
-    "semantic_hash": ""
-  },
-  "artifacts/performance-audit-2026-10-27.md": {
-    "mtime": 1793091863.5518885,
-    "seen": 1793093325.5468817,
-    "ast_hash": "2ecf8239c4ee1c9b5df25b9078effb4a",
     "semantic_hash": ""
   },
   "graphify-out/memory/query_20261027_090425_dd8e6d49_audit_first_load_performance_and_1000_concurrent_u.md": {
@@ -2733,21 +2721,21 @@
     "semantic_hash": ""
   },
   "src/lib/__tests__/orderBillCleaner.test.ts": {
-    "mtime": 1793421216.382116,
-    "seen": 1793421875.0269673,
-    "ast_hash": "678b656e902022e8e75549e4992294d8",
+    "mtime": 1793421970.089049,
+    "seen": 1793423992.3206663,
+    "ast_hash": "6b2f5f4a051e894c9e5608db70813891",
     "semantic_hash": ""
   },
   "src/lib/orderBillCleaner.ts": {
-    "mtime": 1793421194.5599065,
-    "seen": 1793421875.0280669,
-    "ast_hash": "643fb5029739690b5ed51fe3c3216416",
+    "mtime": 1793421970.156566,
+    "seen": 1793423992.3260522,
+    "ast_hash": "0d8ccb71698378f29ca1bdfe294cfbf4",
     "semantic_hash": ""
   },
   "src/pages/admin/__tests__/AdminOrders.test.tsx": {
-    "mtime": 1793421790.4798005,
-    "seen": 1793421875.0303411,
-    "ast_hash": "ab86e7697b15379fde336ff68d118f9e",
+    "mtime": 1793421970.358789,
+    "seen": 1793423992.3338175,
+    "ast_hash": "33676a6cd5cb77a4230ef1e3876ee313",
     "semantic_hash": ""
   },
   ".sdd/specs/33-admin-clean-bill-images/plan.md": {
@@ -2757,15 +2745,45 @@
     "semantic_hash": ""
   },
   ".sdd/specs/33-admin-clean-bill-images/spec.md": {
-    "mtime": 1793421848.137746,
-    "seen": 1793421875.041352,
+    "mtime": 1793421972.2592752,
+    "seen": 1793423992.3593366,
     "ast_hash": "5157749ba8c6b5845a0e3cad239b685f",
     "semantic_hash": ""
   },
   ".sdd/specs/33-admin-clean-bill-images/tasks.md": {
-    "mtime": 1793421844.1362224,
-    "seen": 1793421875.041353,
+    "mtime": 1793421972.3309004,
+    "seen": 1793423992.3593392,
     "ast_hash": "8db74bc667f666c2d44ec9066b77fc4c",
+    "semantic_hash": ""
+  },
+  "scripts/clean_supabase_theory_files.mjs": {
+    "mtime": 1793423904.3510072,
+    "seen": 1793423992.2897766,
+    "ast_hash": "0105bb3a4406228c18ba6d9a26e8667c",
+    "semantic_hash": ""
+  },
+  "scripts/export_theories_to_local.mjs": {
+    "mtime": 1793423571.09533,
+    "seen": 1793423992.2907124,
+    "ast_hash": "22c817ca850c4072d7881e04f59c8bf1",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/34-migrate-theory-files-to-google-drive/plan.md": {
+    "mtime": 1793423132.2554073,
+    "seen": 1793423992.3593419,
+    "ast_hash": "aeb4195941a44a956f6b5173fd709b9b",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/34-migrate-theory-files-to-google-drive/spec.md": {
+    "mtime": 1793423966.9337585,
+    "seen": 1793423992.3593445,
+    "ast_hash": "72b3427087614730b17fc3a6dedb0f28",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/34-migrate-theory-files-to-google-drive/tasks.md": {
+    "mtime": 1793423957.0681527,
+    "seen": 1793423992.3593462,
+    "ast_hash": "69f5fdf9c4833009eec4996537b6ce08",
     "semantic_hash": ""
   }
 }

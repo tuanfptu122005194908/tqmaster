@@ -22,6 +22,7 @@ const files = [
   {id: 'theory', title: 'Tài liệu lý thuyết', category: 'theory', type: 'file', url: 'canonical.txt', file_name: 'Đề.txt'},
   {id: 'pe', title: 'Đề PE', category: 'pe', type: 'file', url: 'canonical.zip', file_name: 'Đề.zip', description: '<!--PE_META:{"preview_images":["canonical.png"]}-->'},
   {id: 'link', title: 'Link ngoài', category: 'theory', type: 'link', url: 'https://external.example/video'},
+  {id: 'gdrive', title: 'Thư mục Drive', category: 'theory', type: 'link', url: 'https://drive.google.com/drive/folders/1abcxyz'},
 ];
 let client: QueryClient;
 function page() {
@@ -124,4 +125,13 @@ it('isolates account caches and hides confirmed revoked content immediately', as
   view.rerender(page());
   await screen.findByRole('heading', {name: 'Đề của other'});
   expect(mocks.requests.filter(r => r.table === 'exam_subjects')).toHaveLength(3);
+});
+
+it('renders Google Drive open button when theory link is a Google Drive url', async () => {
+  render(page());
+  await screen.findByRole('heading', {name: 'Môn học'});
+  fireEvent.click(document.getElementById('tab-theory')!);
+  const gdriveBtn = await screen.findByRole('link', {name: /Mở Google Drive/i});
+  expect(gdriveBtn).toBeInTheDocument();
+  expect(gdriveBtn).toHaveAttribute('href', 'https://drive.google.com/drive/folders/1abcxyz');
 });

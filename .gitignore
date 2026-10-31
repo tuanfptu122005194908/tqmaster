@@ -34,5 +34,7 @@ scratch/admin-*
 scratch/supabase-tools/
 scratch/deploy-admin-analytics.sql
 scratch/*.sql
+scratch/*.json
+downloaded_theories/
 artifacts/
 graphify-out/20??-??-??/
