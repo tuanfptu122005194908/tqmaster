@@ -64,7 +64,7 @@ async function run() {
 
   const { data: theories, error } = await client
     .from('theories')
-    .select('id, title, file_name, url, theory_subjects(subjects(name))')
+    .select('id, title, file_name, url, theory_subjects(subjects(name, semester))')
     .eq('type', 'file');
 
   if (error) {
@@ -81,13 +81,13 @@ async function run() {
   for (let i = 0; i < theories.length; i++) {
     const item = theories[i];
     
-    // Lấy danh sách tên môn học mà tài liệu này thuộc về
-    const subjectNames = (item.theory_subjects || [])
-      .map((ts) => ts.subjects?.name)
+    // Lấy danh sách môn học và kỳ học tương ứng
+    const subjectList = (item.theory_subjects || [])
+      .map((ts) => ts.subjects)
       .filter(Boolean);
 
-    if (subjectNames.length === 0) {
-      subjectNames.push('Tai_Lieu_Chung');
+    if (subjectList.length === 0) {
+      subjectList.push({ name: 'Tai_Lieu_Chung', semester: 0 });
     }
 
     // Lấy storage path từ URL
@@ -123,10 +123,11 @@ async function run() {
       }
     }
 
-    // Copy file vào từng thư mục môn học tương ứng
-    for (const rawSubject of subjectNames) {
-      const subjectFolder = sanitizeName(rawSubject);
-      const targetDir = path.join(OUTPUT_DIR, subjectFolder);
+    // Copy file vào từng thư mục Kỳ / Môn học tương ứng
+    for (const sub of subjectList) {
+      const semFolder = sub.semester ? `Kỳ ${sub.semester}` : 'Chung';
+      const subjectFolder = sanitizeName(sub.name);
+      const targetDir = path.join(OUTPUT_DIR, semFolder, subjectFolder);
       fs.mkdirSync(targetDir, { recursive: true });
 
       let targetFilePath = path.join(targetDir, fileName);
