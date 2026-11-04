@@ -31,15 +31,26 @@ function pemToDer(pem: string): ArrayBuffer {
   return buf.buffer;
 }
 
-function loadServiceAccount(): ServiceAccount | null {
-  const raw = Deno.env.get('FCM_SERVICE_ACCOUNT');
+function parseServiceAccount(raw: string | undefined): ServiceAccount | null {
   if (!raw) return null;
   try {
-    const sa = JSON.parse(raw) as ServiceAccount;
+    const trimmed = raw.trim();
+    const text = trimmed.startsWith('{') ? trimmed : atob(trimmed);
+    const sa = JSON.parse(text) as ServiceAccount;
     return sa.client_email && sa.private_key && sa.project_id ? sa : null;
-  } catch {
+  } catch (err) {
+    console.error('[loadServiceAccount] parse error:', err);
     return null;
   }
+}
+
+function loadServiceAccount(): ServiceAccount | null {
+  const sa = parseServiceAccount(Deno.env.get('FCM_SERVICE_ACCOUNT_B64'))
+    || parseServiceAccount(Deno.env.get('FCM_SERVICE_ACCOUNT'));
+  if (!sa) {
+    console.warn('[loadServiceAccount] neither FCM_SERVICE_ACCOUNT_B64 nor FCM_SERVICE_ACCOUNT is valid');
+  }
+  return sa;
 }
 
 async function getAccessToken(sa: ServiceAccount): Promise<string> {
@@ -122,7 +133,7 @@ export async function sendOrderPush(
             ttl: '3600s',
             notification: {
               channel_id: ORDER_CHANNEL_ID,
-              sound: 'order_alert.wav',
+              sound: 'order_alert',
               default_vibrate_timings: true,
               notification_priority: 'PRIORITY_MAX',
               visibility: 'PUBLIC',

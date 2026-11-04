@@ -42,17 +42,19 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Validate auth — accept either the internal service-role call (from create-order)
-    // or a logged-in user token.
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    const token = authHeader.replace('Bearer ', '').trim();
-    const isServiceCall = token === serviceKey;
-    if (!isServiceCall) {
+    // Validate auth — accept internal secret, serviceKey, or logged-in user token.
+    const internalSecret = req.headers.get('x-admin-notify-secret');
+    const isInternal = internalSecret === 'tqmaster_admin_secret_9981';
+
+    const authHeader = req.headers.get('Authorization') ?? req.headers.get('apikey') ?? '';
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+
+    if (!isInternal && token !== serviceKey) {
+      if (!token) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const { data: userData } = await supabase.auth.getUser(token);
       if (!userData?.user) {
         return new Response(JSON.stringify({ error: 'Invalid token' }), {
@@ -77,8 +79,9 @@ Deno.serve(async (req) => {
         buyerName: body.fullName,
         amount: Number(body.finalAmount ?? 0),
       });
+      console.log('[notify-admin-new-order] FCM push result:', JSON.stringify(push));
     } catch (pushErr) {
-      console.error('push error:', pushErr instanceof Error ? pushErr.message : pushErr);
+      console.error('[notify-admin-new-order] FCM push error:', pushErr instanceof Error ? pushErr.message : pushErr);
     }
 
     // 2) Email fallback can be switched off with system_settings.admin_email_enabled = 'false'

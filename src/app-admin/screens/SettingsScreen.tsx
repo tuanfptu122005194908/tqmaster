@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { BellRing, LogOut, Lock, Smartphone, Vibrate, Volume2, Mic, ShieldCheck, Send } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { supabase } from '@/integrations/supabase/client';
 import type { AlertPrefs } from '@/lib/native/alertPrefs';
 import { playChime } from '@/lib/native/alertPlayer';
 
@@ -15,6 +17,37 @@ export function SettingsScreen({ prefs, onChange, onTest, onLock, onSignOut, adm
   onSignOut: () => void;
   adminEmail: string;
 }) {
+  const [testingFcm, setTestingFcm] = useState(false);
+  const [fcmResult, setFcmResult] = useState<string | null>(null);
+
+  const testFcm = async () => {
+    setTestingFcm(true);
+    setFcmResult(null);
+    try {
+      const { error } = await supabase.functions.invoke('notify-admin-new-order', {
+        headers: {
+          'x-admin-notify-secret': 'tqmaster_admin_secret_9981',
+        },
+        body: {
+          orderId: `TEST-${Date.now().toString().slice(-4)}`,
+          fullName: 'Nguyễn Văn A (Kiểm tra FCM)',
+          studentCode: 'TEST99',
+          email: adminEmail || 'admin@gmail.com',
+          finalAmount: 70000,
+          itemsCount: 1,
+        },
+      });
+      if (error) {
+        setFcmResult('Gửi thất bại: ' + (error.message || 'Lỗi mạng'));
+      } else {
+        setFcmResult('Đã gửi lệnh FCM! Kiểm tra chuông & thanh thông báo máy');
+      }
+    } catch (e) {
+      setFcmResult('Lỗi: ' + String(e));
+    } finally {
+      setTestingFcm(false);
+    }
+  };
   return (
     <div className="aa-scroll">
       <div className="aa-page-head">
@@ -51,8 +84,25 @@ export function SettingsScreen({ prefs, onChange, onTest, onLock, onSignOut, adm
             </div>
             <Switch on={prefs.vibrate} onChange={v => onChange({ ...prefs, vibrate: v })} label="Rung" />
           </div>
-          <div className="aa-row" style={{ paddingBottom: 16 }}>
-            <button className="aa-btn sm" onClick={onTest}><Send size={16} /> Gửi thông báo thử</button>
+          <div className="aa-row" style={{ paddingBottom: 14, gap: 10, flexDirection: 'column', alignItems: 'stretch' }}>
+            <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+              <button className="aa-btn sm" style={{ flex: 1 }} onClick={onTest}>
+                <Send size={15} /> Chuông thử
+              </button>
+              <button
+                className="aa-btn secondary sm"
+                style={{ flex: 1.3, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}
+                disabled={testingFcm}
+                onClick={testFcm}
+              >
+                <BellRing size={15} /> {testingFcm ? 'Đang gửi...' : 'Test Push FCM thật'}
+              </button>
+            </div>
+            {fcmResult && (
+              <small style={{ color: fcmResult.startsWith('Đã gửi') ? '#059669' : '#e11d48', fontWeight: 700, textAlign: 'center', marginTop: 4 }}>
+                {fcmResult}
+              </small>
+            )}
           </div>
         </div>
 

@@ -257,6 +257,57 @@ body.aa-body {
   align-items: flex-start;
   margin-bottom: 14px;
 }
+.aa-revenue-card-header {
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  gap: 4px;
+}
+.aa-chart-total-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 2px;
+}
+.aa-chart-total-row b {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+}
+.aa-revenue-segmented-bar {
+  display: flex;
+  width: 100%;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 14px;
+  gap: 4px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.aa-revenue-segmented-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 8px 8px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #64748b;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.aa-revenue-segmented-tab:active {
+  transform: scale(0.97);
+}
+.aa-revenue-segmented-tab.active {
+  background: #ffffff;
+  color: #1d4ed8;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12), 0 1px 2px rgba(15, 23, 42, 0.06);
+}
 .aa-dash-card-title {
   display: flex;
   align-items: center;

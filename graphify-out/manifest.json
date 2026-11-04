@@ -702,9 +702,9 @@
     "semantic_hash": "8f68c27c3fc38817b2726b20e2d4f1ee"
   },
   "supabase/functions/create-order/index.ts": {
-    "mtime": 1793727705.4874756,
-    "seen": 1793764068.6776483,
-    "ast_hash": "8ba1f64a3bc02fd294345fbd77da8688",
+    "mtime": 1793783065.762533,
+    "seen": 1793787349.6744077,
+    "ast_hash": "a41f14d93d3134ab3623e0fa64216577",
     "semantic_hash": ""
   },
   "supabase/functions/forgot-password/index.ts": {
@@ -714,9 +714,9 @@
     "semantic_hash": "08ae951e03c446b73bef60f2c12c749f"
   },
   "supabase/functions/notify-admin-new-order/index.ts": {
-    "mtime": 1793727683.5496957,
-    "seen": 1793764068.6778116,
-    "ast_hash": "172c14b0911f2fd57d17e9a00fcac4f3",
+    "mtime": 1793783054.6443148,
+    "seen": 1793787349.674625,
+    "ast_hash": "037dc419880dc71148b0270572a66949",
     "semantic_hash": ""
   },
   "supabase/functions/signup-with-otp/index.ts": {
@@ -2889,8 +2889,8 @@
     "semantic_hash": ""
   },
   "android/app/capacitor.build.gradle": {
-    "mtime": 1793774491.1221864,
-    "seen": 1793774662.464782,
+    "mtime": 1793787198.5024705,
+    "seen": 1793787349.623587,
     "ast_hash": "adac773d12bd0afb9780214954d55ba6",
     "semantic_hash": ""
   },
@@ -2919,8 +2919,8 @@
     "semantic_hash": ""
   },
   "android/capacitor.settings.gradle": {
-    "mtime": 1793774491.1221864,
-    "seen": 1793774662.465488,
+    "mtime": 1793787198.5024705,
+    "seen": 1793787349.624465,
     "ast_hash": "2bda2aa251470a462a31204578897557",
     "semantic_hash": ""
   },
@@ -2985,9 +2985,9 @@
     "semantic_hash": ""
   },
   "src/app-admin/screens/SettingsScreen.tsx": {
-    "mtime": 1793764401.502083,
-    "seen": 1793766053.2994294,
-    "ast_hash": "7264753afe0736431a2041b864771dd3",
+    "mtime": 1793787114.2821913,
+    "seen": 1793787349.6297548,
+    "ast_hash": "b0a308d462cf33e62d9456ae90126a88",
     "semantic_hash": ""
   },
   "src/app-admin/useAdminGate.ts": {
@@ -3051,9 +3051,9 @@
     "semantic_hash": ""
   },
   "supabase/functions/_shared/fcm.ts": {
-    "mtime": 1793728008.4214997,
-    "seen": 1793764068.6771572,
-    "ast_hash": "912bb42eb1dbbb9dfbd1237f7e552dc5",
+    "mtime": 1793783283.6794696,
+    "seen": 1793787349.6736925,
+    "ast_hash": "b4360cef47e51be0e96cc12de4b84fa4",
     "semantic_hash": ""
   },
   ".sdd/specs/38-admin-android-order-alert-app/SETUP.md": {
@@ -3267,9 +3267,9 @@
     "semantic_hash": ""
   },
   "src/app-admin/components/MobileRevenueChart.tsx": {
-    "mtime": 1793774422.4665923,
-    "seen": 1793774662.4685645,
-    "ast_hash": "4f8fe70b4cce3b1c7d74dac30651f8f2",
+    "mtime": 1793783387.4051573,
+    "seen": 1793787349.6287608,
+    "ast_hash": "62caffb6bd25ba390aa1455a2824a0b2",
     "semantic_hash": ""
   },
   "src/app-admin/components/TopSubjectsCard.tsx": {
@@ -3294,6 +3294,24 @@
     "mtime": 1793774642.940567,
     "seen": 1793774662.5260406,
     "ast_hash": "74c755aa34d700ae5eba3c14b13491d0",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/40-fix-app-notifications-and-expand-dashboard/plan.md": {
+    "mtime": 1793782694.261103,
+    "seen": 1793787349.7149274,
+    "ast_hash": "d26a0b6f1060e257ab153baedf537d66",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/40-fix-app-notifications-and-expand-dashboard/spec.md": {
+    "mtime": 1793782694.373746,
+    "seen": 1793787349.7149358,
+    "ast_hash": "dd9bbbd1ed73ff6eda438f92209a1b62",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/40-fix-app-notifications-and-expand-dashboard/tasks.md": {
+    "mtime": 1793787313.5444143,
+    "seen": 1793787349.7149413,
+    "ast_hash": "d5d26d298bc0ecb5c047851de3817994",
     "semantic_hash": ""
   }
 }

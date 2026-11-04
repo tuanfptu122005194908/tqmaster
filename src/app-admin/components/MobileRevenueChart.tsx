@@ -66,11 +66,11 @@ export function MobileRevenueChart({ data, isPending, period, onChangePeriod }: 
 
   // SVG dimensions
   const W = 340;
-  const H = 160;
+  const H = 220;
   const padLeft = 14;
   const padRight = 14;
   const padTop = 22;
-  const padBottom = 26;
+  const padBottom = 28;
   const plotW = W - padLeft - padRight;
   const plotH = H - padTop - padBottom;
   const baselineY = H - padBottom;
@@ -107,36 +107,35 @@ export function MobileRevenueChart({ data, isPending, period, onChangePeriod }: 
 
   return (
     <div className="aa-dash-card aa-linechart-card">
-      {/* Header */}
-      <div className="aa-dash-card-header">
-        <div>
-          <div className="aa-dash-card-title">
-            <LineChart size={17} className="aa-dash-title-ico text-blue-600" />
-            <span>Phân tích doanh thu</span>
-          </div>
-          <div className="aa-chart-total">
-            <b className="aa-chart-live-val">{formatVND(displayRev)}</b>
-            <span className={`aa-chart-sub ${activeCoord ? 'is-scrubbing' : ''}`}>
-              {activeCoord ? <Sparkles size={12} /> : <TrendingUp size={12} />} {displaySub}
-            </span>
-          </div>
+      {/* Header: Title and Revenue */}
+      <div className="aa-dash-card-header aa-revenue-card-header">
+        <div className="aa-dash-card-title">
+          <LineChart size={17} className="aa-dash-title-ico text-blue-600" />
+          <span>Phân tích doanh thu</span>
         </div>
+        <div className="aa-chart-total-row">
+          <b className="aa-chart-live-val">{formatVND(displayRev)}</b>
+          <span className={`aa-chart-sub ${activeCoord ? 'is-scrubbing' : ''}`}>
+            {activeCoord ? <Sparkles size={12} /> : <TrendingUp size={12} />} {displaySub}
+          </span>
+        </div>
+      </div>
 
-        <div className="aa-pill-switch">
-          {PERIODS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              className={`aa-pill-btn ${period === t.key ? 'active' : ''}`}
-              onClick={() => {
-                setActiveIndex(null);
-                onChangePeriod(t.key);
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* Segmented Filter Control: Full width, evenly spaced */}
+      <div className="aa-revenue-segmented-bar">
+        {PERIODS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            className={`aa-revenue-segmented-tab ${period === t.key ? 'active' : ''}`}
+            onClick={() => {
+              setActiveIndex(null);
+              onChangePeriod(t.key);
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {isPending ? (

@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const token = authHeader.slice('Bearer '.length);
 
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
+          Authorization: 'Bearer ' + SERVICE_KEY,
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser(token);
     if (userErr || !userData.user) return json({ error: 'Unauthorized' }, 401);
@@ -173,7 +173,12 @@ Deno.serve(async (req) => {
     // 7. Notify admin (best-effort). Spec 38: push to the admin phone is the main channel;
     //    email stays OFF unless system_settings.admin_email_enabled = 'true'.
     try {
-      await admin.functions.invoke('notify-admin-new-order', {
+      const notifyRes = await admin.functions.invoke('notify-admin-new-order', {
+        headers: {
+          'x-admin-notify-secret': 'tqmaster_admin_secret_9981',
+          Authorization: 'Bearer ' + SERVICE_KEY,
+          apikey: SERVICE_KEY,
+        },
         body: {
           orderId, fullName, studentCode,
           email: user.email,
@@ -183,8 +188,13 @@ Deno.serve(async (req) => {
           items: subjects.map(s => ({ name: s.name, price: Number(s.price) })),
         },
       });
+      if (notifyRes.error) {
+        console.warn('[create-order] notify-admin-new-order returned error:', notifyRes.error);
+      } else {
+        console.log('[create-order] notify-admin-new-order succeeded:', notifyRes.data);
+      }
     } catch (e) {
-      console.warn('notify failed', e);
+      console.warn('[create-order] notify failed to invoke:', e);
     }
 
     console.log('[create-order] OK', { orderId, user: user.id, ip, finalAmount });
