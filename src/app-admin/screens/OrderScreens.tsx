@@ -126,7 +126,13 @@ export function OverviewScreen({ adminEmail, pending, onGoOrders, toast }: {
         {orders.isPending ? <Skeletons /> : orders.error ? (
           <Empty text="Không tải được dữ liệu. Bấm Làm mới để thử lại." />
         ) : (orders.data ?? []).length === 0 ? (
-          <Empty text="Tuyệt vời! Không còn đơn nào chờ duyệt." />
+          <div className="aa-empty">
+            <Logo alt="" />
+            <div>Tuyệt vời! Không còn đơn nào chờ duyệt.</div>
+            <button className="aa-btn ghost sm" style={{ marginTop: 12, marginInline: 'auto' }} onClick={onGoOrders}>
+              Xem lịch sử {s?.orders ? `${s.orders.toLocaleString('vi-VN')} đơn hàng` : 'đơn hàng'} <ChevronRight size={16} />
+            </button>
+          </div>
         ) : (
           <div className="aa-list">
             {(orders.data ?? []).slice(0, 5).map(o => (
@@ -158,12 +164,23 @@ export function OrdersScreen({ highlightId, initialStatus, toast }: {
   const [status, setStatus] = useState<OrderStatus | 'all'>(initialStatus);
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
+  const summary = useSummary(true);
   const orders = useOrders(true, status, debounced);
   const refresh = useRefreshAll();
   const actions = useOrderActions(toast);
   const scroller = useRef<HTMLDivElement>(null);
   const touchY = useRef<number | null>(null);
   const [pull, setPull] = useState(0);
+
+  const s = summary.data;
+  const getTabCount = (key: OrderStatus | 'all'): number | null => {
+    if (!s) return null;
+    if (key === 'pending') return s.pendingOrders;
+    if (key === 'approved') return s.approved;
+    if (key === 'rejected') return s.rejected;
+    if (key === 'all') return s.orders;
+    return null;
+  };
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(search), 350);
@@ -203,15 +220,38 @@ export function OrdersScreen({ highlightId, initialStatus, toast }: {
         <input className="aa-input" placeholder="Tìm tên, email, MSSV…" value={search} onChange={e => setSearch(e.target.value)} />
       </div>
       <div className="aa-tabs">
-        {TABS.map(t => (
-          <button key={t.key} className={`aa-tab ${status === t.key ? 'on' : ''}`} onClick={() => setStatus(t.key)}>{t.label}</button>
-        ))}
+        {TABS.map(t => {
+          const count = getTabCount(t.key);
+          return (
+            <button key={t.key} className={`aa-tab ${status === t.key ? 'on' : ''}`} onClick={() => setStatus(t.key)}>
+              {t.label}
+              {typeof count === 'number' && (
+                <span className={`aa-tab-badge ${t.key === 'pending' && count > 0 ? 'alert' : ''}`}>
+                  {count > 999 ? '999+' : count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
       <div className="aa-content" style={{ marginTop: 0 }}>
         {orders.isPending ? <Skeletons n={4} /> : orders.error ? (
           <Empty text="Không tải được danh sách đơn. Kéo xuống để thử lại." />
         ) : (orders.data ?? []).length === 0 ? (
-          <Empty text={debounced ? 'Không tìm thấy đơn phù hợp.' : 'Chưa có đơn nào ở mục này.'} />
+          status === 'pending' && !debounced ? (
+            <div className="aa-empty">
+              <Logo alt="" />
+              <div>Không có đơn nào chờ duyệt</div>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 4, marginBottom: 12 }}>
+                Toàn bộ đơn hàng trước đó đã được xử lý.
+              </p>
+              <button className="aa-btn ghost sm" style={{ marginInline: 'auto' }} onClick={() => setStatus('approved')}>
+                Xem đơn đã duyệt ({s?.approved?.toLocaleString('vi-VN') ?? 0})
+              </button>
+            </div>
+          ) : (
+            <Empty text={debounced ? 'Không tìm thấy đơn phù hợp.' : 'Chưa có đơn nào ở mục này.'} />
+          )
         ) : (
           <div className="aa-list">
             {(orders.data ?? []).map(o => (

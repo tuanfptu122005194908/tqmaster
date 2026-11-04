@@ -27,7 +27,7 @@ export interface CommerceSummary {
 }
 
 const ORDER_COLS =
-  'id, created_at, final_amount, status, full_name, email, student_code, note, bill_image_url, order_items(subjects(name))';
+  'id, created_at, final_amount, status, full_name, email, student_code, note, bill_image_url, order_items(subject_id, subjects(name, id))';
 
 export function useSummary(enabled: boolean) {
   return useQuery({

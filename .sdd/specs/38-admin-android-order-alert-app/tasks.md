@@ -19,5 +19,8 @@
 - [x] T17 Hướng dẫn Firebase + build APK ký + cài lên máy (`SETUP.md`)
 - [x] T18 Cài Android SDK 34-36 + JDK 21 + build APK Release signed thành công (`TQMaster-Admin.apk`)
 - [x] T19 `graphify update .`, commit, push `origin` + `tqmaster`
+- [x] T20 Cải thiện âm thanh thông báo: Chuông đơn âm "ting" to rõ 0.4s + tuần tự chờ dứt mới đọc TTS to rõ, không overlap
+- [x] T21 Tối ưu UI danh sách đơn: Hiển thị badge số lượng đơn trên từng tab (Chờ duyệt, Đã duyệt, Từ chối, Tất cả) + gợi ý chuyển tab khi chờ duyệt trống
+- [x] T22 Build lại APK Release và kiểm thử tự động `npm test`
 
 > Ghi chú: File APK đã sẵn sàng tại `TQMaster-Admin.apk` ở thư mục gốc. Người dùng có thể cài trực tiếp lên điện thoại.

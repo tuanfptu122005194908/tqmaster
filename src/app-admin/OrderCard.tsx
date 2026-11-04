@@ -14,7 +14,7 @@ export function OrderCard({ order, highlight, busy, onApprove, onReject, onBill 
   onBill: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const subjects = order.order_items.map(i => i.subjects?.name).filter(Boolean) as string[];
+  const subjects = (order.order_items || []).map(i => i.subjects?.name).filter(Boolean) as string[];
   const initial = (order.full_name || '?').trim().charAt(0).toUpperCase();
 
   return (

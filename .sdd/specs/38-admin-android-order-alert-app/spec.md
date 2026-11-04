@@ -30,7 +30,8 @@ Giải pháp: Capacitor bọc web hiện tại (build chế độ `admin-app`), 
 - **US-002 Chặn non-admin**: Given tài khoản học sinh, When đăng nhập trong app, Then bị đăng xuất và thấy màn "Chỉ dành cho quản trị viên"; không có dữ liệu nào được tải.
 - **US-003 Chặn máy lạ**: Given tài khoản admin đã liên kết máy A, When đăng nhập từ máy B, Then bị từ chối, không nhận push, không vào được dữ liệu.
 - **US-004 Push đơn mới khi app tắt**: Given đã liên kết, When có đơn mới, Then ≤ 5s hiện notification "Bạn có đơn hàng từ <tên> – <số tiền>đ" kèm âm riêng.
-- **US-005 Foreground**: Given app đang mở, When có đơn mới, Then banner trong app + âm + TTS đọc tên (nếu bật), không trùng với push.
+- **US-005 Foreground**: Given app đang mở, When có đơn mới, Then banner trong app + chuông "ting" đanh to duy nhất (0.4s) -> chờ chuông dứt mới phát TTS tiếng Việt to rõ đọc tên người mua, tuyệt đối không phát đè/trùng nhau.
+- **US-009 Trực quan hoá danh sách đơn**: Given vào app hoặc tab Đơn hàng, Then các tab hiển thị rõ số lượng đơn theo trạng thái (Chờ duyệt, Đã duyệt, Từ chối, Tất cả). Khi không có đơn chờ duyệt, có nút chuyển nhanh sang xem toàn bộ đơn đã duyệt để tránh hiểu nhầm app trống dữ liệu.
 - **US-006 Bấm thông báo**: Then mở trang Đơn hàng với đơn đó nổi bật, sau khi qua khoá sinh trắc.
 - **US-007 Khoá app**: Given app ở nền > 1 phút, When mở lại, Then yêu cầu vân tay/PIN.
 - **US-008 Đổi máy**: Given admin vào web admin → "Thiết bị app" → Gỡ liên kết, Then máy cũ ngừng nhận push và bị đăng xuất; máy mới có thể liên kết.
@@ -42,7 +43,7 @@ Giải pháp: Capacitor bọc web hiện tại (build chế độ `admin-app`), 
 - **FR-003** RPC kiểm tra role admin phía server; non-admin nhận lỗi 403 và app tự đăng xuất.
 - **FR-004** Mở rộng `notify-admin-new-order`: gửi FCM tới thiết bị đang liên kết; token chết tự xoá; email có cờ bật/tắt.
 - **FR-005** Kênh Android `orders_alert` IMPORTANCE_HIGH, âm riêng `res/raw/order_alert.mp3`.
-- **FR-006** Realtime foreground + dedupe theo `order_id` + toast + TTS tiếng Việt.
+- **FR-006** Realtime foreground + dedupe theo `order_id` + chuông "ting" đơn âm to rõ (0.4s) -> sau khi chuông dứt mới phát TTS tiếng Việt âm lượng tối đa đọc tên người mua; không bị overlap; tab hiển thị count đơn.
 - **FR-007** Khoá sinh trắc/PIN (`@aparajita/capacitor-biometric-auth`), tự khoá sau 60s ở nền.
 - **FR-008** Web admin: mục **"Thiết bị app"** hiển thị máy đã liên kết, thời gian online gần nhất, nút **Gỡ liên kết**.
 - **FR-009** Mọi mã native chỉ chạy khi `Capacitor.isNativePlatform()`; web production không đổi.

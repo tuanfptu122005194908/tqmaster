@@ -176,6 +176,10 @@ body.aa-body {
 .aa-tabs::-webkit-scrollbar { display: none; }
 .aa-tab { flex-shrink: 0; height: 38px; padding: 0 16px; border-radius: 99px; border: 1.5px solid var(--aa-border); background: #fff; color: #475569; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
 .aa-tab.on { background: var(--aa-grad); color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(37,99,235,.3); }
+.aa-tab-badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: #e2e8f0; color: #475569; font-weight: 800; line-height: 1; }
+.aa-tab.on .aa-tab-badge { background: rgba(255,255,255,0.28); color: #fff; }
+.aa-tab-badge.alert { background: #fee2e2; color: #dc2626; }
+.aa-tab.on .aa-tab-badge.alert { background: #ef4444; color: #fff; }
 .aa-search { margin: 0 16px 12px; }
 
 .aa-empty { text-align: center; padding: 34px 20px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 22px; color: var(--aa-muted); font-weight: 700; font-size: 14px; }

@@ -16,7 +16,8 @@ Web admin: "Thiết bị app" ─▶ unlink_admin_device
 - **Gate server-side**: RPC `claim_admin_device`/`update_fcm_token`/`unlink_admin_device` đều SECURITY DEFINER, kiểm tra role admin + ràng buộc 1 thiết bị (unique partial index trên bản ghi active). `device_id` lấy từ `@capacitor/device` (Android ID).
 - **Biometric**: `@aparajita/capacitor-biometric-auth`, khoá khi `appStateChange` nền > 60s.
 - **Hardening**: `allowBackup=false`, `android:usesCleartextTraffic=false`, `FLAG_SECURE`, tắt `webContentsDebuggingEnabled` ở release, keystore riêng ngoài repo.
-- **Push**: FCM HTTP v1 từ Edge Function, kênh `orders_alert` âm riêng.
+- **Foreground Alert Audio & TTS**: Tách biệt thành chuỗi tuần tự (Sequential): Phát chuông "ting" đanh to (0.4s), lắng nghe sự kiện `ended` (hoặc timeout 450ms), sau đó mới gọi TTS tiếng Việt âm lượng max (`volume: 1.0`). Tránh trùng lặp âm thanh.
+- **Danh sách đơn & Phân loại trạng thái**: Hiển thị badge số lượng đơn cho từng tab: Chờ duyệt, Đã duyệt, Từ chối, Tất cả. Khi danh sách chờ duyệt trống, hiển thị thông báo thân thiện và nút chuyển nhanh sang xem các đơn đã duyệt/toàn bộ lịch sử.
 - **UI**: Tailwind + Shadcn + lucide-react theo theme TQMaster; skeleton thương hiệu; haptics (`@capacitor/haptics`).
 
 ## Các bước
