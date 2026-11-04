@@ -8,4 +8,9 @@
 - [x] T06 Chạy kiểm thử tự động `npm test` (xác minh 114/114 tests passing)
 - [x] T07 Đồng bộ mã nguồn lên Android (`npm run android:sync`) và biên dịch Release APK (`assembleRelease`)
 - [x] T08 Cập nhật tri thức `graphify update .`, commit và đẩy lên 2 remotes `origin` và `tqmaster`
+- [x] T09 Nâng cấp `MobileRevenueChart.tsx` thành Smooth Spline Area Line Chart (nội suy Bézier, glow filter, gradient area fill)
+- [x] T10 Tích hợp tương tác cảm ứng Touch Scrubber & Crosshair với điểm halo phát quang và cập nhật giá trị theo thời gian thực
+- [x] T11 Cập nhật CSS hiệu ứng biểu đồ đường trong `admin-app.css`
+- [x] T12 Kiểm thử tự động `npm test` và đồng bộ APK Release (`npm run android:sync` & `assembleRelease`)
+- [x] T13 Cập nhật `graphify update .`, commit và đẩy lên 2 remotes `origin` và `tqmaster`
 

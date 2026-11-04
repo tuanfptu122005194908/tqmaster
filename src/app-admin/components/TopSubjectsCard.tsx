@@ -78,3 +78,4 @@ export function TopSubjectsCard({ data, isPending }: TopSubjectsCardProps) {
     </div>
   );
 }
+

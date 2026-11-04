@@ -372,6 +372,70 @@ body.aa-body {
   color: #94a3b8;
 }
 
+/* ── Smooth Spline Area Line Chart ── */
+.aa-linechart-wrap {
+  position: relative;
+  width: 100%;
+  margin-top: 6px;
+  touch-action: pan-y;
+}
+.aa-svg-linechart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+.aa-line-lbl {
+  font-size: 10.5px;
+  font-weight: 700;
+  fill: #64748b;
+  letter-spacing: -0.01em;
+}
+.aa-line-lbl.active {
+  fill: #1d4ed8;
+  font-weight: 900;
+}
+.aa-line-tooltip {
+  position: absolute;
+  z-index: 20;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 5px 10px;
+  border-radius: 11px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: aa-drop 0.15s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.aa-line-tooltip .tip-lbl {
+  font-size: 9.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.aa-line-tooltip .tip-val {
+  font-size: 13px;
+  color: #38bdf8;
+  font-weight: 900;
+}
+.aa-chart-live-val {
+  transition: color 0.15s ease;
+}
+.aa-chart-sub.is-scrubbing {
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+.aa-scrubber-group {
+  pointer-events: none;
+}
+
 /* ── Top Subjects List ── */
 .aa-badge-tag {
   display: inline-flex;

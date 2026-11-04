@@ -13,10 +13,12 @@ App Android TQMaster Admin hiện tại đã có cơ chế nhận chuông báo v
 Mục tiêu của Spec 39 là nâng cấp màn hình **Tổng quan** trên app Android trở thành một **Bảng điều khiển kinh doanh di động (Premium Mobile Dashboard)** đẳng cấp, chuẩn chủ đề **TQMaster Dashboard Theme**:
 1. **Header thương hiệu cao cấp**: Linh vật Cóc Vàng chuyển động nhẹ, lời chào cá nhân hóa, huy hiệu "Dữ liệu trực tiếp", ngày giờ Việt Nam hiện tại và nút kéo để làm mới (Pull-to-refresh).
 2. **Bộ thẻ thống kê đa sắc (4 Stat Cards)**: Thiết kế card kính trắng bo góc 22px, viền mềm, hiệu ứng đổ bóng mờ, hiển thị đầy đủ Doanh thu, Đơn hàng, Giá trị trung bình/đơn và Học sinh.
-3. **Biểu đồ Doanh thu Di động tương tác mượt mà (Mobile Revenue Chart)**:
-   - Dùng biểu đồ SVG thuần cực nhẹ (zero-dependency, không tốn RAM điện thoại như Recharts) với hiệu ứng gradient xanh dương `#3b82f6` -> `#1d4ed8`.
+3. **Biểu đồ Đường Doanh thu Di động Đẳng cấp (Smooth Spline Area Line Chart)**:
+   - Thay thế biểu đồ cột đơn giản bằng biểu đồ **đường cong mềm mại (Smooth Cubic Bézier Spline)** kết hợp mảng màu gradient trong suốt (Area Chart) chuẩn phong cách Stripe / Apple Card cao cấp.
+   - Đường line chính có độ dày 3px, phủ gradient xanh rực rỡ (`#60a5fa` -> `#2563eb` -> `#1d4ed8`) kèm hiệu ứng đổ bóng phát sáng (Glow shadow).
+   - Mảng gradient nền chuyển êm dịu từ `rgba(59, 130, 246, 0.35)` xuống `transparent` tại đường cơ sở (Baseline).
+   - **Tương tác chạm lướt (Touch Scrubber & Crosshair)**: Khi admin vuốt/chạm ngón tay dọc biểu đồ, xuất hiện trục ngắm mờ, điểm sáng phát quang (halo node) và tooltip nổi bật hiển thị chính xác ngày và số tiền; đồng thời số tiền trên Header tự động nhảy theo điểm đang chạm.
    - Bộ lọc chu kỳ linh hoạt: **14 ngày qua (Mặc định)** / **8 tuần qua** / **Theo tháng**.
-   - Chạm vào từng cột/điểm hiển thị tooltip chi tiết ngày & số tiền doanh thu.
 4. **Bảng xếp hạng Top Môn bán chạy (Best-selling Subjects)**:
    - Hiển thị danh sách top 5 môn học có doanh số cao nhất kèm thanh phần trăm tỉ lệ (Progress Bar) và số lượng đơn đã bán.
 5. **Khu vực duyệt đơn nhanh (Quick Review Drawer/Section)**:
@@ -32,10 +34,10 @@ Mục tiêu của Spec 39 là nâng cấp màn hình **Tổng quan** trên app A
 - **When** màn hình Tổng quan xuất hiện,
 - **Then** Admin thấy ngay ngày tháng hiện tại, lời chào, trạng thái trực tiếp, và 4 thẻ thống kê doanh thu, đơn hàng, giá trị TB và học sinh hiển thị chính xác từ Supabase.
 
-### US-002: Xem biểu đồ phân tích doanh thu trên điện thoại
+### US-002: Xem biểu đồ đường phân tích doanh thu trên điện thoại
 - **Given** Admin đang ở màn hình Tổng quan,
 - **When** Admin xem mục "Phân tích doanh thu",
-- **Then** Biểu đồ cột/vùng SVG tải mượt mà theo 14 ngày gần nhất; Admin có thể bấm chuyển sang xem theo "Tuần" hoặc "Tháng"; khi chạm vào một cột, hiển thị tooltip nổi giá trị doanh thu của ngày đó.
+- **Then** Biểu đồ đường cong uốn lượn mượt mà (Spline Area Chart) tải nhanh dưới 50ms; Admin có thể bấm chuyển sang xem theo "Tuần" hoặc "Tháng"; khi lướt ngón tay dọc biểu đồ, đường dóng trục tung và điểm phát sáng di chuyển theo ngón tay, tooltip nổi và tiêu đề doanh thu tự động cập nhật giá trị của ngày đó.
 
 ### US-003: Xem môn học nào bán chạy nhất
 - **Given** Admin đang ở màn hình Tổng quan,
@@ -60,7 +62,7 @@ Mục tiêu của Spec 39 là nâng cấp màn hình **Tổng quan** trên app A
   - `admin_commerce_summary()`: Thống kê tổng quan.
   - `admin_revenue_series(p_period)`: Dữ liệu chuỗi doanh thu theo ngày/tuần/tháng.
   - `admin_subject_sales(p_range, p_limit)`: Dữ liệu môn học bán chạy.
-- **FR-002**: Mobile Revenue Chart viết bằng component SVG nội suy gradient thuần, tối ưu hóa kích thước màn hình 360px - 430px của điện thoại Android, không giật lag.
+- **FR-002**: Mobile Revenue Chart viết bằng SVG Spline Area Chart nội suy đường cong Bézier bậc 3 (Cubic Bézier Catmull-Rom), tô mảng gradient trong suốt, trục dóng cảm ứng chạm (Touch Scrubber Crosshair), tối ưu tỉ lệ 360px - 430px trên điện thoại Android, đạt 60 FPS không giật lag.
 - **FR-003**: Tuân thủ chuẩn TQMaster Dashboard Theme:
   - Nền trang: `#f4f7fc`
   - Card bo góc: `22px`, viền `#e2e8f0`, bóng đổ mờ `0 2px 10px rgba(0,0,0,0.02)`

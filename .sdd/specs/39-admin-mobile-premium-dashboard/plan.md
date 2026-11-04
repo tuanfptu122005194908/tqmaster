@@ -19,9 +19,15 @@ OverviewScreen (Dashboard)
 
 ## 2. Quyết định Kỹ thuật
 
-1. **Pure SVG Mobile Chart vs Recharts**:
-   - Recharts yêu cầu bundle lớn (>150KB) và xử lý sự kiện DOM nặng nề, dễ giật lag trên WebView của các dòng điện thoại tầm trung.
-   - Sử dụng Pure SVG Chart: Kích thước mã chỉ ~2KB, render tức thì 60 FPS, vẽ cột với gradient `#3b82f6` -> `#1d4ed8`, bo góc mềm trên đỉnh cột, hỗ trợ chạm cảm ứng hiển thị popover thông số.
+1. **Thuật toán Nội suy Đường cong Bézier Bậc 3 (Smooth Monotone Cubic Spline)**:
+   - Với tập điểm dữ liệu `(x_i, y_i)`, tính toán các điểm điều khiển (control points) `cp1` và `cp2` theo nguyên lý Monotone Cubic Spline để đường cong luôn mượt, không bị gợn sóng quá đà (overshoot) khi doanh thu chạm mốc 0đ.
+   - Tạo đường viền khép kín `d="M x0 y0 C ... L x_last H y_base L x0 y_base Z"` cho mảng gradient vùng (Area gradient).
+   - Tạo đường line viền `d="M x0 y0 C ..."` với độ dày 3px và bộ lọc phát sáng SVG Gaussian glow filter.
+2. **Cơ chế tương tác Touch Scrubber / Crosshair**:
+   - Lắng nghe sự kiện `onTouchMove` / `onTouchStart` trên khung SVG để tính toán chỉ số điểm gần ngón tay nhất.
+   - Hiển thị trục ngắm đứt đoạn (vertical dash line) đi qua điểm đó.
+   - Hiển thị điểm phát sáng (Glowing halo point) với 2 vòng tròn đồng tâm.
+   - Cập nhật số tiền hiển thị trên tiêu đề và tooltip nổi theo thời gian thực khi ngón tay di chuyển.
 2. **Khai thác dữ liệu sẵn có**:
    - Tận dụng `admin_revenue_series(period)` và `admin_subject_sales('all', 5)` đã có sẵn trên Supabase, không cần sửa đổi schema hay thêm migration.
 3. **Hiệu ứng & Cảm ứng di động**:
