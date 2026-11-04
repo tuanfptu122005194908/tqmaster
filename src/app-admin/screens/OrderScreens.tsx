@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronRight, RefreshCw, Search, ShoppingBag, TrendingUp, Users, Wallet, X } from 'lucide-react';
+import { Calendar, ChevronRight, RefreshCw, Search, ShoppingBag, Sparkles, TrendingUp, Users, Wallet, X } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { formatVND } from '@/lib/native/orderAlert';
 import {
-  signBillUrl, useOrders, useRefreshAll, useReviewOrder, useSummary, type AppOrder, type OrderStatus,
+  signBillUrl,
+  useOrders,
+  useRefreshAll,
+  useRevenueSeries,
+  useReviewOrder,
+  useSubjectSales,
+  useSummary,
+  type AppOrder,
+  type OrderStatus,
+  type RevenuePeriod,
 } from '../data';
 import { OrderCard } from '../OrderCard';
+import { MobileRevenueChart } from '../components/MobileRevenueChart';
+import { TopSubjectsCard } from '../components/TopSubjectsCard';
 
 function Skeletons({ n = 3 }: { n?: number }) {
   return <div className="aa-list">{Array.from({ length: n }).map((_, i) => <div className="aa-skel" key={i} />)}</div>;
@@ -81,24 +92,64 @@ function BillModal({ url, onClose }: { url: string; onClose: () => void }) {
 export function OverviewScreen({ adminEmail, pending, onGoOrders, toast }: {
   adminEmail: string; pending: number; onGoOrders: () => void; toast: (m: string) => void;
 }) {
+  const [revPeriod, setRevPeriod] = useState<RevenuePeriod>('day');
   const summary = useSummary(true);
+  const revSeries = useRevenueSeries(true, revPeriod);
+  const topSales = useSubjectSales(true, 'all', 5);
   const orders = useOrders(true, 'pending', '');
   const refresh = useRefreshAll();
   const actions = useOrderActions(toast);
+
+  const scroller = useRef<HTMLDivElement>(null);
+  const touchY = useRef<number | null>(null);
+  const [pull, setPull] = useState(0);
+
   const s = summary.data;
   const avg = s && s.approved ? Math.round(s.revenue / s.approved) : 0;
   const name = adminEmail ? adminEmail.split('@')[0] : 'Admin';
 
+  const todayStr = new Intl.DateTimeFormat('vi-VN', {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+  }).format(new Date());
+
+  // Pull-to-refresh
+  const onTouchStart = (e: React.TouchEvent) => { if ((scroller.current?.scrollTop ?? 0) <= 0) touchY.current = e.touches[0].clientY; };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchY.current === null) return;
+    setPull(Math.min(60, Math.max(0, (e.touches[0].clientY - touchY.current) * 0.5)));
+  };
+  const onTouchEnd = () => {
+    if (pull >= 48) void refresh();
+    touchY.current = null;
+    setPull(0);
+  };
+
   return (
-    <div className="aa-scroll">
+    <div className="aa-scroll" ref={scroller} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div className="aa-ptr" style={{ height: pull }}>
+        <RefreshCw size={14} /> {pull >= 48 ? 'Thả để làm mới' : 'Kéo để làm mới'}
+      </div>
+
       <div className="aa-hero">
         <div className="aa-hero-row">
-          <Logo alt="" />
-          <div>
-            <small>Xin chào,</small>
+          <div className="aa-hero-avatar-wrap">
+            <Logo alt="TQMaster" />
+            <span className="aa-hero-glow" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="aa-hero-date">
+              <Calendar size={12} /> {todayStr}
+            </div>
             <h1>{name} 👋</h1>
           </div>
-          <span className="aa-livepill"><i /> Trực tiếp</span>
+          <div className="aa-hero-right">
+            <span className="aa-livepill"><i /> Trực tiếp</span>
+            <button className="aa-hero-refresh-btn" onClick={() => void refresh()} aria-label="Làm mới">
+              <RefreshCw size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -118,7 +169,21 @@ export function OverviewScreen({ adminEmail, pending, onGoOrders, toast }: {
           </div>
         )}
 
-        <div className="aa-sec">
+        {/* ── BẢNG ĐIỀU KHIỂN NÂNG CAO: BIỂU ĐỒ DOANH THU & TOP MÔN BÁN CHẠY ── */}
+        <MobileRevenueChart
+          data={revSeries.data}
+          isPending={revSeries.isPending}
+          period={revPeriod}
+          onChangePeriod={setRevPeriod}
+        />
+
+        <TopSubjectsCard
+          data={topSales.data}
+          isPending={topSales.isPending}
+        />
+
+        {/* ── DANH SÁCH ĐƠN CHỜ DUYỆT NHANH ── */}
+        <div className="aa-sec" style={{ marginTop: 22 }}>
           <h3>Đơn chờ duyệt {pending > 0 && <span className="aa-count">{pending}</span>}</h3>
           <button onClick={() => void refresh()}><RefreshCw size={14} /> Làm mới</button>
         </div>

@@ -1,8 +1,18 @@
 import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  loadCommerceSummary,
+  loadRevenueSeries,
+  loadSubjectSales,
+  type CommerceSummary as FullCommerceSummary,
+  type RevenuePeriod,
+  type RevenuePoint,
+  type SubjectSales,
+} from '@/lib/adminAnalytics';
 
 export type OrderStatus = 'pending' | 'approved' | 'rejected';
+export type { RevenuePeriod, RevenuePoint, SubjectSales };
 
 export interface AppOrder {
   id: string;
@@ -35,9 +45,7 @@ export function useSummary(enabled: boolean) {
     enabled,
     staleTime: 15_000,
     queryFn: async (): Promise<CommerceSummary> => {
-      const { data, error } = await (supabase as any).rpc('admin_commerce_summary');
-      if (error) throw new Error(error.message);
-      const d = (data ?? {}) as Partial<CommerceSummary>;
+      const d = await loadCommerceSummary();
       return {
         revenue: Number(d.revenue ?? 0),
         approved: Number(d.approved ?? 0),
@@ -47,6 +55,24 @@ export function useSummary(enabled: boolean) {
         users: Number(d.users ?? 0),
       };
     },
+  });
+}
+
+export function useRevenueSeries(enabled: boolean, period: RevenuePeriod = 'day') {
+  return useQuery({
+    queryKey: ['aa', 'revenue-series', period],
+    enabled,
+    staleTime: 30_000,
+    queryFn: () => loadRevenueSeries(period),
+  });
+}
+
+export function useSubjectSales(enabled: boolean, range: 'all' | 'week' | 'month' | 'year' = 'all', limit = 5) {
+  return useQuery({
+    queryKey: ['aa', 'subject-sales', range, limit],
+    enabled,
+    staleTime: 30_000,
+    queryFn: () => loadSubjectSales(range, limit),
   });
 }
 

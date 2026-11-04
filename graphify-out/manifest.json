@@ -2889,8 +2889,8 @@
     "semantic_hash": ""
   },
   "android/app/capacitor.build.gradle": {
-    "mtime": 1793771768.5378213,
-    "seen": 1793771912.346545,
+    "mtime": 1793772953.2321813,
+    "seen": 1793773068.8421652,
     "ast_hash": "adac773d12bd0afb9780214954d55ba6",
     "semantic_hash": ""
   },
@@ -2919,8 +2919,8 @@
     "semantic_hash": ""
   },
   "android/capacitor.settings.gradle": {
-    "mtime": 1793771768.5365841,
-    "seen": 1793771912.3474898,
+    "mtime": 1793772953.2321813,
+    "seen": 1793773068.8425226,
     "ast_hash": "2bda2aa251470a462a31204578897557",
     "semantic_hash": ""
   },
@@ -2955,15 +2955,15 @@
     "semantic_hash": ""
   },
   "src/app-admin/OrderCard.tsx": {
-    "mtime": 1793771625.9377477,
-    "seen": 1793771912.3534958,
+    "mtime": 1793771980.7436242,
+    "seen": 1793773068.8454976,
     "ast_hash": "249c1aafd51af21d1b1076d8b41d18b1",
     "semantic_hash": ""
   },
   "src/app-admin/data.ts": {
-    "mtime": 1793771637.0050135,
-    "seen": 1793771912.3535042,
-    "ast_hash": "d97e7fc8e4512bbfdc7377b8b3a71eb4",
+    "mtime": 1793772781.9672272,
+    "seen": 1793773068.8455057,
+    "ast_hash": "2e262c0de9c3832c301886266be22aa7",
     "semantic_hash": ""
   },
   "src/app-admin/main.tsx": {
@@ -2979,9 +2979,9 @@
     "semantic_hash": ""
   },
   "src/app-admin/screens/OrderScreens.tsx": {
-    "mtime": 1793771717.0151718,
-    "seen": 1793771912.3539455,
-    "ast_hash": "2f7f8f0ead6ae47e531fb8d037a4f65e",
+    "mtime": 1793772867.369964,
+    "seen": 1793773068.8457675,
+    "ast_hash": "9f6425e77aaa9a7014ad4a5d0d0e4f3c",
     "semantic_hash": ""
   },
   "src/app-admin/screens/SettingsScreen.tsx": {
@@ -3021,8 +3021,8 @@
     "semantic_hash": ""
   },
   "src/lib/native/alertPlayer.ts": {
-    "mtime": 1793771621.3631847,
-    "seen": 1793771912.3876555,
+    "mtime": 1793771981.0933385,
+    "seen": 1793773068.8601491,
     "ast_hash": "488e1e0f7b6f5cf8119cb37774edbd6e",
     "semantic_hash": ""
   },
@@ -3057,20 +3057,20 @@
     "semantic_hash": ""
   },
   ".sdd/specs/38-admin-android-order-alert-app/SETUP.md": {
-    "mtime": 1793766554.7820604,
-    "seen": 1793769286.4925632,
-    "ast_hash": "e3cc38baa9bee092301abca256b5ee00",
+    "mtime": 1793772547.7601683,
+    "seen": 1793773068.8986294,
+    "ast_hash": "86a1feb59c3c4867ada313917c9a9152",
     "semantic_hash": ""
   },
   ".sdd/specs/38-admin-android-order-alert-app/plan.md": {
-    "mtime": 1793771473.4962633,
-    "seen": 1793771912.4335294,
+    "mtime": 1793771980.3427026,
+    "seen": 1793773068.898633,
     "ast_hash": "e200b9b40d05b016c4ef7a1e9add1275",
     "semantic_hash": ""
   },
   ".sdd/specs/38-admin-android-order-alert-app/spec.md": {
-    "mtime": 1793771464.7606802,
-    "seen": 1793771912.4335337,
+    "mtime": 1793771980.465876,
+    "seen": 1793773068.8986359,
     "ast_hash": "f4c7d282831a249c00b0810e5def5263",
     "semantic_hash": ""
   },
@@ -3264,6 +3264,36 @@
     "mtime": 1793771512.7863436,
     "seen": 1793771912.4525294,
     "ast_hash": "e0443d44f255e16e702ea73efba7cfb3",
+    "semantic_hash": ""
+  },
+  "src/app-admin/components/MobileRevenueChart.tsx": {
+    "mtime": 1793772800.8026803,
+    "seen": 1793773068.845501,
+    "ast_hash": "1a961e6882b2e90b8f46a714a763ce2f",
+    "semantic_hash": ""
+  },
+  "src/app-admin/components/TopSubjectsCard.tsx": {
+    "mtime": 1793772812.5143,
+    "seen": 1793773068.8455038,
+    "ast_hash": "3f47b699f9f06d98c8b06d3b0d5c22d2",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/39-admin-mobile-premium-dashboard/plan.md": {
+    "mtime": 1793772689.7214334,
+    "seen": 1793773068.8988423,
+    "ast_hash": "10331bcbc128d81e7565860c9a6c5498",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/39-admin-mobile-premium-dashboard/spec.md": {
+    "mtime": 1793772738.1985302,
+    "seen": 1793773068.8988454,
+    "ast_hash": "4ccf6ad357c984fca147fd9509d36d3d",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/39-admin-mobile-premium-dashboard/tasks.md": {
+    "mtime": 1793773050.9769223,
+    "seen": 1793773068.898848,
+    "ast_hash": "59322329809a9577643d4e91252097cd",
     "semantic_hash": ""
   }
 }
