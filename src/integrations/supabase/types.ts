@@ -14,6 +14,20 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_devices: {
+        Row: {
+          device_id: string
+          device_name: string
+          fcm_token: string | null
+          id: string
+          last_seen_at: string
+          linked_at: string
+          user_id: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       active_sessions: {
         Row: {
           session_id: string
@@ -1222,6 +1236,22 @@ export type Database = {
         }[]
       }
       get_request_ip: { Args: never; Returns: string }
+      claim_admin_device: {
+        Args: { p_device_id: string; p_device_name?: string; p_fcm_token?: string | null }
+        Returns: Json
+      }
+      verify_admin_device: {
+        Args: { p_device_id: string; p_fcm_token?: string | null }
+        Returns: boolean
+      }
+      release_admin_device_token: {
+        Args: { p_device_id: string }
+        Returns: boolean
+      }
+      unlink_admin_device: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

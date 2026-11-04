@@ -170,17 +170,22 @@ Deno.serve(async (req) => {
         .eq('id', couponRow.id);
     }
 
-    // 7. Notify admin (best-effort) - Disabled to save email limits
-    // admin.functions.invoke('notify-admin-new-order', {
-    //   body: {
-    //     orderId, fullName, studentCode,
-    //     email: user.email,
-    //     finalAmount, originalAmount, discountAmount,
-    //     discountCode: couponRow?.code ?? null,
-    //     itemsCount: subjects.length,
-    //     items: subjects.map(s => ({ name: s.name, price: Number(s.price) })),
-    //   },
-    // }).catch(e => console.warn('notify failed', e));
+    // 7. Notify admin (best-effort). Spec 38: push to the admin phone is the main channel;
+    //    email stays OFF unless system_settings.admin_email_enabled = 'true'.
+    try {
+      await admin.functions.invoke('notify-admin-new-order', {
+        body: {
+          orderId, fullName, studentCode,
+          email: user.email,
+          finalAmount, originalAmount, discountAmount,
+          discountCode: couponRow?.code ?? null,
+          itemsCount: subjects.length,
+          items: subjects.map(s => ({ name: s.name, price: Number(s.price) })),
+        },
+      });
+    } catch (e) {
+      console.warn('notify failed', e);
+    }
 
     console.log('[create-order] OK', { orderId, user: user.id, ip, finalAmount });
     return json({ orderId, finalAmount, originalAmount, discountAmount });

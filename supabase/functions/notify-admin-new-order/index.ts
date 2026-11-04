@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { sendOrderPush } from '../_shared/fcm.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,8 +35,8 @@ Deno.serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
-    if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY is not configured');
+    // Email is optional now (Spec 38): push to the admin phone is the primary channel.
+    const emailConfigured = Boolean(LOVABLE_API_KEY && RESEND_API_KEY);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -65,6 +66,31 @@ Deno.serve(async (req) => {
     if (!body?.orderId || !body?.email || !body?.fullName) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 1) Push to the linked admin phone (never blocks the email fallback)
+    let push: { sent: number; dead: number; skipped?: string } = { sent: 0, dead: 0, skipped: 'error' };
+    try {
+      push = await sendOrderPush(supabase, {
+        orderId: body.orderId,
+        buyerName: body.fullName,
+        amount: Number(body.finalAmount ?? 0),
+      });
+    } catch (pushErr) {
+      console.error('push error:', pushErr instanceof Error ? pushErr.message : pushErr);
+    }
+
+    // 2) Email fallback can be switched off with system_settings.admin_email_enabled = 'false'
+    const { data: emailFlag } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'admin_email_enabled')
+      .maybeSingle();
+    const emailEnabled = emailConfigured && String(emailFlag?.value ?? 'true').trim().toLowerCase() !== 'false';
+    if (!emailEnabled) {
+      return new Response(JSON.stringify({ success: true, push, email: 'skipped' }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -215,7 +241,7 @@ Deno.serve(async (req) => {
       throw new Error(`Resend failed [${resp.status}]: ${JSON.stringify(data)}`);
     }
 
-    return new Response(JSON.stringify({ success: true, sentTo: adminEmail, id: data?.id }), {
+    return new Response(JSON.stringify({ success: true, sentTo: adminEmail, id: data?.id, push }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {

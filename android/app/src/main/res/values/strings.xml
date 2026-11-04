@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TQMaster Admin</string>
+    <string name="title_activity_main">TQMaster Admin</string>
+    <string name="package_name">com.tqmaster.adminalert</string>
+    <string name="custom_url_scheme">com.tqmaster.adminalert</string>
+</resources>

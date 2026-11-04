@@ -38,3 +38,14 @@ scratch/*.json
 downloaded_theories/
 artifacts/
 graphify-out/20??-??-??/
+
+# Spec 38 - private admin Android app
+dist-app/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/google-services.json
+*.keystore
+*.jks
+android/keystore.properties
+android/app/src/main/assets/public/

@@ -6,7 +6,8 @@ import { useApp } from '@/lib/AppContext';
 import { Check, Loader2, Save, Settings, Landmark, Globe } from 'lucide-react';
 import FileUploader from '@/components/FileUploader';
 import { toast } from 'sonner';
-import { BrandLoader } from '@/components/common/BrandLoader';
+import { BrandLoader } from '@/components/common/BrandLoader';
+import { AdminDeviceCard } from '@/components/admin/AdminDeviceCard';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '11px 14px',
@@ -147,6 +148,8 @@ export default function AdminSettings() {
         </div>
       </Section>
 
+      <AdminDeviceCard />
+
       {/* Save action button footer */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
         <button
