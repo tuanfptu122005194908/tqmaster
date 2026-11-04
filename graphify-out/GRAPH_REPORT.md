@@ -1,9 +1,9 @@
 # Graph Report - smart-curate-learn-main  (2026-11-04)
 
 ## Corpus Check
-- 501 files · ~818,523 words
+- 501 files · ~818,557 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 29 file(s) not represented in the graph (top: .xml 11, (none) 6, .css 3)
+- Unclassified: 30 file(s) not represented in the graph (top: .xml 12, (none) 6, .css 3)
 
 ## Summary
 - 2680 nodes · 4491 edges · 260 communities (180 shown, 80 thin omitted)
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5180b3e4`
+- Built from commit: `c741a40e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1007,11 +1007,11 @@ Nodes (12): ref_child_process, buildInsertStatements(), colTypesMap, execNewDb()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `react` connect `react` to `form.tsx`, `App.tsx`, `AdminTheory.tsx`, `adminAnalytics.ts`, `useAdminGate.ts`, `utils.ts`, `HomePage.tsx`, `input-otp.tsx`, `pagination.tsx`, `useOrderAlerts.ts`, `command.tsx`, `hooks/use-toast.ts`, `cn`, `FptCampusScene.tsx`, `chart.tsx`, `sidebar.tsx`, `RichContent.tsx`, `carousel.tsx`, `sheet.tsx`, `dropdown-menu.tsx`, `package.json`, `HeroSection.tsx`, `useSubjectAccess.ts`, `types.ts`, `SafeCanvas.tsx`, `client.ts`, `select.tsx`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeNetworkScene.tsx`, `KnowledgeCoreScene.tsx`, `subjectClassification.ts`, `documentDownload.ts`, `SubjectDetailPage.tsx`, `tabs.tsx`, `three`, `navigation-menu.tsx`, `AdminExams.tsx`, `signedImage.ts`, `SubjectDetailPage.test.tsx`, `AuthPage.tsx`, `TourHotspots.tsx`, `AdminApp.tsx`, `avatar.tsx`, `FptPanoViewer.tsx`, `AdminReviews.tsx`?**
-  _High betweenness centrality (0.140) - this node is a cross-community bridge._
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
 - **Why does `lucide-react` connect `react` to `App.tsx`, `AdminTheory.tsx`, `adminAnalytics.ts`, `utils.ts`, `HomePage.tsx`, `input-otp.tsx`, `pagination.tsx`, `useOrderAlerts.ts`, `command.tsx`, `hooks/use-toast.ts`, `cn`, `FptCampusScene.tsx`, `sidebar.tsx`, `carousel.tsx`, `sheet.tsx`, `dropdown-menu.tsx`, `package.json`, `HeroSection.tsx`, `types.ts`, `client.ts`, `select.tsx`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeNetworkScene.tsx`, `subjectClassification.ts`, `SubjectDetailPage.tsx`, `AdminExams.tsx`, `navigation-menu.tsx`, `signedImage.ts`, `AuthPage.tsx`, `TourHotspots.tsx`, `AdminApp.tsx`, `FptPanoViewer.tsx`, `AdminReviews.tsx`?**
   _High betweenness centrality (0.053) - this node is a cross-community bridge._
 - **Why does `cn()` connect `cn` to `carousel.tsx`, `sheet.tsx`, `dropdown-menu.tsx`, `form.tsx`, `avatar.tsx`, `utils.ts`, `input-otp.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `command.tsx`, `select.tsx`, `tabs.tsx`, `navigation-menu.tsx`, `chart.tsx`, `sidebar.tsx`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useApp()` (e.g. with `Bước 3: Áp dụng liên kết động vào Giao diện (UI)` and `Tasks: Admin Simulate Student View`) actually correct?**
   _`useApp()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `update-agent-context.sh script`, `git-common.sh script`, `config` to the rest of the system?**
