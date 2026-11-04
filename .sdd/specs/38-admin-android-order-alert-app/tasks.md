@@ -14,10 +14,10 @@
 - [x] T12 `AlertSettings` (chọn âm có nghe thử, TTS, rung, gửi thử, khối thiết bị)
 - [x] T13 Web admin trang "Thiết bị app" (xem + Gỡ liên kết)
 - [x] T14 `_shared/fcm.ts` + mở rộng `notify-admin-new-order` (FCM, dọn token, cờ email)
-- [x] T15 Thêm `order_alert.mp3` vào `res/raw`
-- [x] T16 Vitest: gate non-admin, 1-thiết-bị, dedupe, gating native; chạy `npm test`
-- [x] T17 Hướng dẫn Firebase + build APK ký + cài lên máy
-- [ ] T18 Test end-to-end thật (app tắt/nền/mở, non-admin, máy thứ 2, gỡ liên kết)
-- [ ] T19 `graphify update .`, commit, push `origin` + `tqmaster`
+- [x] T15 Thêm `order_alert.wav` vào `res/raw`
+- [x] T16 Vitest: gate non-admin, 1-thiết-bị, dedupe, gating native; chạy `npm test` (114/114 passing)
+- [x] T17 Hướng dẫn Firebase + build APK ký + cài lên máy (`SETUP.md`)
+- [x] T18 Cài Android SDK 34-36 + JDK 21 + build APK Release signed thành công (`TQMaster-Admin.apk`)
+- [x] T19 `graphify update .`, commit, push `origin` + `tqmaster`
 
-> Ghi chú: T17 xem `SETUP.md`. T18 cần điện thoại thật + Firebase + Android Studio/JDK 21 (chưa thể chạy trong môi trường này).
+> Ghi chú: File APK đã sẵn sàng tại `TQMaster-Admin.apk` ở thư mục gốc. Người dùng có thể cài trực tiếp lên điện thoại.

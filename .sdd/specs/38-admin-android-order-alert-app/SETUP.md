@@ -1,56 +1,90 @@
-# Hướng dẫn cài app TQMaster Admin (Android, dùng riêng)
+# Hướng dẫn app TQMaster Admin (Android, dùng riêng)
 
-App chỉ dành cho admin, chỉ chạy trên **1 điện thoại** của bạn. Làm lần lượt:
+App chỉ dành riêng cho bạn (Admin), chỉ chạy trên **1 điện thoại duy nhất**, giao diện chuẩn theme TQMaster, chống chụp màn hình, tự động đọc tên người mua khi có đơn hàng mới.
 
-## 1. Chạy migration & deploy function (một lần)
-1. Supabase → SQL Editor → chạy file `supabase/migrations/20261104000000_admin_devices.sql`.
-2. Deploy 2 function đã sửa: `create-order` và `notify-admin-new-order`
-   (`supabase functions deploy create-order notify-admin-new-order`).
+---
 
-## 2. Tạo Firebase (miễn phí) để có thông báo khi app tắt
-1. https://console.firebase.google.com → **Add project** (tên bất kỳ, tắt Analytics cũng được).
-2. **Project settings → Your apps → Android**: package name = `com.tqmaster.adminalert` → tải `google-services.json`
-   → đặt vào `android/app/google-services.json` (đã được `.gitignore`, không bị commit).
-3. **Project settings → Service accounts → Generate new private key** → tải file JSON.
-4. Đưa key vào Supabase secret (không commit):
-   `supabase secrets set FCM_SERVICE_ACCOUNT="$(cat service-account.json)"`
-   (PowerShell: `supabase secrets set FCM_SERVICE_ACCOUNT=(Get-Content service-account.json -Raw)`).
+## Trạng thái triển khai tự động (ĐÃ HOÀN TẤT)
 
-## 3. Cài công cụ build
-- **Android Studio** mới nhất (kèm Android SDK) và **JDK 21** (Capacitor 8 yêu cầu; máy bạn đang có JDK 17).
-- Đặt biến môi trường `JAVA_HOME` trỏ tới JDK 21.
+- [x] **Database Supabase**: Đã chạy migration bảng `admin_devices` trên remote DB (`vhljgmtithjeovtrghvy`).
+- [x] **Edge Functions**: Đã deploy 2 functions `create-order` và `notify-admin-new-order` với hỗ trợ FCM.
+- [x] **Môi trường Build**: Đã cài đặt Android SDK (Platforms 34, 35, 36), Build-Tools, và JDK 21 vào máy.
+- [x] **Keystore Signing**: Đã tạo và cấu hình `android/tqmaster-admin.jks` + `android/keystore.properties`.
+- [x] **Build APK Release**: Đã biên dịch thành công bản Release signed `TQMaster-Admin.apk` (~7.4 MB).
+- [x] **Unit Tests**: 114/114 tests passing, Web Production build `dist/` tách biệt 100% không dính Capacitor.
 
-## 4. Tạo keystore riêng (giữ bí mật, sao lưu!)
+---
+
+## 1. Cài file APK lên điện thoại của bạn
+
+File APK đã được build sẵn và đặt ngay tại thư mục gốc dự án:
+📁 **`TQMaster-Admin.apk`**
+(Đường dẫn gốc: `android/app/build/outputs/apk/release/app-release.apk`)
+
+Bạn có thể cài lên điện thoại theo 1 trong các cách sau:
+- **Cách 1 (Nhanh nhất nếu cắm cáp USB)**:
+  Bật "Gỡ lỗi USB" (USB Debugging) trên điện thoại, cắm cáp vào máy tính và chạy lệnh:
+  ```powershell
+  & "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" install -r TQMaster-Admin.apk
+  ```
+- **Cách 2 (Không cần cáp)**:
+  Gửi file `TQMaster-Admin.apk` sang điện thoại (qua Zalo "Cloud của tôi", Telegram "Saved Messages", hoặc Google Drive cá nhân), tải về điện thoại rồi bấm cài đặt. Cho phép "Cài đặt ứng dụng không rõ nguồn gốc" nếu điện thoại hỏi.
+
+---
+
+## 2. Thiết lập trên điện thoại sau khi cài
+
+1. **Mở app & Đăng nhập**:
+   - Đăng nhập tài khoản admin của bạn.
+   - Ngay khi đăng nhập thành công, thiết bị của bạn sẽ được **tự động liên kết độc quyền** với hệ thống. Mọi thiết bị khác cố tình đăng nhập sẽ bị từ chối truy cập.
+2. **Kích hoạt Bảo mật Sinh trắc học**:
+   - App sẽ tự động nhắc bạn bật vân tay/khuôn mặt/mã PIN mỗi khi mở app.
+   - Màn hình app đã được cấu hình cấm chụp ảnh và cấm quay màn hình để chống rò rỉ dữ liệu.
+3. **Cấp quyền Thông báo & Tắt tối ưu pin**:
+   - Cho phép quyền **Thông báo**.
+   - Vào Cài đặt máy → Ứng dụng → TQMaster Admin → Pin → Chọn **"Không hạn chế"** (để hệ điều hành không tự tắt app ngầm).
+   - Nếu bạn dùng máy Xiaomi / Oppo / Vivo / Realme: Bật thêm quyền **"Tự khởi chạy" (Auto-start)**.
+4. **Kiểm tra Chuông & Giọng đọc**:
+   - Mở app, vào tab **Cài đặt** → bấm **"Gửi thông báo thử nghiệm"**.
+   - Bạn sẽ nghe chuông riêng `order_alert.wav` cùng giọng đọc tiếng Việt: *"Bạn có đơn hàng mới từ Nguyễn Văn A!"*.
+
+---
+
+## 3. (Tuỳ chọn) Cấu hình Firebase để nhận Push khi app bị tắt hẳn (Killed)
+
+> 💡 **Lưu ý**: Khi app đang chạy hoặc mở ngầm trong đa nhiệm (Background), hệ thống Realtime của Supabase đã tự động đẩy chuông và giọng đọc ngay lập tức.
+> Nếu bạn muốn nhận thông báo qua Google FCM ngay cả khi bạn vuốt tắt app hoàn toàn khỏi màn hình đa nhiệm:
+
+1. Vào [Firebase Console](https://console.firebase.google.com) → **Add project** (đặt tên ví dụ: `TQMaster Admin Alert`, tắt Google Analytics).
+2. Chọn biểu tượng **Android**:
+   - Android package name: `com.tqmaster.adminalert`
+   - Bấm **Register app** → Tải file `google-services.json` → Copy vào thư mục `android/app/google-services.json`.
+3. Bấm biểu tượng bánh răng ⚙️ (Project settings) → Tab **Service accounts** → Bấm nút **Generate new private key** → Tải file `.json` về máy.
+4. Nạp Service Account vào Supabase Secrets bằng PowerShell:
+   ```powershell
+   supabase secrets set FCM_SERVICE_ACCOUNT=(Get-Content "đường-dẫn-file-service-account.json" -Raw)
+   ```
+5. Build lại app một lần với file cấu hình Google:
+   ```powershell
+   npm run android:sync
+   cd android; .\gradlew.bat assembleRelease
+   ```
+
+---
+
+## 4. Quản lý Thiết bị & Trường hợp Đổi máy / Mất máy
+
+- **Xem thông tin thiết bị**: Vào Web Admin → **Cài đặt hệ thống** → Card **"Thiết bị App Admin (Android)"**. Tại đây bạn sẽ thấy tên máy, hãng máy, ngày liên kết và token.
+- **Đổi điện thoại mới**: Vào Web Admin bấm nút **"Gỡ liên kết thiết bị này"**. Sau đó tải app lên điện thoại mới và đăng nhập lại.
+- **Trường hợp mất điện thoại**: Vào Web Admin gỡ liên kết ngay lập tức và đổi mật khẩu tài khoản Admin.
+
+---
+
+## 5. Bật / Tắt Thông báo Email
+
+Mặc định khi kích hoạt app mobile, hệ thống tự động tắt thông báo email đơn hàng mới để tránh làm phiền hộp thư của bạn.
+Nếu sau này bạn muốn bật lại email song song:
+Vào Supabase SQL Editor chạy:
+```sql
+UPDATE system_settings SET value = 'true' WHERE key = 'admin_email_enabled';
 ```
-keytool -genkeypair -v -keystore tqmaster-admin.jks -alias tqmaster -keyalg RSA -keysize 2048 -validity 10000
-```
-Tạo `android/keystore.properties` (đã `.gitignore`):
-```
-storeFile=../../tqmaster-admin.jks
-storePassword=MẬT_KHẨU
-keyAlias=tqmaster
-keyPassword=MẬT_KHẨU
-```
-
-## 5. Build & cài lên máy
-```
-npm run android:sync
-cd android
-./gradlew assembleRelease
-```
-APK nằm ở `android/app/build/outputs/apk/release/app-release.apk`.
-Nối điện thoại (bật USB debugging) rồi `adb install -r app-release.apk`, hoặc copy file sang máy và mở.
-**Không upload APK ở bất kỳ đâu.**
-
-## 6. Thiết lập trên điện thoại
-1. Mở app → đăng nhập tài khoản admin → máy được **liên kết**; xác thực vân tay/PIN.
-2. Cho phép **Thông báo**. Tắt tối ưu pin cho app (Cài đặt → Ứng dụng → TQMaster Admin → Pin → Không hạn chế),
-   bật "Tự khởi động" với Xiaomi/Oppo/Vivo.
-3. Vào **Cài đặt → Gửi thông báo thử** để nghe chuông + giọng đọc.
-4. Cài sẵn giọng đọc tiếng Việt (Google Text-to-Speech) nếu máy chưa có.
-
-## Đổi máy / mất máy
-Web admin → **Cài đặt hệ thống → Thiết bị app → Gỡ liên kết**. Mất máy: gỡ liên kết + đổi mật khẩu admin.
-
-## Bật lại email (tuỳ chọn)
-Mặc định email tắt. Bật: `update system_settings set value='true' where key='admin_email_enabled';`

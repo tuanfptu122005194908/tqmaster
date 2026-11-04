@@ -48,4 +48,8 @@ android/app/google-services.json
 *.keystore
 *.jks
 android/keystore.properties
+android/local.properties
 android/app/src/main/assets/public/
+*.apk
+*.aab
+dist-app/
