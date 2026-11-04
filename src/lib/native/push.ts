@@ -62,13 +62,12 @@ export async function startPush(handlers: PushHandlers): Promise<() => void> {
   if (perm.receive !== 'granted') {
     handlers.onError?.('Chưa cấp quyền thông báo cho ứng dụng.');
   } else {
-    try {
-      await PushNotifications.register().catch(e => {
+    // Delay registration slightly so permission dialog dismissal transition completes smoothly
+    window.setTimeout(() => {
+      void PushNotifications.register().catch(e => {
         handlers.onError?.(`Không thể đăng ký FCM (cần google-services.json): ${String(e)}`);
       });
-    } catch (e) {
-      handlers.onError?.(`FCM init error: ${String(e)}`);
-    }
+    }, 500);
   }
 
   return () => {
