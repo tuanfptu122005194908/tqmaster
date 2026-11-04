@@ -4,14 +4,15 @@ App chỉ dành riêng cho bạn (Admin), chỉ chạy trên **1 điện thoại
 
 ---
 
-## Trạng thái triển khai tự động (ĐÃ HOÀN TẤT)
+## Trạng thái triển khai tự động (ĐÃ HOÀN TẤT 100%)
 
 - [x] **Database Supabase**: Đã chạy migration bảng `admin_devices` trên remote DB (`vhljgmtithjeovtrghvy`).
-- [x] **Edge Functions**: Đã deploy 2 functions `create-order` và `notify-admin-new-order` với hỗ trợ FCM.
-- [x] **Môi trường Build**: Đã cài đặt Android SDK (Platforms 34, 35, 36), Build-Tools, và JDK 21 vào máy.
-- [x] **Keystore Signing**: Đã tạo và cấu hình `android/tqmaster-admin.jks` + `android/keystore.properties`.
-- [x] **Build APK Release**: Đã biên dịch thành công bản Release signed `TQMaster-Admin.apk` (~7.4 MB).
-- [x] **Unit Tests**: 114/114 tests passing, Web Production build `dist/` tách biệt 100% không dính Capacitor.
+- [x] **Firebase Cloud Messaging (FCM)**: Đã tích hợp `google-services.json` vào Android app và nạp `FCM_SERVICE_ACCOUNT` vào Supabase Secrets.
+- [x] **Edge Functions**: Đã deploy 2 functions `create-order` và `notify-admin-new-order` kích hoạt đẩy tin FCM tự động.
+- [x] **Âm thanh & UI Tối ưu**: Chuông "TING" đanh to 0.4s -> tuần tự phát TTS tiếng Việt không bị overlap; hiển thị badge số lượng đơn trên các tab.
+- [x] **Môi trường Build**: Android SDK 34-36, Build-Tools, JDK 21.
+- [x] **Keystore Signing**: Bản Release signed `TQMaster-Admin.apk` (~7.26 MB) đã tích hợp đầy đủ Google Services.
+- [x] **Unit Tests**: 114/114 tests passing, Web Production build `dist/` tách biệt 100%.
 
 ---
 
