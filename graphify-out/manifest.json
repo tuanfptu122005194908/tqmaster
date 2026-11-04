@@ -2985,8 +2985,8 @@
     "semantic_hash": ""
   },
   "src/app-admin/screens/SettingsScreen.tsx": {
-    "mtime": 1793787114.2821913,
-    "seen": 1793787349.6297548,
+    "mtime": 1793787499.3708844,
+    "seen": 1793816820.3278868,
     "ast_hash": "b0a308d462cf33e62d9456ae90126a88",
     "semantic_hash": ""
   },
@@ -3309,9 +3309,33 @@
     "semantic_hash": ""
   },
   ".sdd/specs/40-fix-app-notifications-and-expand-dashboard/tasks.md": {
-    "mtime": 1793787313.5444143,
-    "seen": 1793787349.7149413,
+    "mtime": 1793787499.1885717,
+    "seen": 1793816820.3907454,
     "ast_hash": "d5d26d298bc0ecb5c047851de3817994",
+    "semantic_hash": ""
+  },
+  "scripts/upload_pro192_pe.py": {
+    "mtime": 1793816584.7146406,
+    "seen": 1793816820.3258483,
+    "ast_hash": "c63f1008128525b744024e341883d08c",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/41-upload-pro192-pe-to-gdrive/plan.md": {
+    "mtime": 1793816568.5073996,
+    "seen": 1793816820.3907487,
+    "ast_hash": "eb304ddaf63e7c5d2fdf3d5c25eff712",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/41-upload-pro192-pe-to-gdrive/spec.md": {
+    "mtime": 1793816766.827846,
+    "seen": 1793816820.3907511,
+    "ast_hash": "1551c2f335b14dafbd16556b269ea956",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/41-upload-pro192-pe-to-gdrive/tasks.md": {
+    "mtime": 1793816762.4234295,
+    "seen": 1793816820.390754,
+    "ast_hash": "991f5777814a328c8d5f47d88b0ba6d1",
     "semantic_hash": ""
   }
 }
