@@ -15,6 +15,7 @@
     "migrate:db": "node scripts/migrate_to_new_db.mjs",
     "db:export": "node scripts/export_to_sql.mjs",
     "db:migrate": "node scripts/migrate_to_new_db.mjs",
+    "db:check": "python scripts/check_db_health.py",
     "build:app": "vite build --mode admin-app",
     "android:sync": "npm run build:app && cap sync android",
     "android:open": "cap open android"
