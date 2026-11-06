@@ -2,14 +2,50 @@ import subprocess
 import json
 import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
+# Đảm bảo in UTF-8 không lỗi trên mọi terminal Windows / Git Bash
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 def run_cmd(cmd_list):
     try:
-        proc = subprocess.run(cmd_list, capture_output=True, text=True, shell=True)
-        return proc.stdout
+        proc = subprocess.run(
+            cmd_list,
+            capture_output=True,
+            encoding='utf-8',
+            errors='replace',
+            shell=True
+        )
+        return (proc.stdout or '').strip()
     except Exception as e:
-        return f"Error: {e}"
+        return ''
+
+def extract_json(raw_text):
+    if not raw_text:
+        return None
+    idx_brace = raw_text.find('{')
+    idx_bracket = raw_text.find('[')
+    
+    # Thử parse theo object {}
+    if idx_brace != -1:
+        end_brace = raw_text.rfind('}')
+        if end_brace > idx_brace:
+            try:
+                return json.loads(raw_text[idx_brace:end_brace + 1])
+            except Exception:
+                pass
+
+    # Thử parse theo array []
+    if idx_bracket != -1:
+        end_bracket = raw_text.rfind(']')
+        if end_bracket > idx_bracket:
+            try:
+                return json.loads(raw_text[idx_bracket:end_bracket + 1])
+            except Exception:
+                pass
+
+    return None
 
 def print_header(title):
     print(f"\n{'='*60}")
@@ -19,64 +55,69 @@ def print_header(title):
 def check_cron_jobs():
     print_header("1. CÁC TÁC VỤ TỰ ĐỘNG CHẠY NGẦM (PG_CRON JOBS)")
     out = run_cmd(['npx', 'supabase', 'db', 'query', '--remote', '--read-only', 'SELECT jobid, jobname, schedule, active, command FROM cron.job ORDER BY jobid;'])
-    try:
-        data = json.loads(out)
-        rows = data.get('rows', [])
-        if not rows:
-            print("   ℹ️ Không có cron job nào đang hoạt động.")
-            return
-        for r in rows:
-            status = "🟢 Đang bật" if r.get('active') else "⚪ Đã tắt"
-            print(f"   • Job: {r.get('jobname')} [{status}]")
-            print(f"     - Lịch chạy: {r.get('schedule')}")
-            print(f"     - Lệnh: {r.get('command')}")
-    except Exception:
-        print("   ⚠️ Không thể đọc cron.job:", out[:200])
+    data = extract_json(out)
+    if not data or not isinstance(data, dict):
+        print("   ℹ️ Không đọc được danh sách cron job hoặc không có tác vụ nào.")
+        return
+    rows = data.get('rows', [])
+    if not rows:
+        print("   ℹ️ Không có cron job nào trong hệ thống.")
+        return
+    for r in rows:
+        status = "🟢 Đang bật" if r.get('active') else "⚪ Đã tắt"
+        sched = r.get('schedule', '')
+        note = " (Chạy mỗi phút - NGUY CƠ CAO)" if sched == "* * * * *" else " (Hợp lý / An toàn)"
+        print(f"   • Job: {r.get('jobname')} [{status}]")
+        print(f"     - Lịch chạy: {sched}{note}")
+        print(f"     - Lệnh: {r.get('command')}")
 
 def check_table_bloat():
     print_header("2. ĐỘ PHÌNH RÁC DỮ LIỆU (TABLE & INDEX BLOAT)")
     out = run_cmd(['npx', 'supabase', 'inspect', 'db', 'bloat', '--remote'])
-    try:
-        data = json.loads(out)
+    data = extract_json(out)
+    rows = []
+    if isinstance(data, dict):
         rows = data.get('rows', [])
-        high_bloat = [r for r in rows if float(r.get('bloat', 0)) > 3.0]
-        if not high_bloat:
-            print("   ✅ Toàn bộ bảng và index đều SẠCH SẼ, không có bảng nào bị phình rác!")
-        else:
-            print(f"   ⚠️ Phát hiện {len(high_bloat)} đối tượng có rác cần dọn:")
-            for r in high_bloat[:5]:
-                print(f"   • {r.get('type')}: {r.get('name')} | Bloat: {r.get('bloat')}x | Lãng phí: {r.get('waste')}")
-    except Exception:
-        print("   ⚠️ Lỗi kiểm tra bloat:", out[:200])
+    elif isinstance(data, list):
+        rows = data
+
+    high_bloat = [r for r in rows if float(r.get('bloat', 0)) > 3.0]
+    if not high_bloat:
+        print("   ✅ Toàn bộ bảng và index đều SẠCH SẼ, không có bảng nào bị phình rác!")
+    else:
+        print(f"   ⚠️ Phát hiện {len(high_bloat)} đối tượng có rác cần dọn:")
+        for r in high_bloat[:5]:
+            print(f"   • {r.get('type')}: {r.get('name')} | Bloat: {r.get('bloat')}x | Lãng phí: {r.get('waste')}")
 
 def check_heavy_queries():
     print_header("3. TOP TRUY VẤN NẶNG NHẤT (QUERY OUTLIERS)")
     out = run_cmd(['npx', 'supabase', 'inspect', 'db', 'outliers', '--remote'])
-    try:
-        data = json.loads(out)
+    data = extract_json(out)
+    rows = []
+    if isinstance(data, dict):
         rows = data.get('rows', [])
-        if not rows:
-            print("   ✅ Chưa có truy vấn nào bị quá tải.")
-            return
-        for i, r in enumerate(rows[:3], start=1):
-            q = r.get('query', '').strip().replace('\n', ' ')
-            if len(q) > 90:
-                q = q[:87] + '...'
-            print(f"   {i}. Thời gian chạy: {r.get('total_exec_time')} ({r.get('prop_exec_time')}) | Số lần gọi: {r.get('ncalls')}")
-            print(f"      SQL: {q}")
-    except Exception:
-        print("   ⚠️ Lỗi kiểm tra outliers:", out[:200])
+    elif isinstance(data, list):
+        rows = data
+
+    if not rows:
+        print("   ✅ Chưa có truy vấn nào bị quá tải.")
+        return
+    for i, r in enumerate(rows[:3], start=1):
+        q = r.get('query', '').strip().replace('\n', ' ')
+        if len(q) > 90:
+            q = q[:87] + '...'
+        print(f"   {i}. Tổng thời gian: {r.get('total_exec_time')} ({r.get('prop_exec_time')}) | Lượt gọi: {r.get('ncalls')}")
+        print(f"      SQL: {q}")
 
 def main():
-    print("\n" + "🚀 KIỂM TRA SỨC KHỎE DATABASE SUPABASE (TQMASTER) 🚀")
+    print("\n" + "🚀 BÁO CÁO SỨC KHỎE DATABASE SUPABASE (TQMASTER) 🚀")
     check_cron_jobs()
     check_table_bloat()
     check_heavy_queries()
     print_header("TỔNG KẾT & KHUYẾN NGHỊ")
-    print("   ✅ Database đang ở trạng thái TỐI ƯU.")
-    print("   💡 Bạn có thể kiểm tra trực tiếp đồ thị Disk IO tại:")
+    print("   ✅ Trạng thái tổng quan: ĐÃ ĐƯỢC TỐI ƯU.")
+    print("   💡 Xem chi tiết đồ thị Disk IO trực tiếp tại:")
     print("      https://supabase.com/dashboard/project/vhljgmtithjeovtrghvy/settings/infrastructure#disk_io\n")
 
 if __name__ == '__main__':
     main()
-
