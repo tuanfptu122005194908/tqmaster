@@ -9,6 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import HeroSection from '@/components/home/HeroSection';
 import { SubjectGridSkeleton } from '@/components/Skeleton';
 import ProductFilterBar from '@/components/home/ProductFilterBar';
+import PaginationBar from '@/components/common/PaginationBar';
 import CourseListItem from '@/components/home/CourseListItem';
 import { SubjectCard } from '@/components/SubjectCard';
 import {
@@ -124,6 +125,26 @@ export default function HomePage() {
   };
 
   const scrollToGrid = () => {
+    gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Phân trang môn học (12 môn / trang)
+  const ITEMS_PER_PAGE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Tự động đưa về trang 1 mỗi khi từ khóa tìm kiếm hoặc sắp xếp thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterState.sortBy]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
+  const pagedSubjects = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -334,7 +355,7 @@ export default function HomePage() {
             SUBJECTS GRID VIEW (CARD 3D)
             ════════════════════════════════════════ */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
-          {filtered.map((subject, idx) => {
+          {pagedSubjects.map((subject, idx) => {
             const color    = subjectColor(subject.name);
             const initials = subjectInitials(subject.name);
             const owned    = isPurchased(subject.id);
@@ -369,7 +390,7 @@ export default function HomePage() {
             SUBJECTS LIST VIEW (COMPACT ROWS)
             ════════════════════════════════════════ */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {filtered.map((subject, idx) => {
+          {pagedSubjects.map((subject, idx) => {
             const color    = subjectColor(subject.name);
             const initials = subjectInitials(subject.name);
             const owned    = isPurchased(subject.id);
@@ -395,6 +416,17 @@ export default function HomePage() {
           })}
         </div>
       )}
+
+      {/* ════════════════════════════════════════
+          PAGINATION BAR
+          ════════════════════════════════════════ */}
+      <PaginationBar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        totalItems={filtered.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+      />
 
       <style>{`
         @media (max-width: 768px) {

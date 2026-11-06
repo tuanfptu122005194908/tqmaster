@@ -186,9 +186,9 @@
     "semantic_hash": "889a81fd2eb948eb406c9ccabe175918"
   },
   "src/components/TopNav.tsx": {
-    "mtime": 1793449450.7409937,
-    "seen": 1793449569.0791123,
-    "ast_hash": "972653cea7e4ec1a79f2ee0cbbc8f19d",
+    "mtime": 1793986414.9954379,
+    "seen": 1793986705.5042908,
+    "ast_hash": "d51ea00caaaac593fba034276bf0bab5",
     "semantic_hash": ""
   },
   "src/components/ui/accordion.tsx": {
@@ -666,9 +666,9 @@
     "semantic_hash": ""
   },
   "src/pages/user/HomePage.tsx": {
-    "mtime": 1791086770.4322462,
-    "seen": 1791087085.3486013,
-    "ast_hash": "cb89f98c2a31cb1fc54f142d753e35fb",
+    "mtime": 1793986569.1269374,
+    "seen": 1793986705.5387292,
+    "ast_hash": "a35e411c2984e630224b2845be347035",
     "semantic_hash": ""
   },
   "src/pages/user/NewsPage.tsx": {
@@ -1911,9 +1911,9 @@
     "semantic_hash": ""
   },
   "src/components/home/ProductFilterBar.tsx": {
-    "mtime": 1790388449.3776674,
-    "seen": 1790388641.856324,
-    "ast_hash": "397badd6fb1e65739ad6964993fd7b51",
+    "mtime": 1793986503.5126805,
+    "seen": 1793986705.5105312,
+    "ast_hash": "46fd0b359d38a02a8a7c9be95967dfa3",
     "semantic_hash": ""
   },
   "src/lib/subjectClassification.ts": {
@@ -3357,9 +3357,39 @@
     "semantic_hash": ""
   },
   "scripts/check_db_health.py": {
-    "mtime": 1793984450.370721,
-    "seen": 1793984503.5854628,
-    "ast_hash": "cf1989a8cbd51f2ea03f97af4b5b79fe",
+    "mtime": 1793985032.72296,
+    "seen": 1793986705.493966,
+    "ast_hash": "3f30f7735700149044ece9167a1685ca",
+    "semantic_hash": ""
+  },
+  "src/components/common/PaginationBar.tsx": {
+    "mtime": 1793986188.8452218,
+    "seen": 1793986705.5061755,
+    "ast_hash": "20fcaf1b3470ceace8408c6ee4094546",
+    "semantic_hash": ""
+  },
+  "src/components/common/__tests__/PaginationBar.test.tsx": {
+    "mtime": 1793986205.6273155,
+    "seen": 1793986705.506869,
+    "ast_hash": "13d5824e8a449f33c0ee26e68eb2b3ef",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/43-prominent-navbar-search-and-subject-pagination/plan.md": {
+    "mtime": 1793985716.6414912,
+    "seen": 1793986705.5779169,
+    "ast_hash": "870e302091771d46fc543b3eff9bcc7e",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/43-prominent-navbar-search-and-subject-pagination/spec.md": {
+    "mtime": 1793985716.6960084,
+    "seen": 1793986705.5779214,
+    "ast_hash": "72c71ea9c5075e536e269b520fb00e16",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/43-prominent-navbar-search-and-subject-pagination/tasks.md": {
+    "mtime": 1793986667.6870472,
+    "seen": 1793986705.577925,
+    "ast_hash": "dc8132d172d067abe84f6d2533daa3d6",
     "semantic_hash": ""
   }
 }
