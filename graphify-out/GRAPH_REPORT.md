@@ -1,17 +1,17 @@
-# Graph Report - smart-curate-learn-main  (2026-11-05)
+# Graph Report - smart-curate-learn-main  (2026-11-06)
 
 ## Corpus Check
-- 513 files · ~826,999 words
+- 517 files · ~829,055 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 30 file(s) not represented in the graph (top: .xml 12, (none) 6, .css 3)
 
 ## Summary
-- 2767 nodes · 4629 edges · 265 communities (190 shown, 75 thin omitted)
+- 2786 nodes · 4645 edges · 263 communities (187 shown, 76 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 176 edges (avg confidence: 0.94)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `192afa4a`
+- Built from commit: `e3f3a736`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,11 +20,11 @@
 - form.tsx
 - App.tsx
 - AdminTheory.tsx
-- three
+- AmbientBackgroundCore.tsx
 - signedImage.ts
 - compilerOptions
 - utils.ts
-- AdminSubjects.tsx
+- HomePage.tsx
 - upload_theories_to_gdrive.py
 - pagination.tsx
 - compilerOptions
@@ -39,7 +39,7 @@
 - 2. User Scenarios
 - react
 - compilerOptions
-- BrandLoader
+- BootScreen
 - 2. User Scenarios
 - git/scripts/powershell/create-new-feature.ps1
 - (Fix App Notifications & Expand Mobile Dashboard)
@@ -52,18 +52,18 @@
 - class-variance-authority
 - AdminExamStats.tsx
 - 2. User Scenarios
-- Kế hoạch Kỹ thuật
+- extractExamsFromZip
 - Download failure audit
 - package.json
 - Header
-- HeroSection.tsx
+- FptPanoViewer.tsx
 - fcm.ts
 - git-common.ps1
-- client.ts
+- AdminUsers.tsx
 - TopNav
 - KnowledgeNetworkScene.tsx
-- 2. User Scenarios
-- useAdminAnalytics.ts
+- exportQuestions.ts
+- adminAnalytics.ts
 - GlobalErrorBoundary
 - markdownExamParser.ts
 - auto-commit.sh
@@ -77,16 +77,16 @@
 - ExamPage.tsx
 - 2. User Scenarios & Testing (Kịch bản Người dùng Given-When-Then)
 - Technical Implementation Plan: Core Authentication & Profile
-- ParsedExamData
+- 23-support-bullet-and-content-answer-docx/spec.md
 - Technical Implementation Plan: News & Announcements Management
 - 17-admin-simulate-student-cart-topnav/spec.md
 - 21-fix-docx-single-upload/spec.md
 - Plan: Show TopNav UI for Admin in Student view
 - KnowledgeCoreScene.tsx
 - subjectClassification.ts
-- breadcrumb.tsx
+- parseHtmlToQuestions
 - Feature Specification: Chuyển Đổi & Di Chuyển Theory Files sang Google Drive theo Môn Học (Spec 34)
-- AppContext.tsx
+- drawer.tsx
 - 01-core-auth-and-security/tasks.md
 - SubjectDetailPage.tsx
 - 06-news-and-announcements/tasks.md
@@ -95,25 +95,25 @@
 - Feature Specification: Tối ưu Toàn diện: Nén Hàng loạt Ảnh Đề thi & Tự động Dọn dẹp attempt_answers (Spec 35)
 - docx
 - Tasks: [FEATURE NAME]
-- AdminCoupons.tsx
+- client.ts
 - google
-- 2. User Scenarios
+- Plan: 11 - Admin Data Backup (Excel Import / Export)
 - vitest
-- push.ts
+- 2. User Scenarios
 - json_repair
 - SubjectDetailPage.test.tsx
 - AuthPage.tsx
 - clearStorageUrlCache
-- orderAlert.ts
+- Spec 36: Nâng Cấp Nhận Diện Thương Hiệu — Logo Linh Vật TQMaster (Mascot Brand Logo)
 - 17-admin-simulate-student-cart-topnav/tasks.md
 - re
 - 2. Các Bước Triển Khai Kỹ Thuật
 - subprocess
-- HomePage.tsx
+- 1. Technical Architecture & Component Design
 - Plan: Admin Simulate Student View
-- FptPanoViewer.tsx
-- AdminExams.tsx
-- accordion.tsx
+- Feature Specification: Khắc Phục Cạn Kiệt Disk IO & Tối Ưu Triệt Để Database Supabase (Spec 42)
+- MobileRevenueChart.tsx
+- 2. User Scenarios
 - Plan: Fix Flashcard Double Skip Bug
 - ref_url
 - 18-fix-flashcard-double-skip/tasks.md
@@ -131,20 +131,20 @@
 - signStorageUrls
 - AdminOrders.tsx
 - update-agent-context.sh
-- Plan: Fix Subject Access Loading
+- 1. Kiến trúc Giải pháp & Các Bước Triển Khai
 - vercel.json
 - 22-fix-word-chapter-regex/plan.md
 - 2. User Scenarios
 - ref_lib_supabase
-- lovable/index.ts
-- useAdminGate.ts
+- scripts
+- 2. User Scenarios & Testing
 - 1. Technical Architecture & Design Options
 - 27-refresh-private-document-downloads/verification.md
 - 25-auto-grant-and-repair-subject-access/tasks.md
-- adminAnalytics.ts
+- input-otp.tsx
 - 35-compress-images-and-purge-attempt-answers/tasks.md
 - compress_question_and_theory_images.mjs
-- 20-zip-upload-select-exam-type/spec.md
+- BulkExamZipModal.tsx
 - README.md
 - Reduce redundant requests
 - 🎨 TQMaster UI & Design System Guidelines (`design.md`)
@@ -168,13 +168,13 @@
 - 34-migrate-theory-files-to-google-drive/tasks.md
 - speckit.checklist.agent.md
 - 28-reduce-redundant-requests/plan.md
-- exportQuestions.ts
+- tabs.tsx
 - 28-reduce-redundant-requests/tasks.md
 - Fix auth callback redirect loop after domain migration
 - 2. User Scenarios
-- AdminSettings
+- 1. Technical Architecture & Approach
 - migrate_and_compress_storage.mjs
-- AdminSettings.tsx
+- ProtectedRoute
 - speckit.clarify.agent.md
 - speckit.implement.agent.md
 - 1. Phân tích hiện trạng và thay đổi cần thực hiện
@@ -208,7 +208,7 @@
 - Update Coding Agent Context
 - Update Coding Agent Context
 - Gemini Agent Instructions
-- imageUpload.ts
+- Kế hoạch triển khai Kỹ thuật: Product Interface Redesign
 - ref_npm_jszip_3_10_1
 - 36-mascot-brand-logo-update/tasks.md
 - Feature Specification: Đẩy Tài Liệu PE PRO192 Lên Google Drive & Tích Hợp Web (Spec 41)
@@ -216,31 +216,29 @@
 - navigation-menu.tsx
 - 29-fix-auth-domain-redirect-loop/tasks.md
 - Validation
-- types.ts
+- 3. Requirements
 - readAllRows.ts
 - adminAnalytics.sql.test.ts
 - compress_existing_storage_in_place.mjs
 - export_theories_to_local.mjs
-- SubjectAccessBoundary.tsx
+- WebGLErrorBoundary
 - clone_all_storage_to_backup_db.mjs
 - Spec 38: App Android Riêng Cho Admin (Single-Admin, Single-Device) – Thông Báo Đơn Hàng
 - AdminApp.tsx
 - Hướng dẫn app TQMaster Admin (Android, dùng riêng)
 - ref_path
-- ref_node_fs
-- AdminDashboard.test.tsx
+- @supabase/supabase-js
+- 42-optimize-database-disk-io-and-bloat/tasks.md
 - 02-admin-dashboard/tasks.md
 - 03-admin-subject-theory/tasks.md
 - 04-admin-exam-questions/tasks.md
 - 05-admin-order-users/tasks.md
-- Feature Specification: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32)
+- HomePage
 - 07-user-studyhub/tasks.md
 - 08-user-exam-system/tasks.md
 - Plan 39: Bảng Điều Khiển Di Động Đẳng Cấp (Admin Mobile Premium Dashboard)
 - Technical Plan: Đẩy Tài Liệu PE PRO192 Lên Google Drive & Tích Hợp Web (Spec 41)
 - Plan 38 (v2): Admin-Only, Single-Device Android App
-- CampusGround.tsx
-- CenterFocalPoint.tsx
 - 41-upload-pro192-pe-to-gdrive/tasks.md
 - gradlew
 - 14-split-fe-pt-exams/plan.md
@@ -261,21 +259,21 @@
 10. `signStorageUrls()` - 21 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `6. Key Entities / Key Files` --references--> `OrderCard()`  [INFERRED]
+  .sdd/specs/38-admin-android-order-alert-app/spec.md → src/app-admin/OrderCard.tsx
 - `3. Các bước triển khai` --references--> `OverviewScreen()`  [INFERRED]
   .sdd/specs/39-admin-mobile-premium-dashboard/plan.md → src/app-admin/screens/OrderScreens.tsx
-- `US-002: Đồng bộ Logo Linh vật trên Admin Sidebar` --references--> `AdminSidebar()`  [INFERRED]
-  .sdd/specs/36-mascot-brand-logo-update/spec.md → src/components/AdminSidebar.tsx
-- `User Story 2 – Quản lý liên kết Mạng xã hội & Hỗ trợ (Priority: P2)` --references--> `TopNav()`  [INFERRED]
-  .sdd/specs/12-system-settings/spec.md → src/components/TopNav.tsx
-- `US-001: Hiển thị Logo Linh vật trên TopNav (Người dùng & Học sinh)` --references--> `TopNav()`  [INFERRED]
-  .sdd/specs/36-mascot-brand-logo-update/spec.md → src/components/TopNav.tsx
-- `User Story 2 – Quản trị Tài liệu & Giải nén ZIP PE (Priority: P1)` --references--> `ExamImageViewerModal()`  [INFERRED]
-  .sdd/specs/03-admin-subject-theory/spec.md → src/components/common/ExamImageViewerModal.tsx
+- `User Story 4 – An toàn giao diện (Global Error Boundary) (Priority: P2)` --references--> `GlobalErrorBoundary`  [INFERRED]
+  .sdd/specs/01-core-auth-and-security/spec.md → src/components/GlobalErrorBoundary.tsx
+- `US-003: Hiển thị sắc nét ở kích thước Favicon và màn hình khởi động` --references--> `BootScreen()`  [INFERRED]
+  .sdd/specs/36-mascot-brand-logo-update/spec.md → src/components/Skeleton.tsx
+- `2. Các bước triển khai (Implementation Steps)` --references--> `SubjectCard()`  [INFERRED]
+  .sdd/specs/10-product-catalog-and-reviews/plan.md → src/components/SubjectCard.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (265 total, 75 thin omitted)
+## Communities (263 total, 76 thin omitted)
 
 ### Community 0 - "Feature Specification: Subject Catalog & Theory Management"
 Cohesion: 0.17
@@ -286,16 +284,12 @@ Cohesion: 0.17
 Nodes (14): @radix-ui/react-label, react-hook-form, FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext (+6 more)
 
 ### Community 2 - "App.tsx"
-Cohesion: 0.08
-Nodes (27): ref_assets_google_cloud_study_hub_html_raw, next-themes, Key Files, 3. Requirements, Tasks: Admin Simulate Student View, AdminDashboard, AdminExams, adminVars (+19 more)
+Cohesion: 0.05
+Nodes (45): ref_assets_google_cloud_study_hub_html_raw, next-themes, sonner, Tasks: Admin Simulate Student View, Key Files (proposed), AdminAnnouncements, AdminNews, AdminOrders (+37 more)
 
 ### Community 3 - "AdminTheory.tsx"
-Cohesion: 0.14
-Nodes (21): AdminTheory, ExtractedImageItem, extractZipImagesFromRemoteUrl(), getMimeType(), inspectZipImages(), isValidZipImageEntry(), naturalSortNames(), sanitizeFileName() (+13 more)
-
-### Community 4 - "three"
-Cohesion: 0.20
-Nodes (5): @react-three/fiber, three, FloatingBooksProps, FloatingParticlesProps, AmbientBackgroundCore()
+Cohesion: 0.07
+Nodes (41): 1.3 WebP Compression & 1-Year Cache-Control (`src/lib/imageUpload.ts`, `src/lib/peZipExtractor.ts`), Tasks: Optimize Storage Size and Egress Quota, 1. Kiến trúc Giải pháp, Implementation Plan: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32), Tasks: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32), 3. Functional Requirements, Scenario 1: Mặc định tự động nén mọi ảnh mới tải lên (Default Auto-Compression), AdminTheory (+33 more)
 
 ### Community 5 - "signedImage.ts"
 Cohesion: 0.18
@@ -307,11 +301,11 @@ Nodes (20): compilerOptions, allowImportingTsExtensions, isolatedModules, jsx, l
 
 ### Community 7 - "utils.ts"
 Cohesion: 0.05
-Nodes (31): clsx, input-otp, @radix-ui/react-checkbox, @radix-ui/react-hover-card, @radix-ui/react-popover, @radix-ui/react-progress, @radix-ui/react-radio-group, @radix-ui/react-scroll-area (+23 more)
+Nodes (28): clsx, @radix-ui/react-avatar, @radix-ui/react-checkbox, @radix-ui/react-hover-card, @radix-ui/react-popover, @radix-ui/react-progress, @radix-ui/react-radio-group, @radix-ui/react-slider (+20 more)
 
-### Community 8 - "AdminSubjects.tsx"
-Cohesion: 0.12
-Nodes (24): Key Files (proposed), AdminSubjects, ProfilePage, readAdminLinks(), generateOrderId(), SEMESTERS, SUBJECT_COLORS, subjectColor() (+16 more)
+### Community 8 - "HomePage.tsx"
+Cohesion: 0.07
+Nodes (41): 3. Requirements, Functional Requirements, Key Entities, Key Files, Danh sách công việc (Tasks), CartPage, HomePage, ProfilePage (+33 more)
 
 ### Community 9 - "upload_theories_to_gdrive.py"
 Cohesion: 0.06
@@ -319,7 +313,7 @@ Nodes (60): concurrent_futures, io, json, mimetypes, os, pathlib, add_anyone_rea
 
 ### Community 10 - "pagination.tsx"
 Cohesion: 0.10
-Nodes (23): @radix-ui/react-alert-dialog, react-day-picker, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter(), AlertDialogHeader() (+15 more)
+Nodes (24): @radix-ui/react-alert-dialog, @radix-ui/react-slot, react-day-picker, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter() (+16 more)
 
 ### Community 11 - "compilerOptions"
 Cohesion: 0.12
@@ -351,27 +345,27 @@ Nodes (77): dependencies, @aparajita/capacitor-biometric-auth, @capacitor/app, @
 
 ### Community 18 - "cn"
 Cohesion: 0.05
-Nodes (65): @radix-ui/react-avatar, @radix-ui/react-context-menu, @radix-ui/react-dropdown-menu, @radix-ui/react-select, vaul, Avatar, AvatarFallback, AvatarImage (+57 more)
+Nodes (65): @radix-ui/react-accordion, @radix-ui/react-context-menu, @radix-ui/react-dropdown-menu, @radix-ui/react-select, AccordionContent, AccordionItem, AccordionTrigger, Breadcrumb (+57 more)
 
 ### Community 19 - "LandingPage.tsx"
-Cohesion: 0.12
-Nodes (23): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Components / Files, User Story 1 – Trải nghiệm không gian tri thức 3D & Hero (Priority: P1), User Story 2 – Xem lộ trình theo từng học kỳ (Priority: P1) (+15 more)
+Cohesion: 0.11
+Nodes (26): framer-motion, 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Components / Files, User Story 1 – Trải nghiệm không gian tri thức 3D & Hero (Priority: P1) (+18 more)
 
 ### Community 20 - "2. User Scenarios"
 Cohesion: 0.18
 Nodes (10): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Entities, Key Files, User Story 1 – Quản trị viên viết & Đăng thông báo (Priority: P1) (+2 more)
 
 ### Community 21 - "react"
-Cohesion: 0.11
-Nodes (13): framer-motion, lucide-react, react, react-router-dom, NAV, Props, State, KnowledgeNetworkScene() (+5 more)
+Cohesion: 0.15
+Nodes (7): lucide-react, react, react-router-dom, NAV, Props, State, Logo()
 
 ### Community 22 - "compilerOptions"
 Cohesion: 0.18
 Nodes (10): compilerOptions, allowJs, noImplicitAny, noUnusedLocals, noUnusedParameters, paths, skipLibCheck, strictNullChecks (+2 more)
 
-### Community 23 - "BrandLoader"
-Cohesion: 0.06
-Nodes (32): 1. Overview (Tổng quan), 2. User Scenarios & Testing (Kịch bản Given-When-Then), 3. Requirements & Entities, 4. Success Criteria (Tiêu chuẩn Nghiệm thu), Functional Requirements (FR), Key Files Affected, Spec 36: Nâng Cấp Nhận Diện Thương Hiệu — Logo Linh Vật TQMaster (Mascot Brand Logo), US-001: Hiển thị Logo Linh vật trên TopNav (Người dùng & Học sinh) (+24 more)
+### Community 23 - "BootScreen"
+Cohesion: 0.18
+Nodes (11): 1. Overview (Tổng quan), 2. User Scenarios & Testing (Kịch bản Given-When-Then), 3. Requirements & Key Entities, 4. Success Criteria (Tiêu chuẩn Nghiệm thu), Key Files Affected, Spec 37: Nâng Cấp Giao Diện Loading Đẳng Cấp & Chuyên Nghiệp (Modern Brand Loading Experience), US-001: Trải nghiệm Nạp Trang Đầu tiên (F5 / First Paint), US-002: Trải nghiệm Nạp Dữ liệu Khởi động Ứng dụng (`BootScreen`) (+3 more)
 
 ### Community 24 - "2. User Scenarios"
 Cohesion: 0.18
@@ -394,8 +388,8 @@ Cohesion: 0.17
 Nodes (11): 1. Overview (Tổng quan), 2. User Scenarios (Given-When-Then), 3. Functional Requirements (Yêu cầu chức năng), 4. Key Files, 5. Success Criteria (Tiêu chuẩn nghiệm thu), Spec 39: Bảng Điều Khiển Di Động Đẳng Cấp (Admin Mobile Premium Dashboard), US-001: Trải nghiệm Header và Thống kê tổng quan, US-002: Xem biểu đồ đường phân tích doanh thu trên điện thoại (+3 more)
 
 ### Community 29 - "devDependencies"
-Cohesion: 0.05
-Nodes (43): devDependencies, autoprefixer, @capacitor/android, @capacitor/cli, @electric-sql/pglite, eslint, @eslint/js, eslint-plugin-react-hooks (+35 more)
+Cohesion: 0.07
+Nodes (28): devDependencies, autoprefixer, @capacitor/android, @capacitor/cli, @electric-sql/pglite, eslint, @eslint/js, eslint-plugin-react-hooks (+20 more)
 
 ### Community 30 - ".specify/scripts/powershell/create-new-feature.ps1"
 Cohesion: 0.46
@@ -414,16 +408,16 @@ Cohesion: 0.14
 Nodes (15): class-variance-authority, @radix-ui/react-toggle, @radix-ui/react-toggle-group, Alert, AlertDescription, AlertTitle, alertVariants, Badge() (+7 more)
 
 ### Community 34 - "AdminExamStats.tsx"
-Cohesion: 0.15
-Nodes (14): AdminExamStats, AdminExamStats(), AnswerBar(), DEFAULT_PAL, ExamRow, ExamStat, ExamStatCard(), getPal() (+6 more)
+Cohesion: 0.13
+Nodes (16): AdminExamStats, AdminDataState(), QueryState, AdminExamStats(), AnswerBar(), DEFAULT_PAL, ExamRow, ExamStat (+8 more)
 
 ### Community 35 - "2. User Scenarios"
 Cohesion: 0.20
 Nodes (9): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Entities, Key Files, User Story 1 – Khám phá & Quản lý môn học (Priority: P1) (+1 more)
 
-### Community 36 - "Kế hoạch Kỹ thuật"
-Cohesion: 0.50
-Nodes (3): 2. Cập nhật UI (`src/components/admin/BulkExamZipModal.tsx`), 3. Clean up, Kế hoạch Kỹ thuật
+### Community 36 - "extractExamsFromZip"
+Cohesion: 0.16
+Nodes (14): 1. Cập nhật Parser (`src/lib/markdownExamParser.ts`), 2. Cập nhật UI (`src/components/admin/BulkExamZipModal.tsx`), 3. Clean up, Kế hoạch Kỹ thuật, 3. Requirements, 1. Overview, 2. User Scenarios, 3. Functional Requirements (+6 more)
 
 ### Community 37 - "Download failure audit"
 Cohesion: 0.11
@@ -431,47 +425,47 @@ Nodes (14): Confirmed cause, Download failure audit, Implemented behavior and va
 
 ### Community 38 - "package.json"
 Cohesion: 0.04
-Nodes (43): config, name, private, type, version, autoprefixer, @capacitor/android, @capacitor/cli (+35 more)
+Nodes (42): config, name, private, type, version, autoprefixer, @capacitor/android, @capacitor/cli (+34 more)
 
 ### Community 39 - "Header"
 Cohesion: 0.25
 Nodes (7): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Header, Key Entities, Key Files
 
-### Community 40 - "HeroSection.tsx"
-Cohesion: 0.20
-Nodes (9): FptPanoViewer(), HeroSceneProps, FPT_CAMPUSES, HeroScene, HeroSection(), HeroSectionProps, POPULAR_FPT_SUBJECTS, STATS (+1 more)
+### Community 40 - "FptPanoViewer.tsx"
+Cohesion: 0.12
+Nodes (13): FptPanoViewer(), FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId, HeroSceneProps, FPT_CAMPUSES, HeroScene (+5 more)
 
 ### Community 41 - "fcm.ts"
 Cohesion: 0.10
 Nodes (17): ref_https, corsHeaders, corsHeaders, corsHeaders, OrderItem, OrderPayload, b64url(), formatVND() (+9 more)
 
-### Community 43 - "client.ts"
-Cohesion: 0.09
-Nodes (24): @supabase/supabase-js, AdminUsers, mocks, AccessRequest, AccessState, initialState(), useSubjectAccess(), supabase (+16 more)
+### Community 43 - "AdminUsers.tsx"
+Cohesion: 0.06
+Nodes (29): Evidence and scope, Implementation and final validation, Implementation sequence, Plan: Fix Subject Access Loading, Risks and constraints, Validation, AdminUsers, Props (+21 more)
 
 ### Community 44 - "TopNav"
-Cohesion: 0.25
-Nodes (7): 1. Mục tiêu (Goal), 2. Chi tiết thực hiện (Implementation Details), 3. Kế hoạch kiểm thử (Verification Plan), Bước 1: Cập nhật AppContext (State Management), Bước 2: Cập nhật trang Admin Settings, Bước 3: Áp dụng liên kết động vào Giao diện (UI), TopNav()
+Cohesion: 0.22
+Nodes (8): 1. Mục tiêu (Goal), 2. Chi tiết thực hiện (Implementation Details), 3. Kế hoạch kiểm thử (Verification Plan), Bước 1: Cập nhật AppContext (State Management), Bước 2: Cập nhật trang Admin Settings, Bước 3: Áp dụng liên kết động vào Giao diện (UI), US-001: Hiển thị Logo Linh vật trên TopNav (Người dùng & Học sinh), TopNav()
 
 ### Community 45 - "KnowledgeNetworkScene.tsx"
-Cohesion: 0.18
-Nodes (5): NETWORK_DATA, NetworkNode, Canvas(), isWebGLAvailable(), WebGLErrorBoundary
+Cohesion: 0.29
+Nodes (3): KnowledgeNetworkScene(), NETWORK_DATA, NetworkNode
 
-### Community 46 - "2. User Scenarios"
-Cohesion: 0.08
-Nodes (24): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Entities, Key Files, User Story 1 – Quản lý & Phê duyệt đơn hàng tốc độ cao (Priority: P1) (+16 more)
+### Community 46 - "exportQuestions.ts"
+Cohesion: 0.06
+Nodes (32): file-saver, xlsx, 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Entities (+24 more)
 
-### Community 47 - "useAdminAnalytics.ts"
-Cohesion: 0.32
-Nodes (13): useAdminScope(), useCommerceSummary(), useExamStatistics(), useRecentOrders(), useRevenueSeries(), useSubjectSales(), loadCommerceSummary(), loadExamStatistics() (+5 more)
+### Community 47 - "adminAnalytics.ts"
+Cohesion: 0.14
+Nodes (25): zod, useAdminScope(), useCommerceSummary(), useExamStatistics(), useRecentOrders(), useRevenueSeries(), useSubjectSales(), amount (+17 more)
 
 ### Community 48 - "GlobalErrorBoundary"
-Cohesion: 0.12
-Nodes (14): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Core Authentication & Security Platform, Functional Requirements, Key Entities, User Story 1 – Đăng nhập đa phương thức & Bắt buộc đổi mật khẩu (Priority: P1) (+6 more)
+Cohesion: 0.18
+Nodes (7): 1. Overview, 3. Requirements, 4. Success Criteria, Feature Specification: Core Authentication & Security Platform, Functional Requirements, Key Entities, GlobalErrorBoundary
 
 ### Community 49 - "markdownExamParser.ts"
-Cohesion: 0.14
-Nodes (25): jszip, mammoth, 1. Cập nhật Parser (`src/lib/markdownExamParser.ts`), 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, A. Trong `src/lib/wordParser.ts`: (+17 more)
+Cohesion: 0.33
+Nodes (8): jszip, mammoth, MarkdownParserOptions, matchOptionLine(), normalizeExamLines(), parseMarkdownExam(), matchAnswerToOptions(), normalizeForCompare()
 
 ### Community 53 - "Project AGENTS & Development Rules"
 Cohesion: 0.33
@@ -486,8 +480,8 @@ Cohesion: 0.33
 Nodes (5): Phase 1: Cart State, Phase 2: Cart UI, Phase 3: Checkout Integration, Technical Context, Technical Implementation Plan: E-Commerce & Checkout
 
 ### Community 56 - "OrderScreens.tsx"
-Cohesion: 0.11
-Nodes (29): Tasks 39: Bảng Điều Khiển Di Động Đẳng Cấp (Admin Mobile Premium Dashboard), buildSmoothSpline(), MobileRevenueChart(), MobileRevenueChartProps, PERIODS, RANK_COLORS, TopSubjectsCard(), TopSubjectsCardProps (+21 more)
+Cohesion: 0.12
+Nodes (25): Tasks 38 (v2): Admin-Only, Single-Device Android App, Tasks 39: Bảng Điều Khiển Di Động Đẳng Cấp (Admin Mobile Premium Dashboard), RANK_COLORS, TopSubjectsCard(), TopSubjectsCardProps, AppOrder, CommerceSummary, OrderStatus (+17 more)
 
 ### Community 57 - "Bắt buộc Tuân thủ SDD & Quy trình Phát triển TQMaster"
 Cohesion: 0.40
@@ -509,9 +503,9 @@ Nodes (12): 1. Overview (Tổng quan), 2. User Scenarios & Testing (Kịch bản
 Cohesion: 0.40
 Nodes (4): Phase 1: Database, Phase 2: Frontend, Technical Context, Technical Implementation Plan: Core Authentication & Profile
 
-### Community 62 - "ParsedExamData"
-Cohesion: 0.11
-Nodes (16): 1. Cập nhật `src/lib/wordParser.ts`, 2. Cập nhật `src/lib/markdownExamParser.ts`, Kế hoạch Kỹ thuật (Technical Plan), 1. Overview, 2. User Scenarios, 3. Functional Requirements, 4. Key Files, 5. Success Criteria (+8 more)
+### Community 62 - "23-support-bullet-and-content-answer-docx/spec.md"
+Cohesion: 0.17
+Nodes (10): 1. Cập nhật `src/lib/wordParser.ts`, 2. Cập nhật `src/lib/markdownExamParser.ts`, Kế hoạch Kỹ thuật (Technical Plan), 1. Overview, 2. User Scenarios, 4. Key Entities, 5. Key Files, 6. Success Criteria (+2 more)
 
 ### Community 63 - "Technical Implementation Plan: News & Announcements Management"
 Cohesion: 0.40
@@ -531,27 +525,27 @@ Nodes (3): Implementation Details, Plan: Show TopNav UI for Admin in Student vie
 
 ### Community 67 - "KnowledgeCoreScene.tsx"
 Cohesion: 0.22
-Nodes (4): KnowledgeCoreScene(), KnowledgeCoreSceneProps, SUBJECT_NODES, SubjectNodeData
+Nodes (5): KnowledgeCoreScene(), KnowledgeCoreSceneProps, SUBJECT_NODES, SubjectNodeData, LandingHeroProps
 
 ### Community 68 - "subjectClassification.ts"
-Cohesion: 0.16
-Nodes (17): ProductFilterBarProps, extractSubjectCode(), filterAndSortSubjects(), FilterState, getMajorFromSubjectName(), MAJOR_OPTIONS, MajorCategory, OWNERSHIP_OPTIONS (+9 more)
+Cohesion: 0.14
+Nodes (19): ProductFilterBar(), ProductFilterBarProps, extractSubjectCode(), filterAndSortSubjects(), FilterState, getMajorFromSubjectName(), INITIAL_FILTER_STATE, MAJOR_OPTIONS (+11 more)
 
-### Community 69 - "breadcrumb.tsx"
-Cohesion: 0.22
-Nodes (8): @radix-ui/react-slot, Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
+### Community 69 - "parseHtmlToQuestions"
+Cohesion: 0.20
+Nodes (9): 1. Overview, 2. User Scenarios & Testing, 4. Success Criteria, 3. Functional Requirements, Tasks: 23-support-bullet-and-content-answer-docx, extractAnswerLabels(), checkOptionMarkedCorrect(), parseHtmlToQuestions() (+1 more)
 
 ### Community 70 - "Feature Specification: Chuyển Đổi & Di Chuyển Theory Files sang Google Drive theo Môn Học (Spec 34)"
 Cohesion: 0.20
 Nodes (9): 1. Mục tiêu & Bối cảnh (Overview & Problem Statement), 2. Kịch bản Người dùng & Tiêu chí Nghiệm thu (User Scenarios Given-When-Then), 3. Yêu cầu Kỹ thuật & Chức năng (Functional Requirements), 4. Key Files & Components, 5. Tiêu chí Thành công (Success Criteria), Feature Specification: Chuyển Đổi & Di Chuyển Theory Files sang Google Drive theo Môn Học (Spec 34), Kịch bản 1: Trích xuất toàn bộ 127 file tài liệu phân loại theo 24 môn học, Kịch bản 2: Học sinh truy cập trang chi tiết môn học có link Google Drive (+1 more)
 
-### Community 71 - "AppContext.tsx"
-Cohesion: 0.13
-Nodes (17): AdminAnnouncements, Announcement, AnnouncementPopup(), AppContext, AppContextValue, AppProvider(), CartItem, getSessionId() (+9 more)
+### Community 71 - "drawer.tsx"
+Cohesion: 0.22
+Nodes (7): vaul, DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
 
 ### Community 73 - "SubjectDetailPage.tsx"
 Cohesion: 0.22
-Nodes (15): ContentScope, displayDocuments(), Document, loadDocuments(), requireData(), SubjectTab, useSubjectContent(), formatDate() (+7 more)
+Nodes (15): SubjectDetailPage, ContentScope, displayDocuments(), Document, loadDocuments(), requireData(), SubjectTab, useSubjectContent() (+7 more)
 
 ### Community 76 - "2. Chi Tiết Triển Khai Kỹ Thuật"
 Cohesion: 0.22
@@ -565,21 +559,21 @@ Nodes (9): 1. Overview & Problem Statement, 2. User Scenarios & Acceptance Crite
 Cohesion: 0.07
 Nodes (26): Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation for User Story 1, Implementation for User Story 2, Implementation for User Story 3, Implementation Strategy, Incremental Delivery, MVP First (User Story 1 Only) (+18 more)
 
-### Community 80 - "AdminCoupons.tsx"
-Cohesion: 0.16
-Nodes (17): AdminCoupons, AdminNews, AdminQuestionReports, AdminReadError(), useAdminRead(), readAdminRows(), AdminCoupons(), Coupon (+9 more)
+### Community 80 - "client.ts"
+Cohesion: 0.08
+Nodes (47): AdminCoupons, AdminExams, AdminDeviceCard(), DeviceRow, AdminReadError(), BrandLoader(), BrandLoaderProps, DEFAULT_MESSAGES (+39 more)
 
-### Community 82 - "2. User Scenarios"
-Cohesion: 0.06
-Nodes (31): Chiến lược Export, Chiến lược Import (Upsert), File Changes, Implementation Steps, Phase 1: Setup & Core Logic, Phase 2: Components, Phase 3: Page & Routing, Phân tích Kỹ thuật (+23 more)
+### Community 82 - "Plan: 11 - Admin Data Backup (Excel Import / Export)"
+Cohesion: 0.20
+Nodes (10): Chiến lược Export, Chiến lược Import (Upsert), File Changes, Implementation Steps, Phase 1: Setup & Core Logic, Phase 2: Components, Phase 3: Page & Routing, Phân tích Kỹ thuật (+2 more)
 
 ### Community 83 - "vitest"
-Cohesion: 0.13
-Nodes (9): @testing-library/react, vitest, Consumer(), mocks, Session, SessionResult, then(), mocks (+1 more)
+Cohesion: 0.15
+Nodes (7): @testing-library/react, vitest, Consumer(), mocks, Session, SessionResult, then()
 
-### Community 84 - "push.ts"
-Cohesion: 0.13
-Nodes (16): @capacitor/core, @capacitor/push-notifications, @capacitor/splash-screen, @capacitor/status-bar, katex, react-dom, AdminApp(), prepareNative() (+8 more)
+### Community 84 - "2. User Scenarios"
+Cohesion: 0.22
+Nodes (8): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Entities, Key Files, User Story 2 – Quản lý liên kết Mạng xã hội & Hỗ trợ (Priority: P2)
 
 ### Community 86 - "SubjectDetailPage.test.tsx"
 Cohesion: 0.24
@@ -591,35 +585,35 @@ Nodes (11): AuthPage, VerifyEmailPage, src_assets_auth_mountain_bg, parseFunctio
 
 ### Community 88 - "clearStorageUrlCache"
 Cohesion: 0.15
-Nodes (13): 1.1 Persistent Session Signed URL Cache & In-Flight Deduplication (`src/lib/signedImage.ts`), 1.2 Eliminate Forced Re-Signing on Slide Change (`src/components/common/ExamImageViewerModal.tsx`), 1.4 Cloud Backup Auto-Cleanup & Retention (`supabase/functions/backup-worker/index.ts`, `src/components/backup/BackgroundBackupPanel.tsx`), 1. Technical Architecture & Data Flow, 2. Risk Assessment & Compatibility, Implementation Plan: Optimize Storage Size and Egress Quota, 1. Overview, 3. Requirements (+5 more)
+Nodes (14): 1.1 Persistent Session Signed URL Cache & In-Flight Deduplication (`src/lib/signedImage.ts`), 1.2 Eliminate Forced Re-Signing on Slide Change (`src/components/common/ExamImageViewerModal.tsx`), 1.4 Cloud Backup Auto-Cleanup & Retention (`supabase/functions/backup-worker/index.ts`, `src/components/backup/BackgroundBackupPanel.tsx`), 1. Technical Architecture & Data Flow, 2. Risk Assessment & Compatibility, Implementation Plan: Optimize Storage Size and Egress Quota, 1. Overview, 2. User Scenarios & Testing (+6 more)
 
-### Community 89 - "orderAlert.ts"
-Cohesion: 0.24
-Nodes (13): @capacitor-community/text-to-speech, @capacitor/haptics, src_app_admin_assets_order_alert, useOrderAlerts(), buzz(), playChime(), runForegroundAlert(), speakBuyer() (+5 more)
+### Community 89 - "Spec 36: Nâng Cấp Nhận Diện Thương Hiệu — Logo Linh Vật TQMaster (Mascot Brand Logo)"
+Cohesion: 0.22
+Nodes (8): 1. Overview (Tổng quan), 2. User Scenarios & Testing (Kịch bản Given-When-Then), 3. Requirements & Entities, 4. Success Criteria (Tiêu chuẩn Nghiệm thu), Functional Requirements (FR), Key Files Affected, Spec 36: Nâng Cấp Nhận Diện Thương Hiệu — Logo Linh Vật TQMaster (Mascot Brand Logo), US-003: Hiển thị sắc nét ở kích thước Favicon và màn hình khởi động
 
 ### Community 92 - "2. Các Bước Triển Khai Kỹ Thuật"
 Cohesion: 0.25
 Nodes (7): 1. Kiến trúc & Thiết kế Luồng Dữ liệu, 2. Các Bước Triển Khai Kỹ Thuật, 3. Kiểm thử & Đảm bảo Chất lượng, Giai đoạn 1: Tải toàn bộ tài liệu về máy theo môn học, Giai đoạn 2: Tối ưu UI hiển thị Link Google Drive trên Web, Giai đoạn 3: Dọn dẹp Supabase Storage để hạ cấp về Free, Implementation Plan: Chuyển Đổi & Di Chuyển Theory Files sang Google Drive (Spec 34)
 
-### Community 95 - "HomePage.tsx"
-Cohesion: 0.20
-Nodes (11): HomePage, CourseListItem(), CourseListItemProps, ProductFilterBar(), SubjectCardProps, Tables, optimizedImage(), formatPrice() (+3 more)
+### Community 95 - "1. Technical Architecture & Component Design"
+Cohesion: 0.22
+Nodes (8): 1. Technical Architecture & Component Design, 2. Risk Assessment & Verification, Part A: Component `BrandLoader.tsx`, Part B: Pre-loader trong `index.html` (Zero Blank Screen), Part C: Tích hợp vào `BootScreen` & Các Trang, Technical Implementation Plan: Spec 37 (Modern Brand Loading Experience), Functional Requirements (FR), page()
 
 ### Community 96 - "Plan: Admin Simulate Student View"
 Cohesion: 0.40
 Nodes (4): Deployment / Next steps, Kiến trúc kỹ thuật & Luồng dữ liệu, Plan: Admin Simulate Student View, Rủi ro kỹ thuật
 
-### Community 97 - "FptPanoViewer.tsx"
+### Community 97 - "Feature Specification: Khắc Phục Cạn Kiệt Disk IO & Tối Ưu Triệt Để Database Supabase (Spec 42)"
+Cohesion: 0.22
+Nodes (8): 1. Mục tiêu & Bối cảnh (Overview & Problem Statement), 2. Kịch bản Nghiệm thu (User Scenarios Given-When-Then), 3. Yêu cầu Chức năng & Kỹ thuật (Functional Requirements), 4. Tiêu chí Thành công (Success Criteria), Feature Specification: Khắc Phục Cạn Kiệt Disk IO & Tối Ưu Triệt Để Database Supabase (Spec 42), Kịch bản 1: Giảm tần suất cron job dọn dẹp tài khoản chưa kích hoạt, Kịch bản 2: Giải phóng triệt để bloat bảng `attempt_answers`, Kịch bản 3: Tối ưu RLS Policy và loại bỏ Sequential Scan
+
+### Community 98 - "MobileRevenueChart.tsx"
+Cohesion: 0.31
+Nodes (8): buildSmoothSpline(), MobileRevenueChart(), MobileRevenueChartProps, PERIODS, src_app_admin_data_revenueperiod, src_app_admin_data_revenuepoint, RevenuePeriod, RevenuePoint
+
+### Community 99 - "2. User Scenarios"
 Cohesion: 0.25
-Nodes (4): FptPanoViewerProps, PANO_SCENES, PanoSceneConfig, PanoSceneId
-
-### Community 98 - "AdminExams.tsx"
-Cohesion: 0.18
-Nodes (12): sonner, User Story 2 – Nhập câu hỏi từ Word / Markdown / Zip (Priority: P1), BulkExamZipModalProps, Subject, detectGluedOptionA(), AdminExams(), Exam, ExamWithSubjects (+4 more)
-
-### Community 99 - "accordion.tsx"
-Cohesion: 0.40
-Nodes (4): @radix-ui/react-accordion, AccordionContent, AccordionItem, AccordionTrigger
+Nodes (6): 1. Overview, 2. User Scenarios, 4. Success Criteria, User Story 1 – Sao lưu và Phục hồi ngầm bằng Background Worker (Priority: P0), User Story 2 – Tạo Snapshot SQL / Phục hồi Tức thời (Priority: P1), User Story 3 – Xuất Excel Đọc được & Khôi phục từng phần (Priority: P1)
 
 ### Community 100 - "Plan: Fix Flashcard Double Skip Bug"
 Cohesion: 0.40
@@ -646,8 +640,8 @@ Cohesion: 0.08
 Nodes (25): 1. Initialize Analysis Context, 2. Load Artifacts (Progressive Disclosure), 3. Build Semantic Models, 4. Detection Passes (Token-Efficient Analysis), 5. Severity Assignment, 6. Produce Compact Analysis Report, 7. Provide Next Actions, 8. Offer Remediation (+17 more)
 
 ### Community 109 - "2. User Scenarios & Testing"
-Cohesion: 0.17
-Nodes (11): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Exam, Questions & Analytics Management, Functional Requirements, Key Entities, Key Files (+3 more)
+Cohesion: 0.15
+Nodes (12): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Feature Specification: Exam, Questions & Analytics Management, Functional Requirements, Key Entities, Key Files (+4 more)
 
 ### Community 111 - "Q: Admin dashboard data integrity implementation after approved audit"
 Cohesion: 0.40
@@ -662,48 +656,48 @@ Cohesion: 0.29
 Nodes (6): Functional Requirements, Key Entities, Key Files, Overview, Success Criteria, User Scenarios
 
 ### Community 114 - "RichContent.tsx"
-Cohesion: 0.36
-Nodes (6): getKatex(), parseSegments(), renderLatex(), RichContent(), RichContentProps, Segment
+Cohesion: 0.31
+Nodes (7): katex, getKatex(), parseSegments(), renderLatex(), RichContent(), RichContentProps, Segment
 
 ### Community 115 - "signStorageUrls"
-Cohesion: 0.35
-Nodes (9): User Story 2 – Xem chi tiết Môn học & Tài liệu PE (Priority: P1), 2. User Scenarios & Testing, ExamImageViewerModal(), ExamImageViewerModalProps, isGoogleDrive(), images, props, signStorageUrl() (+1 more)
+Cohesion: 0.38
+Nodes (8): User Story 2 – Xem chi tiết Môn học & Tài liệu PE (Priority: P1), ExamImageViewerModal(), ExamImageViewerModalProps, isGoogleDrive(), images, props, signStorageUrl(), signStorageUrls()
 
 ### Community 116 - "AdminOrders.tsx"
 Cohesion: 0.14
-Nodes (15): 1. Kiến trúc Giải pháp, Implementation Plan: Nút Dọn dẹp & Xoá Ảnh Bill Cũ trong Quản trị Đơn hàng (Spec 33), Tasks: Nút Dọn dẹp & Xoá Ảnh Bill Cũ trong Quản trị Đơn hàng (Spec 33), AdminOrders, adminDateWindow(), BillStats, cleanBillImages(), CleanBillScope (+7 more)
+Nodes (15): 1. Kiến trúc Giải pháp, Implementation Plan: Nút Dọn dẹp & Xoá Ảnh Bill Cũ trong Quản trị Đơn hàng (Spec 33), Tasks: Nút Dọn dẹp & Xoá Ảnh Bill Cũ trong Quản trị Đơn hàng (Spec 33), adminDateWindow(), BillStats, cleanBillImages(), CleanBillScope, CleanBillsResult (+7 more)
 
-### Community 120 - "Plan: Fix Subject Access Loading"
-Cohesion: 0.29
-Nodes (6): Evidence and scope, Implementation and final validation, Implementation sequence, Plan: Fix Subject Access Loading, Risks and constraints, Validation
+### Community 120 - "1. Kiến trúc Giải pháp & Các Bước Triển Khai"
+Cohesion: 0.25
+Nodes (7): 1. Kiến trúc Giải pháp & Các Bước Triển Khai, Bước 1: Điều chỉnh Lịch pg_cron (Khắc phục 91.3% thời gian chạy DB), Bước 2: Dọn dẹp Bloat trên bảng `attempt_answers` (Tiết kiệm 64 MB đĩa), Bước 3: Bổ sung các Index bị thiếu (Chấm dứt hàng triệu Sequential Scans), Bước 4: Tối ưu RLS Policies (Chấm dứt 130 triệu lượt gọi `user_roles`), Bước 5: Kiểm tra xác minh sau tối ưu, Technical Plan: Khắc Phục Cạn Kiệt Disk IO & Tối Ưu Triệt Để Database Supabase (Spec 42)
 
 ### Community 127 - "2. User Scenarios"
-Cohesion: 0.20
-Nodes (9): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Key Entities, Key Files, User Story 1 – Khám phá & Lọc môn học siêu tốc (Priority: P0), User Story 2 – Xem chi tiết sản phẩm chuẩn IBACUU (Priority: P1) (+1 more)
+Cohesion: 0.29
+Nodes (6): 1. Overview, 2. User Scenarios, 4. Success Criteria, User Story 1 – Khám phá & Lọc môn học siêu tốc (Priority: P0), User Story 2 – Xem chi tiết sản phẩm chuẩn IBACUU (Priority: P1), User Story 3 – Đọc & Viết Đánh Giá Kiểm Duyệt (Priority: P1)
 
-### Community 131 - "lovable/index.ts"
-Cohesion: 0.40
-Nodes (4): @lovable.dev/cloud-auth-js, lovable, lovableAuth, SignInOptions
+### Community 131 - "scripts"
+Cohesion: 0.09
+Nodes (19): scripts, android:open, android:sync, build, build:app, build:dev, db:export, db:migrate (+11 more)
 
-### Community 133 - "useAdminGate.ts"
-Cohesion: 0.24
-Nodes (14): @aparajita/capacitor-biometric-auth, @capacitor/app, @capacitor/device, biometricUnlock(), Phase, useAdminGate(), AdminGateException, claimAdminDevice() (+6 more)
+### Community 133 - "2. User Scenarios & Testing"
+Cohesion: 0.29
+Nodes (7): 2. User Scenarios & Testing, User Story 1 – Đăng nhập đa phương thức & Bắt buộc đổi mật khẩu (Priority: P1), User Story 2 – Cổng xác thực Email OTP (Priority: P1), User Story 3 – Chống chia sẻ tài khoản (Single-Session Enforcement) (Priority: P1), User Story 4 – An toàn giao diện (Global Error Boundary) (Priority: P2), User Story 5 – Bảo mật Header (Vercel Security) (Priority: P2), ResetPasswordPage()
 
 ### Community 134 - "1. Technical Architecture & Design Options"
 Cohesion: 0.33
 Nodes (5): 1. Technical Architecture & Design Options, 2. Implementation Steps, Các Phương Án Thiết Kế Linh Vật (Mascot Design Options), Kỹ Thuật SVG Vector, Technical Implementation Plan: Spec 36 (Logo Linh Vật TQMaster)
 
-### Community 137 - "adminAnalytics.ts"
-Cohesion: 0.15
-Nodes (12): zod, amount, CommerceSummary, count, examSchema, ExamStatistic, ExamStatistics, examStatisticsSchema (+4 more)
+### Community 137 - "input-otp.tsx"
+Cohesion: 0.33
+Nodes (5): input-otp, InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot
 
 ### Community 139 - "compress_question_and_theory_images.mjs"
-Cohesion: 0.20
-Nodes (11): ref_fs, allObjects, checkpoint, CHECKPOINT_PATH, INVENTORY_PATH, KEYS_PATH, processFile(), runPool() (+3 more)
+Cohesion: 0.22
+Nodes (10): allObjects, checkpoint, CHECKPOINT_PATH, INVENTORY_PATH, KEYS_PATH, processFile(), runPool(), saveCheckpoint() (+2 more)
 
-### Community 140 - "20-zip-upload-select-exam-type/spec.md"
-Cohesion: 0.29
-Nodes (6): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Key Entities, Key Files
+### Community 140 - "BulkExamZipModal.tsx"
+Cohesion: 0.18
+Nodes (11): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Key Entities, Key Files, BulkExamZipModal(), BulkExamZipModalProps (+3 more)
 
 ### Community 141 - "README.md"
 Cohesion: 0.13
@@ -734,8 +728,8 @@ Cohesion: 0.18
 Nodes (10): Checklist Format (REQUIRED), Completion Report, Done When, Mandatory Post-Execution Hooks, Outline, Phase Structure, Pre-Execution Checks, Task Generation Rules (+2 more)
 
 ### Community 149 - "AdminDashboard.tsx"
-Cohesion: 0.21
-Nodes (7): recharts, AdminDataState(), QueryState, RevenueTooltip(), RevenueChart, RevFilter, SubjectDonut
+Cohesion: 0.15
+Nodes (9): recharts, @tanstack/react-query, AdminDashboard, RevenueTooltip(), RevenueChart, RevFilter, SubjectDonut, mock (+1 more)
 
 ### Community 150 - "Core Principles"
 Cohesion: 0.18
@@ -766,8 +760,8 @@ Cohesion: 0.22
 Nodes (8): Accessibility & Inclusion, Anti-references, Brand Personality, Design Principles, Product, Product Purpose, Register, Users
 
 ### Community 157 - "16-admin-simulate-student-view/spec.md"
-Cohesion: 0.50
-Nodes (3): 1. Overview, 2. User Scenarios & Testing, 4. Success Criteria
+Cohesion: 0.40
+Nodes (4): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria
 
 ### Community 158 - "2. User Scenarios & Testing"
 Cohesion: 0.15
@@ -785,9 +779,9 @@ Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature)
 Cohesion: 0.25
 Nodes (7): Anti-Examples: What NOT To Do, Checklist Purpose: "Unit Tests for English", Example Checklist Types & Sample Items, Execution Steps, Post-Execution Checks, Pre-Execution Checks, User Input
 
-### Community 164 - "exportQuestions.ts"
-Cohesion: 0.25
-Nodes (8): file-saver, xlsx, ExamRow, exportQuestionsReadable(), OptionRow, QuestionRow, SubjectRow, getExamScore()
+### Community 164 - "tabs.tsx"
+Cohesion: 0.40
+Nodes (4): @radix-ui/react-tabs, TabsContent, TabsList, TabsTrigger
 
 ### Community 166 - "Fix auth callback redirect loop after domain migration"
 Cohesion: 0.18
@@ -797,17 +791,17 @@ Nodes (10): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Succes
 Cohesion: 0.18
 Nodes (10): 1. Overview, 2. User Scenarios, 3. Requirements, 4. Success Criteria, Functional Requirements, Key Entities, Key Files, User Story 1 – Trải nghiệm làm bài thi tập trung (Priority: P1) (+2 more)
 
-### Community 168 - "AdminSettings"
-Cohesion: 0.25
-Nodes (7): 1. Technical Architecture & Approach, 2. Risk Assessment & Mitigation, Part A: Đảm bảo Mặc định 100% Ảnh Tải Mới Luôn Được Nén (Frontend Client-Side Pre-Compression), Part B: Nén Hàng Loạt In-Place 13,164 Ảnh `question-images` & 749 Ảnh `theory-images`, Part C: Cơ Chế Tự Động Dọn Dẹp Bảng `attempt_answers` (Database Purge), Technical Implementation Plan: Spec 35, AdminSettings()
+### Community 168 - "1. Technical Architecture & Approach"
+Cohesion: 0.29
+Nodes (6): 1. Technical Architecture & Approach, 2. Risk Assessment & Mitigation, Part A: Đảm bảo Mặc định 100% Ảnh Tải Mới Luôn Được Nén (Frontend Client-Side Pre-Compression), Part B: Nén Hàng Loạt In-Place 13,164 Ảnh `question-images` & 749 Ảnh `theory-images`, Part C: Cơ Chế Tự Động Dọn Dẹp Bảng `attempt_answers` (Database Purge), Technical Implementation Plan: Spec 35
 
 ### Community 169 - "migrate_and_compress_storage.mjs"
-Cohesion: 0.31
-Nodes (5): exportInventoryAndCleanOldStorage(), INVENTORY_PATH, linkOldProject(), runOldQueryJson(), runOldSqlFile()
+Cohesion: 0.27
+Nodes (6): ref_node_child_process, exportInventoryAndCleanOldStorage(), INVENTORY_PATH, linkOldProject(), runOldQueryJson(), runOldSqlFile()
 
-### Community 170 - "AdminSettings.tsx"
-Cohesion: 0.20
-Nodes (8): AdminSettings, AdminDeviceCard(), DeviceRow, BrandLoaderProps, DEFAULT_MESSAGES, inputStyle, KEYS, SettingKey
+### Community 170 - "ProtectedRoute"
+Cohesion: 0.40
+Nodes (5): Key Files, Risk & Mitigation, User Story 1 – Cấu hình tài khoản ngân hàng & Tự động tạo VietQR (Priority: P1), ProtectedRoute(), upsert()
 
 ### Community 171 - "speckit.clarify.agent.md"
 Cohesion: 0.29
@@ -818,8 +812,8 @@ Cohesion: 0.29
 Nodes (6): Completion Report, Done When, Mandatory Post-Execution Hooks, Outline, Pre-Execution Checks, User Input
 
 ### Community 173 - "1. Phân tích hiện trạng và thay đổi cần thực hiện"
-Cohesion: 0.50
-Nodes (3): 1. Phân tích hiện trạng và thay đổi cần thực hiện, B. Kiểm thử và xác nhận:, Technical Implementation Plan
+Cohesion: 0.40
+Nodes (4): 1. Phân tích hiện trạng và thay đổi cần thực hiện, A. Trong `src/lib/wordParser.ts`:, B. Kiểm thử và xác nhận:, Technical Implementation Plan
 
 ### Community 174 - "Coding Agent Context Extension"
 Cohesion: 0.29
@@ -886,8 +880,8 @@ Cohesion: 0.40
 Nodes (4): Outline, Post-Execution Checks, Pre-Execution Checks, User Input
 
 ### Community 190 - "AdminSidebar"
-Cohesion: 0.25
-Nodes (8): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Key Entities, Key Files, Remove Admin Backup & Restore Feature, AdminSidebar()
+Cohesion: 0.22
+Nodes (9): 1. Overview, 2. User Scenarios & Testing, 3. Requirements, 4. Success Criteria, Key Entities, Key Files, Remove Admin Backup & Restore Feature, US-002: Đồng bộ Logo Linh vật trên Admin Sidebar (+1 more)
 
 ### Community 191 - "Project Constitution (SDD)"
 Cohesion: 0.40
@@ -937,9 +931,9 @@ Nodes (3): Behavior, Execution, Update Coding Agent Context
 Cohesion: 0.33
 Nodes (5): 1. SDD Workflow: "Spec First — Có Spec mới được Code", 2. Fast Code Exploration via CodeGraph & Graphify, 3. Automated Dual-Repo Git Push, 4. UI & Technology Stack Rules, Gemini Agent Instructions
 
-### Community 204 - "imageUpload.ts"
-Cohesion: 0.13
-Nodes (20): 1.3 WebP Compression & 1-Year Cache-Control (`src/lib/imageUpload.ts`, `src/lib/peZipExtractor.ts`), Tasks: Optimize Storage Size and Egress Quota, 1. Kiến trúc Giải pháp, Implementation Plan: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32), Tasks: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32), 3. Functional Requirements, Scenario 1: Mặc định tự động nén mọi ảnh mới tải lên (Default Auto-Compression), FileUploader() (+12 more)
+### Community 204 - "Kế hoạch triển khai Kỹ thuật: Product Interface Redesign"
+Cohesion: 0.50
+Nodes (3): 1. Kiến trúc UI & Design System, 2. Các bước triển khai (Implementation Steps), Kế hoạch triển khai Kỹ thuật: Product Interface Redesign
 
 ### Community 207 - "Feature Specification: Đẩy Tài Liệu PE PRO192 Lên Google Drive & Tích Hợp Web (Spec 41)"
 Cohesion: 0.22
@@ -953,13 +947,13 @@ Nodes (8): @radix-ui/react-navigation-menu, NavigationMenu, NavigationMenuConten
 Cohesion: 0.50
 Nodes (3): Checks, Implemented behavior, Validation
 
-### Community 212 - "types.ts"
-Cohesion: 0.22
-Nodes (8): CompositeTypes, Constants, DatabaseWithoutInternals, DefaultSchema, Enums, Json, TablesInsert, TablesUpdate
+### Community 212 - "3. Requirements"
+Cohesion: 0.50
+Nodes (4): 3. Requirements, Functional Requirements, Key Entities, Key Files
 
 ### Community 213 - "readAllRows.ts"
-Cohesion: 0.36
-Nodes (6): cursorFilter(), KeyValue, literal(), PageResult, readAllRows(), Row
+Cohesion: 0.38
+Nodes (5): cursorFilter(), KeyValue, literal(), PageResult, Row
 
 ### Community 214 - "adminAnalytics.sql.test.ts"
 Cohesion: 0.29
@@ -973,21 +967,17 @@ Nodes (5): ref_node_path, sharp, BUCKET_CONFIGS, INVENTORY_PATH, migrateObjectsI
 Cohesion: 0.48
 Nodes (6): client, downloadFileWithRetry(), getSafeFileName(), OUTPUT_DIR, run(), sanitizeName()
 
-### Community 217 - "SubjectAccessBoundary.tsx"
-Cohesion: 0.38
-Nodes (4): Props, RetryNotice(), SubjectAccessBoundary(), access
-
 ### Community 218 - "clone_all_storage_to_backup_db.mjs"
-Cohesion: 0.53
-Nodes (5): ref_node_child_process, getAllStorageObjectsFromOldDb(), main(), transferSingleFile(), updateNewDatabaseUrls()
+Cohesion: 0.70
+Nodes (4): getAllStorageObjectsFromOldDb(), main(), transferSingleFile(), updateNewDatabaseUrls()
 
 ### Community 219 - "Spec 38: App Android Riêng Cho Admin (Single-Admin, Single-Device) – Thông Báo Đơn Hàng"
-Cohesion: 0.12
-Nodes (14): 1. Overview, 2. Mô hình bảo mật "Chỉ admin – Chỉ máy của tôi" (nhiều lớp), 3. User Scenarios (Given-When-Then), 4. Functional Requirements, 5. Yêu Cầu Giao Diện (UI/UX – "đẹp chuẩn chỉnh"), 6. Key Entities / Key Files, 7. Cần từ bạn, 8. Success Criteria (+6 more)
+Cohesion: 0.18
+Nodes (10): 1. Overview, 2. Mô hình bảo mật "Chỉ admin – Chỉ máy của tôi" (nhiều lớp), 3. User Scenarios (Given-When-Then), 4. Functional Requirements, 5. Yêu Cầu Giao Diện (UI/UX – "đẹp chuẩn chỉnh"), 6. Key Entities / Key Files, 7. Cần từ bạn, 8. Success Criteria (+2 more)
 
 ### Community 220 - "AdminApp.tsx"
-Cohesion: 0.14
-Nodes (18): @capacitor/preferences, src_app_admin_admin_app, Gate(), Shell(), Tab, DENIAL_COPY, DeniedScreen(), ErrorScreen() (+10 more)
+Cohesion: 0.06
+Nodes (57): @aparajita/capacitor-biometric-auth, @capacitor/app, @capacitor-community/text-to-speech, @capacitor/core, @capacitor/device, @capacitor/haptics, @capacitor/push-notifications, @capacitor/splash-screen (+49 more)
 
 ### Community 221 - "Hướng dẫn app TQMaster Admin (Android, dùng riêng)"
 Cohesion: 0.25
@@ -997,17 +987,13 @@ Nodes (7): 1. Cài file APK lên điện thoại của bạn, 2. Thiết lập t
 Cohesion: 0.40
 Nodes (3): ref_path, vite, @vitejs/plugin-react-swc
 
-### Community 223 - "ref_node_fs"
-Cohesion: 0.50
-Nodes (4): ref_node_fs, client, listAllFiles(), run()
+### Community 223 - "@supabase/supabase-js"
+Cohesion: 0.29
+Nodes (6): ref_node_fs, @supabase/supabase-js, client, listAllFiles(), run(), supabase
 
-### Community 224 - "AdminDashboard.test.tsx"
-Cohesion: 0.40
-Nodes (3): @tanstack/react-query, mock, summary
-
-### Community 229 - "Feature Specification: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32)"
-Cohesion: 0.11
-Nodes (16): 1. Kiến trúc UI & Design System, 2. Các bước triển khai (Implementation Steps), Kế hoạch triển khai Kỹ thuật: Product Interface Redesign, Functional Requirements, Danh sách công việc (Tasks), 1. Overview & Problem Statement, 2. User Scenarios & Acceptance Criteria (Given-When-Then), 3. Functional Requirements (+8 more)
+### Community 229 - "HomePage"
+Cohesion: 0.22
+Nodes (10): 1. Overview & Problem Statement, 2. User Scenarios & Acceptance Criteria (Given-When-Then), 3. Functional Requirements, 4. Key Entities & Key Files, 5. Success Criteria, Feature Specification: Toàn diện Nén Ảnh WebP, Fallback Ảnh Lỗi & Công cụ Di trú Storage (Spec 32), Scenario 1: Tự động nén mọi ảnh upload qua Admin & Giỏ hàng sang WebP siêu nhẹ, Scenario 2: Tự động hiển thị Banner đẹp khi URL ảnh bị lỗi (Fallback Graceful Degradation) (+2 more)
 
 ### Community 232 - "Plan 39: Bảng Điều Khiển Di Động Đẳng Cấp (Admin Mobile Premium Dashboard)"
 Cohesion: 0.40
@@ -1030,17 +1016,17 @@ Cohesion: 0.11
 Nodes (26): @radix-ui/react-toast, Toast, ToastAction, ToastActionElement, ToastClose, ToastDescription, ToastProps, src_components_ui_toast_toastprovider (+18 more)
 
 ### Community 280 - "FptCampusScene.tsx"
-Cohesion: 0.12
-Nodes (16): @react-three/drei, AlphaBuilding(), AlphaBuildingProps, CampusSky(), CampusSkyProps, TimeOfDay, FptCampusSceneProps, SceneContentProps (+8 more)
+Cohesion: 0.07
+Nodes (24): @react-three/drei, @react-three/fiber, three, AlphaBuilding(), AlphaBuildingProps, CampusGround(), CampusSky(), CampusSkyProps (+16 more)
 
 ### Community 283 - "export_and_migrate_db.mjs"
-Cohesion: 0.26
-Nodes (12): ref_child_process, buildInsertStatements(), colTypesMap, execNewDb(), formatCellValue(), loadAndSyncColumnTypes(), main(), OUT_DIR (+4 more)
+Cohesion: 0.23
+Nodes (13): ref_child_process, ref_fs, buildInsertStatements(), colTypesMap, execNewDb(), formatCellValue(), loadAndSyncColumnTypes(), main() (+5 more)
 
 ## Knowledge Gaps
-- **1114 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `config`, `$schema`, `style` (+1109 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1429 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **75 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1126 isolated node(s):** `update-agent-context.sh script`, `git-common.sh script`, `config`, `$schema`, `style` (+1121 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1444 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **76 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Work-memory lessons
 
@@ -1051,17 +1037,17 @@ Nodes (12): ref_child_process, buildInsertStatements(), colTypesMap, execNewDb()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `form.tsx`, `App.tsx`, `AdminTheory.tsx`, `three`, `useAdminGate.ts`, `utils.ts`, `AdminSubjects.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `command.tsx`, `cn`, `LandingPage.tsx`, `AdminDashboard.tsx`, `BrandLoader`, `FptCampusScene.tsx`, `chart.tsx`, `sidebar.tsx`, `carousel.tsx`, `class-variance-authority`, `AdminExamStats.tsx`, `package.json`, `HeroSection.tsx`, `AdminSettings.tsx`, `client.ts`, `KnowledgeNetworkScene.tsx`, `documentDownload.ts`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeCoreScene.tsx`, `subjectClassification.ts`, `breadcrumb.tsx`, `AppContext.tsx`, `SubjectDetailPage.tsx`, `imageUpload.ts`, `AdminCoupons.tsx`, `navigation-menu.tsx`, `vitest`, `SubjectDetailPage.test.tsx`, `AuthPage.tsx`, `orderAlert.ts`, `SubjectAccessBoundary.tsx`, `Spec 38: App Android Riêng Cho Admin (Single-Admin, Single-Device) – Thông Báo Đơn Hàng`, `AdminApp.tsx`, `HomePage.tsx`, `AdminDashboard.test.tsx`, `FptPanoViewer.tsx`, `AdminExams.tsx`, `accordion.tsx`, `sheet.tsx`, `AdminReviews.tsx`, `RichContent.tsx`, `signStorageUrls`, `AdminOrders.tsx`, `CampusGround.tsx`, `CenterFocalPoint.tsx`?**
-  _High betweenness centrality (0.140) - this node is a cross-community bridge._
-- **Why does `lucide-react` connect `react` to `App.tsx`, `AdminTheory.tsx`, `utils.ts`, `AdminSubjects.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `command.tsx`, `cn`, `LandingPage.tsx`, `AdminDashboard.tsx`, `FptCampusScene.tsx`, `sidebar.tsx`, `carousel.tsx`, `AdminExamStats.tsx`, `package.json`, `HeroSection.tsx`, `AdminSettings.tsx`, `client.ts`, `OrderScreens.tsx`, `ExamPage.tsx`, `subjectClassification.ts`, `breadcrumb.tsx`, `AppContext.tsx`, `SubjectDetailPage.tsx`, `imageUpload.ts`, `AdminCoupons.tsx`, `navigation-menu.tsx`, `AuthPage.tsx`, `Spec 38: App Android Riêng Cho Admin (Single-Admin, Single-Device) – Thông Báo Đơn Hàng`, `AdminApp.tsx`, `HomePage.tsx`, `FptPanoViewer.tsx`, `AdminExams.tsx`, `accordion.tsx`, `sheet.tsx`, `AdminReviews.tsx`, `signStorageUrls`, `AdminOrders.tsx`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
-- **Why does `cn()` connect `cn` to `carousel.tsx`, `class-variance-authority`, `form.tsx`, `accordion.tsx`, `breadcrumb.tsx`, `package.json`, `utils.ts`, `sheet.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `command.tsx`, `navigation-menu.tsx`, `chart.tsx`, `sidebar.tsx`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `form.tsx`, `App.tsx`, `AdminTheory.tsx`, `AmbientBackgroundCore.tsx`, `utils.ts`, `HomePage.tsx`, `input-otp.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `BulkExamZipModal.tsx`, `command.tsx`, `cn`, `LandingPage.tsx`, `AdminDashboard.tsx`, `FptCampusScene.tsx`, `chart.tsx`, `sidebar.tsx`, `carousel.tsx`, `class-variance-authority`, `AdminExamStats.tsx`, `tabs.tsx`, `package.json`, `FptPanoViewer.tsx`, `AdminUsers.tsx`, `KnowledgeNetworkScene.tsx`, `documentDownload.ts`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeCoreScene.tsx`, `subjectClassification.ts`, `drawer.tsx`, `SubjectDetailPage.tsx`, `client.ts`, `navigation-menu.tsx`, `SubjectDetailPage.test.tsx`, `AuthPage.tsx`, `AdminApp.tsx`, `MobileRevenueChart.tsx`, `sheet.tsx`, `AdminReviews.tsx`, `RichContent.tsx`, `signStorageUrls`, `AdminOrders.tsx`?**
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
+- **Why does `lucide-react` connect `react` to `App.tsx`, `AdminTheory.tsx`, `AmbientBackgroundCore.tsx`, `utils.ts`, `HomePage.tsx`, `input-otp.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `BulkExamZipModal.tsx`, `command.tsx`, `cn`, `LandingPage.tsx`, `AdminDashboard.tsx`, `FptCampusScene.tsx`, `sidebar.tsx`, `carousel.tsx`, `AdminExamStats.tsx`, `package.json`, `FptPanoViewer.tsx`, `AdminUsers.tsx`, `KnowledgeNetworkScene.tsx`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeCoreScene.tsx`, `subjectClassification.ts`, `SubjectDetailPage.tsx`, `client.ts`, `navigation-menu.tsx`, `AuthPage.tsx`, `AdminApp.tsx`, `MobileRevenueChart.tsx`, `sheet.tsx`, `AdminReviews.tsx`, `signStorageUrls`, `AdminOrders.tsx`?**
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+- **Why does `cn()` connect `cn` to `carousel.tsx`, `class-variance-authority`, `form.tsx`, `tabs.tsx`, `package.json`, `utils.ts`, `drawer.tsx`, `input-otp.tsx`, `pagination.tsx`, `sheet.tsx`, `command.tsx`, `hooks/use-toast.ts`, `navigation-menu.tsx`, `chart.tsx`, `sidebar.tsx`?**
+  _High betweenness centrality (0.026) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useApp()` (e.g. with `Bước 3: Áp dụng liên kết động vào Giao diện (UI)` and `Tasks: Admin Simulate Student View`) actually correct?**
   _`useApp()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `update-agent-context.sh script`, `git-common.sh script`, `config` to the rest of the system?**
-  _1114 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1126 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `App.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.08253968253968254 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0523532522474881 - nodes in this community are weakly interconnected._
 - **Should `AdminTheory.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.13768115942028986 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06857142857142857 - nodes in this community are weakly interconnected._

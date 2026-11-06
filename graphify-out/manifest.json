@@ -3333,9 +3333,27 @@
     "semantic_hash": ""
   },
   ".sdd/specs/41-upload-pro192-pe-to-gdrive/tasks.md": {
-    "mtime": 1793816762.4234295,
-    "seen": 1793816820.390754,
-    "ast_hash": "991f5777814a328c8d5f47d88b0ba6d1",
+    "mtime": 1793816829.3628423,
+    "seen": 1793984174.7910216,
+    "ast_hash": "b0f96bfc5b3075fcef95938de41a4595",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/42-optimize-database-disk-io-and-bloat/plan.md": {
+    "mtime": 1793980289.2670732,
+    "seen": 1793984174.791026,
+    "ast_hash": "206532fddf9644c372de34079033e196",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/42-optimize-database-disk-io-and-bloat/spec.md": {
+    "mtime": 1793984141.4460201,
+    "seen": 1793984174.7910285,
+    "ast_hash": "1edf209a231949970a721328f975446d",
+    "semantic_hash": ""
+  },
+  ".sdd/specs/42-optimize-database-disk-io-and-bloat/tasks.md": {
+    "mtime": 1793984136.2632399,
+    "seen": 1793984174.7910302,
+    "ast_hash": "6688dd74c63e844f42398e1c124e0254",
     "semantic_hash": ""
   }
 }
