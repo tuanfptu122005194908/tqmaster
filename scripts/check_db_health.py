@@ -1,6 +1,7 @@
 import subprocess
 import json
 import sys
+import os
 
 # Đảm bảo in UTF-8 không lỗi trên mọi terminal Windows / Git Bash
 if hasattr(sys.stdout, 'reconfigure'):
@@ -8,17 +9,44 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-def run_cmd(cmd_list):
+DEBUG = os.environ.get('DB_CHECK_DEBUG', '').lower() in ('1', 'true', 'yes')
+
+def run_cmd(cmd):
+    """
+    Chạy lệnh shell, trả về stdout dạng string.
+    - Dùng bytes + decode thủ công để tránh lỗi encoding trên Windows/Git Bash.
+    - stderr tách riêng (không lẫn vào stdout).
+    - Chấp nhận cả list và string làm cmd.
+    """
     try:
+        if isinstance(cmd, list):
+            # Trên Windows/Git Bash, shell=True + list bị wrapped sai; dùng string
+            cmd_str = ' '.join(cmd)
+        else:
+            cmd_str = cmd
+
         proc = subprocess.run(
-            cmd_list,
-            capture_output=True,
-            encoding='utf-8',
-            errors='replace',
+            cmd_str,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             shell=True
         )
-        return (proc.stdout or '').strip()
+        raw_out = proc.stdout or b''
+        raw_err = proc.stderr or b''
+
+        out = raw_out.decode('utf-8', errors='replace').strip()
+        err = raw_err.decode('utf-8', errors='replace').strip()
+
+        if DEBUG:
+            print(f"[DEBUG CMD]: {cmd_str}", file=sys.stderr)
+            print(f"[DEBUG STDOUT]: {repr(out[:300])}", file=sys.stderr)
+            if err:
+                print(f"[DEBUG STDERR]: {repr(err[:300])}", file=sys.stderr)
+
+        return out
     except Exception as e:
+        if DEBUG:
+            print(f"[DEBUG ERROR]: {e}", file=sys.stderr)
         return ''
 
 def extract_json(raw_text):
@@ -54,7 +82,7 @@ def print_header(title):
 
 def check_cron_jobs():
     print_header("1. CÁC TÁC VỤ TỰ ĐỘNG CHẠY NGẦM (PG_CRON JOBS)")
-    out = run_cmd(['npx', 'supabase', 'db', 'query', '--remote', '--read-only', 'SELECT jobid, jobname, schedule, active, command FROM cron.job ORDER BY jobid;'])
+    out = run_cmd('npx supabase db query --remote --read-only "SELECT jobid, jobname, schedule, active, command FROM cron.job ORDER BY jobid;"')
     data = extract_json(out)
     if not data or not isinstance(data, dict):
         print("   ℹ️ Không đọc được danh sách cron job hoặc không có tác vụ nào.")
@@ -73,7 +101,7 @@ def check_cron_jobs():
 
 def check_table_bloat():
     print_header("2. ĐỘ PHÌNH RÁC DỮ LIỆU (TABLE & INDEX BLOAT)")
-    out = run_cmd(['npx', 'supabase', 'inspect', 'db', 'bloat', '--remote'])
+    out = run_cmd('npx supabase inspect db bloat --remote')
     data = extract_json(out)
     rows = []
     if isinstance(data, dict):
@@ -91,7 +119,7 @@ def check_table_bloat():
 
 def check_heavy_queries():
     print_header("3. TOP TRUY VẤN NẶNG NHẤT (QUERY OUTLIERS)")
-    out = run_cmd(['npx', 'supabase', 'inspect', 'db', 'outliers', '--remote'])
+    out = run_cmd('npx supabase inspect db outliers --remote')
     data = extract_json(out)
     rows = []
     if isinstance(data, dict):
