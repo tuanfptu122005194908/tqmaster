@@ -18,6 +18,18 @@ function isGoogleDrive(url?: string | null): boolean {
   if (!url) return false;
   return /drive\.google\.com|docs\.google\.com/i.test(url);
 }
+
+const CAMPUS_CONFIG: Record<string, { label: string; shortLabel: string; bg: string; color: string; border: string }> = {
+  HaNoi:   { label: 'Cơ sở Hà Nội',       shortLabel: 'Hà Nội',      bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  HCM:     { label: 'Cơ sở TP.HCM',       shortLabel: 'TP.HCM',      bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  CanTho:  { label: 'Cơ sở Cần Thơ',      shortLabel: 'Cần Thơ',     bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  DaNang:  { label: 'Cơ sở Đà Nẵng',      shortLabel: 'Đà Nẵng',     bg: '#faf5ff', color: '#7c3aed', border: '#ddd6fe' },
+  QuyNhon: { label: 'Cơ sở Quy Nhơn',     shortLabel: 'Quy Nhơn',    bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+};
+
+function getCampusBadge(campus?: string | null) {
+  return CAMPUS_CONFIG[campus || 'HaNoi'] || CAMPUS_CONFIG['HaNoi'];
+}
 import { ProductReviews } from '@/components/ProductReviews';
 type Tab = SubjectTab;
 
@@ -37,6 +49,7 @@ function SubjectDetailContent() {
   } = useApp();
 
   const [activeTab,      setActiveTab]      = useState<Tab>('exams');
+  const [peCampusFilter, setPeCampusFilter] = useState<string>('all');
   const purchased = !!selectedSubjectId && isPurchased(selectedSubjectId);
   const content = useSubjectContent(selectedSubjectId, activeTab, {
     userId: profile?.id ?? null, isAdmin, accessRevision: purchasedRevision, canRead: purchased,
@@ -231,7 +244,13 @@ function SubjectDetailContent() {
     </div>
   );
 
-  const renderPeDocs = (list: any[]) => (
+  const renderPeDocs = (list: any[]) => {
+    const campusesPresent = Array.from(new Set(list.map(i => i.campus || 'HaNoi')));
+    const filteredList = peCampusFilter === 'all'
+      ? list
+      : list.filter(i => (i.campus || 'HaNoi') === peCampusFilter);
+
+    return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
       {!purchased && (
         <div className="empty-state">
@@ -245,7 +264,45 @@ function SubjectDetailContent() {
           <p>Chưa có tài liệu PE / Video nào</p>
         </div>
       )}
-      {purchased && list.map(item => {
+      {purchased && list.length > 0 && campusesPresent.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+          <button
+            onClick={() => setPeCampusFilter('all')}
+            style={{
+              padding: '6px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 800,
+              border: peCampusFilter === 'all' ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+              background: peCampusFilter === 'all' ? '#2563eb' : '#ffffff',
+              color: peCampusFilter === 'all' ? '#ffffff' : '#475569',
+              cursor: 'pointer', transition: 'all 0.15s ease'
+            }}
+          >
+            Tất cả cơ sở ({list.length})
+          </button>
+          {campusesPresent.map(cKey => {
+            const cfg = getCampusBadge(cKey);
+            const count = list.filter(i => (i.campus || 'HaNoi') === cKey).length;
+            const active = peCampusFilter === cKey;
+            return (
+              <button
+                key={cKey}
+                onClick={() => setPeCampusFilter(cKey)}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 800,
+                  border: active ? `1.5px solid ${cfg.color}` : '1px solid #cbd5e1',
+                  background: active ? cfg.bg : '#ffffff',
+                  color: active ? cfg.color : '#475569',
+                  cursor: 'pointer', transition: 'all 0.15s ease',
+                  display: 'inline-flex', alignItems: 'center', gap: 6
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.color }} />
+                {cfg.shortLabel} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {purchased && filteredList.map(item => {
         const hasImages = item.preview_images && item.preview_images.length > 0;
 
         return (
@@ -285,6 +342,27 @@ function SubjectDetailContent() {
                     }}>
                       {item.title}
                     </h3>
+                    {(() => {
+                      const campusInfo = getCampusBadge(item.campus);
+                      return (
+                        <span style={{
+                          background: campusInfo.bg,
+                          color: campusInfo.color,
+                          border: `1.5px solid ${campusInfo.border}`,
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: 9999,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 5,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                        }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: campusInfo.color }} />
+                          {campusInfo.label}
+                        </span>
+                      );
+                    })()}
                     {hasImages && (
                       <span style={{
                         background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0',
@@ -400,6 +478,7 @@ function SubjectDetailContent() {
       })}
     </div>
   );
+  };
 
   const feExams = exams.filter(e => e.exam_type !== 'PT');
   const ptExams = exams.filter(e => e.exam_type === 'PT');

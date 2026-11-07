@@ -1059,6 +1059,7 @@ export type Database = {
       }
       theories: {
         Row: {
+          campus: string
           category: string
           created_at: string
           created_by: string | null
@@ -1072,6 +1073,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          campus?: string
           category?: string
           created_at?: string
           created_by?: string | null
@@ -1085,6 +1087,7 @@ export type Database = {
           url: string
         }
         Update: {
+          campus?: string
           category?: string
           created_at?: string
           created_by?: string | null

@@ -67,6 +67,18 @@ const TypeIcon = ({ type }: { type: string }) => {
 };
 
 type Category = 'theory' | 'pe';
+type Campus   = 'HaNoi' | 'HCM' | 'CanTho' | 'DaNang' | 'QuyNhon';
+
+const CAMPUS_OPTS: Array<{ value: Campus; label: string; bg: string; color: string; border: string }> = [
+  { value: 'HaNoi',   label: 'Hà Nội',           bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  { value: 'HCM',     label: 'TP. Hồ Chí Minh',  bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  { value: 'CanTho',  label: 'Cần Thơ',           bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  { value: 'DaNang',  label: 'Đà Nẵng',           bg: '#faf5ff', color: '#7c3aed', border: '#ddd6fe' },
+  { value: 'QuyNhon', label: 'Quy Nhơn',          bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+];
+
+const getCampusOpt = (campus?: string | null) =>
+  CAMPUS_OPTS.find(c => c.value === campus) ?? CAMPUS_OPTS[0];
 
 type FormState = {
   id?: string;
@@ -76,6 +88,7 @@ type FormState = {
   url: string;
   file_name: string;
   category: Category;
+  campus: Campus;
   subject_ids: string[];
   preview_images: string[];
 };
@@ -87,6 +100,7 @@ const EMPTY_FORM: FormState = {
   url: '',
   file_name: '',
   category: 'theory',
+  campus: 'HaNoi',
   subject_ids: [],
   preview_images: [],
 };
@@ -166,6 +180,7 @@ export default function AdminTheory() {
     setForm({
       ...EMPTY_FORM,
       category: filterCat === 'all' ? 'theory' : filterCat,
+      campus: 'HaNoi',
       preview_images: [],
     });
     setShowForm(true);
@@ -181,6 +196,7 @@ export default function AdminTheory() {
       url: t.url,
       file_name: t.file_name ?? '',
       category: getCat(t),
+      campus: (t.campus as Campus) || 'HaNoi',
       subject_ids: getSubjectIds(t),
       preview_images: meta.preview_images,
     });
@@ -216,6 +232,7 @@ export default function AdminTheory() {
         url: form.url,
         file_name: form.file_name || null,
         category: form.category,
+        campus: form.category === 'pe' ? form.campus : 'HaNoi',
       } as any).eq('id', theoryId);
       if (error) { toast.error('Lỗi cập nhật: ' + error.message); setSaving(false); return; }
     } else {
@@ -226,6 +243,7 @@ export default function AdminTheory() {
         url: form.url,
         file_name: form.file_name || null,
         category: form.category,
+        campus: form.category === 'pe' ? form.campus : 'HaNoi',
         created_by: profile?.id,
       } as any).select().single();
 
@@ -626,6 +644,20 @@ export default function AdminTheory() {
                         {CAT_LABEL[getCat(t)]}
                       </div>
 
+                      {/* Campus Badge for PE */}
+                      {isPE && (
+                        <div style={{
+                          padding: '5px 12px', borderRadius: 16, fontSize: 11.5, fontWeight: 800,
+                          background: getCampusOpt(t.campus).bg,
+                          color: getCampusOpt(t.campus).color,
+                          border: `1px solid ${getCampusOpt(t.campus).border}`,
+                          display: 'inline-flex', alignItems: 'center', gap: 5
+                        }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: getCampusOpt(t.campus).color }} />
+                          {getCampusOpt(t.campus).label}
+                        </div>
+                      )}
+
                       {/* Extracted Images Badge */}
                       {hasImages && (
                         <div style={{
@@ -858,6 +890,49 @@ export default function AdminTheory() {
                   ))}
                 </div>
               </div>
+
+              {/* Campus Selector for PE Document */}
+              {form.category === 'pe' && (
+                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: 14 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>
+                    Cơ sở (Campus) *
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 }}>
+                    {CAMPUS_OPTS.map(c => {
+                      const active = form.campus === c.value;
+                      return (
+                        <label
+                          key={c.value}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '9px 12px',
+                            borderRadius: 12,
+                            border: active ? `2px solid ${c.color}` : '1.5px solid #cbd5e1',
+                            background: active ? c.bg : '#ffffff',
+                            cursor: 'pointer',
+                            boxShadow: active ? '0 2px 8px rgba(0,0,0,0.04)' : 'none',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="pe_campus_radio"
+                            value={c.value}
+                            checked={active}
+                            onChange={() => setForm(p => ({ ...p, campus: c.value }))}
+                            style={{ accentColor: c.color, width: 15, height: 15, cursor: 'pointer', margin: 0 }}
+                          />
+                          <span style={{ fontSize: 12.5, fontWeight: active ? 800 : 600, color: active ? c.color : '#334155' }}>
+                            {c.label}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Loại tài liệu</label>

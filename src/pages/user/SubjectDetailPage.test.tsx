@@ -145,3 +145,11 @@ it('renders Google Drive button in PE tab for PE items with Google Drive url eve
   expect(gdriveBtns.length).toBeGreaterThanOrEqual(1);
   expect(gdriveBtns.some(b => b.getAttribute('href') === 'https://drive.google.com/drive/folders/pe_drive_id')).toBe(true);
 });
+
+it('displays campus badge on PE document cards with fallback to HaNoi', async () => {
+  render(page());
+  await screen.findByRole('heading', {name: 'Môn học'});
+  fireEvent.click(document.getElementById('tab-pe')!);
+  const campusBadges = await screen.findAllByText('Cơ sở Hà Nội');
+  expect(campusBadges.length).toBeGreaterThanOrEqual(1);
+});

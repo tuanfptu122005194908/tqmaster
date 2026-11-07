@@ -61,3 +61,4 @@ describe('PaginationBar', () => {
     expect(onPageChange).toHaveBeenCalledWith(3);
   });
 });
+

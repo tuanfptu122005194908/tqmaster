@@ -238,3 +238,4 @@ export function PaginationBar({
   );
 }
 export default PaginationBar;
+
