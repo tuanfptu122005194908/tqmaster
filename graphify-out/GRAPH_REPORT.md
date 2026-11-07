@@ -1,7 +1,7 @@
 # Graph Report - smart-curate-learn-main  (2026-11-07)
 
 ## Corpus Check
-- 527 files · ~833,948 words
+- 527 files · ~834,165 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 30 file(s) not represented in the graph (top: .xml 12, (none) 6, .css 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d94244f0`
+- Built from commit: `1ae171f3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1061,7 +1061,7 @@ Nodes (26): ref_child_process, ref_fs, ref_path, vite, @vitejs/plugin-react-swc,
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `react` connect `react` to `form.tsx`, `App.tsx`, `AdminTheory.tsx`, `useAdminGate.ts`, `utils.ts`, `HomePage.tsx`, `accordion.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `command.tsx`, `AdminDashboard.test.tsx`, `cn`, `LandingPage.tsx`, `FptCampusScene.tsx`, `chart.tsx`, `sidebar.tsx`, `carousel.tsx`, `class-variance-authority`, `AdminExamStats.tsx`, `package.json`, `FptPanoViewer.tsx`, `card.tsx`, `client.ts`, `KnowledgeNetworkScene.tsx`, `documentDownload.ts`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeCoreScene.tsx`, `subjectClassification.ts`, `SubjectDetailPage.tsx`, `AdminExams.tsx`, `navigation-menu.tsx`, `input-otp.tsx`, `PaginationBar.tsx`, `AuthPage.tsx`, `SubjectDetailPage.test.tsx`, `tabs.tsx`, `orderAlert.ts`, `AdminApp.tsx`, `AdminDashboard.tsx`, `sheet.tsx`, `AdminReviews.tsx`, `signedImage.ts`, `AdminOrders.tsx`?**
-  _High betweenness centrality (0.156) - this node is a cross-community bridge._
+  _High betweenness centrality (0.155) - this node is a cross-community bridge._
 - **Why does `lucide-react` connect `react` to `App.tsx`, `AdminTheory.tsx`, `utils.ts`, `HomePage.tsx`, `accordion.tsx`, `pagination.tsx`, `hooks/use-toast.ts`, `command.tsx`, `cn`, `LandingPage.tsx`, `FptCampusScene.tsx`, `sidebar.tsx`, `carousel.tsx`, `AdminExamStats.tsx`, `package.json`, `FptPanoViewer.tsx`, `client.ts`, `KnowledgeNetworkScene.tsx`, `OrderScreens.tsx`, `ExamPage.tsx`, `KnowledgeCoreScene.tsx`, `subjectClassification.ts`, `SubjectDetailPage.tsx`, `AdminExams.tsx`, `navigation-menu.tsx`, `input-otp.tsx`, `PaginationBar.tsx`, `AuthPage.tsx`, `AdminApp.tsx`, `AdminDashboard.tsx`, `sheet.tsx`, `AdminReviews.tsx`, `signedImage.ts`, `AdminOrders.tsx`?**
   _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `package.json`?**

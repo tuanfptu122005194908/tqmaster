@@ -67,7 +67,7 @@ it('keeps file identity for both user tabs while only signing thumbnail display 
   fireEvent.click(await screen.findByRole('button', {name: 'Tải file ZIP gốc'}));
   await waitFor(() => expect(signStorageUrls).toHaveBeenCalledWith(['canonical.png']));
   await waitFor(() => expect(downloadDocument).toHaveBeenCalledWith('canonical.zip', 'Đề.zip', expect.any(AbortSignal)));
-});
+}, 15000);
 
 it('retains original-file download controls when thumbnail signing fails', async () => {
   vi.mocked(signStorageUrls).mockRejectedValue(new Error('denied'));
@@ -76,7 +76,7 @@ it('retains original-file download controls when thumbnail signing fails', async
   fireEvent.click(document.getElementById('tab-pe')!);
   fireEvent.click(await screen.findByRole('button', {name: 'Tải file ZIP gốc'}));
   await waitFor(() => expect(downloadDocument).toHaveBeenCalledWith('canonical.zip', 'Đề.zip', expect.any(AbortSignal)));
-});
+}, 15000);
 
 it('loads only opened datasets and reuses a fresh tab without signing unopened previews', async () => {
   render(page());

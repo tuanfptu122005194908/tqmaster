@@ -122,6 +122,7 @@ export default function AdminTheory() {
   const [showForm,    setShowForm]    = useState(false);
   const [filterSubj,  setFilterSubj]  = useState<string>('all');
   const [filterCat,   setFilterCat]   = useState<'all' | Category>('all');
+  const [filterCampus, setFilterCampus] = useState<'all' | Campus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
@@ -161,10 +162,11 @@ export default function AdminTheory() {
   const filtered = theories.filter(t => {
     const matchSubj = filterSubj === 'all' || getSubjectIds(t).includes(filterSubj);
     const matchCat  = filterCat === 'all' || getCat(t) === filterCat;
+    const matchCampus = filterCat !== 'pe' || filterCampus === 'all' || (t.campus || 'HaNoi') === filterCampus;
     const q = searchQuery.toLowerCase();
     const meta = parseTheoryDescription(t.description);
     const matchQ = !q || t.title.toLowerCase().includes(q) || meta.description.toLowerCase().includes(q);
-    return matchSubj && matchCat && matchQ;
+    return matchSubj && matchCat && matchCampus && matchQ;
   });
 
   // Calculate how many PE zip items haven't been extracted yet
@@ -518,6 +520,48 @@ export default function AdminTheory() {
           );
         })}
       </div>
+
+      {/* Campus Filter Pills when PE category is selected */}
+      {filterCat === 'pe' && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginRight: 4 }}>
+            Cơ sở:
+          </span>
+          <button
+            onClick={() => setFilterCampus('all')}
+            style={{
+              padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
+              border: filterCampus === 'all' ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+              background: filterCampus === 'all' ? '#2563eb' : '#ffffff',
+              color: filterCampus === 'all' ? '#ffffff' : '#475569',
+              fontSize: 12.5, fontWeight: 800,
+            }}
+          >
+            Tất cả cơ sở ({theories.filter(t => getCat(t) === 'pe').length})
+          </button>
+          {CAMPUS_OPTS.map(c => {
+            const count = theories.filter(t => getCat(t) === 'pe' && (t.campus || 'HaNoi') === c.value).length;
+            const active = filterCampus === c.value;
+            return (
+              <button
+                key={c.value}
+                onClick={() => setFilterCampus(c.value)}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, cursor: 'pointer',
+                  border: active ? `1.5px solid ${c.color}` : '1px solid #cbd5e1',
+                  background: active ? c.bg : '#ffffff',
+                  color: active ? c.color : '#475569',
+                  fontSize: 12.5, fontWeight: 800,
+                  display: 'inline-flex', alignItems: 'center', gap: 6
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.color }} />
+                {c.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filter Tabs & Search Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>

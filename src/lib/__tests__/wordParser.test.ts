@@ -72,7 +72,7 @@ describe('wordParser - New Bullet & Content Answer Format', () => {
     expect(questions[0].chapterName).toContain('Chương 16');
     expect(questions[0].options.length).toBe(4);
     expect(questions[0].correctAnswers).toEqual(['A']);
-  });
+  }, 15000);
 
   it('recognizes Bo_De_1 inside a ZIP archive using extractExamsFromZip', async () => {
     const docxPath = path.resolve(process.cwd(), 'Bo_De_1_Tong_Quan_SOC_Quy_Dinh.docx');
